@@ -1,0 +1,2 @@
+def shutdown():
+   raise KeyboardInterrupt

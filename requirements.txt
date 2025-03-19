@@ -1,0 +1,7 @@
+requests
+ping3
+psutil
+rich
+yaspin
+prompt_toolkit 
+pygments
