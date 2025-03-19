@@ -8,6 +8,7 @@ source.main = installer/run.py  # Path to your main script
 # (2) Source Files
 source.include_exts = py
 source.include_patterns = installer/*
+source.dir = installer
 
 # (3) Version & Build
 version = 1.0
