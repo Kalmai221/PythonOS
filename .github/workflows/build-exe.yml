@@ -1,103 +1,90 @@
-name: Build PythonOS
+name: Build Executables
 
 on:
   push:
     branches:
-      - main  # Runs on pushes to the main branch
+      - main
   pull_request:
 
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.9'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r installer-requirements.txt  # Install dependencies
+          pip install -r installer-requirements.txt
           pip install pyinstaller
 
-      - name: Build Windows EXE
+      - name: Build Windows Executable
         run: |
-          pyinstaller installer/run.py  # Build EXE
+          pyinstaller --onefile --name app_windows.exe installer/run.py
 
-      - name: Upload Windows EXE
-        uses: actions/upload-artifact@v4
+      - name: Upload Windows Executable
+        uses: actions/upload-artifact@v3
         with:
-          name: PythonOS-Windows
-          path: dist/run.exe  # Upload EXE
+          name: windows-exe
+          path: dist/app_windows.exe
 
   build-linux:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: |
-          sudo apt update && sudo apt install -y python3 python3-pip python3-setuptools
-          pip3 install --upgrade pip
-          pip3 install -r installer-requirements.txt
-          pip3 install pyinstaller
-
-      - name: Build Linux AppImage
-        run: |
-          pyinstaller --onefile --noconsole --name=PythonOS installer/run.py
-          mkdir -p AppDir/usr/bin
-          mv dist/PythonOS AppDir/usr/bin/
-          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ./appimagetool AppDir PythonOS.AppImage
-
-      - name: Upload Linux AppImage
-        uses: actions/upload-artifact@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          name: PythonOS-Linux
-          path: PythonOS.AppImage  # Upload AppImage
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r installer-requirements.txt
+          pip install pyinstaller
+
+      - name: Build Linux Executable
+        run: |
+          pyinstaller --onefile --name app_linux installer/run.py
+
+      - name: Upload Linux Executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-app
+          path: dist/app_linux
 
   build-android:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up Buildozer
+      - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip build-essential git
-          pip3 install buildozer
-          sudo apt install -y openjdk-17-jdk
+          sudo apt install -y python3-pip openjdk-11-jdk
+          pip install buildozer cython virtualenv
 
-      - name: Configure Buildozer for PythonOS
+      - name: Initialize Buildozer
         run: |
-          buildozer init  # Create buildozer.spec if not exists
-          sed -i 's/^source.include_exts = .*/source.include_exts = py,kv,txt,ico,so,png,log/' buildozer.spec
-          sed -i 's|^source.dir = .*$|source.dir = installer|' buildozer.spec
-          sed -i 's/^package.name = .*/package.name = PythonOS/' buildozer.spec
-          sed -i 's|^source.include_exts = .*$|source.include_exts = py,kv,txt,log,so,ico,png|' buildozer.spec
-          sed -i 's/^title = .*/title = PythonOS/' buildozer.spec
-          sed -i 's/^package.domain = .*/package.domain = org.pythonos/' buildozer.spec
-          sed -i 's/^package.namespace = .*/package.namespace = pythonos/' buildozer.spec
-          sed -i 's|^source.exclude_dirs = .*$|source.exclude_dirs = __pycache__,tests,docs|' buildozer.spec
-          sed -i 's/^source.include_patterns = .*/source.include_patterns = installer\/run.py/' buildozer.spec
-          sed -i 's|^main.py = .*$|main.py = installer/run.py|' buildozer.spec
+          buildozer init
+          sed -i 's|source.include_exts = .*|source.include_exts = py|' buildozer.spec
+          sed -i 's|source.include_patterns = .*|source.include_patterns = installer/*|' buildozer.spec
+          sed -i 's|source.main = main.py|source.main = installer/run.py|' buildozer.spec
+          sed -i 's|requirements = python3|requirements = python3,'"$(tr '\n' ',' < installer-requirements.txt)"'|' buildozer.spec
 
-      - name: Build Android APK
+      - name: Build APK
         run: |
-          buildozer -v android debug  # Build APK
+          buildozer -v android debug
 
       - name: Upload Android APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: PythonOS-Android
-          path: bin/*.apk  # Upload APK
+          name: android-apk
+          path: bin/*.apk
