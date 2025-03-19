@@ -75,7 +75,7 @@ jobs:
           sudo apt update
           sudo apt install -y zip unzip libncurses-dev libtinfo-dev
           pip install --upgrade pip
-          pip install cython buildozer aidl
+          pip install cython buildozer
   
       - name: Install Android SDK and Accept Licenses
         run: |
@@ -89,6 +89,20 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-31"
   
+      - name: Verify AIDL Installation
+        run: |
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
+          if ! command -v aidl &> /dev/null; then
+            echo "AIDL is missing! Checking build-tools..."
+            ls $ANDROID_HOME/build-tools/
+            echo "Checking for aidl in build-tools..."
+            find $ANDROID_HOME/build-tools -name "aidl"
+            exit 1
+          else
+            echo "AIDL found!"
+          fi
+      
       - name: Install Python dependencies
         run: |
           pip install -r installer-requirements.txt

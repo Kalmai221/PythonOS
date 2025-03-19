@@ -10,11 +10,51 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from yaspin import yaspin
 import platform
+import subprocess
 
 REPO_ZIP_URL = "https://github.com/Kalmai221/PythonOS/archive/refs/heads/main.zip"
 INSTALL_DIR = os.path.join(os.getcwd(), "PythonOS")
 INSTALLER_DIR = os.path.join(INSTALL_DIR, "installer")
+PYTHON_DOWNLOAD_URL = "https://www.python.org/ftp/python/3.11.1/python-3.11.1-amd64.exe"
 console = Console()
+
+def is_python_installed():
+    """Check if Python is installed."""
+    try:
+        subprocess.run(["python", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except FileNotFoundError:
+        return False
+
+def install_python():
+    """Download and install Python if missing."""
+    system = platform.system()
+
+    if system == "Windows":
+        console.print("[yellow]Python is missing. Downloading installer...[/yellow]")
+        response = requests.get(PYTHON_DOWNLOAD_URL, stream=True)
+        installer_path = os.path.join(os.getcwd(), "python_installer.exe")
+
+        with open(installer_path, "wb") as f:
+            f.write(response.content)
+
+        console.print("[yellow]Running Python installer...[/yellow]")
+        os.system(f"{installer_path} /quiet InstallAllUsers=1 PrependPath=1")
+
+        console.print("[green]Python installed! Please restart the script.[/green]")
+        sys.exit(0)
+
+    elif system == "Linux":
+        console.print("[yellow]Python is missing. Installing via package manager...[/yellow]")
+        os.system("sudo apt update && sudo apt install -y python3")
+
+    elif system == "Darwin":  # macOS
+        console.print("[yellow]Python is missing. Installing via Homebrew...[/yellow]")
+        os.system("brew install python")
+
+    else:
+        console.print("[red]Unsupported OS! Please install Python manually.[/red]")
+        sys.exit(1)
 
 def replace_clear_with_cls(directory):
     """Recursively replace 'os.system("clear")' with 'os.system("cls")' in all Python files if running on Windows."""
@@ -144,4 +184,8 @@ def install_pythonos():
     run_pythonos()  # Run PythonOS after installation
 
 if __name__ == "__main__":
+    if not is_python_installed():
+        install_python()
+
+    console.print("[green]Python is installed. Running PythonOS Installer...[/green]")
     install_pythonos()
