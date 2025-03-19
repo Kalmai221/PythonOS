@@ -16,10 +16,6 @@ on:
       - "installer-requirements.txt"
       - ".github/workflows/build-exe.yml"
 
-env:
-  PUBLISH: true  # Change to 'false' to disable publishing
-  VERSION: "1.0.0"
-
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -72,27 +68,3 @@ jobs:
         with:
           name: linux-app
           path: dist/myapp_*.AppImage
-
-  publish:
-    needs: [build-windows, build-linux]
-    runs-on: ubuntu-latest
-    if: ${{ env.PUBLISH == 'true' }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download built executables
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Publish Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/*/*
-          tag_name: v${{ env.VERSION }}
-          release_name: Release v${{ env.VERSION }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
