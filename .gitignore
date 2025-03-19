@@ -165,3 +165,9 @@ current_directory.txt
 current_user.json
 generated-icon.pny
 users.json
+
+# Replit files
+
+.replit
+replit.nix
+.prettierignore
