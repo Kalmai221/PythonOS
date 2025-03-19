@@ -163,7 +163,7 @@ def run_pythonos():
     console.print("[bold green]Launching PythonOS...[/bold green] 🚀")
     os.chdir(INSTALL_DIR)  # Change directory to PythonOS
     time.sleep(2)
-    os.system("clear")
+    os.system("cls" if platform.system() == "Windows" else "clear")
     os.system("python main.py")
 
 def install_pythonos():

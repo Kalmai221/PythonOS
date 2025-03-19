@@ -1,5 +1,23 @@
 import os
-os.system("pip install -r boot-requirements.txt -U --quiet --break-system-packages")
+import platform
+import subprocess
+import sys
+
+def install_requirements():
+    """Install dependencies from boot-requirements.txt with platform-specific options."""
+    cmd = ["python", "-m", "pip", "install", "-r", "boot-requirements.txt", "-U", "--quiet"]
+
+    # Add --break-system-packages if running on Linux
+    if platform.system() == "Linux":
+        cmd.append("--break-system-packages")
+
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError:
+        print("❌ Failed to install dependencies. Make sure Python and pip are installed.")
+        sys.exit(0)
+
+install_requirements()
 
 import json
 from rich.console import Console

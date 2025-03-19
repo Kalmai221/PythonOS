@@ -1,7 +1,3 @@
-Here’s a **README.md** file with instructions for users, including how to run the application on Windows, Linux, and Android (via Termux).  
-
----
-
 ### **README.md**
 ```md
 # 🚀 MyApp - Cross-Platform Executable Builder
