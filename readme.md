@@ -1,5 +1,5 @@
 ### **README.md**
-```md
+
 # 🚀 MyApp - Cross-Platform Executable Builder
 
 ## 📜 Overview
@@ -11,18 +11,22 @@ This repository includes workflows to automatically build `.exe` (Windows), `.Ap
 ## 📥 Download & Run
 
 ### **🖥️ Windows**
-1. **Download** `app_windows.exe` from [Releases](https://github.com/Kalmai221/PythonOS/releases).
-2. **Run** the executable by double-clicking it.
+1. **Go to** [GitHub Actions](https://github.com/Kalmai221/PythonOS/actions).
+2. Click on the latest successful **workflow run**.
+3. Scroll down to **Artifacts** and download `windows-exe.zip`.
+4. **Extract** and run `app_windows.exe`.
 
 ---
 
 ### **🐧 Linux**
-1. **Download** `app_linux.AppImage` from [Releases](https://github.com/Kalmai221/PythonOS/releases).
-2. Open a terminal and **make it executable**:
+1. **Go to** [GitHub Actions](https://github.com/Kalmai221/PythonOS/actions).
+2. Click on the latest successful **workflow run**.
+3. Scroll down to **Artifacts** and download `linux-app.zip`.
+4. **Extract** and **make it executable**:
    ```sh
    chmod +x app_linux.AppImage
    ```
-3. **Run the application**:
+5. **Run the application**:
    ```sh
    ./app_linux.AppImage
    ```
@@ -38,10 +42,10 @@ Since Android does not natively support `.exe` or `.AppImage`, you can run the s
    pkg update && pkg upgrade
    pkg install python
    ```
-3. **Download `run.py` manually** from [Releases](https://github.com/Kalmai221/PythonOS/releases).
-4. **Run the script**:
+3. **Go to** [GitHub Actions](https://github.com/Kalmai221/PythonOS/actions).
+4. Click on the latest successful **workflow run**.
+5. Scroll down to **Artifacts** and download `run-py.zip`.
+6. Extract and **run the script**:
    ```sh
    python run.py
    ```
-
----
