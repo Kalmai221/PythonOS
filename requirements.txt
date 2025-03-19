@@ -5,3 +5,4 @@ rich
 yaspin
 prompt_toolkit 
 pygments
+pyreadline3

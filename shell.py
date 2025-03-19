@@ -4,7 +4,10 @@ import time
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
-import readline
+try:
+    import readline
+except ImportError:
+    import pyreadline3 as readline
 
 # Initialize the console for rich output
 console = Console()
