@@ -12,6 +12,7 @@ from rich.table import Table
 import datetime
 import core
 import platform
+import psutil
 
 # Initialize the console for rich output
 console = Console()
