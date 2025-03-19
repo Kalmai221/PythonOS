@@ -62,28 +62,44 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Dependencies
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+  
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+  
+      - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip openjdk-11-jdk
-          pip install buildozer cython virtualenv
-
-      - name: Initialize Buildozer
+          sudo apt install -y zip unzip libncurses5 libtinfo5
+          pip install --upgrade pip
+          pip install cython buildozer
+  
+      - name: Install Android SDK and Accept Licenses
         run: |
-          sed -i 's|source.include_exts = .*|source.include_exts = py|' buildozer.spec
-          sed -i 's|source.include_patterns = .*|source.include_patterns = installer/*|' buildozer.spec
-          sed -i 's|source.main = main.py|source.main = installer/run.py|' buildozer.spec
-          sed -i 's|requirements = python3|requirements = python3,'"$(tr '\n' ',' < installer-requirements.txt)"'|' buildozer.spec
-
-      - name: Build APK
+          sudo mkdir -p /opt/android-sdk/cmdline-tools
+          sudo wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O sdk-tools.zip
+          sudo unzip sdk-tools.zip -d /opt/android-sdk/cmdline-tools
+          sudo mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest
+          sudo rm sdk-tools.zip
+          export ANDROID_HOME=/opt/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-31"
+  
+      - name: Install Python dependencies
         run: |
+          pip install -r installer/installer-requirements.txt
+  
+      - name: Build Android APK
+        run: |
+          cd installer
           buildozer -v android debug
-
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4
+  
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
         with:
-          name: android-apk
-          path: bin/*.apk
+          name: PythonOS-Android
+          path: installer/bin/*.apk

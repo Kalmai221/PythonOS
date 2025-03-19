@@ -9,11 +9,31 @@ from io import BytesIO
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from yaspin import yaspin
+import platform
 
 REPO_ZIP_URL = "https://github.com/Kalmai221/PythonOS/archive/refs/heads/main.zip"
 INSTALL_DIR = os.path.join(os.getcwd(), "PythonOS")
 INSTALLER_DIR = os.path.join(INSTALL_DIR, "installer")
 console = Console()
+
+def replace_clear_with_cls(directory):
+    """Recursively replace 'os.system("clear")' with 'os.system("cls")' in all Python files if running on Windows."""
+    if platform.system() != "Windows":
+        return
+
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".py"):
+                file_path = os.path.join(root, file)
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                new_content = content.replace('os.system("clear")', 'os.system("cls")')
+
+                if new_content != content:
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write(new_content)
 
 def is_pythonos_installed():
     """Check if PythonOS is already installed."""
@@ -88,6 +108,7 @@ def clear_installation_files():
 def finalize_installation():
     """Finalize installation with an animated spinner."""
     with yaspin(text="\033[96mFinalizing installation...\033[0m", spinner="dots") as spinner:
+        replace_clear_with_cls(os.getcwd())
         time.sleep(random.uniform(2, 3))
         spinner.text = "\033[92m✔ Installation Complete!\033[0m"
         spinner.ok("")
