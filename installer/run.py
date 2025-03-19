@@ -143,6 +143,14 @@ def clear_installation_files():
         with yaspin(text="\033[93mRemoving temporary files...\033[0m", spinner="dots") as spinner:
             try:
                 shutil.rmtree(INSTALLER_DIR)
+                DEL_DIR = os.path.join(INSTALL_DIR, ".github")
+                shutil.rmtree(DEL_DIR)
+                os.remove(os.path.join(INSTALL_DIR, "installer-requirements.txt"))
+                os.remove(os.path.join(INSTALL_DIR, "replit.nix"))
+                os.remove(os.path.join(INSTALL_DIR, ".replit"))
+                os.remove(os.path.join(INSTALL_DIR, ".gitignore"))
+                os.remove(os.path.join(INSTALL_DIR, ".prettierignore"))
+                os.remove(os.path.join(INSTALL_DIR, "generated-icon.png"))
                 time.sleep(random.uniform(1, 2))
                 spinner.text = "\033[92m✔ Cleanup complete!\033[0m"
                 spinner.ok("")
