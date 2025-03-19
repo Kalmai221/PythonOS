@@ -11,6 +11,7 @@ from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from yaspin import yaspin
 import platform
 import subprocess
+import re
 
 REPO_ZIP_URL = "https://github.com/Kalmai221/PythonOS/archive/refs/heads/main.zip"
 INSTALL_DIR = os.path.join(os.getcwd(), "PythonOS")
@@ -74,7 +75,7 @@ def replace_clear_with_cls(directory):
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
-                new_content = content.replace('os.system("clear")', 'os.system("cls")')
+                new_content = re.sub(r'\bos\.system\("clear"\)', 'os.system("cls")', content)
 
                 if new_content != content:
                     with open(file_path, "w", encoding="utf-8") as f:
