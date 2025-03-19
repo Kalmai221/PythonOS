@@ -165,8 +165,14 @@ def set_current_directory_to_files(debug, spinner):
 def get_system_info():
     """Fetch system information like time and uptime."""
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    uptime = time.time() - os.sysconf('SC_CLK_TCK')
-    uptime_str = time.strftime("%H:%M:%S", time.gmtime(uptime))
+
+    if os.name == "posix":  # Linux/macOS
+        with open("/proc/uptime", "r") as f:
+            uptime_seconds = float(f.readline().split()[0])  # Read uptime in seconds
+    else:  # Windows
+        uptime_seconds = time.time() - psutil.boot_time()
+
+    uptime_str = time.strftime("%H:%M:%S", time.gmtime(uptime_seconds))
 
     return f"[bold magenta]Current Time:[/bold magenta] [cyan]{current_time}[/cyan]\n" \
            f"[bold magenta]System Uptime:[/bold magenta] [cyan]{uptime_str}[/cyan]"

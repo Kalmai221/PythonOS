@@ -1,3 +1,4 @@
 yaspin
 rich
 pyreadline3
+psutil
