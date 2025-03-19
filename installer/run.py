@@ -21,9 +21,9 @@ console = Console()
 def is_python_installed():
     """Check if Python is installed."""
     try:
-        subprocess.run(["python", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        os.system("python --version")
         return True
-    except FileNotFoundError:
+    except:
         return False
 
 def install_python():
