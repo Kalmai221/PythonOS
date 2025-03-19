@@ -13,6 +13,7 @@ def install_requirements():
 
     try:
         subprocess.run(cmd, check=True)
+        os.system("clear")
     except subprocess.CalledProcessError:
         print("❌ Failed to install dependencies. Make sure Python and pip are installed.")
         sys.exit(0)

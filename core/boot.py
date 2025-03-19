@@ -11,6 +11,7 @@ from rich.align import Align
 from rich.table import Table
 import datetime
 import core
+import platform
 
 # Initialize the console for rich output
 console = Console()
@@ -28,7 +29,15 @@ def install_requirements(debug, spinner):
     """Install packages from requirements.txt"""
     if os.path.exists(REQUIREMENTS_FILE):
         spinner.text = f"Installing required packages from {REQUIREMENTS_FILE}..."
-        subprocess.check_call(
+        if platform.system() == "Windows":
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-U", "--quiet"] if not debug else 
+                [sys.executable, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-U"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        else:
+            subprocess.check_call(
             [sys.executable, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-U", "--quiet", "--break-system-packages"] if not debug else 
             [sys.executable, "-m", "pip", "install", "-r", REQUIREMENTS_FILE, "-U", "--break-system-packages"],
             stdout=subprocess.DEVNULL,
