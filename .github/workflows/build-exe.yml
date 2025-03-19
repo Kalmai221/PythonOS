@@ -4,7 +4,17 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "installer/**"
+      - "buildozer.spec"
+      - "installer-requirements.txt"
+      - ".github/workflows/build-exe.yml"
   pull_request:
+    paths:
+    - "installer/**"
+    - "buildozer.spec"
+    - "installer-requirements.txt"
+    - ".github/workflows/build-exe.yml"
 
 jobs:
   build-windows:
@@ -73,7 +83,7 @@ jobs:
       - name: 📦 Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y zip unzip curl openjdk-17-jdk libncurses5 libtinfo5
+          sudo apt install -y zip unzip curl openjdk-17-jdk libncurses-dev libtinfo-dev
 
       - name: 📥 Install Buildozer & Dependencies
         run: |
