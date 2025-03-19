@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Windows EXE
         run: |
-          pyinstaller --onefile --noconsole installer/run.py  # Build EXE
+          pyinstaller installer/run.py  # Build EXE
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
