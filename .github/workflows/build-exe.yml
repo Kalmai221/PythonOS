@@ -6,15 +6,15 @@ on:
       - main
     paths:
       - "installer/**"
+      - "pyproject.toml"
       - "buildozer.spec"
-      - "installer-requirements.txt"
       - ".github/workflows/build-exe.yml"
   pull_request:
     paths:
-    - "installer/**"
-    - "buildozer.spec"
-    - "installer-requirements.txt"
-    - ".github/workflows/build-exe.yml"
+      - "installer/**"
+      - "pyproject.toml"
+      - "buildozer.spec"
+      - ".github/workflows/build-exe.yml"
 
 jobs:
   build-windows:
@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           pip install -r installer-requirements.txt
           pip install pyinstaller
@@ -54,7 +54,7 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           pip install -r installer-requirements.txt
           pip install pyinstaller
@@ -85,10 +85,10 @@ jobs:
           sudo apt update
           sudo apt install -y zip unzip curl openjdk-17-jdk libncurses-dev libtinfo-dev
 
-      - name: 📥 Install Buildozer & Dependencies
+      - name: 📥 Install python-for-android
         run: |
           python -m pip install --upgrade pip
-          pip install buildozer cython virtualenv
+          pip install python-for-android
 
       - name: 📥 Install Android SDK & NDK
         run: |
@@ -111,10 +111,10 @@ jobs:
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
           sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-31" "build-tools;31.0.0" "ndk;25.1.8937393"
 
-      - name: 🚀 Build APK
+      - name: 🚀 Build APK using python-for-android
         run: |
           export ANDROID_HOME=$HOME/android-sdk
-          buildozer android debug
+          p4a apk --private . --package=org.example.pythonos --name "PythonOS" --version 1.0 --bootstrap=sdl2 --requirements=python3,kivy --sdk_dir=$ANDROID_HOME --ndk_dir=$ANDROID_HOME/ndk/25.1.8937393
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
