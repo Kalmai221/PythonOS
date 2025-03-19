@@ -91,7 +91,7 @@ jobs:
   
       - name: Install Python dependencies
         run: |
-          pip install -r installer/installer-requirements.txt
+          pip install -r installer-requirements.txt
   
       - name: Build Android APK
         run: |
