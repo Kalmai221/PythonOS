@@ -15,7 +15,7 @@ version = 1.0
 
 # Install dependencies from installer-requirements.txt
 # Example: If your installer-requirements.txt contains "requests", add it here
-requirements = python3,rich,yaspin  # Replace with your actual dependencies
+requirements = python3,rich,yaspin,requests  # Replace with your actual dependencies
 
 # (4) Android Packaging
 android.permissions = INTERNET

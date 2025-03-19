@@ -73,7 +73,6 @@ jobs:
 
       - name: Initialize Buildozer
         run: |
-          buildozer init
           sed -i 's|source.include_exts = .*|source.include_exts = py|' buildozer.spec
           sed -i 's|source.include_patterns = .*|source.include_patterns = installer/*|' buildozer.spec
           sed -i 's|source.main = main.py|source.main = installer/run.py|' buildozer.spec
