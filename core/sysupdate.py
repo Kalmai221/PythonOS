@@ -122,7 +122,7 @@ def check_for_updates():
         sp.text = "Finalizing update check..."
         time.sleep(random.uniform(1.0, 2.0))
 
-    update_available = random.randint(1, 10) == 1  
+    update_available = False
     
     if update_available:
         new_version = increment_version(str(current_version))
