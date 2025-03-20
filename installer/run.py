@@ -19,6 +19,42 @@ INSTALLER_DIR = os.path.join(INSTALL_DIR, "installer")
 PYTHON_DOWNLOAD_URL = "https://www.python.org/ftp/python/3.11.1/python-3.11.1-amd64.exe"
 console = Console()
 
+GITHUB_API_URL = "https://api.github.com/repos/Kalmai221/PythonOS/commits/main"
+LOCAL_COMMIT_FILE = os.path.join("PythonOS", "commit.txt")
+
+def get_latest_commit():
+    """Fetch the latest commit hash from GitHub."""
+    try:
+        response = requests.get(GITHUB_API_URL)
+        response.raise_for_status()
+        return response.json()["sha"]
+    except requests.RequestException as e:
+        print(f"Error fetching latest commit: {e}")
+        return None
+
+def get_local_commit():
+    """Retrieve the locally stored commit hash."""
+    if os.path.exists(LOCAL_COMMIT_FILE):
+        with open(LOCAL_COMMIT_FILE, "r") as f:
+            return f.read().strip()
+    return None
+
+def check_for_updates():
+    """Compare local and latest commit hashes."""
+    latest_commit = get_latest_commit()
+    local_commit = get_local_commit()
+
+    if not latest_commit:
+        print("Failed to retrieve latest commit.")
+        return
+
+    if local_commit == latest_commit:
+        print("PythonOS is up to date.")
+    else:
+        print("New update available!")
+        print(f"Latest commit: {latest_commit}")
+        print(f"Local commit: {local_commit}")
+
 def is_python_installed():
     """Check if Python is installed."""
     try:
@@ -100,34 +136,26 @@ def remove_existing_installation():
             sys.exit(1)
 
 def download_repository():
-    """Download PythonOS repository as a ZIP using requests."""
+    """Download PythonOS repository as a ZIP and save the latest commit hash."""
+    latest_commit = get_latest_commit()
+    if not latest_commit:
+        print("Failed to get latest commit hash.")
+        return
+
     console.print("\n[bold cyan]Downloading PythonOS...[/bold cyan]")
+    response = requests.get(REPO_ZIP_URL, stream=True)
+    response.raise_for_status()
 
-    with yaspin(text="\033[96mFetching repository...\033[0m", spinner="dots") as spinner:
-        try:
-            response = requests.get(REPO_ZIP_URL, stream=True)
-            response.raise_for_status()
-            zip_data = BytesIO(response.content)
-            spinner.text = "\033[92m✔ Download complete!\033[0m"
-            spinner.ok("")
-        except requests.RequestException as e:
-            spinner.text = f"\033[91m✖ Failed to download! {e}\033[0m"
-            spinner.fail("")
-            sys.exit(1)
+    with zipfile.ZipFile(BytesIO(response.content), "r") as zip_ref:
+        zip_ref.extractall(os.getcwd())
+        shutil.move("PythonOS-main", INSTALL_DIR)
 
-    console.print("\n[bold cyan]Extracting files...[/bold cyan]")
-    with yaspin(text="\033[96mUnzipping files...\033[0m", spinner="dots") as spinner:
-        try:
-            with zipfile.ZipFile(zip_data, "r") as zip_ref:
-                zip_ref.extractall(os.getcwd())
-                shutil.move("PythonOS-main", INSTALL_DIR)  # Rename extracted folder
-            time.sleep(random.uniform(1, 2))
-            spinner.text = "\033[92m✔ Extraction complete!\033[0m"
-            spinner.ok("")
-        except Exception as e:
-            spinner.text = f"\033[91m✖ Failed to extract! {e}\033[0m"
-            spinner.fail("")
-            sys.exit(1)
+    # Save commit hash locally
+    with open(LOCAL_COMMIT_FILE, "w") as f:
+        f.write(latest_commit)
+
+    console.print("\n[bold green]✔ Download and extraction complete![/bold green]")
+
 
 def verify_installation():
     """Simulate file verification process."""
@@ -176,16 +204,31 @@ def run_pythonos():
     os.system("python main.py")
 
 def install_pythonos():
-    """Main function to handle installation."""
+    """Main function to handle installation with update checking."""
     console.print("[bold cyan]🚀 PythonOS Installer 🚀[/bold cyan]")
 
-    if is_pythonos_installed():
-        console.print("\n[bold green]PythonOS is already installed![/bold green]")
-        choice = console.input("\n[bold cyan]Do you want to reinstall it? (y/n): [/bold cyan]").strip().lower()
+    latest_commit = get_latest_commit()
+    local_commit = get_local_commit()
 
-        if choice == 'n':
-            run_pythonos()  # Run PythonOS if user chooses not to reinstall
-            sys.exit(0)
+    if local_commit and latest_commit:
+        if local_commit == latest_commit:
+            console.print("\n[bold green]PythonOS is up to date![/bold green]")
+            choice = console.input("\n[bold cyan]Do you want to reinstall it anyway? (y/n): [/bold cyan]").strip().lower()
+
+            if choice == 'n':
+                run_pythonos()  # Run PythonOS if user chooses not to reinstall
+                sys.exit(0)
+                
+        else:
+            console.print("\n[bold yellow]A new version of PythonOS is available![/bold yellow]")
+            console.print(f"[bold cyan]Latest commit:[/bold cyan] {latest_commit}")
+            console.print(f"[bold magenta]Your version:[/bold magenta] {local_commit}")
+            choice = console.input("\n[bold cyan]Do you want to update? (y/n): [/bold cyan]").strip().lower()
+
+            if choice == 'n':
+                console.print("[bold yellow]Skipping update. Running current version...[/bold yellow]")
+                run_pythonos()
+                sys.exit(0)
 
         remove_existing_installation()  # Delete old installation before reinstalling
 
@@ -196,6 +239,7 @@ def install_pythonos():
 
     console.print("\n[bold green]🎉 PythonOS installation successful![/bold green] 🚀")
     run_pythonos()  # Run PythonOS after installation
+
 
 if __name__ == "__main__":
     if not is_python_installed():
