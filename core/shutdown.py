@@ -27,7 +27,11 @@ def simulate_shutdown():
         time.sleep(1)
 
     with yaspin(text="Cleaning up temporary files...", spinner="dots") as sp:
-        os.remove('current_user.json')
+        time.sleep(1)
+        try:
+            os.remove('current_user.json')
+        except:
+            sp.text = "Failed to delete temporary files."
         time.sleep(1.5)
         sp.text = "Clearing system caches..."
         time.sleep(1)
