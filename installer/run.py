@@ -184,6 +184,7 @@ def clear_installation_files():
 def finalize_installation():
     """Finalize installation with an animated spinner."""
     with yaspin(text="Finalizing installation...", spinner="dots") as spinner:
+        replace_clear_with_cls(os.getcwd())
         spinner.text = "Installation Complete!"
         spinner.ok("")
 
