@@ -40,7 +40,7 @@ Since Android does not natively support `.exe` or `.AppImage`, you can run the s
 2. Open Termux and install Python:
    ```sh
    pkg update && pkg upgrade
-   pkg install python
+   pkg install python python-pip
    ```
 3. **Go to** [GitHub Actions](https://github.com/Kalmai221/PythonOS/actions).
 4. Click on the latest successful **workflow run**.
