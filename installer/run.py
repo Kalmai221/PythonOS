@@ -230,11 +230,12 @@ def finalize_installation():
         task = progress.add_task("Processing...", total=len(steps))
         for step in steps:
             progress.update(task, description=step)
+            if step == "Configuring files...":
+                replace_clear_with_cls(INSTALL_DIR)
             time.sleep(random.uniform(2, 4))  # Simulated delay
             progress.advance(task, 1)
 
     console.print("[bold green]🎉 PythonOS is ready to use![/bold green] 🚀")
-
 
 def run_pythonos():
     """Run PythonOS if installed."""
@@ -287,4 +288,6 @@ if __name__ == "__main__":
         install_python()
 
     console.print("[green]Python is installed. Running PythonOS Installer...[/green]")
+    time.sleep(2)
+    os.system("cls" if platform.system() == "Windows" else "clear")
     install_pythonos()
