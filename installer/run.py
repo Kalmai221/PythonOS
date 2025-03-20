@@ -124,14 +124,13 @@ def is_pythonos_installed():
 def remove_existing_installation():
     """Remove the existing PythonOS directory before reinstalling."""
     console.print("[yellow]Removing existing PythonOS installation...[/yellow]")
-    with yaspin(text="\033[93mDeleting old installation...\033[0m", spinner="dots") as spinner:
+    with yaspin(text="Deleting old installation...", spinner="dots") as spinner:
         try:
             shutil.rmtree(INSTALL_DIR)
-            time.sleep(random.uniform(1, 2))
-            spinner.text = "\033[92m✔ Old installation removed!\033[0m"
+            spinner.text = "Old installation removed!"
             spinner.ok("")
         except Exception as e:
-            spinner.text = f"\033[91m✖ Failed to remove! {e}\033[0m"
+            spinner.text = f"Failed to remove! {e}"
             spinner.fail("")
             sys.exit(1)
 
@@ -139,7 +138,7 @@ def download_repository():
     """Download PythonOS repository as a ZIP and save the latest commit hash."""
     latest_commit = get_latest_commit()
     if not latest_commit:
-        print("Failed to get latest commit hash.")
+        console.print("[red]Failed to get latest commit hash.[/red]")
         return
 
     console.print("\n[bold cyan]Downloading PythonOS...[/bold cyan]")
@@ -150,49 +149,42 @@ def download_repository():
         zip_ref.extractall(os.getcwd())
         shutil.move("PythonOS-main", INSTALL_DIR)
 
-    # Save commit hash locally
     with open(LOCAL_COMMIT_FILE, "w") as f:
         f.write(latest_commit)
 
     console.print("\n[bold green]✔ Download and extraction complete![/bold green]")
 
-
 def verify_installation():
     """Simulate file verification process."""
     console.print("\n[bold yellow]Verifying installation files...[/bold yellow]")
-    with yaspin(text="\033[96mValidating dependencies...\033[0m", spinner="dots") as spinner:
-        time.sleep(random.uniform(1, 2))
-        spinner.text = "\033[92m✔ Installation verified!\033[0m"
+    with yaspin(text="Validating dependencies...", spinner="dots") as spinner:
+        spinner.text = "Installation verified!"
         spinner.ok("")
 
 def clear_installation_files():
     """Remove the installer directory after installation."""
     if os.path.exists(INSTALLER_DIR) and os.path.isdir(INSTALLER_DIR):
         console.print("\n[bold yellow]Cleaning up installation files...[/bold yellow]")
-        with yaspin(text="\033[93mRemoving temporary files...\033[0m", spinner="dots") as spinner:
+        with yaspin(text="Removing temporary files...", spinner="dots") as spinner:
             try:
                 shutil.rmtree(INSTALLER_DIR)
-                DEL_DIR = os.path.join(INSTALL_DIR, ".github")
-                shutil.rmtree(DEL_DIR)
+                shutil.rmtree(os.path.join(INSTALL_DIR, ".github"))
                 os.remove(os.path.join(INSTALL_DIR, "installer-requirements.txt"))
                 os.remove(os.path.join(INSTALL_DIR, "replit.nix"))
                 os.remove(os.path.join(INSTALL_DIR, ".replit"))
                 os.remove(os.path.join(INSTALL_DIR, ".gitignore"))
                 os.remove(os.path.join(INSTALL_DIR, ".prettierignore"))
                 os.remove(os.path.join(INSTALL_DIR, "generated-icon.png"))
-                time.sleep(random.uniform(1, 2))
-                spinner.text = "\033[92m✔ Cleanup complete!\033[0m"
+                spinner.text = "Cleanup complete!"
                 spinner.ok("")
             except Exception as e:
-                spinner.text = f"\033[91m✖ Failed to remove files! {e}\033[0m"
+                spinner.text = f"Failed to remove files! {e}"
                 spinner.fail("")
 
 def finalize_installation():
     """Finalize installation with an animated spinner."""
-    with yaspin(text="\033[96mFinalizing installation...\033[0m", spinner="dots") as spinner:
-        replace_clear_with_cls(os.getcwd())
-        time.sleep(random.uniform(2, 3))
-        spinner.text = "\033[92m✔ Installation Complete!\033[0m"
+    with yaspin(text="Finalizing installation...", spinner="dots") as spinner:
+        spinner.text = "Installation Complete!"
         spinner.ok("")
 
 def run_pythonos():
