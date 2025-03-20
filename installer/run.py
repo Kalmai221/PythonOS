@@ -202,6 +202,7 @@ def clear_installation_files():
         os.remove(os.path.join(INSTALL_DIR, ".gitignore"))
         os.remove(os.path.join(INSTALL_DIR, ".prettierignore"))
         os.remove(os.path.join(INSTALL_DIR, "generated-icon.png"))
+        os.remove(os.path.join(INSTALL_DIR, "readme.md"))
         time.sleep(random.uniform(2, 4))
         spinner.text = "Finalizing cleanup..."
         time.sleep(random.uniform(1, 2))
