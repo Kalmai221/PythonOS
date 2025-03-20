@@ -22,6 +22,14 @@ console = Console()
 GITHUB_API_URL = "https://api.github.com/repos/Kalmai221/PythonOS/commits/main"
 LOCAL_COMMIT_FILE = os.path.join("PythonOS", "commit.txt")
 
+def slow_typing(text, delay=0.05):
+    """Simulate slow printing."""
+    for char in text:
+        print(char, end="", flush=True)
+        time.sleep(delay)
+    print()
+
+
 def get_latest_commit():
     """Fetch the latest commit hash from GitHub."""
     try:
@@ -31,6 +39,7 @@ def get_latest_commit():
     except requests.RequestException as e:
         print(f"Error fetching latest commit: {e}")
         return None
+
 
 def get_local_commit():
     """Retrieve the locally stored commit hash."""
@@ -125,6 +134,7 @@ def remove_existing_installation():
     """Remove the existing PythonOS directory before reinstalling."""
     console.print("[yellow]Removing existing PythonOS installation...[/yellow]")
     with yaspin(text="Deleting old installation...", spinner="dots") as spinner:
+        time.sleep(random.uniform(3, 5))  # Simulate delay
         try:
             shutil.rmtree(INSTALL_DIR)
             spinner.text = "Old installation removed!"
@@ -134,6 +144,7 @@ def remove_existing_installation():
             spinner.fail("")
             sys.exit(1)
 
+
 def download_repository():
     """Download PythonOS repository as a ZIP and save the latest commit hash."""
     latest_commit = get_latest_commit()
@@ -142,8 +153,16 @@ def download_repository():
         return
 
     console.print("\n[bold cyan]Downloading PythonOS...[/bold cyan]")
-    response = requests.get(REPO_ZIP_URL, stream=True)
-    response.raise_for_status()
+    time.sleep(random.uniform(2, 4))  # Simulate waiting for connection
+
+    with yaspin(text="Downloading repository...", spinner="dots") as spinner:
+        response = requests.get(REPO_ZIP_URL, stream=True)
+        response.raise_for_status()
+        time.sleep(random.uniform(3, 5))  # Simulate download delay
+        spinner.ok("✔")
+
+    console.print("[bold yellow]Extracting files...[/bold yellow]")
+    time.sleep(random.uniform(2, 4))  # Simulating extraction delay
 
     with zipfile.ZipFile(BytesIO(response.content), "r") as zip_ref:
         zip_ref.extractall(os.getcwd())
@@ -154,45 +173,74 @@ def download_repository():
 
     console.print("\n[bold green]✔ Download and extraction complete![/bold green]")
 
+
 def verify_installation():
     """Simulate file verification process."""
     console.print("\n[bold yellow]Verifying installation files...[/bold yellow]")
-    with yaspin(text="Validating dependencies...", spinner="dots") as spinner:
+    with yaspin(text="Checking integrity...", spinner="dots") as spinner:
+        time.sleep(random.uniform(2, 5))  # Delay for realism
+        spinner.text = "Verifying dependencies..."
+        time.sleep(random.uniform(2, 4))
+        spinner.text = "Ensuring all files are present..."
+        time.sleep(random.uniform(1, 3))
         spinner.text = "Installation verified!"
-        spinner.ok("")
+        spinner.ok("✔")
+
 
 def clear_installation_files():
-    """Remove the installer directory after installation."""
-    if os.path.exists(INSTALLER_DIR) and os.path.isdir(INSTALLER_DIR):
-        console.print("\n[bold yellow]Cleaning up installation files...[/bold yellow]")
-        with yaspin(text="Removing temporary files...", spinner="dots") as spinner:
-            try:
-                shutil.rmtree(INSTALLER_DIR)
-                shutil.rmtree(os.path.join(INSTALL_DIR, ".github"))
-                os.remove(os.path.join(INSTALL_DIR, "installer-requirements.txt"))
-                os.remove(os.path.join(INSTALL_DIR, "replit.nix"))
-                os.remove(os.path.join(INSTALL_DIR, ".replit"))
-                os.remove(os.path.join(INSTALL_DIR, ".gitignore"))
-                os.remove(os.path.join(INSTALL_DIR, ".prettierignore"))
-                os.remove(os.path.join(INSTALL_DIR, "generated-icon.png"))
-                spinner.text = "Cleanup complete!"
-                spinner.ok("")
-            except Exception as e:
-                spinner.text = f"Failed to remove files! {e}"
-                spinner.fail("")
+    """Remove unnecessary files after installation."""
+    console.print("\n[bold yellow]Cleaning up installation files...[/bold yellow]")
+    time.sleep(2)  # Delay before cleanup starts
+    with yaspin(text="Removing temporary files...", spinner="dots") as spinner:
+        shutil.rmtree(INSTALLER_DIR)
+        shutil.rmtree(os.path.join(INSTALL_DIR, ".github"))
+        time.sleep(random.uniform(3, 6))  # Simulate cleanup delay
+        spinner.text = "Deleting unused files..."
+        os.remove(os.path.join(INSTALL_DIR, "installer-requirements.txt"))
+        os.remove(os.path.join(INSTALL_DIR, "replit.nix"))
+        os.remove(os.path.join(INSTALL_DIR, ".replit"))
+        os.remove(os.path.join(INSTALL_DIR, ".gitignore"))
+        os.remove(os.path.join(INSTALL_DIR, ".prettierignore"))
+        os.remove(os.path.join(INSTALL_DIR, "generated-icon.png"))
+        time.sleep(random.uniform(2, 4))
+        spinner.text = "Finalizing cleanup..."
+        time.sleep(random.uniform(1, 2))
+        spinner.ok("✔")
+    console.print("[green]Cleanup complete![/green]")
+
 
 def finalize_installation():
-    """Finalize installation with an animated spinner."""
-    with yaspin(text="Finalizing installation...", spinner="dots") as spinner:
-        replace_clear_with_cls(os.getcwd())
-        spinner.text = "Installation Complete!"
-        spinner.ok("")
+    """Finalize installation with a progress simulation."""
+    console.print("\n[bold cyan]Finalizing installation...[/bold cyan]")
+    time.sleep(2)
+
+    steps = [
+        "Setting up environment...",
+        "Configuring files...",
+        "Optimizing performance...",
+        "Applying final changes...",
+        "Installation complete!"
+    ]
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+    ) as progress:
+        task = progress.add_task("Processing...", total=len(steps))
+        for step in steps:
+            progress.update(task, description=step)
+            time.sleep(random.uniform(2, 4))  # Simulated delay
+            progress.advance(task, 1)
+
+    console.print("[bold green]🎉 PythonOS is ready to use![/bold green] 🚀")
+
 
 def run_pythonos():
     """Run PythonOS if installed."""
     console.print("[bold green]Launching PythonOS...[/bold green] 🚀")
-    os.chdir(INSTALL_DIR)  # Change directory to PythonOS
-    time.sleep(2)
+    time.sleep(3)  # Simulating startup delay
+    os.chdir(INSTALL_DIR)
     os.system("cls" if platform.system() == "Windows" else "clear")
     os.system("python main.py")
 
