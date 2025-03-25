@@ -66,14 +66,16 @@ jobs:
           sudo apt-get install -y dh-make python3-all
           mkdir -p debian/usr/local/bin
           cp installer/run.py debian/usr/local/bin/
-          echo "Depends: python3" > debian/control
-          echo "Package: pyosinstaller" >> debian/control
+          # Create a control file with the necessary information
+          echo "Package: pyosinstaller" > debian/control
           echo "Version: 1.0" >> debian/control
-          echo "Architecture: all" >> debian/control
           echo "Maintainer: Your Name <you@example.com>" >> debian/control
+          echo "Architecture: all" >> debian/control
+          echo "Depends: python3" >> debian/control
           echo "Description: PyOSInstaller package" >> debian/control
+          # Create the Debian package without interactive prompts
           cd debian
-          dh_make --createorig -s -p pyosinstaller_1.0
+          dh_make --createorig -s -p pyosinstaller_1.0 --control-file=control
           dpkg-deb --build . ../PyOSInstaller_linux.deb
 
       - name: Create RPM Package
