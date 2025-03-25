@@ -75,7 +75,7 @@ jobs:
   
       - name: Verify run.py exists
         run: |
-          if [ ! -f "installer/run.py" ]; then
+          if [ ! -f "installer/run-base.py" ]; then
             echo "Error: installer/run-base.py not found!"
             exit 1
           fi
