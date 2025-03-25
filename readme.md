@@ -14,7 +14,7 @@ This repository includes workflows to automatically build `.exe` (Windows), `.Ap
 1. **Go to** [GitHub Actions](https://github.com/Kalmai221/PythonOS/actions).
 2. Click on the latest successful **workflow run**.
 3. Scroll down to **Artifacts** and download `windows-exe.zip`.
-4. **Extract** and run `app_windows.exe`.
+4. **Extract** and run `app_windows.exe`. This will check if Python is installed and install the OS.PY
 
 ---
 

@@ -6,13 +6,11 @@ on:
       - main
     paths:
       - "installer/**"
-      - "buildozer.spec"
       - "installer-requirements.txt"
       - ".github/workflows/build-exe.yml"
   pull_request:
     paths:
       - "installer/**"
-      - "buildozer.spec"
       - "installer-requirements.txt"
       - ".github/workflows/build-exe.yml"
 
@@ -35,7 +33,7 @@ jobs:
 
       - name: Build Windows Executable
         run: |
-          pyinstaller --onefile --name "myapp_${{ env.VERSION }}_windows.exe" installer/run.py
+          pyinstaller --onefile --name "myapp_${{ env.VERSION }}_windows.exe" installer/run-executable.py
 
       - name: Upload Windows Executable
         uses: actions/upload-artifact@v4
@@ -61,7 +59,7 @@ jobs:
 
       - name: Build Linux Executable
         run: |
-          pyinstaller --onefile --name "myapp_${{ env.VERSION }}_linux.AppImage" installer/run.py
+          pyinstaller --onefile --name "myapp_${{ env.VERSION }}_linux.AppImage" installer/run-executable.py
 
       - name: Upload Linux Executable
         uses: actions/upload-artifact@v4
@@ -78,7 +76,7 @@ jobs:
       - name: Verify run.py exists
         run: |
           if [ ! -f "installer/run.py" ]; then
-            echo "Error: installer/run.py not found!"
+            echo "Error: installer/run-base.py not found!"
             exit 1
           fi
   
@@ -86,5 +84,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: installer-runpy
-          path: installer/run.py
+          path: installer/run-base.py
   

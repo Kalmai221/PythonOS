@@ -1,4 +1,7 @@
 import os
+
+os.system("pip install -r https://raw.githubusercontent.com/Kalmai221/PythonOS/main/installer-requirements.txt")
+
 import sys
 import shutil
 import time
@@ -285,10 +288,14 @@ def install_pythonos():
 
 
 if __name__ == "__main__":
-    if not is_python_installed():
-        install_python()
-
-    console.print("[green]Python is installed. Running PythonOS Installer...[/green]")
-    time.sleep(2)
-    os.system("cls" if platform.system() == "Windows" else "clear")
-    install_pythonos()
+    try:
+        if not is_python_installed():
+            install_python()
+    
+        console.print("[green]Python is installed. Running PythonOS Installer...[/green]")
+        time.sleep(2)
+        os.system("cls" if platform.system() == "Windows" else "clear")
+        install_pythonos()
+    except Exception:
+        console.print("[red] An unknown error occured on installing the Operating System. Please try again later.[/red]")
+        sys.exit(1)
