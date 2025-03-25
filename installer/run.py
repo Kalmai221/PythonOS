@@ -1,19 +1,61 @@
 import os
-
-os.system("pip install -r https://raw.githubusercontent.com/Kalmai221/PythonOS/main/installer-requirements.txt")
-
+import platform
+import subprocess
 import sys
-import shutil
-import time
 import random
+import time
+
+
+def install_requirements():
+    """Install dependencies from boot-requirements.txt with platform-specific options."""
+    cmd = ["python", "-m", "pip", "install", "-r", "https://raw.githubusercontent.com/Kalmai221/PythonOS/main/installer-requirements.txt", "--quiet"]
+
+    # Add --break-system-packages if running on Linux
+    if platform.system() == "Linux":
+        cmd.append("--break-system-packages")
+
+    try:
+        subprocess.run(cmd, check=True)
+        os.system("cls" if platform.system() == "Windows" else "clear")
+    except subprocess.CalledProcessError:
+        print("❌ Failed to install dependencies. Make sure Python and pip are installed.")
+        sys.exit(0)
+
+# Starting the verification process
+print("Verifying that all required packages for installation are installed...")
+time.sleep(random.uniform(1, 2))  # Short pause to simulate checking
+
+# Simulate checking of packages with a random time delay
+print("Checking for missing dependencies...")
+time.sleep(random.uniform(1, 3))  
+print("All required packages detected.")
+time.sleep(random.uniform(0.5, 1))  # Small pause
+
+# Simulating the installation of requirements
+print("Installing required packages...")
+time.sleep(random.uniform(2, 4))  # Random time for installation
+
+install_requirements()  # Call the function to simulate package installation
+print("All required packages have been successfully installed.")
+time.sleep(random.uniform(0.5, 1))  # Brief pause for realism
+
+# Starting the installer
+
+# Starting the installer
+print("Preparing to start PyOS Installer...")
+time.sleep(random.uniform(1, 2))  # Pause before starting
+print("Launching PyOS Installer...")
+time.sleep(random.uniform(1, 3))  # Simulate a short delay before starting
+os.system("cls" if platform.system() == "Windows" else "clear")
+time.sleep(random.uniform(1, 3))
+
+import shutil
 import zipfile
 import requests
 from io import BytesIO
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from yaspin import yaspin
-import platform
-import subprocess
 import re
 
 REPO_ZIP_URL = "https://github.com/Kalmai221/PythonOS/archive/refs/heads/main.zip"

@@ -75,8 +75,8 @@ jobs:
   
       - name: Verify run.py exists
         run: |
-          if [ ! -f "installer/run-base.py" ]; then
-            echo "Error: installer/run-base.py not found!"
+          if [ ! -f "installer/run.py" ]; then
+            echo "Error: installer/run.py not found!"
             exit 1
           fi
   
@@ -84,5 +84,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: installer-runpy
-          path: installer/run-base.py
+          path: installer/run.py
   

@@ -1,16 +1,24 @@
 import os
+import platform
+import subprocess
 import sys
-import shutil
-import time
 import random
+import time
+
+print("Preparing to start PyOS Installer...")
+time.sleep(random.uniform(1, 2))  # Pause before starting
+print("Launching PyOS Installer...")
+time.sleep(random.uniform(1, 3))  # Simulate a short delay before starting
+os.system("cls" if platform.system() == "Windows" else "clear")
+time.sleep(random.uniform(1, 3))
+
+import shutil
 import zipfile
 import requests
 from io import BytesIO
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from yaspin import yaspin
-import platform
-import subprocess
 import re
 
 REPO_ZIP_URL = "https://github.com/Kalmai221/PythonOS/archive/refs/heads/main.zip"
