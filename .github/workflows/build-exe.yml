@@ -33,13 +33,13 @@ jobs:
 
       - name: Build Windows Executable
         run: |
-          pyinstaller --onefile --name "PyOSInstaller_windows.exe" installer/run-executable.py
+          pyinstaller --onefile --name PyOSInstaller_windows.exe" installer/run-executable.py
 
       - name: Upload Windows Executable
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: dist/PyOSInstaller_windows.exe
+          path: dist/myapp_*.exe
 
   build-linux:
     runs-on: ubuntu-latest
@@ -59,44 +59,14 @@ jobs:
 
       - name: Build Linux Executable
         run: |
-          pyinstaller --onefile --name "PyOSInstaller_linux" installer/run.py
+          pyinstaller --onefile --name "PyOSInstaller_linux.AppImage" installer/run-executable.py
 
-      - name: Create Debian Package
-        run: |
-          sudo apt-get install -y dh-make python3-all
-          mkdir -p debian/usr/local/bin
-          cp installer/run.py debian/usr/local/bin/
-          # Create a control file with the necessary information
-          echo "Package: pyosinstaller" > debian/control
-          echo "Version: 1.0" >> debian/control
-          echo "Maintainer: Your Name <you@example.com>" >> debian/control
-          echo "Architecture: all" >> debian/control
-          echo "Depends: python3" >> debian/control
-          echo "Description: PyOSInstaller package" >> debian/control
-          # Create the Debian package without interactive prompts
-          cd debian
-          dh_make --createorig -s -p pyosinstaller_1.0 --control-file=control
-          dpkg-deb --build . ../PyOSInstaller_linux.deb
-
-      - name: Create RPM Package
-        run: |
-          sudo apt-get install -y rpm python3
-          mkdir -p rpm/usr/local/bin
-          cp installer/run.py rpm/usr/local/bin/
-          echo "Requires: python3" > rpm/PyOSInstaller.spec
-          echo "%description" >> rpm/PyOSInstaller.spec
-          echo "PyOSInstaller package" >> rpm/PyOSInstaller.spec
-          fpm -s dir -t rpm -n PyOSInstaller -v 1.0 rpm/usr/local/bin/run.py --depends python3
-
-      - name: Upload Linux Executables
+      - name: Upload Linux Executable
         uses: actions/upload-artifact@v4
         with:
-          name: linux-executables
-          path: |
-            dist/PyOSInstaller_linux
-            PyOSInstaller_linux.deb
-            PyOSInstaller-1.0-1.x86_64.rpm
-
+          name: linux-app
+          path: dist/myapp_*.AppImage
+          
   upload-runpy:
     runs-on: ubuntu-latest
     steps:
@@ -115,3 +85,4 @@ jobs:
         with:
           name: installer-runpy
           path: installer/run.py
+  
