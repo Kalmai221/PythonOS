@@ -13,6 +13,11 @@ def ignore_ctrl_c(signum, frame):
 
 signal.signal(signal.SIGINT, ignore_ctrl_c)
 
+def ignore_ctrl_z(signum, frame):
+    print("\n[!] Ctrl+Z is disabled in PythonOS.")
+
+signal.signal(signal.SIGTSTP, ignore_ctrl_z)
+
 def install_requirements():
     """Install dependencies from boot-requirements.txt with platform-specific options."""
     cmd = ["python", "-m", "pip", "install", "-r", "https://raw.githubusercontent.com/Kalmai221/PythonOS/main/installer-requirements.txt", "--quiet"]
