@@ -28,8 +28,7 @@ def dev_commands():
         console.print("[bold red]You do not have permission to use developer commands[/bold red]")
         return
 
-    console.print(Panel("[bold cyan]Available devel
-    oper commands:[/bold cyan]\n"
+    console.print(Panel("[bold cyan]Available developer commands:[/bold cyan]\n"
                         "1. bsod - Trigger Blue Screen of Death\n"
                         "2. shutdown - Shutdown the system\n"
                         "3. restart - Restart the system\n"
