@@ -4,7 +4,7 @@
 **PythonOS** is a versatile Python-based application designed to run seamlessly on **Windows, Linux, and Android (via Termux)**.  
 This repository includes automated workflows that build platform-specific executables:  
 - Windows: `.exe`  
-- Linux: `.AppImage`  
+- Linux: Script execution via Terminal
 - Android: Script execution via Termux  
 
 Whether you're a developer or user, this guide will help you download, install, and run MyApp on your preferred platform with ease.
@@ -48,7 +48,7 @@ MyApp supports popular Linux distributions such as:
 
 ### 📱 Android (Termux)
 
-Since Android does not support `.exe` or `.AppImage` natively, use **Termux** to run the Python script directly.
+Since Android does not support `.exe` natively, use **Termux** to run the Python script directly.
 
 #### Setup Termux and Python:
 
