@@ -1,35 +1,32 @@
 import psutil
 from rich.table import Table
 from rich.console import Console
+import shutil
+import subprocess
+import sys
 
 config = {
     "name": "taskman",
-    "description": "Runs the OS's Task Manager."
+    "description": "Runs Task Manager."
 }
 
+def install_btop():
+    print("Installing btop... (requires sudo)")
+    try:
+        subprocess.run(["sudo", "apt", "update"], check=True)
+        subprocess.run(["sudo", "apt", "install", "-y", "btop"], check=True)
+        print("btop installed successfully.")
+    except subprocess.CalledProcessError:
+        print("Failed to install btop. Please install manually.")
+        sys.exit(1)
+
 def execute():
-    console = Console()
+    if shutil.which("btop") is None:
+        print("btop not found. Installing now...")
+        install_btop()
 
-    # System usage summary
-    total_cpu = psutil.cpu_percent(interval=1)
-    total_memory = psutil.virtual_memory().percent
-    total_processes = len(psutil.pids())
+    # Run btop interactively
+    subprocess.run(["btop"])
 
-    console.print(f"\n[bold]System Usage:[/bold] CPU: {total_cpu}% | RAM: {total_memory}% | Running Processes: {total_processes}\n")
-
-    # Table of processes
-    table = Table(title="Task Manager")
-
-    table.add_column("PID", style="cyan", justify="right")
-    table.add_column("Name", style="magenta")
-    table.add_column("CPU (%)", style="yellow", justify="right")
-    table.add_column("Memory (MB)", style="green", justify="right")
-
-    for proc in psutil.process_iter(attrs=['pid', 'name', 'cpu_percent', 'memory_info']):
-        pid = proc.info['pid']
-        name = proc.info['name']
-        cpu = proc.info['cpu_percent']
-        mem = f"{proc.info['memory_info'].rss / (1024 * 1024):.2f}"
-        table.add_row(str(pid), name, f"{cpu:.1f}", mem)
-
-    console.print(table)
+if __name__ == "__main__":
+    execute()
