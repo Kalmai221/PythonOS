@@ -91,7 +91,6 @@ def main():
         play_url(selected['url'])
     except (ValueError, IndexError):
         console.print("[red]Invalid selection.[/red]")
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()
