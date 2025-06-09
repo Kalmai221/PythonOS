@@ -43,9 +43,13 @@ def import_game_module(filepath: Path):
         return None
 
 def execute():
-    info = pyos.userinfo()
-    username = info[0]
     games = list_games()
+    if not games:
+        console.print(
+            "[bold yellow]No games found.[/bold yellow] "
+            "[cyan]Visit the [bold]Marketplace[/bold] to browse and install games![/cyan]"
+        )
+        return
     if not games:
         console.print("[bold yellow]No installed games found in 'files/installed_games'.[/bold yellow]")
         return
