@@ -10,7 +10,7 @@ import pyos
 console = Console()
 
 def simulate_bsod(error_message):
-
+    os.system("clear") 
     # Start creating the BSOD text with the basic error message
     bsod_text = Text(f"*** STOP: 0x000000D1 ***\n\n{error_message}\n", style="bold white on blue")
 
