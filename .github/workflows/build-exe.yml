@@ -39,7 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: dist/myapp_*.exe
+          path: dist/PyOSInstaller_windows.exe
           
   upload-runpy:
     runs-on: ubuntu-latest
