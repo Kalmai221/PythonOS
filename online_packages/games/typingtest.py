@@ -1,91 +1,87 @@
-#!/usr/bin/env python3
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
-from rich.prompt import Confirm, IntPrompt
-from rich.spinner import Spinner
-from rich.align import Align
-from rich import box
-import subprocess
-import sys
-import pkg_resources
+    #!/usr/bin/env python3
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.text import Text
+    from rich.prompt import Confirm, IntPrompt
+    from rich import box
+    import subprocess
+    import sys
+    import pkg_resources
+    import shutil
 
-console = Console()
+    console = Console()
+    PACKAGE_NAME = "typing_test"
+    COMMAND_NAME = "tt"
 
-def check_package_installed(package_name):
-    """Check if a package is installed."""
-    installed_packages = {pkg.key for pkg in pkg_resources.working_set}
-    return package_name in installed_packages
+    def check_package_installed(name):
+        """Check if pip package is installed or CLI command is available."""
+        installed = {pkg.key for pkg in pkg_resources.working_set}
+        return name in installed or shutil.which(COMMAND_NAME) is not None
 
-def main():
-    console.clear()
-    # Header with big elegant typography
-    header_text = Text("Typing Test Installer", style="bold black on white", justify="center", no_wrap=True)
-    console.print(Panel(header_text, style="white", box=box.ROUNDED, padding=(1, 4)))
-
-    # Subtext with neutral gray body text color and spacing
-    subtext = Text(
-        "Easily install the [bold]typing_test[/bold] package for your system.\n\n"
-        "This installer will run:\n"
-        "[green]python -m pip install typing_test --user[/green]\n",
-        style="dim",
-        justify="center"
-    )
-    console.print(Panel(subtext, box=box.ROUNDED, padding=(1, 4), style="grey93"))
-
-    # Check if the package is already installed
-    package_name = "typing_test"
-    if check_package_installed(package_name):
-        console.print(f"[bold green]{package_name} is already installed.[/bold green]")
-    else:
-        # Confirm install
-        if not Confirm.ask("Do you want to proceed with the installation?", default=True):
-            console.print("[bold yellow]Installation cancelled.[/bold yellow]")
-            sys.exit(0)
-
-        # Run installation with spinner
-        with console.status("[bold green]Installing typing_test package...[/bold green]", spinner="dots") as status:
+    def install_package(name):
+        """Install the pip package."""
+        with console.status(f"[bold green]Installing {name}...[/bold green]", spinner="dots"):
             try:
-                # Run pip install command
                 subprocess.run(
-                    [sys.executable, "-m", "pip", "install", package_name, "--user", "--break-system-packages"],
+                    [sys.executable, "-m", "pip", "install", name, "--user", "--break-system-packages"],
                     capture_output=True,
                     text=True,
                     check=True,
                 )
             except subprocess.CalledProcessError as e:
-                console.print(Panel(f"[bold red]Installation failed![/bold red]\n\nError:\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
+                console.print(Panel(f"[bold red]Installation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
                 sys.exit(1)
             else:
-                console.print(Panel("[bold green]Installation succeeded![/bold green]\n\nYou can now use the typing_test package.", style="green", box=box.ROUNDED, padding=(1, 2)))
+                console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
 
-    # Ask how long to do the typing test for
-    console.print()
-    time_sec = IntPrompt.ask(
-        "[bold]How many seconds do you want to do the typing test for?[/bold] (e.g. 30, 60)",
-        default=30,
-        show_default=True,
-        console=console,
-    )
+    def launch_typing_test(duration):
+        """Run the typing test CLI with given duration."""
+        try:
+            subprocess.run([COMMAND_NAME, "-t", str(duration)], check=True)
+        except subprocess.CalledProcessError as e:
+            console.print(f"[bold red]Typing test failed to start or ended with error.[/bold red]\n{e}")
+            sys.exit(1)
 
-    if time_sec <= 0:
-        console.print("[bold yellow]Duration must be a positive integer. Exiting.[/bold yellow]")
-        sys.exit(0)
+    def main():
+        console.clear()
 
-    console.print(f"[bold green]Starting typing test for {time_sec} seconds...[/bold green]\n")
+        # Header
+        console.print(Panel(Text("Typing Test Installer", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
 
-    # Launch the typing test with desired time
-    try:
-        subprocess.run(
-            ["tt", "-t", str(time_sec)],
-            check=True,
+        # Description
+        console.print(Panel(
+            f"Easily install the [bold]{PACKAGE_NAME}[/bold] package for your system.\n\n"
+            f"This installer will run:\n[green]python -m pip install {PACKAGE_NAME} --user[/green]",
+            style="grey93",
+            box=box.ROUNDED,
+            padding=(1, 4)
+        ))
+
+        if check_package_installed(PACKAGE_NAME):
+            console.print(f"[bold green]{PACKAGE_NAME} is already installed.[/bold green]")
+        else:
+            if not Confirm.ask(f"Do you want to proceed with the installation of {PACKAGE_NAME}?", default=True):
+                console.print("[bold yellow]Installation cancelled.[/bold yellow]")
+                sys.exit(0)
+            install_package(PACKAGE_NAME)
+
+        # Prompt for typing test duration
+        time_sec = IntPrompt.ask(
+            "[bold]How many seconds do you want to do the typing test for?[/bold] (e.g. 30, 60)",
+            default=30,
+            show_default=True,
+            console=console,
         )
-    except subprocess.CalledProcessError as e:
-        console.print(f"[bold red]Typing test failed to start or ended with error.[/bold red]\n{e}")
-        sys.exit(1)
 
-if __name__ == "__main__":
-    main()
-  
-def execute():
-  main()
+        if time_sec <= 0:
+            console.print("[bold yellow]Duration must be a positive integer. Exiting.[/bold yellow]")
+            sys.exit(0)
+
+        console.print(f"[bold green]Starting typing test for {time_sec} seconds...[/bold green]\n")
+        launch_typing_test(time_sec)
+
+    if __name__ == "__main__":
+        main()
+
+    def execute():
+        main()
