@@ -4,7 +4,7 @@ import subprocess
 import sys
 import random
 import time
-
+import shutil
 
 def install_requirements():
     """Install dependencies from boot-requirements.txt with platform-specific options."""
@@ -248,6 +248,8 @@ def clear_installation_files():
         os.remove(os.path.join(INSTALL_DIR, ".prettierignore"))
         os.remove(os.path.join(INSTALL_DIR, "generated-icon.png"))
         os.remove(os.path.join(INSTALL_DIR, "readme.md"))
+        # DO NOT INCLUDE ONLINE PACKAGES
+        shutil.rmtree(os.path.join(INSTALL_DIR, "online_packages"))
         time.sleep(random.uniform(2, 4))
         spinner.text = "Finalizing cleanup..."
         time.sleep(random.uniform(1, 2))
