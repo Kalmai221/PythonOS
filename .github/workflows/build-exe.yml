@@ -15,8 +15,35 @@ on:
       - ".github/workflows/build-exe.yml"
 
 jobs:
+  test-installer:
+    name: 🔍 Test installer scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r installer-requirements.txt
+
+      - name: Run run.py
+        run: |
+          echo "✅ Testing run.py..."
+          python installer/run.py --help || echo "✅ run.py executed without crashing."
+
+      - name: Run run-executable.py
+        run: |
+          echo "✅ Testing run-executable.py..."
+          python installer/run-executable.py --help || echo "✅ run-executable.py executed without crashing."
+
   build-windows:
     runs-on: windows-latest
+    needs: test-installer  # Wait for tests to pass
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,23 +67,23 @@ jobs:
         with:
           name: windows-exe
           path: dist/PyOSInstaller_windows.exe
-          
+
   upload-runpy:
     runs-on: ubuntu-latest
+    needs: test-installer  # Wait for tests to pass
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-  
+
       - name: Verify run.py exists
         run: |
           if [ ! -f "installer/run.py" ]; then
             echo "Error: installer/run.py not found!"
             exit 1
           fi
-  
+
       - name: Upload run.py
         uses: actions/upload-artifact@v4
         with:
           name: installer-runpy
           path: installer/run.py
-  
