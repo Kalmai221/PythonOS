@@ -1,76 +1,76 @@
-    #!/usr/bin/env python3
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-    from rich.prompt import Confirm
-    from rich import box
-    import subprocess
-    import sys
-    import pkg_resources
-    import shutil
+#!/usr/bin/env python3
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from rich.prompt import Confirm
+from rich import box
+import subprocess
+import sys
+import pkg_resources
+import shutil
 
-    console = Console()
-    package_name = "cli-chess"
-    command_name = "cli-chess"  # the command installed by the package
+console = Console()
+package_name = "cli-chess"
+command_name = "cli-chess"  # the command installed by the package
 
-    def check_package_installed(name):
-        """Check if the pip package is installed."""
-        installed = {pkg.key for pkg in pkg_resources.working_set}
-        return name in installed or shutil.which(name) is not None
+def check_package_installed(name):
+    """Check if the pip package is installed."""
+    installed = {pkg.key for pkg in pkg_resources.working_set}
+    return name in installed or shutil.which(name) is not None
 
-    def install_package(name):
-        """Install the pip package."""
-        with console.status(f"[bold green]Installing {name}...[/bold green]", spinner="dots"):
-            try:
-                subprocess.run(
-                    [sys.executable, "-m", "pip", "install", name, "--user", "--break-system-packages"],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
-            except subprocess.CalledProcessError as e:
-                console.print(Panel(f"[bold red]Installation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
-                sys.exit(1)
-            else:
-                console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
-
-    def launch_game(cmd):
-        """Launch the CLI game."""
+def install_package(name):
+    """Install the pip package."""
+    with console.status(f"[bold green]Installing {name}...[/bold green]", spinner="dots"):
         try:
-            subprocess.run([cmd], check=True)
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", name, "--user", "--break-system-packages"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
         except subprocess.CalledProcessError as e:
-            console.print(f"[bold red]{cmd} failed to start or crashed.[/bold red]\n{e}")
+            console.print(Panel(f"[bold red]Installation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
             sys.exit(1)
-
-    def main():
-        console.clear()
-
-        # Header
-        console.print(Panel(Text("CLI Chess Installer", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
-
-        # Description
-        console.print(Panel(
-            "This installer will help you install and launch [bold]cli-chess[/bold].\n\n"
-            "Command run:\n[green]python -m pip install cli-chess --user[/green]",
-            style="grey93",
-            box=box.ROUNDED,
-            padding=(1, 4)
-        ))
-
-        # Installation check
-        if check_package_installed(package_name):
-            console.print(f"[bold green]{package_name} is already installed.[/bold green]")
         else:
-            if not Confirm.ask("Do you want to install cli-chess?", default=True):
-                console.print("[bold yellow]Installation cancelled.[/bold yellow]")
-                sys.exit(0)
-            install_package(package_name)
+            console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
 
-        console.print("\n[bold green]Launching CLI Chess...[/bold green]\n")
-        launch_game(command_name)
+def launch_game(cmd):
+    """Launch the CLI game."""
+    try:
+        subprocess.run([cmd], check=True)
+    except subprocess.CalledProcessError as e:
+        console.print(f"[bold red]{cmd} failed to start or crashed.[/bold red]\n{e}")
+        sys.exit(1)
 
-    if __name__ == "__main__":
-        main()
+def main():
+    console.clear()
 
-    def execute():
-        main()
+    # Header
+    console.print(Panel(Text("CLI Chess Installer", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
+
+    # Description
+    console.print(Panel(
+        "This installer will help you install and launch [bold]cli-chess[/bold].\n\n"
+        "Command run:\n[green]python -m pip install cli-chess --user[/green]",
+        style="grey93",
+        box=box.ROUNDED,
+        padding=(1, 4)
+    ))
+
+    # Installation check
+    if check_package_installed(package_name):
+        console.print(f"[bold green]{package_name} is already installed.[/bold green]")
+    else:
+        if not Confirm.ask("Do you want to install cli-chess?", default=True):
+            console.print("[bold yellow]Installation cancelled.[/bold yellow]")
+            sys.exit(0)
+        install_package(package_name)
+
+    console.print("\n[bold green]Launching CLI Chess...[/bold green]\n")
+    launch_game(command_name)
+
+if __name__ == "__main__":
+    main()
+
+def execute():
+    main()
