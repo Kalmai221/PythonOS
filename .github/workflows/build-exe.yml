@@ -40,32 +40,6 @@ jobs:
         with:
           name: windows-exe
           path: dist/myapp_*.exe
-
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          pip install -r installer-requirements.txt
-          pip install pyinstaller
-
-      - name: Build Linux Executable
-        run: |
-          pyinstaller --onefile --name "PyOSInstaller_linux.AppImage" installer/run-executable.py
-
-      - name: Upload Linux Executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-app
-          path: dist/myapp_*.AppImage
           
   upload-runpy:
     runs-on: ubuntu-latest
