@@ -5,6 +5,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.prompt import IntPrompt
 from rich import print
+from rich.prompt import Confirm
 
 # === CONFIGURATION ===
 REPO_OWNER = "Kalmai221"
@@ -17,6 +18,39 @@ config = {
 }
 
 console = Console()
+
+def download_file(item, category):
+    name = item["name"]
+    download_url = item.get("download_url")
+
+    if not download_url:
+        console.print(f"[bold red]No download URL found for {name}[/bold red]")
+        return
+
+    install_dir = Path(f"files/installed_{category}")
+    install_dir.mkdir(parents=True, exist_ok=True)
+    save_path = install_dir / name
+
+    if save_path.exists():
+        if Confirm.ask(f"[yellow]'{name}' already exists. Do you want to update it?[/yellow]"):
+            try:
+                save_path.unlink()
+                console.print(f"[dim]Deleted old version of '{name}'[/dim]")
+            except Exception as e:
+                console.print(f"[bold red]Failed to delete existing file: {e}[/bold red]")
+                return
+        else:
+            console.print("[bold]Skipped update.[/bold]")
+            return
+
+    try:
+        response = requests.get(download_url)
+        response.raise_for_status()
+        with open(save_path, "wb") as f:
+            f.write(response.content)
+        console.print(f"[bold green]✓ Downloaded '{name}' to {save_path}[/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]Failed to download '{name}': {e}[/bold red]")
 
 def fetch_categories():
     try:
