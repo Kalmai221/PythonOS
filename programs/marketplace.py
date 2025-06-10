@@ -3,6 +3,8 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import IntPrompt, Confirm
+import hashlib
+import sys
 
 config = {
     "name": "marketplace",
@@ -195,7 +197,7 @@ def main_menu():
             check_updates_flow()
         elif choice == 3:
             console.print("Goodbye!")
-            break
+            sys.exit(0)
 
 if __name__ == "__main__":
     main_menu()
