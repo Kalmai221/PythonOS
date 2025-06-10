@@ -56,17 +56,16 @@ def main():
             box=box.ROUNDED,
             padding=(1, 2)
         ))
-        sys.exit(0)
-
-    # Confirmation
-    console.print(f"[bold red]Warning:[/bold red] This will permanently remove {package_name} from your system.")
-
-    if not Confirm.ask(f"Are you sure you want to uninstall {package_name}?", default=False):
-        console.print("[bold yellow]Uninstallation cancelled.[/bold yellow]")
-        sys.exit(0)
-
-    uninstall_package(package_name)
-    console.print(f"\n[bold green]{package_name} has been completely removed from your system.[/bold green]")
+    else:
+        # Confirmation
+        console.print(f"[bold red]Warning:[/bold red] This will permanently remove {package_name} from your system.")
+    
+        if not Confirm.ask(f"Are you sure you want to uninstall {package_name}?", default=False):
+            console.print("[bold yellow]Uninstallation cancelled.[/bold yellow]")
+            sys.exit(0)
+    
+        uninstall_package(package_name)
+        console.print(f"\n[bold green]{package_name} has been completely removed from your system.[/bold green]")
 
 if __name__ == "__main__":
     main()

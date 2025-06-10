@@ -49,15 +49,25 @@ def main():
         padding=(1, 4)
     ))
 
+    # Installation check
     if not check_package_installed(PACKAGE_NAME):
-        console.print(f"[bold yellow]{PACKAGE_NAME} is not installed.[/bold yellow]")
-        sys.exit(0)
+        console.print(Panel(
+            f"[bold yellow]{PACKAGE_NAME} is not installed.[/bold yellow]\n\n"
+            "Nothing to uninstall.",
+            style="yellow",
+            box=box.ROUNDED,
+            padding=(1, 2)
+        ))
+    else:
+        # Confirmation
+        console.print(f"[bold red]Warning:[/bold red] This will permanently remove {PACKAGE_NAME} from your system.")
 
-    if not Confirm.ask(f"Do you want to proceed with the uninstallation of {PACKAGE_NAME}?", default=True):
-        console.print("[bold yellow]Uninstallation cancelled.[/bold yellow]")
-        sys.exit(0)
+        if not Confirm.ask(f"Are you sure you want to uninstall {PACKAGE_NAME}?", default=False):
+            console.print("[bold yellow]Uninstallation cancelled.[/bold yellow]")
+            sys.exit(0)
 
-    uninstall_package(PACKAGE_NAME)
+        uninstall_package(PACKAGE_NAME)
+        console.print(f"\n[bold green]{PACKAGE_NAME} has been completely removed from your system.[/bold green]")
 
 if __name__ == "__main__":
     main()
