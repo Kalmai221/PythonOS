@@ -18,7 +18,7 @@ def install(pkg):
     with console.status(f"[bold green]Installing {pkg}...[/bold green]", spinner="dots"):
         try:
             subprocess.run(
-                [sys.executable, "-m", "pip", "install", pkg, "--user"],
+                [sys.executable, "-m", "pip", "install", pkg, "--user", "--break-system-packages"],
                 capture_output=True,
                 text=True,
                 check=True
