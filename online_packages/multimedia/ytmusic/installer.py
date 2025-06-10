@@ -8,7 +8,7 @@ import sys
 import pkg_resources
 
 console = Console()
-requirements = ["yt-dlp", "simpleaudio", "pydub"]
+requirements = ["yt-dlp", "pygame"]
 
 def check_installed(pkg):
     installed = {p.key for p in pkg_resources.working_set}
