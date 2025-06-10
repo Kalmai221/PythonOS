@@ -78,7 +78,7 @@ def show_update_table(files_to_update):
 
     console.print(table)
 
-def update_system():
+def update_system(auto_update=False):
     base_path = Path.cwd()  # Detect current working directory dynamically
     console.print(f"[bold blue]Working directory detected as:[/bold blue] {base_path}\n")
     console.print("[bold cyan]Checking for updates...[/bold cyan]")
@@ -102,13 +102,14 @@ def update_system():
 
     show_update_table(files_to_update)
 
-    if Confirm.ask("\nDo you want to update these files?"):
+    if auto_update or Confirm.ask("\nDo you want to update these files?"):
         apply_updates(files_to_update, files, base_path)
         console.print("[bold green]Update complete![/bold green]")
         return True
     else:
         console.print("[bold yellow]Update cancelled.[/bold yellow]")
         return False
+
 
 if __name__ == "__main__":
     update_system()
