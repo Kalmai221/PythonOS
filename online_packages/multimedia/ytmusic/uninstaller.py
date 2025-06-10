@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 console = Console()
-packages = ["yt-dlp", "playsound"]
+packages = ["yt-dlp", "simpleaudio", "pydub"]
 
 def uninstall(pkg):
     try:

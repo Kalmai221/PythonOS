@@ -8,7 +8,7 @@ import sys
 import pkg_resources
 
 console = Console()
-required_packages = ["yt-dlp", "playsound"]
+requirements = ["yt-dlp", "simpleaudio", "pydub"]
 
 def check_installed(pkg):
     installed = {p.key for p in pkg_resources.working_set}
@@ -33,7 +33,7 @@ def main():
     console.clear()
     console.print(Panel("🎶 YouTube Music Player Installer", style="bold black on white", box=box.ROUNDED, padding=(1, 4)))
 
-    for pkg in required_packages:
+    for pkg in requirements:
         if not check_installed(pkg):
             if Confirm.ask(f"Do you want to install [cyan]{pkg}[/cyan]?", default=True):
                 install(pkg)
