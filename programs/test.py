@@ -11,6 +11,6 @@ config = {
 def execute():
     info = pyos.userinfo()
     if info[0] == "Kalmai221":
-        pyos.shutdown()
+        console.print("[bold green]No test has been defined.[/bold green]")
     else:
         console.print("[bold red]You do not have permission to use this command[/bold red]")

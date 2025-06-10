@@ -66,5 +66,4 @@ def simulate_shutdown_wipe():
     # Final message
     console.print("\n[bold red]Shutdown complete.[/bold red]")
     console.print("\n[bold yellow]Power on the device for first time use.[/bold yellow]")
-    subprocess.run(["sudo", "shutdown", "-h", "now"], check=True)
     sys.exit(0)

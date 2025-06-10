@@ -63,5 +63,4 @@ def simulate_shutdown():
 
     # Final message
     console.print("\n[bold red]Shutdown complete.[/bold red]")
-    subprocess.run(["sudo", "shutdown", "-h", "now"], check=True)
     sys.exit(0)
