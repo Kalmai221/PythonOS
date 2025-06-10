@@ -59,7 +59,7 @@ def execute():
     console.print(table)
 
     try:
-        choice = IntPrompt.ask("Enter the index of the program to run (0 to cancel)", default=0)
+        choice = IntPrompt.ask("Enter the index of the program to manage (0 to cancel)", default=0)
         if choice == 0:
             console.print("Cancelled.")
             return
@@ -72,6 +72,33 @@ def execute():
 
     category, program_path = programs[choice - 1]
 
+    # Ask if user wants to run or uninstall
+    from rich.prompt import Prompt
+    action = Prompt.ask(
+        f"What do you want to do with [green]{program_path.stem}[/green]? (run/uninstall/cancel)",
+        choices=["run", "uninstall", "cancel"],
+        default="run"
+    )
+
+    if action == "cancel":
+        console.print("Operation cancelled.")
+        return
+
+    if action == "uninstall":
+        try:
+            program_path.unlink()
+            console.print(f"[bold red]Uninstalled {program_path.name}[/bold red]")
+
+            # Remove category folder if empty
+            category_folder = program_path.parent
+            if not any(category_folder.iterdir()):
+                category_folder.rmdir()
+                console.print(f"[bold yellow]Removed empty category folder '{category_folder.name}'.[/bold yellow]")
+        except Exception as e:
+            console.print(f"[bold red]Failed to uninstall: {e}[/bold red]")
+        return
+
+    # Else, run the program
     console.print(f"[bold green]Launching:[/bold green] {program_path.name} from [magenta]{category}[/magenta]")
 
     mod = import_program_module(program_path)
