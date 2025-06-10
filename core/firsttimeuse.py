@@ -77,7 +77,7 @@ def firsttimeuse():
     # Step 1: Check for updates
     console.print("\n[cyan]Checking for updates...[/cyan]")
     try:
-        core.update_system()
+        core.update_system(True)
         console.print("[green]Update check complete.[/green]")
     except Exception as e:
         console.print(f"[red]Update check failed: {e}[/red]")
