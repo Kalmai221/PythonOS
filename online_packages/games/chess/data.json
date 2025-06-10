@@ -1,10 +1,10 @@
 {
   "name": "Chess CLI",
-  "description": "A command-line interface for playing chess.",
+  "description": "Chess game.",
   "version": "1.0.0",
-  "scripts": [
+  "scripts": {
     "installer": "installer.py",
     "run": "run.py",
     "uninstaller": "uninstaller.py"
-  ]
+  }
 }

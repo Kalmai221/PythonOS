@@ -30,14 +30,17 @@ def fetch_categories():
         console.print(f"[bold red]Failed to fetch categories: {e}[/bold red]")
         return []
 
-def fetch_items_in_category(category):
+def fetch_items_in_category(remote_path):
+    url = f"{BASE_API_URL}/{remote_path}"
+    console.print(f"[dim]Fetching items from: {url}[/dim]")  # Debug line
     try:
-        url = f"{BASE_API_URL}/{category}"
         response = requests.get(url)
         response.raise_for_status()
-        return response.json()
+        items = response.json()
+        console.print(f"[dim]Found {len(items)} items[/dim]")  # Debug line
+        return items
     except Exception as e:
-        console.print(f"[bold red]Failed to fetch items for '{category}': {e}[/bold red]")
+        console.print(f"[bold red]Failed to fetch items from '{remote_path}': {e}[/bold red]")
         return []
 
 def get_raw_url(item):
@@ -112,6 +115,25 @@ def list_installed_programs():
                 })
     return installed
 
+def recursively_download_folder(remote_path, local_path, category):
+    # Fetch contents from the remote folder
+    items = fetch_items_in_category(remote_path)
+    if not items:
+        console.print(f"[yellow]No items found in remote path '{remote_path}'[/yellow]")
+        return
+
+    for item in items:
+        if item["type"] == "file":
+            console.print(f"Downloading file: {item['name']} from {item.get('download_url')}")
+            download_file(item, category, local_path)
+        elif item["type"] == "dir":
+            subdir_name = item["name"]
+            new_local_subdir = local_path / subdir_name
+            new_local_subdir.mkdir(parents=True, exist_ok=True)
+            console.print(f"[bold green]✓ Created subdirectory '{subdir_name}' in {local_path}[/bold green]")
+            # Recursive call with correct path
+            recursively_download_folder(f"{remote_path}/{subdir_name}", new_local_subdir, category)
+            
 def download_program_flow():
     categories = fetch_categories()
     if not categories:
@@ -146,15 +168,19 @@ def download_program_flow():
         return
 
     if 1 <= dir_choice <= len(directories):
-        # Instead of downloading the folder, create the directory
+        directory = directories[dir_choice - 1]
+        directory_name = directory["name"]
         install_dir = Path(f"files/installed_{category}")
         install_dir.mkdir(parents=True, exist_ok=True)
-        directory_name = directories[dir_choice - 1]["name"]
         new_directory_path = install_dir / directory_name
         new_directory_path.mkdir(parents=True, exist_ok=True)
         console.print(f"[bold green]✓ Created directory '{directory_name}' in {install_dir}[/bold green]")
+
+        # Recursively download the directory content
+        recursively_download_folder(f"{category}/{directory_name}", new_directory_path, category)
     else:
         console.print("[bold red]Invalid directory selection.[/bold red]")
+
 
 def check_updates_flow():
     installed = list_installed_programs()

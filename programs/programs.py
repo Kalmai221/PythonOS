@@ -6,7 +6,9 @@ from pathlib import Path
 import importlib.util
 from rich.console import Console
 from rich.table import Table
-from rich.prompt import IntPrompt, Prompt
+from rich.prompt import IntPrompt, Prompt, Confirm
+import shutil
+import glob
 
 console = Console()
 
@@ -17,29 +19,38 @@ config = {
 
 ROOT_DIR = Path("files")
 
-def load_program_metadata(program_folder: Path):
-    """Load metadata from data.json file."""
-    data_file = program_folder / "data.json"
-    if data_file.exists():
-        try:
-            with open(data_file, 'r') as f:
-                return json.load(f)
-        except Exception as e:
-            console.print(f"[bold yellow]Warning: Could not read metadata for {program_folder.name}: {e}[/bold yellow]")
-
-    return None
-
 def list_installed_programs():
     """List all installed programs with their metadata."""
     programs = []
-
-    for folder in ROOT_DIR.iterdir():
-        if folder.is_dir():
-            metadata = load_program_metadata(folder)
-            if metadata:  # Only include folders with valid data.json
-                programs.append((folder, metadata))
-
+    # Use glob to find all directories matching the pattern "installed_*"
+    category_dirs = glob.glob(str(ROOT_DIR / "installed_*"))
+    for category_dir in category_dirs:
+        category_path = Path(category_dir)
+        if category_path.is_dir():
+            for folder in category_path.iterdir():
+                if folder.is_dir():
+                    metadata = load_program_metadata(folder)
+                    if metadata:  # Only include folders with valid data.json
+                        programs.append((folder, metadata))
     return programs
+
+def load_program_metadata(program_folder: Path):
+   """Load metadata from data.json file."""
+   data_file = program_folder / "data.json"
+   if data_file.exists():
+       try:
+           with open(data_file, 'r') as f:
+               data = json.load(f)
+               print(f"Successfully loaded metadata from {data_file}")  # Add this line
+               return data
+       except json.JSONDecodeError as e:
+           console.print(f"[bold yellow]Warning: Could not read metadata for {program_folder.name}: Invalid JSON in {data_file}: {e}[/bold yellow]")
+       except Exception as e:
+           console.print(f"[bold yellow]Warning: Could not read metadata for {program_folder.name}: Error reading {data_file}: {e}[/bold yellow]")
+   else:
+       console.print(f"[bold yellow]Warning: data.json not found in {program_folder.name}[/bold yellow]") # Add this line
+
+   return None
 
 def import_program_module(filepath: Path):
     """Dynamically import a .py file as a module."""
