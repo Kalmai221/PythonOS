@@ -32,12 +32,10 @@ def fetch_categories():
 
 def fetch_items_in_category(remote_path):
     url = f"{BASE_API_URL}/{remote_path}"
-    console.print(f"[dim]Fetching items from: {url}[/dim]")  # Debug line
     try:
         response = requests.get(url)
         response.raise_for_status()
         items = response.json()
-        console.print(f"[dim]Found {len(items)} items[/dim]")  # Debug line
         return items
     except Exception as e:
         console.print(f"[bold red]Failed to fetch items from '{remote_path}': {e}[/bold red]")
