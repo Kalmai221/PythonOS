@@ -22,7 +22,7 @@ def install_package():
         sys.exit(0)
     try:
         console.print(f"[bold green]Installing {PACKAGE_NAME}...[/bold green]")
-        subprocess.run([sys.executable, "-m", "pip", "install", PACKAGE_NAME, "--user"], check=True)
+        subprocess.run([sys.executable, "-m", "pip", "install", PACKAGE_NAME, "--user", "--break-system-packages"], check=True)
     except subprocess.CalledProcessError as e:
         console.print(Panel(f"[bold red]Installation failed![/bold red]\n\nError:\n{e}", style="red", box=box.ROUNDED, padding=(1, 2)))
         sys.exit(1)

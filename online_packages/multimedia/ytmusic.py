@@ -1,52 +1,44 @@
 #!/usr/bin/env python3
 from rich.console import Console
 from rich.panel import Panel
-from rich.text import Text
 from rich.prompt import Prompt, Confirm
+from rich.text import Text
 from rich.table import Table
-from rich.spinner import Spinner
 from rich import box
 import subprocess
 import sys
 import shutil
+import tempfile
+import os
 
 console = Console()
 
-def is_installed(cmd):
-    return shutil.which(cmd) is not None
+def is_installed_pip(pkg):
+    try:
+        __import__(pkg)
+        return True
+    except ImportError:
+        return False
 
 def install_dependencies():
     console.print(Panel("Checking & installing dependencies...", style="cyan", box=box.ROUNDED))
 
-    # Check mpv
-    if not is_installed("mpv"):
-        console.print("[yellow]mpv is not installed.[/yellow]")
-        if Confirm.ask("Install mpv via apt? (Requires sudo)", default=True):
-            if shutil.which("sudo") is None:
-                console.print("[red]sudo not found. Please install mpv manually.[/red]")
-                sys.exit(1)
-            try:
-                subprocess.run(["sudo", "apt", "install", "-y", "mpv"], check=True)
-            except subprocess.CalledProcessError:
-                console.print("[red]Failed to install mpv. Please install it manually.[/red]")
-                sys.exit(1)
-        else:
-            console.print("[red]mpv is required. Exiting.[/red]")
-            sys.exit(1)
-
     # Check yt-dlp
-    try:
-        import yt_dlp  # noqa: F401
-    except ImportError:
+    if not is_installed_pip("yt_dlp"):
         console.print("[yellow]yt-dlp is not installed.[/yellow]")
         if Confirm.ask("Install yt-dlp via pip?", default=True):
-            try:
-                subprocess.run([sys.executable, "-m", "pip", "install", "--user", "yt-dlp"], check=True)
-            except subprocess.CalledProcessError:
-                console.print("[red]Failed to install yt-dlp. Please install it manually.[/red]")
-                sys.exit(1)
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "yt-dlp"], check=True)
         else:
             console.print("[red]yt-dlp is required. Exiting.[/red]")
+            sys.exit(1)
+
+    # Check playsound
+    if not is_installed_pip("playsound"):
+        console.print("[yellow]playsound is not installed.[/yellow]")
+        if Confirm.ask("Install playsound via pip?", default=True):
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "playsound"], check=True)
+        else:
+            console.print("[red]playsound is required. Exiting.[/red]")
             sys.exit(1)
 
 def search_youtube(query, max_results=5):
@@ -68,18 +60,41 @@ def search_youtube(query, max_results=5):
             return []
 
 def play_url(url):
+    import yt_dlp
+    from playsound import playsound
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'quiet': True,
+        'outtmpl': os.path.join(tempfile.gettempdir(), '%(id)s.%(ext)s'),
+        'noplaylist': True,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=True)
+        filename = ydl.prepare_filename(info).rsplit('.', 1)[0] + ".mp3"
+
+    console.print(f"[green]Playing downloaded audio:[/green] {filename}")
     try:
-        subprocess.run(["mpv", url], check=True)
-    except subprocess.CalledProcessError:
-        console.print("[red]Failed to play the track with mpv.[/red]")
-    except FileNotFoundError:
-        console.print("[red]mpv not found. Please install it.[/red]")
+        playsound(filename)
+    except Exception as e:
+        console.print(f"[red]Playback error: {e}[/red]")
+    finally:
+        try:
+            os.remove(filename)
+        except Exception:
+            pass
 
 def main():
     install_dependencies()
     console.clear()
 
-    header = Text("🎵 YouTube Music CLI Launcher", style="bold black on white", justify="center")
+    header = Text("🎵 YouTube Music CLI Launcher (pip-only)", style="bold black on white", justify="center")
     console.print(Panel(header, box=box.ROUNDED, padding=(1, 4)))
 
     try:

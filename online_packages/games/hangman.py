@@ -6,33 +6,34 @@ from rich.prompt import Confirm
 from rich import box
 import subprocess
 import sys
-import shutil
+import importlib.util
 
 console = Console()
 
-def is_installed(cmd):
-    return shutil.which(cmd) is not None
+def is_installed(module_name):
+    """Check if a Python module is installed."""
+    return importlib.util.find_spec(module_name) is not None
 
 def main():
     console.clear()
     console.print(Panel(Text("Hangman Game Installer", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
     console.print(Panel(
-        "This will install [bold]hangman[/bold] from the [italic]bsdgames[/italic] package.\n\n"
-        "[green]sudo apt install bsdgames[/green]",
+        "This will install a Python-based [bold]Hangman[/bold] game using pip.\n\n"
+        "[green]pip install hangman-game[/green]",
         style="grey93", box=box.ROUNDED, padding=(1, 4)
     ))
 
-    if is_installed("hangman"):
-        console.print("[bold green]hangman is already installed.[/bold green]")
+    if is_installed("hangman_game"):
+        console.print("[bold green]hangman-game is already installed.[/bold green]")
     else:
-        if not Confirm.ask("Install bsdgames?", default=True):
+        if not Confirm.ask("Install hangman-game via pip?", default=True):
             console.print("[bold yellow]Cancelled.[/bold yellow]")
             sys.exit(0)
-        with console.status("[green]Installing bsdgames...[/green]", spinner="dots"):
-            subprocess.run(["sudo", "apt", "install", "-y", "bsdgames"], check=True)
+        with console.status("[green]Installing hangman-game...[/green]", spinner="dots"):
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "hangman-game", "--break-system-packages"], check=True)
 
-    console.print("\n[bold green]Launching hangman...[/bold green]")
-    subprocess.run(["hangman"])
+    console.print("\n[bold green]Launching hangman-game...[/bold green]")
+    subprocess.run([sys.executable, "-m", "hangman_game"])
 
 if __name__ == "__main__":
     main()
