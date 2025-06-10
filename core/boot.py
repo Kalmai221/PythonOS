@@ -241,15 +241,6 @@ def boot_sequence(debug):
 
         # Set the current directory to the "files" folder
         set_current_directory_to_files(debug, spinner)
-        if os.path.exists(".OSData"):
-            spinner.text = "Initialising Update Checher..."
-        else:
-            if debug == "Yes":
-                console.print("[bold yellow].OSData folder not found. Skipping system update.[/bold yellow]")
-        time.sleep(1.5)
-        
-    if os.path.exists(".OSData"):
-        core.update_system(True)
 
     console.print("[bold green]System ready![/bold green]\n")
     os.system("clear")
