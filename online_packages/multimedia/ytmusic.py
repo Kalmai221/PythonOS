@@ -27,7 +27,7 @@ def install_dependencies():
     if not is_installed_pip("yt_dlp"):
         console.print("[yellow]yt-dlp is not installed.[/yellow]")
         if Confirm.ask("Install yt-dlp via pip?", default=True):
-            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "yt-dlp"], check=True)
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "yt-dlp", "--break-system-packages"], check=True)
         else:
             console.print("[red]yt-dlp is required. Exiting.[/red]")
             sys.exit(1)
@@ -36,7 +36,7 @@ def install_dependencies():
     if not is_installed_pip("playsound"):
         console.print("[yellow]playsound is not installed.[/yellow]")
         if Confirm.ask("Install playsound via pip?", default=True):
-            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "playsound"], check=True)
+            subprocess.run([sys.executable, "-m", "pip", "install", "--user", "playsound", "--break-system-packages"], check=True)
         else:
             console.print("[red]playsound is required. Exiting.[/red]")
             sys.exit(1)
