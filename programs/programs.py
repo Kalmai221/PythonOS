@@ -1,11 +1,12 @@
 import os
 import sys
 import subprocess
+import json
 from pathlib import Path
 import importlib.util
 from rich.console import Console
 from rich.table import Table
-from rich.prompt import IntPrompt
+from rich.prompt import IntPrompt, Prompt
 
 console = Console()
 
@@ -16,13 +17,28 @@ config = {
 
 ROOT_DIR = Path("files")
 
+def load_program_metadata(program_folder: Path):
+    """Load metadata from data.json file."""
+    data_file = program_folder / "data.json"
+    if data_file.exists():
+        try:
+            with open(data_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            console.print(f"[bold yellow]Warning: Could not read metadata for {program_folder.name}: {e}[/bold yellow]")
+
+    return None
+
 def list_installed_programs():
+    """List all installed programs with their metadata."""
     programs = []
+
     for folder in ROOT_DIR.iterdir():
-        if folder.is_dir() and folder.name.startswith("installed_"):
-            category = folder.name.replace("installed_", "")
-            for file in sorted(folder.glob("*.py")):
-                programs.append((category, file))
+        if folder.is_dir():
+            metadata = load_program_metadata(folder)
+            if metadata:  # Only include folders with valid data.json
+                programs.append((folder, metadata))
+
     return programs
 
 def import_program_module(filepath: Path):
@@ -32,12 +48,90 @@ def import_program_module(filepath: Path):
         if spec is None:
             return None
         mod = importlib.util.module_from_spec(spec)
-        sys.modules[filepath.stem] = mod
+        sys.modules[f"{filepath.parent.name}_{filepath.stem}"] = mod
         spec.loader.exec_module(mod)
         return mod
     except Exception as e:
         console.print(f"[bold red]Failed to import module {filepath.name}: {e}[/bold red]")
         return None
+
+def execute_program_script(program_folder: Path, script_name: str, metadata: dict):
+    """Execute a specific script from the program folder using metadata."""
+    scripts = metadata.get("scripts", {})
+
+    if script_name not in scripts:
+        console.print(f"[bold red]Script '{script_name}' not defined in {program_folder.name}/data.json[/bold red]")
+        return False
+
+    script_filename = scripts[script_name]
+    script_path = program_folder / script_filename
+
+    if not script_path.exists():
+        console.print(f"[bold red]Script file {script_filename} not found in {program_folder.name}[/bold red]")
+        return False
+
+    mod = import_program_module(script_path)
+    if mod is None:
+        console.print(f"[bold red]Import error. Cannot execute {script_filename}.[/bold red]")
+        return False
+
+    if hasattr(mod, "execute") and callable(mod.execute):
+        try:
+            mod.execute()
+            return True
+        except Exception as e:
+            console.print(f"[bold red]Script execution error:[/bold red] {e}")
+            return False
+    else:
+        console.print(f"[bold red]Script {script_filename} does not have an executable 'execute()' function.[/bold red]")
+        return False
+
+def get_available_actions(metadata: dict):
+    """Get available actions based on scripts defined in metadata."""
+    scripts = metadata.get("scripts", {})
+    available_actions = []
+
+    # Map script names to user-friendly action names
+    action_map = {
+        "run": "run",
+        "launcher": "run",
+        "start": "run",
+        "install": "install",
+        "installer": "install",
+        "uninstall": "uninstall",
+        "uninstaller": "uninstall",
+        "remove": "uninstall"
+    }
+
+    for script_key in scripts.keys():
+        action = action_map.get(script_key, script_key)
+        if action not in available_actions:
+            available_actions.append(action)
+
+    available_actions.append("cancel")
+    return available_actions
+
+def get_script_key_for_action(action: str, metadata: dict):
+    """Get the script key that corresponds to the user's action choice."""
+    scripts = metadata.get("scripts", {})
+
+    # Map actions back to script keys
+    action_to_script = {
+        "run": ["run", "launcher", "start"],
+        "install": ["install", "installer"],
+        "uninstall": ["uninstall", "uninstaller", "remove"]
+    }
+
+    if action in action_to_script:
+        for script_key in action_to_script[action]:
+            if script_key in scripts:
+                return script_key
+
+    # If it's a direct script name, return it
+    if action in scripts:
+        return action
+
+    return None
 
 def execute():
     programs = list_installed_programs()
@@ -51,10 +145,21 @@ def execute():
     table = Table(title="Installed Programs", show_lines=True, header_style="bold cyan")
     table.add_column("Index", justify="right", style="bold")
     table.add_column("Program Name", style="green")
-    table.add_column("Category", style="magenta")
+    table.add_column("Description", style="white")
+    table.add_column("Version", style="yellow")
+    table.add_column("Available Actions", style="cyan")
 
-    for idx, (category, path) in enumerate(programs, start=1):
-        table.add_row(str(idx), path.stem, category)
+    for idx, (folder, metadata) in enumerate(programs, start=1):
+        available_actions = get_available_actions(metadata)
+        actions_str = ", ".join([a for a in available_actions if a != "cancel"])
+
+        table.add_row(
+            str(idx), 
+            metadata.get("name", folder.name),
+            metadata.get("description", "No description available")[:40] + ("..." if len(metadata.get("description", "")) > 40 else ""),
+            metadata.get("version", "Unknown"),
+            actions_str
+        )
 
     console.print(table)
 
@@ -70,50 +175,54 @@ def execute():
         console.print("\n[bold yellow]Cancelled by user.[/bold yellow]")
         return
 
-    category, program_path = programs[choice - 1]
+    program_folder, metadata = programs[choice - 1]
+    program_name = metadata.get("name", program_folder.name)
+    available_actions = get_available_actions(metadata)
 
-    # Ask if user wants to run or uninstall
-    from rich.prompt import Prompt
+    # Ask what action to perform
     action = Prompt.ask(
-        f"What do you want to do with [green]{program_path.stem}[/green]? (run/uninstall/cancel)",
-        choices=["run", "uninstall", "cancel"],
-        default="run"
+        f"What do you want to do with [green]{program_name}[/green]?",
+        choices=available_actions,
+        default="run" if "run" in available_actions else available_actions[0]
     )
 
     if action == "cancel":
         console.print("Operation cancelled.")
         return
 
-    if action == "uninstall":
-        try:
-            program_path.unlink()
-            console.print(f"[bold red]Uninstalled {program_path.name}[/bold red]")
-
-            # Remove category folder if empty
-            category_folder = program_path.parent
-            if not any(category_folder.iterdir()):
-                category_folder.rmdir()
-                console.print(f"[bold yellow]Removed empty category folder '{category_folder.name}'.[/bold yellow]")
-        except Exception as e:
-            console.print(f"[bold red]Failed to uninstall: {e}[/bold red]")
+    # Get the script key for the chosen action
+    script_key = get_script_key_for_action(action, metadata)
+    if not script_key:
+        console.print(f"[bold red]No script found for action '{action}'[/bold red]")
         return
 
-    # Else, run the program
-    console.print(f"[bold green]Launching:[/bold green] {program_path.name} from [magenta]{category}[/magenta]")
+    # Execute the script
+    action_messages = {
+        "run": f"[bold green]Launching:[/bold green] {program_name}",
+        "install": f"[bold blue]Running installer for:[/bold blue] {program_name}",
+        "uninstall": f"[bold red]Running uninstaller for:[/bold red] {program_name}"
+    }
 
-    mod = import_program_module(program_path)
-    if mod is None:
-        console.print("[bold red]Import error. Cannot launch program.[/bold red]")
-        return
+    console.print(action_messages.get(action, f"[bold cyan]Running {action} for:[/bold cyan] {program_name}"))
 
-    if hasattr(mod, "execute") and callable(mod.execute):
-        try:
-            mod.execute()
-            console.print("[bold green]Program exited successfully.[/bold green]")
-        except Exception as e:
-            console.print(f"[bold red]Program execution error:[/bold red] {e}")
+    success = execute_program_script(program_folder, script_key, metadata)
+    if success:
+        success_messages = {
+            "run": "[bold green]Program exited successfully.[/bold green]",
+            "install": "[bold green]Installation completed successfully.[/bold green]",
+            "uninstall": "[bold green]Uninstallation completed successfully.[/bold green]"
+        }
+        console.print(success_messages.get(action, f"[bold green]{action.capitalize()} completed successfully.[/bold green]"))
+        # Add folder deletion here
+        if action == "uninstall":
+            if Confirm.ask(f"[bold yellow]Do you want to delete the program folder '{program_folder.name}'?[/bold yellow]", default=False):
+                try:
+                    shutil.rmtree(program_folder)
+                    console.print(f"[bold green]Program folder '{program_folder.name}' deleted successfully.[/bold green]")
+                except Exception as e:
+                    console.print(f"[bold red]Failed to delete program folder: {e}[/bold red]")
     else:
-        console.print(f"[bold red]Program does not have an executable 'execute()' function.[/bold red]")
+        console.print("[bold red]Uninstallation failed.[/bold red]")
 
 if __name__ == "__main__":
     execute()

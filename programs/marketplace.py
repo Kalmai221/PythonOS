@@ -1,8 +1,12 @@
 import requests
+import os
 from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import IntPrompt, Confirm
+import zipfile
+import io
+import hashlib
 
 config = {
     "name": "marketplace",
@@ -37,21 +41,33 @@ def fetch_items_in_category(category):
         return []
 
 def get_raw_url(item):
-    # Convert API url to raw url for stable raw content fetching
     download_url = item.get("download_url")
     if download_url and "github.com" in download_url:
         download_url = download_url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
     return download_url
 
-def download_file(item, category, *, force=False):
+def calculate_file_hash(file_path):
+    """Calculates the SHA256 hash of a file."""
+    hasher = hashlib.sha256()
+    try:
+        with open(file_path, "rb") as f:
+            while True:
+                chunk = f.read(4096)
+                if not chunk:
+                    break
+                hasher.update(chunk)
+        return hasher.hexdigest()
+    except Exception as e:
+        console.print(f"[bold red]Failed to calculate hash for '{file_path}': {e}[/bold red]")
+        return None
+
+def download_file(item, category, install_dir, *, force=False):
     name = item["name"]
     raw_url = get_raw_url(item)
     if not raw_url:
         console.print(f"[bold red]No raw URL found for {name}[/bold red]")
         return False
 
-    install_dir = Path(f"files/installed_{category}")
-    install_dir.mkdir(parents=True, exist_ok=True)
     save_path = install_dir / name
 
     try:
@@ -61,21 +77,6 @@ def download_file(item, category, *, force=False):
     except Exception as e:
         console.print(f"[bold red]Failed to download '{name}': {e}[/bold red]")
         return False
-
-    if save_path.exists() and not force:
-        try:
-            with open(save_path, "rb") as f:
-                local_content = f.read()
-            if local_content == remote_content:
-                console.print(f"[green]'{name}' is already up-to-date. Skipping download.[/green]")
-                return False
-            else:
-                if not Confirm.ask(f"[yellow]'{name}' exists but differs from remote. Update it?[/yellow]", default=True):
-                    console.print("[bold]Skipped update.[/bold]")
-                    return False
-        except Exception as e:
-            console.print(f"[bold red]Failed to read existing file '{name}': {e}[/bold red]")
-            return False
 
     try:
         with open(save_path, "wb") as f:
@@ -102,12 +103,13 @@ def list_installed_programs():
         return installed
     for cat_dir in base_path.glob("installed_*"):
         category = cat_dir.name.replace("installed_", "")
-        for f in cat_dir.glob("*.py"):
-            installed.append({
-                "category": category,
-                "name": f.name,
-                "path": f
-            })
+        for program_dir in cat_dir.glob("*"):  # Changed to find directories
+            if program_dir.is_dir():
+                installed.append({
+                    "category": category,
+                    "name": program_dir.name,
+                    "path": program_dir
+                })
     return installed
 
 def download_program_flow():
@@ -130,23 +132,29 @@ def download_program_flow():
     category = categories[category_choice - 1]["name"]
 
     items = fetch_items_in_category(category)
-    py_files = [item for item in items if item["type"] == "file" and item["name"].endswith(".py")]
+    directories = [item for item in items if item["type"] == "dir"]
 
-    if not py_files:
-        console.print(f"[bold yellow]No Python files found in category '{category}'.[/bold yellow]")
+    if not directories:
+        console.print(f"[bold yellow]No directories found in category '{category}'.[/bold yellow]")
         return
 
-    show_table(f"📦 Available Files in '{category}'", py_files)
-    file_choice = IntPrompt.ask("Enter the index of the file to download (0 to cancel)", default=0)
+    show_table(f"📦 Available Directories in '{category}'", directories)
+    dir_choice = IntPrompt.ask("Enter the index of the directory to download (0 to cancel)", default=0)
 
-    if file_choice == 0:
+    if dir_choice == 0:
         console.print("[bold]Cancelled.[/bold]")
         return
 
-    if 1 <= file_choice <= len(py_files):
-        download_file(py_files[file_choice - 1], category)
+    if 1 <= dir_choice <= len(directories):
+        # Instead of downloading the folder, create the directory
+        install_dir = Path(f"files/installed_{category}")
+        install_dir.mkdir(parents=True, exist_ok=True)
+        directory_name = directories[dir_choice - 1]["name"]
+        new_directory_path = install_dir / directory_name
+        new_directory_path.mkdir(parents=True, exist_ok=True)
+        console.print(f"[bold green]✓ Created directory '{directory_name}' in {install_dir}[/bold green]")
     else:
-        console.print("[bold red]Invalid file selection.[/bold red]")
+        console.print("[bold red]Invalid directory selection.[/bold red]")
 
 def check_updates_flow():
     installed = list_installed_programs()
@@ -154,29 +162,63 @@ def check_updates_flow():
         console.print("[yellow]No installed programs found to check for updates.[/yellow]")
         return
 
-    # Group installed programs by category
-    by_category = {}
-    for prog in installed:
-        by_category.setdefault(prog["category"], []).append(prog)
-
     any_updated = False
 
-    for category, programs in by_category.items():
-        console.print(f"\n[bold cyan]Checking updates in category '{category}'[/bold cyan]")
-        remote_items = fetch_items_in_category(category)
+    for program in installed:
+        category = program["category"]
+        program_name = program["name"]
+        install_dir = program["path"]
+
+        console.print(f"\n[bold cyan]Checking updates for '{program_name}' in category '{category}'[/bold cyan]")
+
+        remote_items = fetch_items_in_category(f"{category}/{program_name}")
+
         if not remote_items:
-            console.print(f"[yellow]Failed to fetch remote items for category '{category}'. Skipping.[/yellow]")
+            console.print(f"[yellow]Failed to fetch remote items for '{program_name}' in category '{category}'. Skipping.[/yellow]")
             continue
 
-        remote_map = {item["name"]: item for item in remote_items if item["type"] == "file"}
+        # Create a dictionary of remote files for easy lookup
+        remote_files = {item["name"]: item for item in remote_items if item["type"] == "file"}
 
-        for prog in programs:
-            name = prog["name"]
-            if name in remote_map:
-                updated = download_file(remote_map[name], category)
-                any_updated = any_updated or updated
-            else:
-                console.print(f"[yellow]'{name}' not found in remote category '{category}'.[/yellow]")
+        for local_file in install_dir.glob("*"):
+            if local_file.is_file():
+                remote_item = remote_files.get(local_file.name)
+
+                if remote_item:
+                    # File exists both locally and remotely
+                    remote_url = get_raw_url(remote_item)
+                    if not remote_url:
+                        console.print(f"[yellow]No raw URL found for remote file '{local_file.name}'. Skipping.[/yellow]")
+                        continue
+
+                    # Calculate hashes to check for content changes
+                    local_hash = calculate_file_hash(local_file)
+
+                    try:
+                        response = requests.get(remote_url)
+                        response.raise_for_status()
+                        remote_content = response.content
+                        remote_hash = hashlib.sha256(remote_content).hexdigest()
+                    except Exception as e:
+                        console.print(f"[bold red]Failed to fetch remote content for '{local_file.name}': {e}[/bold red]")
+                        continue
+
+                    if local_hash and remote_hash and local_hash != remote_hash:
+                        # Content has changed, download the updated file
+                        console.print(f"[yellow]'{local_file.name}' has changed. Downloading update.[/yellow]")
+                        if download_file(remote_item, category, install_dir):
+                            any_updated = True
+                    else:
+                        console.print(f"[green]'{local_file.name}' is up-to-date.[/green]")
+                else:
+                    console.print(f"[yellow]'{local_file.name}' exists locally but not remotely. It might be an orphaned file.[/yellow]")
+
+        # Check for new files in the remote repository
+        for remote_file_name, remote_item in remote_files.items():
+            if not (install_dir / remote_file_name).exists():
+                console.print(f"[yellow]New file '{remote_file_name}' found remotely. Downloading.[/yellow]")
+                if download_file(remote_item, category, install_dir):
+                    any_updated = True
 
     if not any_updated:
         console.print("[green]All programs are up-to-date.[/green]")

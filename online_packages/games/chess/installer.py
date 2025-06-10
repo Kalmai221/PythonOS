@@ -11,7 +11,6 @@ import shutil
 
 console = Console()
 package_name = "cli-chess"
-command_name = "cli-chess"  # the command installed by the package
 
 def check_package_installed(name):
     """Check if the pip package is installed."""
@@ -34,14 +33,6 @@ def install_package(name):
         else:
             console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
 
-def launch_game(cmd):
-    """Launch the CLI game."""
-    try:
-        subprocess.run([cmd], check=True)
-    except subprocess.CalledProcessError as e:
-        console.print(f"[bold red]{cmd} failed to start or crashed.[/bold red]\n{e}")
-        sys.exit(1)
-
 def main():
     console.clear()
 
@@ -50,7 +41,7 @@ def main():
 
     # Description
     console.print(Panel(
-        "This installer will help you install and launch [bold]cli-chess[/bold].\n\n"
+        "This installer will help you install [bold]cli-chess[/bold].\n\n"
         "Command run:\n[green]python -m pip install cli-chess --user[/green]",
         style="grey93",
         box=box.ROUNDED,
@@ -66,8 +57,8 @@ def main():
             sys.exit(0)
         install_package(package_name)
 
-    console.print("\n[bold green]Launching CLI Chess...[/bold green]\n")
-    launch_game(command_name)
+    console.print(f"\n[bold green]{package_name} installation complete![/bold green]")
+    console.print(f"You can now run it with: [bold cyan]cli-chess[/bold cyan]")
 
 if __name__ == "__main__":
     main()

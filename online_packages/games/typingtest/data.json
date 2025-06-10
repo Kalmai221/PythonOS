@@ -1,0 +1,10 @@
+{
+  "name": "Typing Test CLI",
+  "description": "A command-line interface for testing your typing speed.",
+  "version": "1.0.0",
+  "scripts": [
+    "installer": "installer.py",
+    "run": "run.py",
+    "uninstaller": "uninstaller.py"
+  ]
+}
