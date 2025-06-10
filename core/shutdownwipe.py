@@ -4,7 +4,6 @@ from rich.console import Console
 from yaspin import yaspin
 import pyos
 import os
-import subprocess
 
 # Initialize the console for rich output
 console = Console()

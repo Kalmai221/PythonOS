@@ -11,4 +11,4 @@ config = {
 console = Console()
 
 def execute():
-    core.update_system("True")
+    core.update_system()

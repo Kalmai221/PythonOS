@@ -63,7 +63,7 @@ def check_system_integrity(debug, spinner):
             elif file == USER_DB:
                 with open(USER_DB, "w") as f:
                     json.dump({}, f, indent=4)
-        spinner.text = "Missing files have been recreated.[/bold green]"
+        spinner.text = "Missing files have been recreated."
     else:
         if debug == "Yes":
             spinner.text = "All system files are intact."
@@ -244,7 +244,7 @@ def boot_sequence(debug):
         spinner.text = "Initialising Update Checher..."
         time.sleep(1.5)
         
-    core.update_system("False")
+    core.update_system()
     console.print("[bold green]System ready![/bold green]\n")
     os.system("clear")
     display_home_screen()

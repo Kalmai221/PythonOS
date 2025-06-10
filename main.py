@@ -27,10 +27,20 @@ import shell
 import core
 import traceback
 import time
+from pathlib import Path
 
 console = Console()
 
 CONFIG_FILE = "config.json"
+OSDATA_DIR = Path(".OSData")
+FIRST_TIME_DONE_FILE = OSDATA_DIR / "OSFirstTimeDone.txt"
+
+def first_time_done() -> bool:
+    return FIRST_TIME_DONE_FILE.exists()
+
+def mark_first_time_done():
+    OSDATA_DIR.mkdir(exist_ok=True)
+    FIRST_TIME_DONE_FILE.write_text("First time setup completed.")
 
 # Load or create OS config
 def load_config():
@@ -59,6 +69,12 @@ try:
         debug = "No"
         console.print("[bold yellow]Debug Mode Setting is not defined. Defaulting to Disabled.[/bold yellow]")
     core.boot_sequence(debug)
+
+    if not first_time_done():
+        console.print("[bold cyan]First-time setup detected. Running initial setup...[/bold cyan]")
+        core.firsttimeuse()  # Your first-time setup logic here
+        mark_first_time_done()
+        console.print("[bold green]First-time setup complete! Continuing boot...[/bold green]")
 
     attempts = 0
     username = None

@@ -1,192 +1,107 @@
-import time
-import sys
+from pathlib import Path
 import os
-import pyos
+import requests
 from rich.console import Console
+from rich.table import Table
+from rich.prompt import Confirm
 from rich.progress import Progress, BarColumn, TextColumn
-from yaspin import yaspin
-import random
-import json
+import time
 
-# Initialize the console for rich output
 console = Console()
+GITHUB_API_BASE = "https://api.github.com/repos/Kalmai221/PythonOS/contents"
+IGNORE_FOLDERS = {".git", ".OSData", "docs", "tests"}
 
-def simulate_shutdown(FromLoaded):
-    pyos.system("clear")
-    console.print("\n[bold red]Initiating system shutdown...[/bold red]", style="bold")
-    time.sleep(1)
+def get_github_files(path=""):
+    url = f"{GITHUB_API_BASE}/{path}" if path else GITHUB_API_BASE
+    response = requests.get(url)
+    response.raise_for_status()
+    items = response.json()
 
-    # Simulate closing applications and services
-    with yaspin(text="Closing open applications...", spinner="dots") as sp:
-        time.sleep(1)
-        sp.text = "Waiting for applications to close gracefully..."
-        time.sleep(1)
-        sp.text = "Force closing some applications..."
-        time.sleep(1)
+    files = []
+    for item in items:
+        if item["type"] == "dir":
+            if item["name"] in IGNORE_FOLDERS:
+                continue
+            files.extend(get_github_files(item["path"]))
+        elif item["type"] == "file":
+            files.append(item)
+    return files
 
-    with yaspin(text="Terminating background services...", spinner="dots") as sp:
-        time.sleep(1)
-        sp.text = "Waiting for services to stop..."
-        time.sleep(1)
-
-    with yaspin(text="Cleaning up temporary files...", spinner="dots") as sp:
-        if FromLoaded == "True":
-            os.remove('current_user.json')
-        time.sleep(1.5)
-        sp.text = "Clearing system caches..."
-        time.sleep(1)
-
-    # Saving user data and disconnecting from the network
-    with yaspin(text="Saving user data...", spinner="dots") as sp:
-        time.sleep(2)
-        sp.text = "Disconnecting from network..."
-        time.sleep(1)
-
-    # Stopping critical services with dynamic text
-    with yaspin(text="Stopping critical services...", spinner="dots") as sp:
-        for i in range(10):
-            sp.text = f"Stopping services... {i+1}/10"
-            time.sleep(0.2)
-
-    with yaspin(text="Preparing hardware for power-off...", spinner="dots") as sp:
-        time.sleep(1)
-        sp.text = "Finalizing shutdown procedures..."
-        time.sleep(1.5)
-
-    # Using yaspin for shutdown countdown with spinner
-    with yaspin(text="Powering off hardware...", spinner="dots") as sp:
-        time.sleep(1)
-        for i in range(10, 0, -1):
-            sp.text = f"Shutting down in {i} seconds..."
-            time.sleep(1)
-
-    # Final message
-    console.print("\n[bold red]Shutdown complete.[/bold red]")
-
-
-def restart_system(FromLoaded):
-    """Simulate restarting the OS by shutting down and then running main.py."""
-    console.print("\n[bold yellow]Restarting system to apply updates...[/bold yellow]")
-    time.sleep(3)
-    simulate_shutdown(FromLoaded)
-    time.sleep(3)
-    os.system("clear")
-    time.sleep(1)
-    os.system("python main.py")
-    sys.exit(0)
-
-def get_current_version():
-    """Reads the current OS version from config.json"""
+def is_file_different(local_path: Path, download_url: str) -> bool:
+    if not local_path.exists():
+        return True
     try:
-        with open(CONFIG_FILE, "r") as file:
-            config = json.load(file)
-        return config.get("version", "1.0")  # Ensure version is a float
-    except (FileNotFoundError, json.JSONDecodeError):
-        return 1.0  # Default version if file is missing/corrupt
+        remote_content = requests.get(download_url).content
+        local_content = local_path.read_bytes()
+        return local_content != remote_content
+    except Exception:
+        return True
 
-def increment_version(version: str) -> str:
-    """Increments the version with a 50% chance of patch update and 50% chance of minor update."""
-    parts = list(map(int, version.split(".")))
+def list_updates(files, base_path=Path.cwd()):
+    updates = []
+    for file_info in files:
+        local_file = base_path / file_info["path"]
+        if is_file_different(local_file, file_info["download_url"]):
+            updates.append(file_info["path"])
+    return updates
 
-    if len(parts) == 2:  # Ensure patch level exists (e.g., "1.1" → "1.1.0")
-        parts.append(0)
+def download_file(local_path: Path, download_url: str):
+    content = requests.get(download_url).content
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(local_path, "wb") as f:
+        f.write(content)
 
-    if random.randint(1, 2) == 1:  # 50% chance to increase patch
-        if parts[2] >= 9:  # If patch is at max, remove it and increase minor
-            parts = [parts[0], parts[1] + 1]
-        else:
-            parts[2] += 1
-    else:  # 50% chance to increase minor
-        parts = [parts[0], parts[1] + 1]  # Drop the patch
-
-    return ".".join(map(str, parts))  # Convert back to string
-
-def check_for_updates():
-    """Simulates checking for updates with realistic output"""
-    current_version = get_current_version()
-
-    console.print("\n[bold cyan]Initializing update check...[/bold cyan]")
-
-    with yaspin(text="Connecting to update server...", spinner="dots") as sp:
-        time.sleep(random.uniform(1.5, 2.5))
-
-        sp.text = "Authenticating request..."
-        time.sleep(random.uniform(1.0, 2.0))
-
-        sp.text = "Fetching system specifications..."
-        time.sleep(random.uniform(1.5, 2.5))
-
-        sp.text = "Checking for compatible updates..."
-        time.sleep(random.uniform(1.5, 2.5))
-
-        sp.text = "Finalizing update check..."
-        time.sleep(random.uniform(1.0, 2.0))
-
-    update_available = False
-    
-    if update_available:
-        new_version = increment_version(str(current_version))
-        console.print(f"\n[bold green]✔ Update available! PyOS v{new_version} is ready to download and install.[/bold green] 🎉")
-        return [update_available, new_version]
-    else:
-        console.print("\n[bold yellow]✔ No updates available. Your system is up to date![/bold yellow]")
-        return [update_available, None]
-
-def download_update():
-    """Simulates downloading an update"""
-    console.print("\n[bold cyan]Downloading update...[/bold cyan]")
-
+def apply_updates(files_to_update, all_files, base_path=Path.cwd()):
     with Progress(
-        TextColumn("[progress.description]{task.description}"),
+        "[progress.description]{task.description}",
         BarColumn(),
-        TextColumn("{task.percentage:>3.0f}%"),
+        "[progress.percentage]{task.percentage:>3.0f}%",
         console=console,
+        transient=True,
     ) as progress:
-        task = progress.add_task("[cyan]Downloading update package...", total=100)
-
-        while not progress.finished:
+        task = progress.add_task("Updating files...", total=len(files_to_update))
+        for path_str in files_to_update:
+            file_info = next(f for f in all_files if f["path"] == path_str)
+            local_file = base_path / file_info["path"]
+            download_file(local_file, file_info["download_url"])
+            progress.advance(task)
             time.sleep(0.1)
-            progress.update(task, advance=5)
 
-CONFIG_FILE = "config.json"
+def show_update_table(files_to_update):
+    table = Table(title="Files to Update", header_style="bold magenta")
+    table.add_column("Index", justify="right")
+    table.add_column("File Path", style="cyan")
 
-def install_update(version):
-    """Simulates installing the update and updates config.json"""
-    console.print("\n[bold cyan]Installing update...[/bold cyan]")
+    for i, filepath in enumerate(files_to_update, start=1):
+        table.add_row(str(i), filepath)
 
-    with yaspin(text="Extracting update files...", spinner="dots") as sp:
-        time.sleep(2)
-        sp.text = "Verifying installation integrity..."
-        time.sleep(2)
-        sp.text = "Applying system patches..."
-        time.sleep(1.5)
+    console.print(table)
 
-    # Update config.json version
-    update_config_version(version)
-
-    console.print("\n[bold green]Update installed successfully![/bold green] ✅")
-
-def update_config_version(version):
-    """Reads config.json, increments the version, and saves it"""
+def update_system():
+    base_path = Path.cwd()  # Detect current working directory dynamically
+    console.print(f"[bold blue]Working directory detected as:[/bold blue] {base_path}\n")
+    console.print("[bold cyan]Checking for updates...[/bold cyan]")
     try:
-        with open(CONFIG_FILE, "r") as file:
-            config = json.load(file)
+        files = get_github_files()
+    except requests.RequestException as e:
+        console.print(f"[bold red]Failed to fetch update info: {e}[/bold red]")
+        return False
 
-        # Update config and save
-        config["version"] = str(version)  # Store as string for safety
-        with open(CONFIG_FILE, "w") as file:
-            json.dump(config, file, indent=4)
+    files_to_update = list_updates(files, base_path)
 
-        console.print(f"\n[bold cyan]Updated system version to v{version}[/bold cyan] 🚀")
+    if not files_to_update:
+        console.print("[bold green]Your system is up to date! 🎉[/bold green]")
+        return False
 
-    except Exception as e:
-        console.print(f"\n[bold red]Error updating config.json: {e}[/bold red]")
+    show_update_table(files_to_update)
 
-def update_system(FromLoaded):
-    """Main function to check, download, install, and restart for updates"""
-    update_info = check_for_updates()
-    if update_info[0]:
-        download_update()
-        install_update(update_info[1])
-        restart_system(FromLoaded)
-    time.sleep(1)
+    if Confirm.ask("\nDo you want to update these files?"):
+        apply_updates(files_to_update, files, base_path)
+        console.print("[bold green]Update complete![/bold green]")
+        return True
+    else:
+        console.print("[bold yellow]Update cancelled.[/bold yellow]")
+        return False
+
+if __name__ == "__main__":
+    update_system()

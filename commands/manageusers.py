@@ -1,7 +1,7 @@
 from users import register, delete_user, view_users, change_password, change_role
 from rich.console import Console
 from rich.prompt import Prompt
-from pyos import userinfo
+import pyos
 
 console = Console()
 
@@ -12,7 +12,7 @@ config = {
 
 
 def execute():
-    user_info = userinfo()
+    user_info = pyos.userinfo()
     if user_info[1] == "admin":
         console.print(
             "[bold yellow]Welcome to the User Management System[/bold yellow]")
