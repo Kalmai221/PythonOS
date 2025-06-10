@@ -164,6 +164,7 @@ current_directory.txt
 current_user.json
 generated-icon.pny
 users.json
+.OSData/
 
 # User Files
 files/

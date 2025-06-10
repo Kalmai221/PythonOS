@@ -6,10 +6,11 @@ from rich.table import Table
 from rich.prompt import Confirm
 from rich.progress import Progress, BarColumn, TextColumn
 import time
+from requests.exceptions import HTTPError
 
 console = Console()
 GITHUB_API_BASE = "https://api.github.com/repos/Kalmai221/PythonOS/contents"
-IGNORE_FOLDERS = {".git", ".OSData", "docs", "tests"}
+IGNORE_FOLDERS = {".git", ".OSData"}
 
 def get_github_files(path=""):
     url = f"{GITHUB_API_BASE}/{path}" if path else GITHUB_API_BASE
@@ -83,6 +84,12 @@ def update_system():
     console.print("[bold cyan]Checking for updates...[/bold cyan]")
     try:
         files = get_github_files()
+    except HTTPError as e:
+        if e.response.status_code == 403:
+            console.print("[bold red]GitHub API rate limit exceeded. Please try again later.[/bold red]")
+        else:
+            console.print(f"[bold red]Failed to fetch update info: {e}[/bold red]")
+        return False
     except requests.RequestException as e:
         console.print(f"[bold red]Failed to fetch update info: {e}[/bold red]")
         return False
