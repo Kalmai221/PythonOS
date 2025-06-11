@@ -29,7 +29,6 @@ def install_package(name):
             )
         except subprocess.CalledProcessError as e:
             console.print(Panel(f"[bold red]Installation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
-            sys.exit(1)
         else:
             console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
 
@@ -54,7 +53,6 @@ def main():
     else:
         if not Confirm.ask("Do you want to install typingtest?", default=True):
             console.print("[bold yellow]Installation cancelled.[/bold yellow]")
-            sys.exit(0)
         install_package(package_name)
 
     console.print(f"\n[bold green]{package_name} installation complete![/bold green]")
