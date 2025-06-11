@@ -10,7 +10,7 @@ import pkg_resources
 import shutil
 
 console = Console()
-package_name = "typingtest"
+package_name = "typing_test"
 
 def check_package_installed(name):
     """Check if the pip package is installed."""
@@ -42,7 +42,7 @@ def main():
     # Description
     console.print(Panel(
         "This installer will help you install [bold]typingtest[/bold].\n\n"
-        "Command run:\n[green]python -m pip install typingtest --user[/green]",
+        "Command run:\n[green]python -m pip install typing_test --user[/green]",
         style="grey93",
         box=box.ROUNDED,
         padding=(1, 4)
