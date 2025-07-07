@@ -1,89 +1,96 @@
-# 🚀 PythonOS - Cross-Platform Executable Builder
+# 🚀 PythonOS (PyOS) — A Terminal-Based Operating System Simulator
 
-## 📜 Overview
-**PythonOS** is a versatile Python-based application designed to run seamlessly on **Windows, Linux, and Android (via Termux)**.  
-This repository includes automated workflows that build platform-specific executables:  
-- Windows: `.exe`  
-- Linux: Script execution via Terminal
-- Android: Script execution via Termux  
+## 📖 Overview
 
-Whether you're a developer or user, this guide will help you download, install, and run MyApp on your preferred platform with ease.
+**PythonOS** (PyOS) is a terminal-based pseudo-operating system built entirely in Python. It offers a modular, extensible environment for simulating basic OS-like functionality — including command execution, package management, and interactive shells — designed to work on:
 
----
+* **Linux**
+* **Android (via Termux)**
 
-## 📥 Download & Installation
-
-### 🖥️ Windows
-1. Navigate to the [GitHub Actions page](https://github.com/Kalmai221/PythonOS/actions).
-2. Select the latest **successful workflow run**.
-3. Scroll to **Artifacts** and download `windows-exe.zip`.
-4. Extract the ZIP archive.
-5. Run `app_windows.exe`.  
-   This executable will check for Python installation and handle OS.PY setup automatically.
+Windows was previously supported however it is easier to create this OS having access to ``pkg``
 
 ---
 
-### 🐧 Linux
+## 📥 Installation Guide
 
-MyApp supports popular Linux distributions such as:
+### ✅ Requirements
 
-- Ubuntu  
-- Debian  
-- Fedora  
-- CentOS  
-- Arch Linux  
+* Python 3.7 or higher
+* GitHub access to download latest builds
+* Basic terminal usage knowledge
 
-#### Installation Steps:
-1. Visit the [GitHub Actions page](https://github.com/Kalmai221/PythonOS/actions).
-2. Open the latest **successful workflow run**.
-3. Download the artifact named `installer-runpy.zip`.
-4. Ensure Python is installed on your system (`python --version`).
-5. Extract `installer-runpy.zip`.
-6. Run the application with:
+---
+
+### 💻 Linux Installation
+
+1. Install Python (if not already installed):
+
    ```bash
+   sudo apt update && sudo apt install python3 python3-pip
+   ```
+
+2. Download the latest build:
+
+   * Go to the [GitHub Actions page](https://github.com/Kalmai221/PythonOS/actions)
+   * Select the latest **successful workflow run**
+   * Download the artifact named **`installer-runpy.zip`**
+
+3. Extract the ZIP:
+
+   ```bash
+   unzip installer-runpy.zip
+   cd installer-runpy
+   ```
+
+4. Run PyOS:
+
+   ```bash
+   python3 run.py
+   ```
+
+---
+
+### 📱 Android Installation (via Termux)
+
+1. Install Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/)
+
+2. Update Termux and install Python:
+
+   ```bash
+   pkg update && pkg upgrade
+   pkg install python unzip
+   ```
+
+3. Download the ZIP artifact from:
+
+   * [GitHub Actions](https://github.com/Kalmai221/PythonOS/actions)
+   * Latest successful run → `installer-runpy.zip`
+
+4. Extract and run:
+
+   ```bash
+   unzip installer-runpy.zip
+   cd installer-runpy
    python run.py
    ```
 
 ---
 
-### 📱 Android (Termux)
+## 🛠️ Developer Notes
 
-Since Android does not support `.exe` natively, use **Termux** to run the Python script directly.
-
-#### Setup Termux and Python:
-
-```bash
-pkg update && pkg upgrade
-pkg install python python-pip
-```
-
-#### Installation Steps:
-
-1. Go to the [GitHub Actions page](https://github.com/Kalmai221/PythonOS/actions).
-2. Download the latest `installer-runpy.zip` from the most recent successful run.
-3. Extract the ZIP file inside Termux.
-4. Run the application:
-
-   ```bash
-   python run.py
-   ```
+* ✅ **Python Version**: Python 3.7+ is required
+* 🔒 **Permissions**: May require `chmod +x` for certain scripts
+* 📂 **Do Not Move Files**: All files must remain in their extracted structure
+* ☢️ **Security Tip**: Only download artifacts from trusted workflow runs
+* 🐛 **Bugs or Feature Requests?** [Open an issue](https://github.com/Kalmai221/PythonOS/issues)
 
 ---
 
-## ⚙️ Notes & Best Practices
+## 🤝 Contributing
 
-* **Python Version:** Ensure Python 3.7+ is installed for compatibility.
-* **Permissions:** On Linux and Android, you might need appropriate permissions to execute scripts or access certain directories.
-* **File Paths:** The application expects to be run with access to the current working directory; avoid moving extracted files arbitrarily.
-* **Security:** Download artifacts only from trusted releases to prevent security risks.
-* **Feedback & Issues:** For bugs, feature requests, or support, please open an issue on the repository.
+Pull requests are welcome! Whether you're improving code, fixing bugs, or adding features, feel free to get involved.
 
 ---
 
-Thank you for choosing **PythonOS**!
-We welcome contributions and community involvement to keep improving cross-platform Python experiences.
-
----
-
-*Made with ❤️ by Kalmai221*
-[GitHub Repository](https://github.com/Kalmai221/PythonOS)
+**Made with ❤️ by [Kalmai221](https://github.com/Kalmai221)**
+👉 [View the Repo](https://github.com/Kalmai221/PythonOS)
