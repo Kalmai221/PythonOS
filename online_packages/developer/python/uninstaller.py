@@ -41,7 +41,7 @@ def main():
     # Description
     console.print(Panel(
         "This will uninstall [bold]cli-chess[/bold] from your system.\n\n"
-        "Command run:\n[red]python -m pip uninstall cli-chess -y[/red]",
+        "Command run:\n[red]python -m pip uninstall ipython -y[/red]",
         style="grey93",
         box=box.ROUNDED,
         padding=(1, 4)

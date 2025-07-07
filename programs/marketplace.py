@@ -200,6 +200,71 @@ def download_program_flow():
     else:
         console.print("[bold red]Invalid directory selection.[/bold red]")
 
+def uninstall_package_flow():
+    installed = list_installed_programs()
+    if not installed:
+        console.print("[yellow]No installed programs found to uninstall.[/yellow]")
+        return
+
+    # Show installed packages table
+    table = Table(title="Installed Packages", header_style="bold blue")
+    table.add_column("Index", justify="right")
+    table.add_column("Category", style="cyan")
+    table.add_column("Name", style="green")
+    for idx, pkg in enumerate(installed, start=1):
+        table.add_row(str(idx), pkg["category"], pkg["name"])
+    console.print(table)
+
+    choice = IntPrompt.ask("Enter the index of the package to uninstall (0 to cancel)", default=0)
+    if choice == 0:
+        console.print("[bold]Cancelled.[/bold]")
+        return
+
+    if not (1 <= choice <= len(installed)):
+        console.print("[bold red]Invalid selection.[/bold red]")
+        return
+
+    pkg = installed[choice - 1]
+    pkg_path = pkg["path"]
+    data_json_path = pkg_path / "data.json"
+
+    if not data_json_path.exists():
+        console.print(f"[bold red]data.json not found in {pkg_path}. Cannot proceed with uninstallation.[/bold red]")
+        return
+
+    import json
+    try:
+        with open(data_json_path, "r") as f:
+            data = json.load(f)
+    except Exception as e:
+        console.print(f"[bold red]Failed to read data.json: {e}[/bold red]")
+        return
+
+    uninstaller_script = data.get("scripts", {}).get("uninstaller")
+    if not uninstaller_script:
+        console.print("[bold yellow]No uninstaller script defined. Skipping uninstallation script step.[/bold yellow]")
+    else:
+        uninstaller_path = pkg_path / uninstaller_script
+        if not uninstaller_path.exists():
+            console.print(f"[bold red]Uninstaller script '{uninstaller_script}' not found in package folder.[/bold red]")
+            return
+
+        # Run the uninstaller script
+        console.print(f"[bold green]Running uninstaller script: {uninstaller_script}[/bold green]")
+        ret_code = os.system(f'python "{uninstaller_path}"')
+        if ret_code != 0:
+            console.print(f"[bold red]Uninstaller script exited with code {ret_code}. Aborting deletion.[/bold red]")
+            return
+
+    # After successful uninstaller run (or if skipped), delete the package folder
+    import shutil
+    try:
+        shutil.rmtree(pkg_path)
+        console.print(f"[bold green]Successfully uninstalled and removed package '{pkg['name']}'.[/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]Failed to delete package folder: {e}[/bold red]")
+
+
 def check_updates_flow():
     installed = list_installed_programs()
     if not installed:
@@ -272,16 +337,20 @@ def main_menu():
         console.print("\n[bold magenta]Marketplace Menu[/bold magenta]")
         console.print("1. Download Programs")
         console.print("2. Check for Updates")
-        console.print("3. Exit")
-        choice = IntPrompt.ask("Choose an option", choices=["1", "2", "3"])
+        console.print("3. Uninstall a Package")
+        console.print("4. Exit")
+        choice = IntPrompt.ask("Choose an option", choices=["1", "2", "3", "4"])
 
         if choice == 1:
             download_program_flow()
         elif choice == 2:
             check_updates_flow()
         elif choice == 3:
+            uninstall_package_flow()
+        elif choice == 4:
             console.print("Goodbye!")
             break
+
 
 if __name__ == "__main__":
     main_menu()
