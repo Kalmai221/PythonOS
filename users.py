@@ -159,7 +159,7 @@ def login():
     users = get_users()
     username = input("Username: ").strip()
     if username not in users:
-        console.print("[bold red]User  not found.[/bold red]")
+        console.print(f"[bold red]{username} not found in users database.[/bold red]")
         return None
     password = getpass.getpass("Password: ")
     if users[username]['password'] == hash_password(password):

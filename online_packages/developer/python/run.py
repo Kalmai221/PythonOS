@@ -4,13 +4,10 @@ import sys
 from rich.console import Console
 from rich.prompt import Prompt
 
-console = Console()
+# Import IPython start function
+from IPython import start_ipython
 
-# Metadata dictionary for the command
-config = {
-    "name": "python",
-    "description": "Run a Python file or start a Python shell."
-}
+console = Console()
 
 def get_current_directory():
     """Reads the current directory from the current_directory.txt file."""
@@ -35,7 +32,7 @@ def execute(args=None):
     # Ask user to choose between running a Python file or starting a Python shell
     console.print("[bold green]Select mode:[/bold green]")
     console.print("1. Run a Python file.")
-    console.print("2. Start Python shell.")
+    console.print("2. Start IPython shell.")
 
     # Asking the user for choice using rich prompt
     choice = Prompt.ask("Enter 1 or 2 [1/2]", choices=["1", "2"])
@@ -82,6 +79,8 @@ def execute(args=None):
                 console.print("[bold yellow]No Python files found in the current directory.[/bold yellow]")
 
     elif choice == "2":
-        # Option to start Python shell
-        console.print("[bold green]Starting Python shell...[/bold green]")
-        os.system("python")
+        # Option to start IPython shell
+        console.print("[bold green]Starting IPython shell...[/bold green]")
+        # This starts an IPython interactive shell session
+        start_ipython(argv=[])
+

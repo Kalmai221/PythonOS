@@ -1,0 +1,11 @@
+{
+  "name": "Python REPL",
+  "description": "Installs a python environment",
+  "version": "1.0.0",
+  "scripts": {
+    "installer": "installer.py",
+    "run": "run.py",
+    "uninstaller": "uninstaller.py"
+  },
+  "command": "python"
+}

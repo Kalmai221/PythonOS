@@ -4,6 +4,7 @@ import time
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
+import json
 try:
     import readline
 except ImportError:
@@ -17,6 +18,45 @@ commands_config = {}
 
 base_directory = os.path.abspath("files")  # Base directory is '/files'
 current_directory_file = "current_directory.txt"  # File containing the current directory
+
+def load_installed_packages(base_path="installed_packages"):
+    """Load commands from all data.json files under installed_packages recursively."""
+    installed = {}
+
+    for root, dirs, files in os.walk(base_path):
+        if "data.json" in files:
+            data_json_path = os.path.join(root, "data.json")
+            try:
+                with open(data_json_path, "r") as f:
+                    data = json.load(f)
+                command_name = data.get("command")
+                if command_name:
+                    description = data.get("description", "No description available.")
+                    # Compose the run script path
+                    run_script = data.get("scripts", {}).get("run")
+                    if run_script:
+                        run_script_path = os.path.join(root, run_script)
+
+                        # Prepare a simple execute wrapper for the run script
+                        def make_execute_func(script_path):
+                            def execute():
+                                if os.path.exists(script_path):
+                                    os.system(f'python "{script_path}"')
+                                else:
+                                    console.print(f"[bold red]Run script not found:[/bold red] {script_path}")
+                            return execute
+
+                        installed[command_name] = {
+                            "module": type("DynamicModule", (), {"execute": make_execute_func(run_script_path)}),
+                            "description": description,
+                            "aliases": []
+                        }
+                    else:
+                        # Skip if no run script defined
+                        console.print(f"[bold yellow]Warning:[/bold yellow] 'run' script not found in {data_json_path}, skipping.")
+            except Exception as e:
+                console.print(f"[bold red]Error loading {data_json_path}: {e}[/bold red]")
+    return installed
 
 def get_relative_path():
     """Returns the shell path from 'current_directory.txt' relative to '/files'."""
@@ -72,6 +112,12 @@ def start_shell(username):
     available_commands = load_all_modules("commands")
     available_programs = load_all_modules("programs")
 
+    # Load installed packages from installed_packages and merge
+    installed_programs = load_installed_packages("installed_packages")
+    # Update the available_programs dictionary with installed ones, 
+    # so installed commands override or extend
+    available_programs.update(installed_programs)
+    
     # Enable shell-specific command history (Up/Down arrows)
     readline.parse_and_bind("tab: complete")
     readline.parse_and_bind("set editing-mode vi")  # Enables Up/Down for navigation
