@@ -7,5 +7,6 @@
     "run": "run.py",
     "uninstaller": "uninstaller.py"
   },
-  "command": "python"
+  "command": "python",
+  "requires_restart_on_download": "true"
 }

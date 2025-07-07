@@ -7,6 +7,7 @@ from rich.prompt import IntPrompt, Confirm
 import zipfile
 import io
 import hashlib
+import pyos
 
 config = {
     "name": "marketplace",
@@ -176,9 +177,28 @@ def download_program_flow():
 
         # Recursively download the directory content
         recursively_download_folder(f"{category}/{directory_name}", new_directory_path, category)
+
+        # --- NEW PART: Check data.json for requires_restart_on_download ---
+        data_json_path = new_directory_path / "data.json"
+        if data_json_path.exists():
+            try:
+                import json
+                with open(data_json_path, "r") as f:
+                    data = json.load(f)
+                requires_restart = str(data.get("requires_restart_on_download", "false")).lower()
+                if requires_restart == "true":
+                    console.print("\n[bold yellow]⚠️ This package requires a restart of the OS to register new commands.[/bold yellow]")
+                    restart_confirm = Confirm.ask("Would you like to restart now?")
+                    if restart_confirm:
+                        pyos.system("restart")
+                    else:
+                        console.print("[bold yellow]Remember to restart later for changes to take effect.[/bold yellow]")
+            except Exception as e:
+                console.print(f"[bold red]Failed to read/parse data.json for restart info: {e}[/bold red]")
+        else:
+            console.print("[bold yellow]Warning: data.json not found after download; unable to check restart requirement.[/bold yellow]")
     else:
         console.print("[bold red]Invalid directory selection.[/bold red]")
-
 
 def check_updates_flow():
     installed = list_installed_programs()
