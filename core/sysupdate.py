@@ -110,6 +110,5 @@ def update_system(auto_update=False):
         console.print("[bold yellow]Update cancelled.[/bold yellow]")
         return False
 
-
 if __name__ == "__main__":
     update_system()

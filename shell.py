@@ -107,20 +107,31 @@ def load_all_modules(directory):
             }
     return available
 
+def reload_all():
+    global available_commands, available_programs
+
+    console.print("[bold yellow]Reloading commands and programs...[/bold yellow]")
+
+    # Reload commands and programs from disk (fresh imports)
+    available_commands = load_all_modules("commands")
+
+    installed_programs = load_installed_packages("installed_packages")
+    available_programs = load_all_modules("programs")
+    available_programs.update(installed_programs)
+
+    console.print("[bold green]Reload complete![/bold green]")
+
+
 def start_shell(username):
-    """Starts the interactive shell."""
+    global available_commands, available_programs
+
     available_commands = load_all_modules("commands")
     available_programs = load_all_modules("programs")
-
-    # Load installed packages from installed_packages and merge
     installed_programs = load_installed_packages("installed_packages")
-    # Update the available_programs dictionary with installed ones, 
-    # so installed commands override or extend
     available_programs.update(installed_programs)
-    
-    # Enable shell-specific command history (Up/Down arrows)
+
     readline.parse_and_bind("tab: complete")
-    readline.parse_and_bind("set editing-mode vi")  # Enables Up/Down for navigation
+    readline.parse_and_bind("set editing-mode vi")
 
     while True:
         relative_path = get_relative_path()
@@ -128,7 +139,7 @@ def start_shell(username):
 
         try:
             cmd = input(prompt).strip()
-        except (KeyboardInterrupt, EOFError):  # Handle Ctrl+C and Ctrl+D safely
+        except (KeyboardInterrupt, EOFError):
             console.print("\n[bold yellow]Exiting shell...[/bold yellow]")
             break
 
@@ -137,6 +148,8 @@ def start_shell(username):
             break
         elif cmd == "help":
             show_help(available_commands, available_programs)
+        elif cmd == "reload":
+            reload_all()
         elif cmd.startswith("cd "):
             args = cmd[3:].strip()
             if "cd" in available_commands:
@@ -149,13 +162,8 @@ def start_shell(username):
                                     if program_name == name or program_name in info["aliases"]), None)
 
             if matched_program:
-                # **Disable Up/Down history when inside a program**
-                readline.parse_and_bind("set editing-mode emacs")  # Disable arrow-based navigation
-
-                # Run the selected program
+                readline.parse_and_bind("set editing-mode emacs")
                 available_programs[matched_program]["module"].execute()
-
-                # **Re-enable Up/Down history after the program exits**
                 readline.parse_and_bind("set editing-mode vi")
             else:
                 console.print(f"[bold red]Program '{program_name}' not found.[/bold red]")
@@ -167,6 +175,7 @@ def start_shell(username):
                 available_commands[matched_command]["module"].execute()
             else:
                 console.print("[bold red]Command not found.[/bold red] Type 'help' for a list of commands.")
+
 
 def draw_help_menu(selected_index, mode, available_commands, available_programs):
     """Generates and displays the help menu."""
