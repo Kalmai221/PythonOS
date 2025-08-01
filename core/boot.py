@@ -10,9 +10,10 @@ from rich.panel import Panel
 from rich.align import Align
 from rich.table import Table
 import datetime
-import core
 import platform
 import psutil
+import socket
+import pkg_resources
 
 # Initialize the console for rich output
 console = Console()
@@ -25,6 +26,16 @@ SYSTEM_FILES = [CONFIG_FILE, USER_DB]
 REQUIREMENTS_FILE = "requirements.txt"
         
 PACKAGE_JSON_FILE = "package.json"
+
+def check_internet_connection(host="8.8.8.8", port=53, timeout=3):
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(timeout)
+            sock.connect((host, port))
+        return True
+    except socket.error:
+        return False
+
 
 def install_requirements(debug, spinner):
     """Install packages from requirements.txt"""
@@ -49,7 +60,28 @@ def install_requirements(debug, spinner):
     else:
         spinner.text = f"No {REQUIREMENTS_FILE} found. Skipping package installation." if debug == "Yes" else "Skipping package installation."
 
+def get_packages_from_requirements(requirements_file="requirements.txt"):
+    if not os.path.exists(requirements_file):
+        return []
+    with open(requirements_file, "r") as f:
+        lines = f.readlines()
+    packages = []
+    for line in lines:
+        line = line.strip()
+        if line and not line.startswith("#"):
+            # Extract package name only (ignoring versions)
+            pkg_name = line.split("==")[0].split(">=")[0].split("<=")[0].strip()
+            packages.append(pkg_name)
+    return packages
 
+def check_packages_installed(packages):
+    missing = []
+    installed_packages = {pkg.key for pkg in pkg_resources.working_set}
+    for pkg in packages:
+        if pkg.lower() not in installed_packages:
+            missing.append(pkg)
+    return missing
+    
 def check_system_integrity(debug, spinner):
     spinner.text = "Checking system integrity..."
     missing_files = [file for file in SYSTEM_FILES if not os.path.exists(file)]
@@ -231,8 +263,30 @@ def boot_sequence(debug):
 
         spinner.text = "Starting network services..."
         time.sleep(1)
+        packages = get_packages_from_requirements("requirements.txt")
 
-        install_requirements(debug, spinner)  # Install required packages from requirements.txt
+        with yaspin(text="Checking internet connection...") as spinner:
+            internet = check_internet_connection()
+            time.sleep(3)
+            if not internet:
+                spinner.fail("✗")
+                console.print("[bold yellow]No internet connection detected.[/bold yellow]")
+                if packages:
+                    spinner.text = "Checking if required packages are installed..."
+                    missing = check_packages_installed(packages)
+                    if missing:
+                        console.print(f"[bold red]Missing packages detected: {', '.join(missing)}[/bold red]")
+                        console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
+                        sys.exit(1)
+                    else:
+                        spinner.ok("✔")
+                        console.print("[bold green]All required packages are installed.[/bold green]")
+                else:
+                    spinner.ok("✔")
+                    console.print("[bold green]No requirements to check. Proceeding.[/bold green]")
+            else:
+                spinner.ok("✔")
+                install_requirements(debug, spinner)  # Install required packages from requirements.txt
         time.sleep(1)
 
         load_programs(debug, spinner)  # No longer showing programs
