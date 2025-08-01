@@ -23,56 +23,45 @@ Windows was previously supported however it is easier to create this OS having a
 
 ### 💻 Linux Installation
 
-1. Install Python (if not already installed):
+1. Ensure Python 3.7+ is installed:
 
-   ```bash
-   sudo apt update && sudo apt install python3 python3-pip
-   ```
+```bash
+sudo apt update && sudo apt install python3 python3-pip
+```
 
-2. Download the latest build:
+2. Download the launcher script directly:
 
-   * Go to the [GitHub Actions page](https://github.com/Kalmai221/PythonOS/actions)
-   * Select the latest **successful workflow run**
-   * Download the artifact named **`installer-runpy.zip`**
+```bash
+curl -O https://raw.githubusercontent.com/Kalmai221/PythonOS/main/installer/run.py
+```
 
-3. Extract the ZIP:
+3. Run PythonOS:
 
-   ```bash
-   unzip installer-runpy.zip
-   cd installer-runpy
-   ```
+```bash
+python3 run.py
+```
 
-4. Run PyOS:
-
-   ```bash
-   python3 run.py
-   ```
+> The `run.py` script is the official PythonOS launcher, managing initialization, package installation, and the terminal interface.
 
 ---
 
 ### 📱 Android Installation (via Termux)
 
-1. Install Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/)
+1. Install Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/).
 
-2. Update Termux and install Python:
+2. Update packages and install Python:
 
-   ```bash
-   pkg update && pkg upgrade
-   pkg install python unzip
-   ```
+```bash
+pkg update && pkg upgrade
+pkg install python curl
+```
 
-3. Download the ZIP artifact from:
+3. Download and run the launcher script:
 
-   * [GitHub Actions](https://github.com/Kalmai221/PythonOS/actions)
-   * Latest successful run → `installer-runpy.zip`
-
-4. Extract and run:
-
-   ```bash
-   unzip installer-runpy.zip
-   cd installer-runpy
-   python run.py
-   ```
+```bash
+curl -O https://raw.githubusercontent.com/Kalmai221/PythonOS/main/installer/run.py
+python3 run.py
+```
 
 ---
 
