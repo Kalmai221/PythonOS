@@ -8,6 +8,7 @@ import subprocess
 import sys
 import pkg_resources
 import shutil
+import socket
 
 console = Console()
 package_name = "typing_test"
@@ -17,8 +18,24 @@ def check_package_installed(name):
     installed = {pkg.key for pkg in pkg_resources.working_set}
     return name in installed or shutil.which(name) is not None
 
+def check_internet(host="pypi.org", port=443, timeout=3):
+    """Check if the machine has internet access by attempting to connect to a known host."""
+    try:
+        socket.create_connection((host, port), timeout=timeout)
+        return True
+    except (socket.timeout, socket.gaierror, OSError):
+        return False
+
 def install_package(name):
     """Install the pip package."""
+    if not check_internet():
+        console.print(Panel(
+            "[bold red]No internet connection detected.[/bold red]\n\n"
+            "Please check your network connection and try again.",
+            style="red", box=box.ROUNDED, padding=(1, 2)
+        ))
+        sys.exit(1)
+
     with console.status(f"[bold green]Installing {name}...[/bold green]", spinner="dots"):
         try:
             subprocess.run(
@@ -29,6 +46,7 @@ def install_package(name):
             )
         except subprocess.CalledProcessError as e:
             console.print(Panel(f"[bold red]Installation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
+            sys.exit(1)
         else:
             console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
 
@@ -40,7 +58,7 @@ def main():
 
     # Description
     console.print(Panel(
-        "This installer will help you install [bold]typingtest[/bold].\n\n"
+        "This installer will help you install [bold]typing_test[/bold].\n\n"
         "Command run:\n[green]python -m pip install typing_test --user[/green]",
         style="grey93",
         box=box.ROUNDED,
@@ -51,8 +69,9 @@ def main():
     if check_package_installed(package_name):
         console.print(f"[bold green]{package_name} is already installed.[/bold green]")
     else:
-        if not Confirm.ask("Do you want to install typingtest?", default=True):
+        if not Confirm.ask("Do you want to install typing_test?", default=True):
             console.print("[bold yellow]Installation cancelled.[/bold yellow]")
+            sys.exit(0)
         install_package(package_name)
 
     console.print(f"\n[bold green]{package_name} installation complete![/bold green]")

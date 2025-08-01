@@ -7,10 +7,20 @@ from rich.prompt import Confirm
 from rich.progress import Progress, BarColumn, TextColumn
 import time
 from requests.exceptions import HTTPError
+import socket
 
 console = Console()
 GITHUB_API_BASE = "https://api.github.com/repos/Kalmai221/PythonOS/contents"
 IGNORE_FOLDERS = {".git", ".OSData"}
+
+def check_internet_connection(host="8.8.8.8", port=53, timeout=3):
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(timeout)
+            sock.connect((host, port))
+        return True
+    except socket.error:
+        return False
 
 def get_github_files(path=""):
     url = f"{GITHUB_API_BASE}/{path}" if path else GITHUB_API_BASE
@@ -81,6 +91,11 @@ def show_update_table(files_to_update):
 def update_system(auto_update=False):
     base_path = Path.cwd()  # Detect current working directory dynamically
     console.print(f"[bold blue]Working directory detected as:[/bold blue] {base_path}\n")
+    # Check internet connection before proceeding
+    console.print("[bold cyan]Checking internet connection...[/bold cyan]")
+    if not check_internet_connection():
+        console.print("[bold red]No internet connection detected. Please connect to the internet and try again.[/bold red]")
+        return False
     console.print("[bold cyan]Checking for updates...[/bold cyan]")
     try:
         files = get_github_files()

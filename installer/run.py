@@ -5,6 +5,7 @@ import sys
 import random
 import time
 import shutil
+import socket
 
 def install_requirements():
     """Install dependencies from boot-requirements.txt with platform-specific options."""
@@ -21,7 +22,26 @@ def install_requirements():
         print("❌ Failed to install dependencies. Make sure Python and pip are installed.")
         sys.exit(0)
 
+def check_internet_connection(host="8.8.8.8", port=53, timeout=3):
+    """
+    Host: 8.8.8.8 (Google DNS)
+    Port: 53/tcp (DNS service)
+    Returns True if the host is reachable (internet likely available).
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(timeout)
+            sock.connect((host, port))
+        return True
+    except socket.error:
+        return False
+
 # Starting the verification process
+
+print("Checking for access to the internet...")
+if not check_internet_connection():
+    print("[bold red]No internet connection detected. Please connect to the internet and try again.[/bold red]")
+    sys.exit(1)
 print("Verifying that all required packages for installation are installed...")
 time.sleep(random.uniform(1, 2))  # Short pause to simulate checking
 

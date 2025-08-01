@@ -8,6 +8,9 @@ import zipfile
 import io
 import hashlib
 import pyos
+import socket
+import json
+import shutil
 
 config = {
     "name": "marketplace",
@@ -20,6 +23,14 @@ REPO_NAME = "PythonOS"
 BASE_API_URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/online_packages"
 
 console = Console()
+
+def check_internet(host="api.github.com", port=443, timeout=3):
+    """Check if machine can connect to GitHub API."""
+    try:
+        socket.create_connection((host, port), timeout=timeout)
+        return True
+    except (socket.timeout, socket.gaierror, OSError):
+        return False
 
 def fetch_categories():
     try:
@@ -105,7 +116,7 @@ def list_installed_programs():
         return installed
     for cat_dir in base_path.glob("installed_*"):
         category = cat_dir.name.replace("installed_", "")
-        for program_dir in cat_dir.glob("*"):  # Changed to find directories
+        for program_dir in cat_dir.glob("*"):
             if program_dir.is_dir():
                 installed.append({
                     "category": category,
@@ -115,7 +126,6 @@ def list_installed_programs():
     return installed
 
 def recursively_download_folder(remote_path, local_path, category):
-    # Fetch contents from the remote folder
     items = fetch_items_in_category(remote_path)
     if not items:
         console.print(f"[yellow]No items found in remote path '{remote_path}'[/yellow]")
@@ -130,10 +140,13 @@ def recursively_download_folder(remote_path, local_path, category):
             new_local_subdir = local_path / subdir_name
             new_local_subdir.mkdir(parents=True, exist_ok=True)
             console.print(f"[bold green]✓ Created subdirectory '{subdir_name}' in {local_path}[/bold green]")
-            # Recursive call with correct path
             recursively_download_folder(f"{remote_path}/{subdir_name}", new_local_subdir, category)
-            
+
 def download_program_flow():
+    if not check_internet():
+        console.print("[bold red]No internet connection detected. Please connect and try again.[/bold red]")
+        return
+
     categories = fetch_categories()
     if not categories:
         console.print("[bold yellow]No categories found.[/bold yellow]")
@@ -175,14 +188,11 @@ def download_program_flow():
         new_directory_path.mkdir(parents=True, exist_ok=True)
         console.print(f"[bold green]✓ Created directory '{directory_name}' in {install_dir}[/bold green]")
 
-        # Recursively download the directory content
         recursively_download_folder(f"{category}/{directory_name}", new_directory_path, category)
 
-        # --- NEW PART: Check data.json for requires_restart_on_download ---
         data_json_path = new_directory_path / "data.json"
         if data_json_path.exists():
             try:
-                import json
                 with open(data_json_path, "r") as f:
                     data = json.load(f)
                 requires_restart = str(data.get("requires_restart_on_download", "false")).lower()
@@ -206,7 +216,6 @@ def uninstall_package_flow():
         console.print("[yellow]No installed programs found to uninstall.[/yellow]")
         return
 
-    # Show installed packages table
     table = Table(title="Installed Packages", header_style="bold blue")
     table.add_column("Index", justify="right")
     table.add_column("Category", style="cyan")
@@ -232,7 +241,6 @@ def uninstall_package_flow():
         console.print(f"[bold red]data.json not found in {pkg_path}. Cannot proceed with uninstallation.[/bold red]")
         return
 
-    import json
     try:
         with open(data_json_path, "r") as f:
             data = json.load(f)
@@ -249,15 +257,12 @@ def uninstall_package_flow():
             console.print(f"[bold red]Uninstaller script '{uninstaller_script}' not found in package folder.[/bold red]")
             return
 
-        # Run the uninstaller script
         console.print(f"[bold green]Running uninstaller script: {uninstaller_script}[/bold green]")
         ret_code = os.system(f'python "{uninstaller_path}"')
         if ret_code != 0:
             console.print(f"[bold red]Uninstaller script exited with code {ret_code}. Aborting deletion.[/bold red]")
             return
 
-    # After successful uninstaller run (or if skipped), delete the package folder
-    import shutil
     try:
         shutil.rmtree(pkg_path)
         console.print(f"[bold green]Successfully uninstalled and removed package '{pkg['name']}'.[/bold green]")
@@ -266,6 +271,10 @@ def uninstall_package_flow():
 
 
 def check_updates_flow():
+    if not check_internet():
+        console.print("[bold red]No internet connection detected. Please connect and try again.[/bold red]")
+        return
+
     installed = list_installed_programs()
     if not installed:
         console.print("[yellow]No installed programs found to check for updates.[/yellow]")
@@ -286,7 +295,6 @@ def check_updates_flow():
             console.print(f"[yellow]Failed to fetch remote items for '{program_name}' in category '{category}'. Skipping.[/yellow]")
             continue
 
-        # Create a dictionary of remote files for easy lookup
         remote_files = {item["name"]: item for item in remote_items if item["type"] == "file"}
 
         for local_file in install_dir.glob("*"):
@@ -294,13 +302,11 @@ def check_updates_flow():
                 remote_item = remote_files.get(local_file.name)
 
                 if remote_item:
-                    # File exists both locally and remotely
                     remote_url = get_raw_url(remote_item)
                     if not remote_url:
                         console.print(f"[yellow]No raw URL found for remote file '{local_file.name}'. Skipping.[/yellow]")
                         continue
 
-                    # Calculate hashes to check for content changes
                     local_hash = calculate_file_hash(local_file)
 
                     try:
@@ -313,7 +319,6 @@ def check_updates_flow():
                         continue
 
                     if local_hash and remote_hash and local_hash != remote_hash:
-                        # Content has changed, download the updated file
                         console.print(f"[yellow]'{local_file.name}' has changed. Downloading update.[/yellow]")
                         if download_file(remote_item, category, install_dir):
                             any_updated = True
@@ -322,7 +327,6 @@ def check_updates_flow():
                 else:
                     console.print(f"[yellow]'{local_file.name}' exists locally but not remotely. It might be an orphaned file.[/yellow]")
 
-        # Check for new files in the remote repository
         for remote_file_name, remote_item in remote_files.items():
             if not (install_dir / remote_file_name).exists():
                 console.print(f"[yellow]New file '{remote_file_name}' found remotely. Downloading.[/yellow]")
@@ -333,6 +337,10 @@ def check_updates_flow():
         console.print("[green]All programs are up-to-date.[/green]")
 
 def main_menu():
+    if not check_internet():
+        console.print("[bold red]No internet connection detected. Marketplace requires internet access.[/bold red]")
+        return
+
     while True:
         console.print("\n[bold magenta]Marketplace Menu[/bold magenta]")
         console.print("1. Download Programs")
@@ -350,7 +358,6 @@ def main_menu():
         elif choice == 4:
             console.print("Goodbye!")
             break
-
 
 if __name__ == "__main__":
     main_menu()
