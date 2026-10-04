@@ -24,5 +24,5 @@ def execute(args=None):
     elif sub == "":
         hardware.menu()
     else:
-        console.print("[red]Usage:[/red] hwsetup [check|audio|network]")
+        console.print("[red]Usage:[/red] hwsetup \\[check|audio|network]")
         return False

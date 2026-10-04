@@ -23,7 +23,78 @@ def load_or_create_user_db():
 PBKDF2_ROUNDS = 200_000
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_SECONDS = 30
-_failed_logins = {}  # username -> (count, last_failure_time)
+MAX_LOCKOUT_SECONDS = 15 * 60
+LOCKOUT_FILE = os.path.join(".OSData", "lockout.json")
+MIN_PASSWORD_LENGTH = 6
+
+
+def _lockout_read():
+    try:
+        with open(LOCKOUT_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _lockout_write(data):
+    os.makedirs(os.path.dirname(LOCKOUT_FILE), exist_ok=True)
+    tmp = LOCKOUT_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+    os.replace(tmp, LOCKOUT_FILE)
+
+
+def lockout_remaining(username):
+    """Seconds this account is still locked for (0 = not locked). Survives restarts, so rebooting does not reset it,
+    and every further batch of mistakes doubles the wait (up to 15 minutes)."""
+    count, last = _lockout_read().get(username, [0, 0])
+    if count < MAX_LOGIN_ATTEMPTS:
+        return 0
+    batches = count // MAX_LOGIN_ATTEMPTS
+    wait = min(MAX_LOCKOUT_SECONDS, LOCKOUT_SECONDS * 2 ** (batches - 1))
+    return max(0, int(wait - (time.time() - last)) + 1) if time.time() - last < wait else 0
+
+
+def _note_failure(username):
+    data = _lockout_read()
+    count = data.get(username, [0, 0])[0] + 1
+    data[username] = [count, time.time()]
+    _lockout_write(data)
+
+
+def _clear_failures(username):
+    data = _lockout_read()
+    if data.pop(username, None) is not None:
+        _lockout_write(data)
+
+
+def validate_password(password, username=None):
+    """None if the password is acceptable, otherwise a sentence saying what is wrong."""
+    if len(password) < MIN_PASSWORD_LENGTH:
+        return f"Password must be at least {MIN_PASSWORD_LENGTH} characters."
+    if username and password.lower() == username.lower():
+        return "Password must not be the same as the user name."
+    if len(set(password)) == 1:
+        return "Password must not be a single repeated character."
+    return None
+
+
+def authenticate(username, password):
+    """Check a username and password, applying and recording lockouts. Returns (ok, message)."""
+    users = get_users()
+    wait = lockout_remaining(username)
+    if wait:
+        return False, f"Too many failed attempts. Try again in {wait}s."
+    if username in users and verify_password(password, users[username]['password']):
+        _clear_failures(username)
+        if not users[username]['password'].startswith("pbkdf2$"):
+            users[username]['password'] = hash_password(password)  # upgrade legacy hash
+            save_users(users)
+        return True, ""
+    _note_failure(username)
+    pyos.log.log("login failed", "WARN", user=username or "?")
+    return False, "Incorrect username or password."
 
 
 def hash_password(password):
@@ -85,8 +156,9 @@ def register():
         return None
 
     password = getpass.getpass("New password: ")
-    if len(password) < 4:
-        console.print("[bold red]Password must be at least 4 characters.[/bold red]")
+    problem = validate_password(password, username)
+    if problem:
+        console.print(f"[bold red]{problem}[/bold red]")
         return None
     if getpass.getpass("Confirm password: ") != password:
         console.print("[bold red]Passwords do not match.[/bold red]")
@@ -171,11 +243,16 @@ def change_password():
             return False
 
     new_password = getpass.getpass(f"Enter a new password for {username}: ")
-    if len(new_password) < 4:
-        console.print("[bold red]Password must be at least 4 characters.[/bold red]")
+    problem = validate_password(new_password, username)
+    if problem:
+        console.print(f"[bold red]{problem}[/bold red]")
+        return False
+    if getpass.getpass("Confirm new password: ") != new_password:
+        console.print("[bold red]Passwords do not match.[/bold red]")
         return False
     users[username]['password'] = hash_password(new_password)
     save_users(users)
+    pyos.log.log(f"password changed for {username}", "WARN" if username != current_user else "INFO", user=current_user)
     console.print(f"[bold green]Password for {username} changed successfully![/bold green]")
     return True
 
@@ -216,36 +293,28 @@ def change_role():
 
 
 def login():
-    """Handle user login (with a short lockout after repeated failures)"""
+    """Handle user login (with a lockout that grows with repeated failures and survives restarts)"""
     users = get_users()
     username = input("Username: ").strip()
 
-    count, last = _failed_logins.get(username, (0, 0))
-    if count >= MAX_LOGIN_ATTEMPTS:
-        wait = LOCKOUT_SECONDS - (time.time() - last)
-        if wait > 0:
-            console.print(f"[bold red]Too many failed attempts. Try again in {int(wait) + 1}s.[/bold red]")
-            return None
-        _failed_logins.pop(username, None)
+    wait = lockout_remaining(username)
+    if wait:
+        console.print(f"[bold red]Too many failed attempts. Try again in {wait}s.[/bold red]")
+        return None
 
     password = getpass.getpass("Password: ")
-    # Same message for unknown user / wrong password so usernames cannot be probed
-    if username in users and verify_password(password, users[username]['password']):
-        _failed_logins.pop(username, None)
-        if not users[username]['password'].startswith("pbkdf2$"):
-            users[username]['password'] = hash_password(password)  # upgrade legacy hash
-            save_users(users)
-        os.system("cls" if os.name == "nt" else "clear")
-        console.print(f"[bold green]Welcome back, {username}![/bold green] [dim]({users[username]['role']})[/dim]")
-        save_session(username, users[username]['role'])  # Save username and role
-        pyos.fs.ensure_home(username)
-        pyos.log.log("login ok", user=username)
-        return username
+    ok, message = authenticate(username, password)   # same message for unknown user / wrong password
+    if not ok:
+        console.print(f"[bold red]{message}[/bold red]")
+        return None
 
-    _failed_logins[username] = (count + 1, time.time())
-    pyos.log.log("login failed", "WARN", user=username or "?")
-    console.print("[bold red]Incorrect username or password.[/bold red]")
-    return None
+    users = get_users()
+    os.system("cls" if os.name == "nt" else "clear")
+    console.print(f"[bold green]Welcome back, {username}![/bold green] [dim]({users[username]['role']})[/dim]")
+    save_session(username, users[username]['role'])  # Save username and role
+    pyos.fs.ensure_home(username)
+    pyos.log.log("login ok", user=username)
+    return username
 
 def logout():
     """Logout the current user by removing session"""

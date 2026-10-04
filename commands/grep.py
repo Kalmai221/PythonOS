@@ -13,7 +13,7 @@ def execute(args=None):
     args = [a for a in args if a != "-i"]
     piped = stdio.read_stdin()
     if len(args) < 1 or (len(args) < 2 and piped is None):
-        console.print("[bold red]Usage:[/bold red] grep [-i] <pattern> <file>...")
+        console.print("[bold red]Usage:[/bold red] grep \\[-i] <pattern> <file>...")
         return False
     try:
         regex = re.compile(args[0], re.IGNORECASE if ignore else 0)

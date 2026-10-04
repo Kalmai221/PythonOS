@@ -30,7 +30,7 @@ def execute(args=None):
     elif stdio.read_stdin() is not None:
         lines = stdio.read_stdin().splitlines()
     else:
-        console.print("[bold red]Usage:[/bold red] tail [-n N] <file>")
+        console.print("[bold red]Usage:[/bold red] tail \\[-n N] <file>")
         return False
     for line in (lines[-n:] if n else []):
         console.print(line, markup=False, highlight=False)

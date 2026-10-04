@@ -476,20 +476,26 @@ def reload_all():
 
 # ----------------------------------------------------------- lock & session
 def lock_session(username):
-    """Ask for the password again. Returns True if the right one was entered (3 tries)."""
+    """Ask for the password again. Returns True if the right one was entered (3 tries, with the normal lockout)."""
     import getpass
     import users
     console.print("[bold yellow]Session locked.[/bold yellow]")
+    pyos.log.log("session locked", user=username)
     for attempt in range(3):
+        wait = users.lockout_remaining(username)
+        if wait:
+            console.print(f"[bold red]Too many failed attempts. Try again in {wait}s.[/bold red]")
+            return False
         try:
             password = getpass.getpass(f"Password for {username}: ")
         except (KeyboardInterrupt, EOFError):
             return False
-        record = users.get_users().get(username)
-        if record and users.verify_password(password, record["password"]):
+        ok, message = users.authenticate(username, password)
+        if ok:
+            pyos.log.log("session unlocked", user=username)
             console.print("[green]Unlocked.[/green]")
             return True
-        console.print("[red]Incorrect password.[/red]")
+        console.print(f"[red]{message}[/red]")
     return False
 
 
@@ -525,6 +531,16 @@ def start_shell(username):
         if motd:
             console.print(f"[dim]{escape(motd)}[/dim]")
     except OSError:
+        pass
+
+    # a one-time nudge towards the tutorial and the manual
+    try:
+        flags = pyos.appdata.load("shell", {}, user=username) or {}
+        if not flags.get("hint_shown"):
+            console.print("[dim]New here? Type [bold]tutorial[/bold] for a short guided tour, or [bold]man[/bold] for the manual.[/dim]")
+            flags["hint_shown"] = True
+            pyos.appdata.save("shell", flags, user=username)
+    except Exception:
         pass
 
     sched = scheduler.Scheduler(run_captured, username)

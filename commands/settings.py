@@ -17,7 +17,7 @@ HELP = """[bold]settings[/bold] - change how PythonOS looks and behaves
   settings list                   show every setting
   settings get <name>             show one setting
   settings set <name> <value>     change one      (for example: settings set theme ocean)
-  settings reset [name]           back to the default (everything if no name)
+  settings reset \\[name]           back to the default (everything if no name)
   settings themes                 preview the colour themes
   settings theme <name>           switch theme"""
 

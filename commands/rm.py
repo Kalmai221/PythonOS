@@ -14,7 +14,7 @@ def execute(args=None):
     force = "-f" in args or "-rf" in args or "-fr" in args
     names = [a for a in args if not a.startswith("-")]
     if not names:
-        console.print("[bold red]Usage:[/bold red] rm [-f] <path>...")
+        console.print("[bold red]Usage:[/bold red] rm \\[-f] <path>...")
         return False
     ok = True
     for name in names:
