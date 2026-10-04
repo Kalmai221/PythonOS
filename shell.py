@@ -61,6 +61,9 @@ def load_installed_packages(base_path="files"):
                         with open(data_json_path, "r", encoding="utf-8") as f:
                             data = json.load(f)
                         command_name = data.get("command")
+                        if command_name and not pyos.lockdown.may_run(root):
+                            pyos.log.log(f"package {root} not trusted - not loaded (lockdown)", "WARN")
+                            continue
                         if command_name:
                             description = data.get("description", "No description available.")
                             run_script = data.get("scripts", {}).get("run")

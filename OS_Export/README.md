@@ -109,6 +109,30 @@ as the `hwsetup` command): a hardware and firmware check, choosing and testing t
 and picking a network and connecting to the internet (wired or Wi-Fi). Building locally with
 `ISO_KERNEL=virt` gives a smaller image that only suits virtual machines.
 
+## The ISO is locked down
+
+The ISO exists to run PythonOS and nothing else, so the Linux system underneath is closed off:
+
+* **Boot menu:** the BIOS menu has no `boot:` prompt and cannot be interrupted or given options; the UEFI
+  (GRUB) menu cannot be edited or opened to a command line (the password is random per build and thrown away).
+  So `init=/bin/sh` and friends are not possible.
+* **Consoles:** `inittab` starts only PythonOS. No login, no `getty`, no shell on any virtual terminal or the
+  serial port, root cannot log in anywhere, and SysRq is off. If PythonOS stops it is restarted, never replaced
+  by a shell; `shutdown` powers off.
+* **Inside PythonOS:** `PYOS_LOCKDOWN=1` turns on lockdown mode (`pyos/lockdown.py`): no external editor, no way to
+  list or kill other processes, installer scripts never run, and marketplace packages only run if the catalog marks
+  them `lockdown_safe` **and** their files still match the hashes recorded when they were installed (that record is in
+  `.OSData`, which PythonOS commands cannot write), so a package planted by hand does not run. The filesystem sandbox
+  also resolves symlinks.
+* **Checked on every build:** `tools/audit_lockdown.py` fails CI if OS code starts spawning processes or evaluating code
+  without being reviewed, and `in-container.sh` opens the finished ISO and fails the build unless the boot configs are
+  locked, `inittab` has no login or shell, and the session cannot fall back to one.
+
+What this cannot stop: someone with the machine in front of them can still boot different media, open the BIOS/UEFI
+setup, or read the ISO file itself; and if the boot media cannot be found at all, Alpine's own initramfs may offer an
+emergency shell before PythonOS has started. The same lockdown mode works on any build with `"lockdown": true` in
+`config.json` (for a kiosk or a shared machine).
+
 ## Bundled mode
 
 Builds that cannot run pip at runtime (Android, ISO) start the OS with `PYOS_BUNDLED=1`. In that

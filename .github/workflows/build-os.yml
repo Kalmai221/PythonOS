@@ -130,6 +130,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      - name: Lockdown audit (fails if OS code can spawn commands or run code unreviewed)
+        run: python tools/audit_lockdown.py
       - run: bash OS_Export/ISO/build-iso.sh
       - uses: actions/upload-artifact@v7
         with:

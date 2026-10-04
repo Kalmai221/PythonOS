@@ -3,6 +3,7 @@ import subprocess
 from rich.console import Console
 from rich.prompt import Prompt
 import pyos.fs as fs
+from pyos import lockdown
 
 console = Console()
 
@@ -25,6 +26,10 @@ def execute(args=None):
     if os.path.isdir(path):
         console.print(f"[bold red]{name}: is a directory[/bold red]")
         return
+
+    if lockdown.enabled():
+        console.print("[yellow]External editors are switched off on this locked-down system.[/yellow]")
+        return False
 
     editor = "notepad" if os.name == "nt" else "nano"
     try:

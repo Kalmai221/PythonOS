@@ -9,6 +9,7 @@ from rich.table import Table
 from rich.prompt import IntPrompt, Prompt, Confirm
 import shutil
 import glob
+from pyos import lockdown
 
 console = Console()
 
@@ -30,7 +31,7 @@ def list_installed_programs():
             for folder in category_path.iterdir():
                 if folder.is_dir():
                     metadata = load_program_metadata(folder)
-                    if metadata:  # Only include folders with valid data.json
+                    if metadata and lockdown.may_run(folder):  # valid data.json, and trusted when locked down
                         programs.append((folder, metadata))
     return programs
 

@@ -1,17 +1,17 @@
-# /etc/inittab for the PythonOS live system
+# /etc/inittab for the PythonOS live system.
+#
+# PythonOS is the only thing that ever runs on a console. There is deliberately NO getty and NO shell
+# here: no login prompt on any console (including the other virtual terminals and the serial port).
 
 ::sysinit:/sbin/openrc sysinit
 ::sysinit:/sbin/openrc boot
 ::wait:/sbin/openrc default
 
-# PythonOS runs on the first console
+# PythonOS on the first console; init restarts it if it ever stops
 tty1::respawn:/usr/local/bin/pythonos-session
 
-# A plain shell on the second console for recovery and debugging (Alt+F2)
-tty2::respawn:/sbin/getty -n -l /bin/sh 38400 tty2
-
-# Stuff to do for the 3-finger salute
+# Ctrl+Alt+Del restarts the machine
 ::ctrlaltdel:/sbin/reboot
 
-# Stuff to do before rebooting
+# Before shutting down or rebooting
 ::shutdown:/sbin/openrc shutdown

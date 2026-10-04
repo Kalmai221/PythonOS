@@ -56,7 +56,6 @@ py3-psutil
 py3-requests
 py3-pygments
 py3-prompt_toolkit
-nano
 pciutils
 hwdata-pci
 usbutils
@@ -64,10 +63,23 @@ alsa-utils
 alsa-ucm-conf
 iw
 wpa_supplicant
+lsblk
+e2fsprogs
 EOF
 
 makefile root:root 0644 "$tmp"/etc/motd <<EOF
 PythonOS live system - changes are lost when you power off.
+EOF
+
+# Hardening. There is no login on this system at all (no getty in inittab), and root may not log in
+# on any terminal even if one were ever started. SysRq and kernel info are switched off.
+: > "$tmp"/etc/securetty
+mkdir -p "$tmp"/etc/sysctl.d
+makefile root:root 0644 "$tmp"/etc/sysctl.d/90-pythonos.conf <<EOF
+kernel.sysrq = 0
+kernel.dmesg_restrict = 1
+kernel.kptr_restrict = 2
+kernel.core_pattern = |/bin/false
 EOF
 
 # Boot services

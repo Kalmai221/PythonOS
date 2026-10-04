@@ -68,6 +68,9 @@ def main():
                 "command": meta.get("command", ""),
                 "alias": meta.get("alias", []),
                 "tags": meta.get("tags", []),
+                # Only packages that cannot give access to the machine underneath (no shells, no code
+                # execution, no pip) may be marked safe; locked-down systems refuse everything else.
+                "lockdown_safe": bool(meta.get("lockdown_safe", False)),
                 "files": package_files(folder),
             })
     index = {"format": 1, "packages": packages}

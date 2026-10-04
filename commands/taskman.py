@@ -4,6 +4,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, IntPrompt
 from rich.text import Text
+from pyos import lockdown
 
 console = Console()
 
@@ -14,6 +15,20 @@ config = {
 
 def get_processes():
     procs = []
+    if lockdown.enabled():
+        # Only PythonOS itself: the rest of the machine is not part of what you can see or touch here
+        import os
+        try:
+            me = psutil.Process(os.getpid())
+            mine = [me] + me.children(recursive=True)
+        except psutil.Error:
+            return procs
+        for proc in mine:
+            try:
+                procs.append(proc.as_dict(['pid', 'name', 'cpu_percent', 'memory_percent']))
+            except psutil.Error:
+                continue
+        return procs
     for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
         try:
             info = proc.info
@@ -40,6 +55,9 @@ def show_processes(procs, sort_by="cpu_percent", reverse=True, limit=20):
     console.print(table)
 
 def kill_process(pid):
+    if lockdown.enabled():
+        console.print("[yellow]Stopping processes is switched off on this locked-down system.[/yellow]")
+        return False
     try:
         proc = psutil.Process(pid)
         proc.terminate()

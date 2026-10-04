@@ -15,6 +15,14 @@ from rich.progress import BarColumn, Progress, TextColumn
 from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
 
+try:
+    from pyos import lockdown
+except ImportError:  # running outside PythonOS
+    class lockdown:  # noqa: N801 - stand-in with the same interface
+        enabled = staticmethod(lambda: False)
+        record_package = staticmethod(lambda *a, **k: None)
+        forget_package = staticmethod(lambda *a, **k: None)
+
 config = {
     "name": "marketplace",
     "description": "Find, install, update and remove packages (marketplace search <term>).",
@@ -174,8 +182,10 @@ def show_packages(packages, installed, title):
     table.add_column("Version", style="yellow")
     table.add_column("Status")
     for i, p in enumerate(packages, 1):
+        blocked = lockdown.enabled() and not p.get("lockdown_safe")
         table.add_row(str(i), escape(p["name"]), p["category"], escape(p.get("description", "")),
-                      p["version"], status_label(status_of(p, installed), p, installed))
+                      p["version"], "[dim]not available here[/dim]" if blocked
+                      else status_label(status_of(p, installed), p, installed))
     console.print(table)
 
 
@@ -220,6 +230,8 @@ def refresh_shell():
 
 
 def run_script(folder, meta, key, label):
+    if lockdown.enabled():
+        return True           # installer/uninstaller scripts run arbitrary code - never on a locked-down system
     script = meta.get("scripts", {}).get(key)
     if not script or not (folder / script).exists():
         return True
@@ -232,6 +244,10 @@ def run_script(folder, meta, key, label):
 
 def install_package(pkg, installed, quiet=False):
     """Download into a temporary folder, verify every file, then swap into place."""
+    if lockdown.enabled() and not pkg.get("lockdown_safe"):
+        console.print(f"[yellow]{escape(pkg['name'])} cannot be installed on this locked-down system "
+                      "(it is not marked as safe for it).[/yellow]")
+        return False
     dest = INSTALL_ROOT / f"installed_{pkg['category']}" / pkg["id"].split("/", 1)[1]
     tmp = dest.parent / f".tmp_{dest.name}"
     old = dest.parent / f".old_{dest.name}"
@@ -266,6 +282,7 @@ def install_package(pkg, installed, quiet=False):
             old.rename(dest)  # put the previous version back
         return False
 
+    lockdown.record_package(dest, pkg.get("lockdown_safe", False))   # remember its hashes (see pyos/lockdown.py)
     verb = "Updated" if was_installed else "Installed"
     console.print(f"[bold green]{verb} {escape(pkg['name'])} {pkg['version']}.[/bold green]")
     meta = {}
@@ -273,7 +290,7 @@ def install_package(pkg, installed, quiet=False):
         meta = json.loads((dest / "data.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         pass
-    if not was_installed and meta.get("scripts", {}).get("installer") and not quiet:
+    if not was_installed and meta.get("scripts", {}).get("installer") and not quiet and not lockdown.enabled():
         if Confirm.ask("This package has a setup step. Run it now?", default=True):
             run_script(dest, meta, "installer", "installer")
     if not quiet:
@@ -296,6 +313,7 @@ def remove_package(pid, info, quiet=False):
     except OSError as e:
         console.print(f"[bold red]Could not delete {folder}: {e}[/bold red]")
         return False
+    lockdown.forget_package(folder)
     console.print(f"[bold green]Removed {escape(info['name'])}.[/bold green]")
     if not quiet:
         refresh_shell()
@@ -322,9 +340,10 @@ def manage(pkg, installed, packages):
         show_details(pkg, installed)
         status = status_of(pkg, installed)
         actions = ["back"]
-        if not status:
+        blocked = lockdown.enabled() and not pkg.get("lockdown_safe")
+        if not status and not blocked:
             actions.insert(0, "install")
-        if status == "update":
+        if status == "update" and not blocked:
             actions.insert(0, "update")
         if status:
             actions.insert(len(actions) - 1, "remove")

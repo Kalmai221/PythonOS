@@ -10,8 +10,11 @@ LAYOUT = ["home", "etc", "tmp", "var/log"]
 
 
 def _inside(path, base=BASE_DIR):
-    """True if path is base or lives under it (case-insensitive on Windows)."""
-    path, base = os.path.normcase(os.path.abspath(path)), os.path.normcase(base)
+    """True if path is base or lives under it (case-insensitive on Windows).
+
+    Symlinks are resolved first, so a link inside the sandbox that points outside it does not count.
+    """
+    path, base = os.path.normcase(os.path.realpath(path)), os.path.normcase(os.path.realpath(base))
     try:
         return os.path.commonpath([path, base]) == base
     except ValueError:  # different drives on Windows

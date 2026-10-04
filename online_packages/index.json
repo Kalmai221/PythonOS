@@ -16,6 +16,7 @@
         "ipython",
         "coding"
       ],
+      "lockdown_safe": false,
       "files": [
         {
           "path": "data.json",
@@ -53,6 +54,7 @@
         "board",
         "strategy"
       ],
+      "lockdown_safe": false,
       "files": [
         {
           "path": "data.json",
@@ -90,11 +92,12 @@
         "puzzle",
         "classic"
       ],
+      "lockdown_safe": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "cde685da75228970564cb5f40a08b2d201a6934537da32320ae4eaf9e9859997",
-          "size": 262
+          "sha256": "908bcadc40b6bae9a53d4d180f9ab88c9f7415bc9b737095e76ec754d82f8e40",
+          "size": 287
         },
         {
           "path": "run.py",
@@ -119,11 +122,12 @@
         "ai",
         "classic"
       ],
+      "lockdown_safe": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "65f7cb7c947f4fabc47c7fb7c1a651a786587954df7aeb2c4f40e7ed74a5e4f7",
-          "size": 270
+          "sha256": "81dfe2ce0031ab68318cba2704e310503821b15bb1f5bb58f00ca59b25641670",
+          "size": 295
         },
         {
           "path": "run.py",
@@ -146,6 +150,7 @@
         "speed",
         "keyboard"
       ],
+      "lockdown_safe": false,
       "files": [
         {
           "path": "data.json",
@@ -182,11 +187,12 @@
         "text",
         "writing"
       ],
+      "lockdown_safe": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "fcd22aeaca1dbc434f89162e1f8ad485f8e311d61746117bfa8be1b77bd731f1",
-          "size": 259
+          "sha256": "ae86a31576484fc65de745dd9baac124b7bf074ba39fba2a492a06d18c71ae06",
+          "size": 284
         },
         {
           "path": "run.py",
@@ -208,11 +214,12 @@
         "tasks",
         "list"
       ],
+      "lockdown_safe": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "67829fcdfc54dd9f954f2cea41ab9e4fb42f4fafae576518fc508e13f31318a0",
-          "size": 258
+          "sha256": "e7d74a0609f17575b3b81f3d1a28fb857404333cd96b2c8dc56fe2dcd7afcc6b",
+          "size": 283
         },
         {
           "path": "run.py",
@@ -234,11 +241,12 @@
         "forecast",
         "temperature"
       ],
+      "lockdown_safe": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "953f897bbda8241e8e96ebba19620c3c18c7c9e3fb09b30bba4c93b7059099e3",
-          "size": 269
+          "sha256": "4780f90348428de43b5655b6a2e3541ad4ff24faeaa3ad7bd69d9beb2b257e49",
+          "size": 294
         },
         {
           "path": "run.py",

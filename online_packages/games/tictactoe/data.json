@@ -14,5 +14,6 @@
     "puzzle",
     "ai",
     "classic"
-  ]
+  ],
+  "lockdown_safe": true
 }
