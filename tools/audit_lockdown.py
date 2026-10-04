@@ -36,7 +36,6 @@ ALLOWED = {
     "core/shutdownwipe.py": "clears the screen",
     "commands/restart.py": "restarts PythonOS itself with sys.executable",
     "commands/clear.py": "clears the screen",
-    "commands/file.py": "external editor - refused in lockdown (checked in the tests)",
     "programs/marketplace.py": "package installer scripts - never run in lockdown, packages are hash-checked",
     "programs/programs.py": "imports package scripts - only trusted packages when locked down",
     "programs/calc.py": "eval over a whitelist of arithmetic AST nodes with empty builtins",

@@ -17,7 +17,9 @@ def execute(args=None):
     for name in args:
         try:
             with open(fs.resolve(name), "r", encoding="utf-8", errors="replace") as f:
-                console.print(f.read(), markup=False, highlight=False)
+                text = f.read()
+            # print exactly what is in the file (no extra blank line after a final newline)
+            console.print(text, markup=False, highlight=False, end="" if text.endswith("\n") or not text else "\n")
         except Exception as e:
             console.print(f"[bold red]cat: {name}: {e}[/bold red]")
             ok = False

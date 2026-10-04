@@ -221,6 +221,7 @@ def main(files_dir):
         "COLUMNS": str(Bridge.termColumns()),
         "LINES": str(Bridge.termRows()),
         "PYTHONIOENCODING": "utf-8",
+        "PYOS_LINE_EDITOR": "1",   # no raw key events on Android: use the line editor
         "HOME": files_dir,
     })
 
