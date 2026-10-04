@@ -3,6 +3,11 @@
 set -eu
 
 ALPINE="${ALPINE_VERSION:-3.19}"
+KERNEL="${ISO_KERNEL:-virt}"
+case "$KERNEL" in
+    virt|lts) ;;
+    *) echo "ISO_KERNEL must be 'virt' or 'lts' (got '$KERNEL')" >&2; exit 1 ;;
+esac
 MIRROR="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE"
 
 apk add --no-cache alpine-sdk alpine-conf abuild xorriso squashfs-tools syslinux \
@@ -39,7 +44,7 @@ cp -R /iso/overlay/. /home/build/overlay/
 chown -R build:build /home/build/aports /home/build/overlay
 
 su build -c "cd /home/build/aports/scripts && \
-    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay \
+    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay PYTHONOS_KERNEL=$KERNEL \
     sh mkimage.sh \
         --tag 'v$ALPINE' \
         --outdir /out \

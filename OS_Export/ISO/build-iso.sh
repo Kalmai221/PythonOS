@@ -6,6 +6,8 @@
 # Needs: Linux with Docker, python3 and pip. The image is built with Alpine Linux's own
 # "mkimage" tooling inside an Alpine container, so nothing is installed on the host.
 #
+# Kernel: ISO_KERNEL=virt (default, smallest - for virtual machines) or ISO_KERNEL=lts (real hardware).
+#
 # What you get: a live system (runs from RAM) that boots straight into PythonOS and powers
 # off when you shut PythonOS down. Anything you create is lost at power off - it is a live CD.
 set -euo pipefail
@@ -28,7 +30,7 @@ python3 "$REPO/OS_Export/stage.py" "$WORK/payload" --vendor yaspin ping3
 chmod -R a+rX "$WORK/payload"
 
 docker run --rm \
-    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" \
+    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-virt}" \
     -v "$WORK/payload:/payload:ro" \
     -v "$HERE:/iso:ro" \
     -v "$OUT:/out" \
@@ -39,4 +41,5 @@ FINAL="$OUT/pythonos-$VERSION-x86_64.iso"
 [ "$ISO_FILE" = "$FINAL" ] || mv "$ISO_FILE" "$FINAL"
 ls -la "$OUT"
 echo "Built $FINAL"
+echo "Kernel: ${ISO_KERNEL:-virt}   Size: $(du -h "$FINAL" | cut -f1)"
 echo "Try it:  qemu-system-x86_64 -m 1024 -cdrom '$FINAL'"
