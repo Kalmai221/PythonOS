@@ -1,39 +1,36 @@
 package com.pythonos.app
 
 import android.graphics.Color
-import android.graphics.Typeface
-import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.style.BackgroundColorSpan
-import android.text.style.ForegroundColorSpan
-import android.text.style.StyleSpan
-import android.text.style.UnderlineSpan
+
+/** One character cell with its style. Colour 0 (DEFAULT) means "the terminal's own colour". */
+class Cell(
+    val ch: Char,
+    val fg: Int,
+    val bg: Int,
+    val bold: Boolean,
+    val italic: Boolean,
+    val underline: Boolean,
+    val reverse: Boolean,
+)
+
+/** What to draw: wrapped rows of cells and where the cursor is (cursorRow -1 = no cursor). */
+class Frame(val rows: List<List<Cell>>, val cursorRow: Int, val cursorCol: Int)
 
 /**
- * A small terminal emulator: turns the text PythonOS prints (including the ANSI colour and
- * cursor codes used by rich and yaspin) into styled text. It keeps scrollback lines and a cursor,
- * which is enough for colours, carriage-return spinners, "clear" and in-place progress bars.
+ * A small terminal emulator: turns the text PythonOS prints (including the ANSI colour and cursor codes
+ * used by rich and yaspin) into lines of styled cells. It keeps scrollback and a cursor, which is enough
+ * for colours, carriage-return spinners, "clear" and in-place progress bars. The line being typed is not
+ * part of it: the view passes that in when it asks for a frame, so editing never touches the scrollback.
  */
 class AnsiScreen(private val maxLines: Int = 3000) {
-
-    private class Cell(
-        var ch: Char,
-        val fg: Int,
-        val bg: Int,
-        val bold: Boolean,
-        val italic: Boolean,
-        val underline: Boolean,
-        val reverse: Boolean,
-    )
-
-    private data class Style(
-        val fg: Int, val bg: Int, val bold: Boolean, val italic: Boolean,
-        val underline: Boolean, val reverse: Boolean,
-    )
 
     private val lines = ArrayList<ArrayList<Cell>>()
     private var row = 0
     private var col = 0
+
+    /** Changes whenever the visible content changes, so views can cache what they built. */
+    @Volatile var version = 0L
+        private set
 
     // current drawing style (0 = terminal default colour)
     private var fg = DEFAULT
@@ -56,6 +53,7 @@ class AnsiScreen(private val maxLines: Int = 3000) {
         col = 0
         resetStyle()
         mode = Mode.NORMAL
+        version++
     }
 
     fun feed(text: String) {
@@ -82,6 +80,7 @@ class AnsiScreen(private val maxLines: Int = 3000) {
                 Mode.OSC_ESC -> mode = Mode.NORMAL
             }
         }
+        version++
     }
 
     private fun normal(ch: Char) {
@@ -189,51 +188,52 @@ class AnsiScreen(private val maxLines: Int = 3000) {
         }
     }
 
-    /** Styled text for the whole screen. */
-    fun render(): SpannableStringBuilder {
-        val out = SpannableStringBuilder()
-        for ((index, line) in lines.withIndex()) {
-            var i = 0
-            while (i < line.size) {
-                val first = line[i]
-                val style = Style(first.fg, first.bg, first.bold, first.italic, first.underline, first.reverse)
-                var j = i
-                val run = StringBuilder()
-                while (j < line.size) {
-                    val c = line[j]
-                    if (Style(c.fg, c.bg, c.bold, c.italic, c.underline, c.reverse) != style) break
-                    run.append(c.ch)
-                    j++
+    // ------------------------------------------------------------------ output
+    /**
+     * Rows to draw, `cols` cells wide. While the user is typing (`showInput`), the line being edited is
+     * placed after the prompt on the cursor's line and the cursor row/column are returned.
+     */
+    fun frame(cols: Int, input: String, cursorIndex: Int, showInput: Boolean): Frame {
+        val width = maxOf(1, cols)
+        val out = ArrayList<List<Cell>>()
+        var cursorRow = -1
+        var cursorCol = 0
+        val first = maxOf(0, lines.size - MAX_FRAME_LINES)
+        for (index in first until lines.size) {
+            val line = lines[index]
+            val onCursorLine = showInput && index == row
+            val cells: List<Cell> = if (onCursorLine) {
+                val combined = ArrayList<Cell>(line.take(col))
+                while (combined.size < col) combined.add(blank())
+                for (ch in input) combined.add(Cell(ch, DEFAULT, DEFAULT, false, false, false, false))
+                combined
+            } else line
+            val start = out.size
+            if (cells.isEmpty()) {
+                out.add(emptyList())
+            } else {
+                var i = 0
+                while (i < cells.size) {
+                    out.add(ArrayList(cells.subList(i, minOf(i + width, cells.size))))
+                    i += width
                 }
-                val start = out.length
-                out.append(run)
-                applyStyle(out, start, out.length, style)
-                i = j
             }
-            if (index < lines.size - 1) out.append('\n')
+            if (onCursorLine) {
+                val at = col + cursorIndex.coerceIn(0, input.length)
+                cursorRow = start + at / width
+                cursorCol = at % width
+                while (out.size <= cursorRow) out.add(emptyList())
+            }
         }
-        return out
+        return Frame(out, cursorRow, cursorCol)
     }
 
-    private fun applyStyle(out: SpannableStringBuilder, start: Int, end: Int, s: Style) {
-        var fgc = if (s.fg == DEFAULT) DEFAULT_FG else s.fg
-        var bgc = s.bg
-        if (s.reverse) {
-            val realBg = if (bgc == DEFAULT) DEFAULT_BG else bgc
-            bgc = fgc
-            fgc = realBg
-        }
-        val flags = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        if (fgc != DEFAULT_FG) out.setSpan(ForegroundColorSpan(fgc), start, end, flags)
-        if (bgc != DEFAULT) out.setSpan(BackgroundColorSpan(bgc), start, end, flags)
-        if (s.bold && s.italic) out.setSpan(StyleSpan(Typeface.BOLD_ITALIC), start, end, flags)
-        else if (s.bold) out.setSpan(StyleSpan(Typeface.BOLD), start, end, flags)
-        else if (s.italic) out.setSpan(StyleSpan(Typeface.ITALIC), start, end, flags)
-        if (s.underline) out.setSpan(UnderlineSpan(), start, end, flags)
-    }
+    /** The whole scrollback as plain text (for "copy"). */
+    fun plainText(): String = lines.joinToString("\n") { line -> String(CharArray(line.size) { line[it].ch }).trimEnd() }.trimEnd()
 
     companion object {
         const val DEFAULT = 0                       // "terminal default" marker (never a real ARGB colour)
+        private const val MAX_FRAME_LINES = 1500
         val DEFAULT_FG: Int = Color.rgb(204, 204, 204)
         val DEFAULT_BG: Int = Color.rgb(12, 12, 12)
 

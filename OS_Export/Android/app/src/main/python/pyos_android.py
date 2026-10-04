@@ -12,10 +12,12 @@ This module connects the OS to that terminal:
 import builtins
 import getpass
 import io
+import json
 import os
 import runpy
 import subprocess
 import sys
+import threading
 import traceback
 
 from java import jclass
@@ -155,7 +157,50 @@ def _purge_project_modules():
             del sys.modules[name]
 
 
+_main_thread_id = None
+
+
+# ---- calls from the app's UI thread (Kotlin) -------------------------------------------------
+def complete(line):
+    """Tab completion for the last word of `line` (the shell's own completer)."""
+    try:
+        shell = sys.modules.get("shell")
+        return list(shell.complete(line)) if shell else []
+    except Exception:
+        return []
+
+
+def interrupt():
+    """Ctrl+C while a command is running: raise KeyboardInterrupt in the PythonOS thread."""
+    import ctypes
+    if _main_thread_id:
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_ulong(_main_thread_id), ctypes.py_object(KeyboardInterrupt))
+
+
+def set_size(cols, rows):
+    """The terminal view was resized or zoomed: tell rich how wide the screen is."""
+    os.environ["COLUMNS"] = str(int(cols))
+    os.environ["LINES"] = str(int(rows))
+
+
+def app_update():
+    """JSON about a newer APK (it cannot update itself), or "" if this app is current / offline."""
+    try:
+        from core import sysupdate
+        st = sysupdate.check_export_update(timeout=6)
+        if st and st["state"] in ("update", "incompatible"):
+            remote = st["remote"]
+            return json.dumps({"state": st["state"], "title": st["title"], "local": st["local"]["version"],
+                               "remote": remote["version"], "notes": remote.get("notes", ""),
+                               "url": remote["url"], "reason": st.get("reason", "")})
+    except Exception:
+        pass
+    return ""
+
+
 def main(files_dir):
+    global _main_thread_id
+    _main_thread_id = threading.get_ident()
     _purge_project_modules()
     os.makedirs(files_dir, exist_ok=True)
     os.chdir(files_dir)

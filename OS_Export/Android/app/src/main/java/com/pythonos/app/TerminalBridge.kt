@@ -4,7 +4,7 @@ import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * Connects the Python side (pyos_android.py) to the UI.
- * Python calls the @JvmStatic functions below; the activity listens for changes.
+ * Python calls the @JvmStatic functions below; the terminal view listens for changes.
  */
 object TerminalBridge {
     interface Listener {
@@ -22,6 +22,9 @@ object TerminalBridge {
     @Volatile var secretInput = false
     @Volatile var done = false
 
+    /** The prompt text PythonOS last asked with, so the screen can redraw it after listing completions. */
+    @Volatile var lastPrompt = ""
+
     private val lines = LinkedBlockingQueue<String>()
 
     /** Terminal output from Python (may contain ANSI escape sequences). */
@@ -34,7 +37,10 @@ object TerminalBridge {
     /** Blocks the Python thread until the user submits a line. */
     @JvmStatic
     fun readLine(prompt: String, secret: Boolean): String {
-        if (prompt.isNotEmpty()) write(prompt)
+        if (prompt.isNotEmpty()) {
+            lastPrompt = prompt
+            write(prompt)
+        }
         secretInput = secret
         waitingForInput = true
         listener?.onPrompt(secret)
@@ -63,5 +69,6 @@ object TerminalBridge {
         lines.clear()
         waitingForInput = false
         done = false
+        lastPrompt = ""
     }
 }
