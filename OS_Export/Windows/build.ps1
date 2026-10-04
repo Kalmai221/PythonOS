@@ -59,8 +59,11 @@ Get-ChildItem $App -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recu
 python -m pip install --quiet pyinstaller pillow
 if ($LASTEXITCODE -ne 0) { throw "installing PyInstaller failed" }
 $Work = Join-Path $Out "pyinstaller"
+# Installer artwork and the icon, drawn by make_art.py
+$Art = Join-Path $Out "installer-art"
+python (Join-Path $Here "make_art.py") $Art
 $IconArgs = @()
-$IconFile = Join-Path $Repo "generated-icon.png"
+$IconFile = Join-Path $Art "PythonOS.ico"
 if (Test-Path $IconFile) { $IconArgs = @("--icon", $IconFile) }
 python -m PyInstaller --onefile --console --name PythonOS @IconArgs `
     --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
@@ -84,7 +87,7 @@ if (-not $Iscc) {
     if (Test-Path $Candidate) { $Iscc = $Candidate }
 }
 if ($Iscc) {
-    & $Iscc "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" (Join-Path $Here "PythonOS.iss")
+    & $Iscc "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" "/DArtDir=$Art" (Join-Path $Here "PythonOS.iss")
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
     Write-Host "Built installer"
 } else {
