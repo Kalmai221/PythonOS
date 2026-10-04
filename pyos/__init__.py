@@ -1,6 +1,6 @@
 # pyos/__init__.py
 from .system import system
-from .shutdown import shutdown
+from .shutdown import shutdown, ShutdownRequested
 from .userinfo import userinfo
 from .logout import logout
 from . import fs, log, stdio

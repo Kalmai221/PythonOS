@@ -33,6 +33,7 @@ install_requirements()
 import json
 from rich.console import Console
 import users
+from pyos import settings
 import shell
 import core
 import traceback
@@ -69,7 +70,7 @@ try:
     # result = 10 / 0  # BSOD TESTING
     config = load_config()
     console.print(f"[bold green]{config['os_name']} v{config['version']}[/bold green]")
-    time.sleep(1)
+    time.sleep(settings.boot_pause() * 3)
     if config['debug'] == "True":
         debug = "Yes"
         console.print("[bold yellow]Debug Mode is enabled on this OS.[/bold yellow]")

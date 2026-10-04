@@ -16,6 +16,7 @@ import platform
 import psutil
 import socket
 import importlib.metadata
+from pyos import settings
 
 # Initialize the console for rich output
 console = Console()
@@ -280,7 +281,7 @@ def _log(spinner, label, status="ok", detail=""):
 
 
 def boot_sequence(debug):
-    pause = 0.35  # short pauses keep the boot feeling like a boot without making you wait
+    pause = settings.boot_pause()  # the boot_speed setting: normal / fast / instant
     with yaspin(text="Booting system...", color="cyan") as spinner:
         time.sleep(pause)
 
@@ -337,7 +338,7 @@ def boot_sequence(debug):
         spinner.ok("✔")
 
     console.print("[bold green]System ready![/bold green]")
-    time.sleep(0.8)
+    time.sleep(min(0.8, pause * 2.3))
     os.system("cls" if os.name == "nt" else "clear")
     display_home_screen()
     return True
