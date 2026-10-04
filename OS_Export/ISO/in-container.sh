@@ -15,7 +15,21 @@ echo "build ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/build
 su build -c "abuild-keygen -a -n"
 cp /home/build/.abuild/*.rsa.pub /etc/apk/keys/
 
-su build -c "git clone --quiet --depth=1 --branch ${ALPINE}-stable https://gitlab.alpinelinux.org/alpine/aports.git /home/build/aports"
+# gitlab.alpinelinux.org blocks some CI networks (HTTP 418), so try the official GitHub
+# mirror first and retry a few times before giving up.
+cloned=""
+for attempt in 1 2 3; do
+    for url in https://github.com/alpinelinux/aports.git https://gitlab.alpinelinux.org/alpine/aports.git; do
+        rm -rf /home/build/aports
+        if su build -c "git clone --quiet --depth=1 --branch ${ALPINE}-stable $url /home/build/aports"; then
+            cloned=yes
+            break 2
+        fi
+        echo "Could not clone aports from $url (attempt $attempt)" >&2
+    done
+    sleep 10
+done
+[ -n "$cloned" ] || { echo "Could not download Alpine's aports (mkimage scripts)." >&2; exit 1; }
 cp /iso/mkimg.pythonos.sh /iso/genapkovl-pythonos.sh /home/build/aports/scripts/
 mkdir -p /home/build/overlay
 cp -R /iso/overlay/. /home/build/overlay/
