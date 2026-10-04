@@ -12,7 +12,7 @@ def execute(args=None):
     try:
         root = fs.resolve(args[0]) if args else fs.current_dir()
     except PermissionError as e:
-        console.print(f"[bold red]tree: {e}[/bold red]")
+        console.print(f"[bold red]tree: {fs.errtext(e)}[/bold red]")
         return False
     if not os.path.isdir(root):
         console.print("[bold red]tree: not a directory[/bold red]")

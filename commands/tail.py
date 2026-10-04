@@ -25,7 +25,7 @@ def execute(args=None):
             with open(fs.resolve(files[0]), "r", encoding="utf-8", errors="replace") as f:
                 lines = f.read().splitlines()
         except Exception as e:
-            console.print(f"[bold red]tail: {files[0]}: {e}[/bold red]")
+            console.print(f"[bold red]tail: {files[0]}: {fs.errtext(e)}[/bold red]")
             return False
     elif stdio.read_stdin() is not None:
         lines = stdio.read_stdin().splitlines()

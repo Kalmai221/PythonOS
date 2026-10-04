@@ -63,8 +63,8 @@ def execute(args=None):
             console.print(Columns(cells, padding=(0, 2), column_first=True))
         return True
     except PermissionError as e:
-        console.print(f"[bold red]ls: {e}[/bold red]")
+        console.print(f"[bold red]ls: {fs.errtext(e)}[/bold red]")
         return False
     except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {e}")
+        console.print(f"[bold red]Error:[/bold red] {fs.errtext(e)}")
         return False

@@ -22,5 +22,5 @@ def execute(args=None):
         shutil.move(src, dst)
         return True
     except Exception as e:
-        console.print(f"[bold red]mv: {e}[/bold red]")
+        console.print(f"[bold red]mv: {fs.errtext(e)}[/bold red]")
         return False

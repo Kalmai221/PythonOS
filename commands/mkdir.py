@@ -30,6 +30,6 @@ def execute(args=None):
             console.print(f"[bold yellow]'{name}' already exists.[/bold yellow]")
             ok = False
         except Exception as e:
-            console.print(f"[bold red]Error creating '{name}': {e}[/bold red]")
+            console.print(f"[bold red]Error creating '{name}': {fs.errtext(e)}[/bold red]")
             ok = False
     return ok

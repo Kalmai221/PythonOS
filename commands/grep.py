@@ -38,6 +38,6 @@ def execute(args=None):
                         console.print(f"{prefix}{n}: {line.rstrip()}", markup=False, highlight=False)
                         matched = True
         except Exception as e:
-            console.print(f"[bold red]grep: {name}: {e}[/bold red]")
+            console.print(f"[bold red]grep: {name}: {fs.errtext(e)}[/bold red]")
             errors = True
     return matched and not errors

@@ -21,6 +21,6 @@ def execute(args=None):
             # print exactly what is in the file (no extra blank line after a final newline)
             console.print(text, markup=False, highlight=False, end="" if text.endswith("\n") or not text else "\n")
         except Exception as e:
-            console.print(f"[bold red]cat: {name}: {e}[/bold red]")
+            console.print(f"[bold red]cat: {name}: {fs.errtext(e)}[/bold red]")
             ok = False
     return ok

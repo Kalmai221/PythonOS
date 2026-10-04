@@ -22,5 +22,5 @@ def execute(args=None):
             shutil.copy2(src, dst)
         return True
     except Exception as e:
-        console.print(f"[bold red]cp: {e}[/bold red]")
+        console.print(f"[bold red]cp: {fs.errtext(e)}[/bold red]")
         return False

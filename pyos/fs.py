@@ -122,6 +122,13 @@ def resolve(path, write=False):
     return full
 
 
+def errtext(error):
+    """An error's message without the host path Python puts in it ("No such file or directory", not a full host path)."""
+    if isinstance(error, OSError) and error.errno is not None and error.strerror:
+        return error.strerror
+    return str(error)
+
+
 def display(path, tilde=False):
     """Format an absolute path the way the shell shows it ('~' for home if tilde)."""
     if tilde:

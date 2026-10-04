@@ -17,6 +17,6 @@ def execute(args=None):
             with open(path, "a"):
                 os.utime(path, None)
         except Exception as e:
-            console.print(f"[bold red]touch: {name}: {e}[/bold red]")
+            console.print(f"[bold red]touch: {name}: {fs.errtext(e)}[/bold red]")
             ok = False
     return ok

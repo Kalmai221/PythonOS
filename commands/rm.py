@@ -35,6 +35,6 @@ def execute(args=None):
                 console.print(f"[bold red]rm: {name}: No such file or directory[/bold red]")
                 ok = False
         except Exception as e:
-            console.print(f"[bold red]rm: {name}: {e}[/bold red]")
+            console.print(f"[bold red]rm: {name}: {fs.errtext(e)}[/bold red]")
             ok = False
     return ok
