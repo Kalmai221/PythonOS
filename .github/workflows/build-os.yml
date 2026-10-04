@@ -123,6 +123,8 @@ jobs:
   iso:
     name: ISO (bootable live image)
     runs-on: ubuntu-24.04
+    # A stuck mirror or mkimage step must not hold up the release for hours (default is 6 h)
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
