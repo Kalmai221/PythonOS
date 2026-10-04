@@ -73,7 +73,7 @@ def _flush():
 
 def factory_reset():
     """Erase accounts, settings, every user's files and installed packages. Returns a short description."""
-    for name in ("current_user.json", "users.json", "current_directory.txt"):
+    for name in ("current_user.json", pyos.paths.USER_DB, "current_directory.txt"):
         try:
             os.remove(name)
         except OSError:

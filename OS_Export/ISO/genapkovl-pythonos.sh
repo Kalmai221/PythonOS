@@ -66,6 +66,7 @@ iw
 wpa_supplicant
 lsblk
 e2fsprogs
+kbd-bkeymaps
 EOF
 
 makefile root:root 0644 "$tmp"/etc/motd <<EOF
@@ -106,6 +107,8 @@ rc_add savecache shutdown
 cp -R "$PAYLOAD" "$tmp"/opt/pythonos
 cp "$OVERLAY"/pythonos-session "$tmp"/usr/local/bin/pythonos-session
 chmod 755 "$tmp"/usr/local/bin/pythonos-session
+cp "$OVERLAY"/pythonos-persist "$tmp"/usr/local/bin/pythonos-persist
+chmod 644 "$tmp"/usr/local/bin/pythonos-persist
 cp "$OVERLAY"/inittab "$tmp"/etc/inittab
 chmod 644 "$tmp"/etc/inittab
 

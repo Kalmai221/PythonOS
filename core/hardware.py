@@ -3,11 +3,15 @@
 * hardware_check()  - what hardware was found, which drivers are loaded, missing firmware
 * audio_setup()     - pick the sound card/output, unmute, set the volume, play a test
 * network_setup()   - choose an interface, connect (wired DHCP or Wi-Fi) and test the internet
+* keyboard_setup() / timezone_setup() - keyboard layout and time zone
 * live_setup()      - the first-boot flow on the ISO that offers all of the above
+* apply_saved()     - every boot: put the saved keyboard, time zone, audio and Wi-Fi choices back (no questions)
 
 Everything goes through run() so the parsing and flows can be tested without real hardware.
 """
 import glob
+import gzip
+import json
 import os
 import platform
 import re
@@ -15,6 +19,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import threading
 import time
 
 from rich.console import Console
@@ -25,6 +30,9 @@ from rich.table import Table
 
 console = Console()
 
+PREFS_FILE = os.path.join(".OSData", "hardware.json")     # saved choices; on the ISO this lives on the data disk
+BKEYMAPS = "/usr/share/bkeymaps"
+ZONEINFO = "/usr/share/zoneinfo"
 ASOUND_CONF = "/etc/asound.conf"
 WPA_DIR = "/etc/wpa_supplicant"
 CTRL_DIR = "/var/run/wpa_supplicant"
@@ -289,6 +297,7 @@ def audio_setup():
             console.print(f"[red]Could not save the choice: {e}[/red]")
             return False
         touched = unmute_and_set_volume(chosen["card"], volume)
+        save_pref("audio", {"card": chosen["card"], "device": chosen["device"], "volume": volume})
         console.print(f"[green]Using {escape(chosen['label'])}; unmuted: {', '.join(touched) or 'nothing to unmute'}.[/green]")
 
         if not have("speaker-test"):
@@ -381,11 +390,11 @@ def derive_psk(ssid, passphrase):
     return m.group(1) if rc == 0 and m else None
 
 
-def wifi_connect(iface, ssid, passphrase=None):
-    """Connect to a Wi-Fi network. Returns (ok, message)."""
+def wifi_connect(iface, ssid, passphrase=None, psk_hex=None):
+    """Connect to a Wi-Fi network (with a password, or a key saved earlier). Returns (ok, message)."""
     if not have("wpa_supplicant"):
         return False, "wpa_supplicant is not installed."
-    psk = None
+    psk = psk_hex
     if passphrase is not None:
         if not 8 <= len(passphrase) <= 63:
             return False, "A WPA password must be 8 to 63 characters."
@@ -504,6 +513,9 @@ def connect_wifi_interactive(iface):
         console.print("[red]Connected to the network but did not get an address.[/red]")
         return False
     console.print(f"[green]Connected to {escape(ssid)} - address {ip}[/green]")
+    if Confirm.ask("Remember this network and reconnect automatically next time?", default=True):
+        save_network(ssid, derive_psk(ssid, password) if password else None)
+        console.print("[dim]Saved. (Only a derived key is kept, never the password itself.)[/dim]")
     return True
 
 
@@ -539,6 +551,185 @@ def network_setup():
             return False
 
 
+# ------------------------------------------------------------ saved choices
+def load_prefs():
+    try:
+        with open(PREFS_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_pref(key, value):
+    prefs = load_prefs()
+    prefs[key] = value
+    try:
+        os.makedirs(os.path.dirname(PREFS_FILE), exist_ok=True)
+        fd = os.open(PREFS_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)     # holds Wi-Fi keys: owner only
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(prefs, f, indent=2)
+    except OSError:
+        pass
+
+
+def save_network(ssid, psk_hex):
+    nets = [n for n in load_prefs().get("wifi", []) if n.get("ssid") != ssid]
+    nets.insert(0, {"ssid": ssid, "psk": psk_hex})
+    save_pref("wifi", nets[:10])
+
+
+# ------------------------------------------------------------------ keyboard
+def keyboard_layouts():
+    """[(label, bmap path)] for the keymaps installed (kbd-bkeymaps), the common ones first."""
+    found = {}
+    for path in glob.glob(os.path.join(BKEYMAPS, "*", "*.bmap.gz")):
+        layout, variant = os.path.basename(os.path.dirname(path)), os.path.basename(path)[:-len(".bmap.gz")]
+        found[layout if variant == layout else f"{layout}-{variant}"] = path
+    common = ["us", "uk", "gb", "de", "fr", "es", "it", "pt", "br", "ie", "nl", "se", "no", "dk", "fi", "ca", "pl", "cz", "tr", "jp", "ru"]
+    ordered = [n for n in common if n in found] + sorted(n for n in found if n not in common)
+    return [(n, found[n]) for n in ordered]
+
+
+def apply_keyboard(path):
+    """Load a keymap into the console. Returns True on success."""
+    try:
+        with gzip.open(path, "rb") as f:
+            data = f.read()
+        p = subprocess.run(["loadkmap"], input=data, capture_output=True, timeout=10)
+        return p.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def keyboard_setup():
+    console.print(Panel("[bold]Keyboard layout[/bold]", border_style="cyan", expand=False))
+    layouts = keyboard_layouts()
+    if not layouts or not have("loadkmap"):
+        console.print("[yellow]No keyboard layouts are installed on this system, so the default (US) stays.[/yellow]")
+        return False
+    names = [n for n, _ in layouts]
+    console.print("Available: " + ", ".join(names[:40]) + (" ..." if len(names) > 40 else ""))
+    current = load_prefs().get("keyboard", "us")
+    while True:
+        choice = Prompt.ask("Layout name (Enter keeps the current one)", default=current).strip().lower()
+        if choice in names:
+            break
+        console.print(f"[yellow]'{escape(choice)}' is not available. Try one of the names above.[/yellow]")
+    if not apply_keyboard(dict(layouts)[choice]):
+        console.print("[red]Could not switch the layout.[/red]")
+        return False
+    save_pref("keyboard", choice)
+    console.print(f"[green]Keyboard layout: {choice}.[/green] Type a few keys to check them.")
+    return True
+
+
+# ------------------------------------------------------------------ time zone
+def timezone_names():
+    try:
+        from zoneinfo import available_timezones
+        return sorted(z for z in available_timezones() if "/" in z and not z.startswith(("Etc/", "posix", "right", "SystemV")))
+    except Exception:
+        return []
+
+
+def apply_timezone(zone):
+    """Use this time zone for the rest of this run (and as /etc/localtime when we may). Returns True on success."""
+    if zone not in timezone_names():
+        return False
+    os.environ["TZ"] = zone
+    if hasattr(time, "tzset"):
+        time.tzset()
+    try:
+        if os.path.isdir(ZONEINFO) and os.geteuid() == 0:
+            if os.path.lexists("/etc/localtime"):
+                os.remove("/etc/localtime")
+            os.symlink(os.path.join(ZONEINFO, zone), "/etc/localtime")
+    except (OSError, AttributeError):
+        pass
+    return True
+
+
+def timezone_setup():
+    console.print(Panel("[bold]Time zone[/bold]", border_style="cyan", expand=False))
+    names = timezone_names()
+    if not names:
+        console.print("[yellow]No time zone data on this system, so the clock stays in UTC.[/yellow]")
+        return False
+    console.print(f"Now: {time.strftime('%H:%M')} ({time.tzname[0]})")
+    while True:
+        text = Prompt.ask("Part of your city or region (for example London, New_York, Tokyo; Enter to cancel)", default="").strip().lower().replace(" ", "_")
+        if not text:
+            return False
+        matches = [n for n in names if text in n.lower()]
+        if not matches:
+            console.print("[yellow]Nothing matches. Try a nearby big city.[/yellow]")
+            continue
+        for i, n in enumerate(matches[:15], 1):
+            console.print(f"  [bold]{i}[/bold] {n}")
+        if len(matches) > 15:
+            console.print(f"  [dim]... and {len(matches) - 15} more; type more letters to narrow it down[/dim]")
+            continue
+        pick = IntPrompt.ask("Number", default=1) if len(matches) > 1 else 1
+        if 1 <= pick <= len(matches):
+            zone = matches[pick - 1]
+            apply_timezone(zone)
+            save_pref("timezone", zone)
+            console.print(f"[green]Time zone: {zone}. The time is now {time.strftime('%H:%M')}.[/green]")
+            return True
+
+
+# ----------------------------------------------------- every boot, no questions
+def pyos_notify(message):
+    try:
+        from pyos import notify
+        notify.notify(message, title="Network")
+    except Exception:
+        pass
+
+
+def _reconnect_wifi(prefs):
+    """Background: join the strongest saved network that is in range."""
+    try:
+        saved = {n["ssid"]: n.get("psk") for n in prefs.get("wifi", []) if n.get("ssid")}
+        for nic in interfaces():
+            if not nic["wireless"] or nic["ip"]:
+                continue
+            seen = [n["ssid"] for n in wifi_scan(nic["name"])]
+            for ssid in [s for s in seen if s in saved]:
+                ok, _ = wifi_connect(nic["name"], ssid, psk_hex=saved[ssid])
+                if ok and dhcp(nic["name"])[0]:
+                    pyos_notify(f"Connected to {ssid}")
+                    break
+    except Exception:
+        pass
+
+
+def apply_saved():
+    """Put the saved keyboard layout, time zone, audio output and Wi-Fi back at boot. Silent; never raises."""
+    try:
+        prefs = load_prefs()
+        if not prefs:
+            return
+        if prefs.get("timezone"):
+            apply_timezone(prefs["timezone"])
+        if unavailable_reason():
+            return
+        layout = prefs.get("keyboard")
+        if layout and layout != "us":
+            path = dict(keyboard_layouts()).get(layout)
+            if path:
+                apply_keyboard(path)
+        audio = prefs.get("audio")
+        if audio and have("amixer"):
+            write_asound_conf(audio["card"], audio["device"])
+            unmute_and_set_volume(audio["card"], audio.get("volume", 80))
+        if prefs.get("wifi") and have("wpa_supplicant"):
+            threading.Thread(target=_reconnect_wifi, args=(prefs,), daemon=True).start()
+    except Exception:
+        pass
+
+
 # ---------------------------------------------------------------- the flows
 def menu():
     while True:
@@ -546,14 +737,20 @@ def menu():
         console.print("  [bold]1[/bold] Hardware and firmware check")
         console.print("  [bold]2[/bold] Audio")
         console.print("  [bold]3[/bold] Network and internet")
-        console.print("  [bold]4[/bold] Done")
-        choice = Prompt.ask("Choose", choices=["1", "2", "3", "4"], default="4")
+        console.print("  [bold]4[/bold] Keyboard layout")
+        console.print("  [bold]5[/bold] Time zone")
+        console.print("  [bold]6[/bold] Done")
+        choice = Prompt.ask("Choose", choices=["1", "2", "3", "4", "5", "6"], default="6")
         if choice == "1":
             hardware_check()
         elif choice == "2":
             audio_setup()
         elif choice == "3":
             network_setup()
+        elif choice == "4":
+            keyboard_setup()
+        elif choice == "5":
+            timezone_setup()
         else:
             return
 

@@ -1,0 +1,45 @@
+#!/bin/sh
+# Sourced (not run) by pythonos-session. If a disk or partition labelled PYOS_DATA is plugged in, mount it and
+# point PythonOS's accounts, files and settings at it, so they survive the machine being switched off.
+# Create such a disk from inside PythonOS with:  persist create
+#
+# The disk is mounted nosuid,nodev,noexec: nothing on it can ever be run as a program by the system.
+# This script never starts a shell and never fails the boot - without the disk PythonOS simply starts as usual.
+
+PYOS_DATA_MNT=/mnt/pyos-data
+PYOS_HOME=/opt/pythonos
+
+pyos_find_data_disk() {
+    findfs LABEL=PYOS_DATA 2>/dev/null || blkid -L PYOS_DATA 2>/dev/null
+}
+
+pyos_persist() {
+    dev=""
+    # USB disks can take a moment to appear after power-on
+    for _try in 1 2 3 4; do
+        dev="$(pyos_find_data_disk)"
+        [ -n "$dev" ] && break
+        sleep 0.5
+    done
+    [ -n "$dev" ] && [ -b "$dev" ] || return 0
+
+    mkdir -p "$PYOS_DATA_MNT"
+    if ! mountpoint -q "$PYOS_DATA_MNT"; then
+        mount -o nosuid,nodev,noexec "$dev" "$PYOS_DATA_MNT" 2>/dev/null || return 0
+    fi
+    chmod 700 "$PYOS_DATA_MNT"
+    mkdir -p "$PYOS_DATA_MNT/files" "$PYOS_DATA_MNT/.OSData"
+
+    # first use: keep the standard folder layout the image ships with
+    if [ -z "$(ls -A "$PYOS_DATA_MNT/files" 2>/dev/null)" ] && [ -d "$PYOS_HOME/files" ] && [ ! -L "$PYOS_HOME/files" ]; then
+        cp -a "$PYOS_HOME/files/." "$PYOS_DATA_MNT/files/" 2>/dev/null
+    fi
+    for name in files .OSData; do
+        [ -L "$PYOS_HOME/$name" ] || rm -rf "${PYOS_HOME:?}/$name"
+        [ -L "$PYOS_HOME/$name" ] || ln -s "$PYOS_DATA_MNT/$name" "$PYOS_HOME/$name"
+    done
+    export PYOS_USERS_FILE="$PYOS_DATA_MNT/users.json"
+    export PYOS_PERSISTENT=1
+}
+
+pyos_persist

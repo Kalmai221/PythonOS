@@ -11,7 +11,7 @@ from rich.table import Table
 import time
 import pyos
 
-USER_DB = "users.json"
+from pyos.paths import USER_DB
 console = Console()
 
 # Load or create user database

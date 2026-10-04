@@ -1,93 +1,168 @@
-#!/usr/bin/env python3
-import json
-import hashlib
-from pathlib import Path
+"""First-time setup: one guided flow instead of several separate screens.
+
+    1. (live ISO) keyboard layout, time zone, network and audio - first, so a password is typed on the right keyboard
+    2. your account (the first one is the administrator)
+    3. computer name, colour theme and boot speed
+    4. (live ISO) optional persistent storage, so the account and files survive a power-off
+    5. updates and a few starter apps, if you are online
+"""
+import importlib.util
+import os
+
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Confirm, Prompt
 from rich.text import Text
-import core
+
+from pyos import fs, settings, theme
 
 console = Console()
-CONFIG_PATH = Path("config.json")
+STARTER_APPS = [("utilities/notes", "Notes"), ("utilities/todo", "To-do"), ("utilities/clock", "Clock"),
+                ("utilities/calendar", "Calendar"), ("utilities/files", "File Manager")]
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
-def check_existing_config():
-    if CONFIG_PATH.exists():
-        console.print("[bold yellow]Config already exists. Skipping first-time setup.[/bold yellow]")
-        return True
-    return False
+def _step(number, total, title):
+    console.print(f"\n[bold cyan]Step {number} of {total}[/bold cyan]  [bold]{title}[/bold]")
 
-def save_config(data):
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(data, f, indent=4)
 
-def create_first_account():
-    console.print(Panel(Text("Create Your First Account", style="bold white on blue", justify="center")))
+def _online():
+    from core import sysupdate
+    return sysupdate.check_internet_connection()
 
-    while True:
-        username = Prompt.ask("Choose a username").strip()
-        if not username:
-            console.print("[red]Username cannot be empty.[/red]")
-            continue
-        if username.lower() in ["admin", "user", "kalmai221"]:
-            console.print("[red]Please choose a different username (reserved names).[/red]")
-            continue
-        break
 
-    while True:
-        password = Prompt.ask("Choose a password", password=True)
-        confirm = Prompt.ask("Confirm password", password=True)
-        if password != confirm:
-            console.print("[red]Passwords do not match. Try again.[/red]")
-            continue
-        if len(password) < 6:
-            console.print("[red]Password too short (minimum 6 characters).[/red]")
-            continue
-        break
+def _hardware_steps():
+    """Keyboard, time zone, network, audio - each optional."""
+    from core import hardware
+    if hardware.unavailable_reason():
+        return
+    console.print("[dim]Each of these can be skipped and done later with 'hwsetup'.[/dim]")
+    for label, action in (("keyboard layout", hardware.keyboard_setup), ("time zone", hardware.timezone_setup),
+                          ("network and internet", hardware.network_setup), ("audio", hardware.audio_setup)):
+        try:
+            if Confirm.ask(f"Set up the {label} now?", default=label != "audio"):
+                action()
+        except (KeyboardInterrupt, EOFError):
+            console.print(f"\n[yellow]Skipped the {label}.[/yellow]")
+        except Exception as e:  # a missing tool must never stop the setup
+            console.print(f"[yellow]Could not set up the {label}: {escape(str(e))}[/yellow]")
 
-    # First user is admin by default
-    account_data = {
-        username: {
-            "password": hash_password(password),
-            "role": "admin"
-        },
-        "Kalmai221": {
-            "password": "f1f202a2be606bc24a69d09f01fc8414ef62866c0d68a08243d0c57c6a31f5c7",
-            "role": "admin"
-        },
-        "user": {
-            "password": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-            "role": "user"
-        },
-        "admin": {
-            "password": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-            "role": "admin"
-        }
-    }
-    save_config(account_data)
-    console.print(f"[bold green]Account '{username}' created with admin privileges.[/bold green]")
+
+def _create_account():
+    import users
+    console.print(Panel("Create your account. The first account is the [bold]administrator[/bold]: it can manage "
+                        "other accounts and the system.", border_style=theme.style("border"), expand=False))
+    while not users.get_users():
+        if users.register_and_login():
+            break
+        console.print("[yellow]Let's try again.[/yellow]")
+    name = pyos_user()
+    return name
+
+
+def pyos_user():
+    from pyos import userinfo
+    return userinfo()[0]
+
+
+def _computer_name():
+    current = fs.hostname()
+    name = Prompt.ask("Name this computer", default=current).strip()
+    clean = "".join(c for c in name if c.isalnum() or c in "-_")[:30]
+    if clean and clean != current:
+        try:
+            with open(os.path.join(fs.BASE_DIR, "etc", "hostname"), "w", encoding="utf-8") as f:
+                f.write(clean + "\n")
+        except OSError:
+            console.print("[yellow]Could not save the name; it stays " + escape(current) + ".[/yellow]")
+
+
+def _look_and_feel():
+    names = list(theme.THEMES)
+    console.print("Colour themes: " + ", ".join(f"[{theme.THEMES[n]['accent']}]{n}[/{theme.THEMES[n]['accent']}]" for n in names))
+    choice = Prompt.ask("Theme", choices=names, default=settings.get("theme"))
+    settings.set("theme", choice)
+    speed = Prompt.ask("Boot speed (how long the start-up animation takes)", choices=["normal", "fast", "instant"],
+                       default=settings.get("boot_speed"))
+    settings.set("boot_speed", speed)
+
+
+def _persistent_storage():
+    from core import persist, hardware
+    if persist.active() or hardware.unavailable_reason():
+        return
+    console.print(Panel("The live system forgets everything when it is switched off. A USB stick or spare disk can keep your "
+                        "account, files and settings. (You can also do this later with [bold]persist create[/bold].)",
+                        border_style=theme.style("border"), expand=False))
+    if Confirm.ask("Set up persistent storage now?", default=False):
+        try:
+            persist.create()
+        except (KeyboardInterrupt, EOFError):
+            console.print("\n[yellow]Skipped.[/yellow]")
+
+
+def _updates_and_apps():
+    if not _online():
+        console.print("[dim]No internet connection, so no updates or apps now. Connect later and run "
+                      "'updatecheck' or the marketplace ('market').[/dim]")
+        return
+    from core import sysupdate
+    try:
+        console.print("[cyan]Checking for updates...[/cyan]")
+        sysupdate.update_system(True)
+    except Exception as e:
+        console.print(f"[yellow]Update check failed: {escape(str(e))}[/yellow]")
+    names = ", ".join(n for _, n in STARTER_APPS)
+    if not Confirm.ask(f"Install some starter apps ({names})?", default=True):
+        return
+    try:
+        spec = importlib.util.spec_from_file_location("marketplace", os.path.join("programs", "marketplace.py"))
+        market = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(market)
+        packages, _offline = market.load_index()
+        if not packages:
+            return
+        by_id = {p["id"]: p for p in packages}
+        installed = market.installed_packages()
+        for pid, label in STARTER_APPS:
+            if pid in by_id and pid not in installed:
+                market.install_with_dependencies(by_id[pid], installed, packages, quiet=True)
+    except Exception as e:
+        console.print(f"[yellow]Could not install the starter apps: {escape(str(e))} (try 'market' later).[/yellow]")
+
 
 def firsttimeuse():
+    live = os.environ.get("PYOS_LIVE") == "1"
+    total = 5 if live else 3
     console.clear()
-    console.print(Panel(Text("Welcome to the System Setup", style="bold white on dark_green", justify="center")))
+    console.print(Panel(Text("Welcome to PythonOS", style="bold white on dark_green", justify="center")))
+    console.print("Let's set things up. It takes a minute, and you can change everything later.\n")
+    number = 0
 
-    # Step 1: Check for updates
-    console.print("\n[cyan]Checking for updates...[/cyan]")
-    try:
-        core.update_system(True)
-        console.print("[green]Update check complete.[/green]")
-    except Exception as e:
-        console.print(f"[red]Update check failed: {e}[/red]")
+    if live:
+        number += 1
+        _step(number, total, "Your hardware")
+        _hardware_steps()
 
-    # Step 2: Create first account if no config
-    if check_existing_config():
-        console.print("[yellow]Setup is already done. You can start using the system.[/yellow]")
-        return
+    number += 1
+    _step(number, total, "Your account")
+    name = _create_account()
 
-    if Confirm.ask("No existing configuration found. Do you want to create the first account now?", default=True):
-        create_first_account()
-    else:
-        console.print("[red]First account creation is required to proceed.[/red]")
+    number += 1
+    _step(number, total, "This computer")
+    _computer_name()
+    _look_and_feel()
+
+    if live:
+        number += 1
+        _step(number, total, "Keeping your data")
+        _persistent_storage()
+
+    number += 1
+    _step(number, total, "Updates and apps")
+    _updates_and_apps()
+
+    console.print(Panel(f"[bold green]All set{', ' + escape(name) if name else ''}![/bold green]\n\n"
+                        "Try [bold]tutorial[/bold] for a short guided tour, [bold]help[/bold] for the commands, "
+                        "or [bold]market[/bold] for more apps.",
+                        border_style=theme.style("border"), expand=False))

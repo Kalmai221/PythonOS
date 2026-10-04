@@ -4,7 +4,7 @@ from rich.console import Console
 # Initialize the console for rich output
 console = Console()
 
-USER_DB = "users.json"
+from .paths import USER_DB
 SESSION_FILE = "current_user.json"
 
 def load_session():

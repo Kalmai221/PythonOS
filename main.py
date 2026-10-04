@@ -33,6 +33,7 @@ install_requirements()
 import json
 from rich.console import Console
 import users
+import pyos
 from pyos import settings
 import shell
 import core
@@ -79,36 +80,38 @@ try:
     else:
         debug = "No"
         console.print("[bold yellow]Debug Mode Setting is not defined. Defaulting to Disabled.[/bold yellow]")
+    if os.environ.get("PYOS_LIVE") == "1":
+        core.apply_saved_hardware()        # keyboard layout, time zone, audio and Wi-Fi from last time
     core.boot_sequence(debug)
 
+    just_set_up = False
     if not first_time_done():
-        console.print("[bold cyan]First-time setup detected. Running initial setup...[/bold cyan]")
-        core.firsttimeuse()  # Your first-time setup logic here
+        core.firsttimeuse()     # one guided flow: hardware (live ISO), account, preferences, updates, starter apps
         mark_first_time_done()
-        console.print("[bold green]First-time setup complete! Continuing boot...[/bold green]")
-
-    # On the live ISO, offer hardware setup (drivers/firmware, audio, network) before login
-    if os.environ.get("PYOS_LIVE") == "1":
-        core.live_setup()
+        just_set_up = True
 
     attempts = 0
     username = None
 
-    # Retry mechanism for login attempts
-    while attempts < MAX_ATTEMPTS:
-        username = users.boot_sequence()
-        if username:
-            shell.start_shell(username)
-            break
-        else:
-            attempts += 1
-            remaining_attempts = MAX_ATTEMPTS - attempts
-            if remaining_attempts > 0:
-                console.print(f"[bold yellow]Login failed. {remaining_attempts} attempts remaining...[/bold yellow]")
-            else:
-                console.print("[bold red]Login failed. Shutting down...[/bold red]")
-                core.simulate_shutdown()
+    if just_set_up and pyos.userinfo()[0]:
+        # the setup just created the account and signed it in: no need to ask for the password again
+        shell.start_shell(pyos.userinfo()[0])
+    else:
+        # Retry mechanism for login attempts
+        while attempts < MAX_ATTEMPTS:
+            username = users.boot_sequence()
+            if username:
+                shell.start_shell(username)
                 break
+            else:
+                attempts += 1
+                remaining_attempts = MAX_ATTEMPTS - attempts
+                if remaining_attempts > 0:
+                    console.print(f"[bold yellow]Login failed. {remaining_attempts} attempts remaining...[/bold yellow]")
+                else:
+                    console.print("[bold red]Login failed. Shutting down...[/bold red]")
+                    core.simulate_shutdown()
+                    break
 except KeyboardInterrupt:
     core.simulate_shutdown()
 except Exception as e:

@@ -8,7 +8,7 @@ import json
 import os
 import zipfile
 
-from . import fs
+from . import fs, paths
 
 FORMAT = 1
 MAX_TOTAL = 2 * 1024 ** 3          # refuse archives that unpack to more than 2 GB
@@ -17,6 +17,11 @@ BACKUP_DIR = "backups"             # ~/backups holds a user's backups; it is nev
 
 # files kept outside files/ that a system backup includes (relative to the OS folder)
 SYSTEM_EXTRAS = ["users.json", "config.json", os.path.join(".OSData", "settings.json"), os.path.join(".OSData", "schedule.json")]
+
+
+def _system_path(name):
+    """Where a system file really lives (the account database may be on the ISO's data partition)."""
+    return paths.USER_DB if name == "users.json" else name
 
 
 def _pythonos_version():
@@ -62,8 +67,8 @@ def create(kind, user, dest):
                 for full in _walk(folder):
                     entries.append((full, f"files/{extra}/" + os.path.relpath(full, folder).replace(os.sep, "/")))
         for name in SYSTEM_EXTRAS:
-            if os.path.isfile(name):
-                entries.append((name, "system/" + name.replace(os.sep, "/")))
+            if os.path.isfile(_system_path(name)):
+                entries.append((_system_path(name), "system/" + name.replace(os.sep, "/")))
 
     entries = [(full, name) for full, name in entries if os.path.abspath(full) != os.path.abspath(dest)]   # never include itself
 
@@ -131,7 +136,7 @@ def plan_restore(path, kind, user):
                     if not fs._inside(target):
                         raise ValueError(f"the backup contains an unsafe path ({name}) and was not restored")
                 elif name.startswith("system/") and name[len("system/"):].replace("/", os.sep) in SYSTEM_EXTRAS:
-                    target = name[len("system/"):].replace("/", os.sep)
+                    target = _system_path(name[len("system/"):].replace("/", os.sep))
                 else:
                     continue
             plan.append((name, target))

@@ -135,9 +135,18 @@ page("logs", "system log", ["logs [N]"], "Shows the last N lines (20 by default)
      see=["tail"])
 page("ping", "test a network address", ["ping"], "Interactive: sets a target and sends test requests.", see=["ipinfo", "hwsetup"])
 page("ipinfo", "public IP information", ["ipinfo"], "Shows your public IP address and where it appears to be.", see=["ping"])
-page("hwsetup", "hardware, audio and network setup", ["hwsetup", "hwsetup check|audio|network"],
+page("hwsetup", "hardware, audio, network, keyboard and time zone setup", ["hwsetup", "hwsetup check|audio|network|keyboard|timezone"],
      "On the live ISO (and any Linux system as root): check devices, drivers and firmware; choose and test the sound output; "
-     "connect to a wired or Wi-Fi network and test the internet.", see=["ping"])
+     "connect to a wired or Wi-Fi network and test the internet; pick the keyboard layout and time zone. Your choices (and Wi-Fi "
+     "networks, as a derived key rather than the password) are remembered and applied at every boot; with persistent storage they "
+     "survive a power-off.", see=["ping", "persist"])
+page("persist", "keep your data on the live system", ["persist", "persist list", "persist create [device]"],
+     "The live ISO forgets everything when it shuts down, unless it has a data disk. 'persist create' turns a USB stick or "
+     "spare disk into that data disk (it is erased first, and you must type its name to confirm) and copies your accounts, files "
+     "and settings onto it. Start the computer with the disk plugged in and everything is there again. Administrators only; "
+     "the disk PythonOS started from can never be chosen.",
+     [("status", "is persistent storage active?"), ("list", "disks that could be used"), ("create [device]", "set one up")],
+     [("persist", "check"), ("persist create /dev/sdb", "use that USB stick")], ["hwsetup", "backup"])
 page("shutdown", "turn off", ["shutdown"], "Closes PythonOS. On the ISO this powers the machine off; in the Android app it closes the app.",
      see=["restart"])
 page("restart", "restart", ["restart"], "Restarts PythonOS.", see=["shutdown"])

@@ -22,7 +22,7 @@ from pyos import settings
 console = Console()
 
 CONFIG_FILE = "config.json"
-USER_DB = "users.json"
+from pyos.paths import USER_DB
 PROGRAMS_DIR = "programs"
 COMMANDS_DIR = "commands"
 SYSTEM_FILES = [CONFIG_FILE, USER_DB]
