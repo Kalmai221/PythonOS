@@ -1,0 +1,20 @@
+{
+  "name": "System Monitor",
+  "description": "A live dashboard of CPU, memory, disk and network.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "sysmon",
+  "alias": [
+    "monitor"
+  ],
+  "tags": [
+    "system",
+    "monitor",
+    "cpu",
+    "memory"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release."
+}

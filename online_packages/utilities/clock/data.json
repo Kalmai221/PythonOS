@@ -1,0 +1,24 @@
+{
+  "name": "Clock",
+  "description": "Time, world clocks, timer, stopwatch and alarms in one app.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "clock",
+  "alias": [
+    "timer",
+    "stopwatch",
+    "alarm"
+  ],
+  "tags": [
+    "time",
+    "timer",
+    "stopwatch",
+    "alarm",
+    "clock"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release: world clocks, timer with presets, stopwatch with laps, alarms that ring even when the app is closed.",
+  "featured": true
+}

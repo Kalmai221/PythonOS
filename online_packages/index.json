@@ -4,48 +4,40 @@
     {
       "id": "developer/python",
       "category": "developer",
-      "name": "Python REPL",
-      "description": "Installs a python environment",
-      "version": "1.0.0",
+      "name": "Python",
+      "description": "Run Python files or use an interactive Python prompt.",
+      "version": "2.0.0",
       "command": "python",
       "alias": [],
       "tags": [
         "developer",
         "python",
         "repl",
-        "ipython",
         "coding"
       ],
       "lockdown_safe": false,
+      "requires": [],
+      "changelog": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "347eb072e45bc4915cbdf3b01dc243dc123714ed9d6e3a2122e59329fae74280",
-          "size": 378
-        },
-        {
-          "path": "installer.py",
-          "sha256": "6abccbffabcccde1008a63430d094706039c23d25874aa1b28f0bfe1cb5c9ac1",
-          "size": 2508
+          "sha256": "43545918502680c0f07fe03d6dbe858a3b4333fe583c8c68c729a7270b07bbfb",
+          "size": 417
         },
         {
           "path": "run.py",
-          "sha256": "5a68d5299484870af64479680d5e634550c12f406d9dfd77f006954847317510",
-          "size": 2454
-        },
-        {
-          "path": "uninstaller.py",
-          "sha256": "e98bb32e8e93b1ee50c0d0bcb6f457fc0d0b6f774f763c708208fc8d704fc154",
-          "size": 2142
+          "sha256": "167362a5a22f81b38c43d6406cd274c4784c5ca8569aec6281771720271f613b",
+          "size": 4053
         }
       ]
     },
     {
       "id": "games/chess",
       "category": "games",
-      "name": "Chess CLI",
-      "description": "Chess game.",
-      "version": "1.0.0",
+      "name": "Chess",
+      "description": "Play chess against the computer: full rules, three difficulty levels.",
+      "version": "2.0.0",
       "command": "chess",
       "alias": [],
       "tags": [
@@ -54,27 +46,50 @@
         "board",
         "strategy"
       ],
-      "lockdown_safe": false,
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "762b624f57364127698e972abe2c52ac43ef03ed81c0022839bb4a8ef6a76214",
-          "size": 297
-        },
-        {
-          "path": "installer.py",
-          "sha256": "5a831b4367ecca418605a6972ce6927939edcebd9e3195ba4c4704e2be692c45",
-          "size": 2513
+          "sha256": "8865ab4ecc2538b735f656c816683fbe2d4244e7a544b5bb1e1e2ec821021979",
+          "size": 430
         },
         {
           "path": "run.py",
-          "sha256": "741e5c2b3c5cb07500a1999d602a0f0fefc684983e387a77d42edccfdc0c94c2",
-          "size": 2736
+          "sha256": "55a44055b379b34e260248e49991b19731ffa4fb443c2a13a4d1356ad2c9883f",
+          "size": 14130
+        }
+      ]
+    },
+    {
+      "id": "games/game2048",
+      "category": "games",
+      "name": "2048",
+      "description": "Slide and merge tiles to reach 2048.",
+      "version": "1.0.0",
+      "command": "2048",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "numbers"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "d03031d15df6e7fae996c8c76b1b83391964ff77389f7f1443c6ec78c341edd8",
+          "size": 291
         },
         {
-          "path": "uninstaller.py",
-          "sha256": "b4c4f16fd8496d137b9f950778d7040f825f689b451a246ab8c3cc547e983789",
-          "size": 2148
+          "path": "run.py",
+          "sha256": "417ff2c2b607802fecce2d065edbb709efffd7f194ddd091c3301c11c437fdb3",
+          "size": 3975
         }
       ]
     },
@@ -83,7 +98,7 @@
       "category": "games",
       "name": "Hangman",
       "description": "Guess the word before the drawing is finished.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "hangman",
       "alias": [],
       "tags": [
@@ -93,16 +108,49 @@
         "classic"
       ],
       "lockdown_safe": true,
+      "requires": [],
+      "changelog": "Four word categories and a won/lost record; no more screen clearing between guesses.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "908bcadc40b6bae9a53d4d180f9ab88c9f7415bc9b737095e76ec754d82f8e40",
-          "size": 287
+          "sha256": "4d1382fb458d56dcbcb18d59a3fa9b075fc4412e85d361aa1a5af07cea3156d2",
+          "size": 390
         },
         {
           "path": "run.py",
-          "sha256": "646b1f192dfae8b954bca52a346b1d5b90b1612eda3057b1e28e479745d7f505",
-          "size": 2124
+          "sha256": "42a8db18cd8e2a2518aaa45853c2bb9d69c323038194b429bf95a7b7c02c2a38",
+          "size": 3479
+        }
+      ]
+    },
+    {
+      "id": "games/snake",
+      "category": "games",
+      "name": "Snake",
+      "description": "Classic snake: real-time with arrow keys, or turn by turn where keys are limited.",
+      "version": "1.0.0",
+      "command": "snake",
+      "alias": [],
+      "tags": [
+        "game",
+        "arcade",
+        "classic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release.",
+      "featured": true,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "c56dafaa87d69b285de5f1537b9aeb84ca0e11e05a88ab6bd612fddde792212f",
+          "size": 358
+        },
+        {
+          "path": "run.py",
+          "sha256": "5e681d99414517fc5239f261e68be42c1984fe1dc9739e9b463c804ebecb991f",
+          "size": 7066
         }
       ]
     },
@@ -111,7 +159,7 @@
       "category": "games",
       "name": "Tic-Tac-Toe",
       "description": "Play tic-tac-toe against the computer.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "tictactoe",
       "alias": [
         "ttt"
@@ -123,25 +171,58 @@
         "classic"
       ],
       "lockdown_safe": true,
+      "requires": [],
+      "changelog": "Easy, medium and unbeatable hard levels; all-time record.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "81dfe2ce0031ab68318cba2704e310503821b15bb1f5bb58f00ca59b25641670",
-          "size": 295
+          "sha256": "955fda5253ee8718b499993d917144974cee5c53efab4f1776a8bf9660a8fd03",
+          "size": 371
         },
         {
           "path": "run.py",
-          "sha256": "07c80dbb38a1dcc0fab9c13da14d254b236bfc5b48db161232ea396547212b57",
-          "size": 2782
+          "sha256": "961e5b6f83c4dd024b3c65e17bfbec06788cf6d389d4cbd2c6b603baa1b1dd66",
+          "size": 4130
+        }
+      ]
+    },
+    {
+      "id": "games/trivia",
+      "category": "games",
+      "name": "Trivia",
+      "description": "Ten multiple-choice questions, built in or fetched online.",
+      "version": "1.0.0",
+      "command": "trivia",
+      "alias": [],
+      "tags": [
+        "game",
+        "quiz",
+        "questions"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release: 45 built-in questions plus the Open Trivia Database.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "44b28f73549280a3a5efa063c762b272ac853286c042744946aaaae54d5ab815",
+          "size": 370
+        },
+        {
+          "path": "run.py",
+          "sha256": "f44c93e1c9e6a60e2e253355a1e5972ed1cab13fcc3afae8a94f7095d6a39984",
+          "size": 8263
         }
       ]
     },
     {
       "id": "games/typingtest",
       "category": "games",
-      "name": "Typing Test CLI",
-      "description": "Typing Speed Test Game.",
-      "version": "1.0.0",
+      "name": "Typing Test",
+      "description": "Measure your typing speed and accuracy.",
+      "version": "2.0.0",
       "command": "typingtest",
       "alias": [],
       "tags": [
@@ -150,27 +231,254 @@
         "speed",
         "keyboard"
       ],
-      "lockdown_safe": false,
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "7e580556f723876518d0d49fe5d7d1f58728ee2016c708aee4c1285d0248093e",
-          "size": 321
-        },
-        {
-          "path": "installer.py",
-          "sha256": "ed3f08a61606a9fe84fa7e403c90fb5f6d6c1e74c3a72c126b51b767a5340db7",
-          "size": 2515
+          "sha256": "851341d9ec3d7ee412997cf9bc4bcfaefbdcf42c64bc35852f2238df703a7b3f",
+          "size": 410
         },
         {
           "path": "run.py",
-          "sha256": "4b5f9db677e4aff5006ddcee3adee45216213cf2c5177cb10014725619c1623f",
-          "size": 3048
+          "sha256": "fdaf83962d70a28773bdc00c4bf1bf78276bed5469724b1e26fbcfe393ebcea1",
+          "size": 4874
+        }
+      ]
+    },
+    {
+      "id": "games/wordle",
+      "category": "games",
+      "name": "Wordle",
+      "description": "Guess the five-letter word in six tries; a new daily word every day.",
+      "version": "1.0.0",
+      "command": "wordle",
+      "alias": [],
+      "tags": [
+        "game",
+        "words",
+        "puzzle",
+        "daily"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release: daily and random words, on-screen keyboard, streaks.",
+      "featured": true,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "3fd32c5966f045bc2ff841ebcd3f12ba32ec33fb336c7174fa71457e776a86ad",
+          "size": 411
         },
         {
-          "path": "uninstaller.py",
-          "sha256": "e4f8da187587094aabcf19d257ac2240248afcfa5c34c6774dda8e84abd80785",
-          "size": 2145
+          "path": "run.py",
+          "sha256": "3e318376f720b49d7bedda9861f7a86f7c51220736bc8fb140e45740a2104677",
+          "size": 7596
+        }
+      ]
+    },
+    {
+      "id": "utilities/calendar",
+      "category": "utilities",
+      "name": "Calendar",
+      "description": "A month view with events and reminders that arrive as notifications.",
+      "version": "1.0.0",
+      "command": "calendar",
+      "alias": [
+        "cal",
+        "agenda"
+      ],
+      "tags": [
+        "calendar",
+        "events",
+        "reminders",
+        "productivity"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release: month view, events, reminders, 'calendar today'.",
+      "featured": true,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "1532d7f90ede45145f3aaf0630463479034fa9ff1ec67004df1891a002eb766f",
+          "size": 453
+        },
+        {
+          "path": "run.py",
+          "sha256": "bf1c8d1dbd7dfe90eda4a325473a728ef64e48a83ed8c957ddf1bfa1b6b543b8",
+          "size": 8831
+        }
+      ]
+    },
+    {
+      "id": "utilities/clock",
+      "category": "utilities",
+      "name": "Clock",
+      "description": "Time, world clocks, timer, stopwatch and alarms in one app.",
+      "version": "1.0.0",
+      "command": "clock",
+      "alias": [
+        "timer",
+        "stopwatch",
+        "alarm"
+      ],
+      "tags": [
+        "time",
+        "timer",
+        "stopwatch",
+        "alarm",
+        "clock"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release: world clocks, timer with presets, stopwatch with laps, alarms that ring even when the app is closed.",
+      "featured": true,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "3bf268fb572473fb4ac1719ffb330ea184418897b79fff06b198b4143507c982",
+          "size": 509
+        },
+        {
+          "path": "run.py",
+          "sha256": "a1ae992465b655da026b822ab19e83169d6b839d20f2cab76d1e82c30fa56f75",
+          "size": 10099
+        }
+      ]
+    },
+    {
+      "id": "utilities/converter",
+      "category": "utilities",
+      "name": "Converter",
+      "description": "Unit converter and a calculator that remembers its history.",
+      "version": "1.0.0",
+      "command": "convert",
+      "alias": [
+        "units"
+      ],
+      "tags": [
+        "converter",
+        "units",
+        "calculator",
+        "history"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release: ten unit categories, calculator with history and 'ans'.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "84f8d65667822857af03fc1fe0dcf7cbb7830bcdcdf481b91e65238a20ffa2d4",
+          "size": 415
+        },
+        {
+          "path": "run.py",
+          "sha256": "8f649c45a88752f0575c23851670c2ce80bcd9cdf80320a5d457b3cdd63d9019",
+          "size": 11093
+        }
+      ]
+    },
+    {
+      "id": "utilities/files",
+      "category": "utilities",
+      "name": "File Manager",
+      "description": "Browse, open, copy, move, rename, delete and search files.",
+      "version": "1.0.0",
+      "command": "files",
+      "alias": [
+        "fm"
+      ],
+      "tags": [
+        "files",
+        "manager",
+        "browse"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release.",
+      "featured": true,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "a14a04e2cb397d84993efc7955a889ab5ee8b8b286d654cc3005bce08df13e50",
+          "size": 355
+        },
+        {
+          "path": "run.py",
+          "sha256": "cb1603be491c9af703622c9b1c24339c15d721aa6e07198cc708559bb6350b0b",
+          "size": 11492
+        }
+      ]
+    },
+    {
+      "id": "utilities/mdview",
+      "category": "utilities",
+      "name": "Markdown Viewer",
+      "description": "Read your notes and markdown files nicely formatted.",
+      "version": "1.0.0",
+      "command": "mdview",
+      "alias": [
+        "md",
+        "markdown"
+      ],
+      "tags": [
+        "markdown",
+        "notes",
+        "reader"
+      ],
+      "lockdown_safe": true,
+      "requires": [
+        "utilities/notes"
+      ],
+      "changelog": "First release (needs the Notes app).",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "7a000df063082adb1002c5947effebece8f4235e2bb07d462eb84830b7de08b8",
+          "size": 415
+        },
+        {
+          "path": "run.py",
+          "sha256": "dc78245893c88d5528643bc590310c4a34f1a0752412f7d3a83a65b97145f90f",
+          "size": 4578
+        }
+      ]
+    },
+    {
+      "id": "utilities/nettools",
+      "category": "utilities",
+      "name": "Network Tools",
+      "description": "Connection check, DNS lookup, port test, TCP ping, web page check.",
+      "version": "1.0.0",
+      "command": "nettools",
+      "alias": [
+        "net"
+      ],
+      "tags": [
+        "network",
+        "dns",
+        "ping",
+        "tools"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "57ce597bf1814e10c290ec9212b7ffab7205c763f519ddb5f1d13e9399f11cbe",
+          "size": 357
+        },
+        {
+          "path": "run.py",
+          "sha256": "4cf6e0030ba336b2db03a4740fcd7319f47e838d5adfa807b58a708c6c7e649c",
+          "size": 6685
         }
       ]
     },
@@ -179,7 +487,7 @@
       "category": "utilities",
       "name": "Notes",
       "description": "Write and read notes, stored as text files in ~/notes.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "notes",
       "alias": [],
       "tags": [
@@ -188,16 +496,119 @@
         "writing"
       ],
       "lockdown_safe": true,
+      "requires": [],
+      "changelog": "Search your notes and edit them with the built-in editor; fixed the menu showing without its letters.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "ae86a31576484fc65de745dd9baac124b7bf074ba39fba2a492a06d18c71ae06",
-          "size": 284
+          "sha256": "df4113eb1bf6675e64b1dda7bd92aaa909e1aa349f0e9f3542d0573110869510",
+          "size": 404
         },
         {
           "path": "run.py",
-          "sha256": "0ffefdd1da37bf7121ad87dc3d6795bc53e08ccdab5458ef8c3baa284ea7c0bc",
-          "size": 2975
+          "sha256": "df36144266e42974f25cb47364c0d2a79358ca2e72c68119931e7131a76755bf",
+          "size": 3780
+        }
+      ]
+    },
+    {
+      "id": "utilities/rss",
+      "category": "utilities",
+      "name": "RSS Reader",
+      "description": "Follow news feeds and read headlines, with offline copies.",
+      "version": "1.0.0",
+      "command": "rss",
+      "alias": [
+        "news"
+      ],
+      "tags": [
+        "rss",
+        "news",
+        "feeds",
+        "reader"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "2af84d2e653d4b92a4226a3a711a5b839b48788d048886ff55ae26db33753b8e",
+          "size": 341
+        },
+        {
+          "path": "run.py",
+          "sha256": "a5e7bfb89a677379a2001f85eb716368ed68b30ebc2298c98dfc54e0efd0a35a",
+          "size": 6494
+        }
+      ]
+    },
+    {
+      "id": "utilities/snippets",
+      "category": "utilities",
+      "name": "Snippets",
+      "description": "A clipboard and a library of named snippets, stored as plain files.",
+      "version": "1.0.0",
+      "command": "snippets",
+      "alias": [
+        "clip",
+        "clipboard"
+      ],
+      "tags": [
+        "clipboard",
+        "snippets",
+        "text",
+        "productivity"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "4893446213753031e0d2cf6fb204659f86bb10486d7a2ed490a3d63152e8f888",
+          "size": 441
+        },
+        {
+          "path": "run.py",
+          "sha256": "964c04885207bb9a728541abe8e4d25e70d145ac1d8614e2d2eb2c16317b558d",
+          "size": 6687
+        }
+      ]
+    },
+    {
+      "id": "utilities/sysmon",
+      "category": "utilities",
+      "name": "System Monitor",
+      "description": "A live dashboard of CPU, memory, disk and network.",
+      "version": "1.0.0",
+      "command": "sysmon",
+      "alias": [
+        "monitor"
+      ],
+      "tags": [
+        "system",
+        "monitor",
+        "cpu",
+        "memory"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "5e3fc223aebea8506889677c2a83cbbfaff740a9ca450ae3eeea9998db55d5f6",
+          "size": 347
+        },
+        {
+          "path": "run.py",
+          "sha256": "535e2660ecc06c0ed06f42b1c80bd3f8f200b35cb5cf1c49e7a0a70b1bede1f4",
+          "size": 5229
         }
       ]
     },
@@ -206,7 +617,7 @@
       "category": "utilities",
       "name": "To-do List",
       "description": "Keep a simple to-do list saved in your home folder.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "todo",
       "alias": [],
       "tags": [
@@ -215,16 +626,19 @@
         "list"
       ],
       "lockdown_safe": true,
+      "requires": [],
+      "changelog": "Edit tasks, 'todo add/list/done/remove' from the shell, fixed the menu showing without its letters.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "e7d74a0609f17575b3b81f3d1a28fb857404333cd96b2c8dc56fe2dcd7afcc6b",
-          "size": 283
+          "sha256": "3f3b67b03805ffa6a264d721796c78cd28051a6a83700d2e4bbee3c222997111",
+          "size": 401
         },
         {
           "path": "run.py",
-          "sha256": "dd70fece6d3ca363c485b9797c6409bef3c3aa136e13191d5aa391f8080b6b57",
-          "size": 2272
+          "sha256": "45c5627a56a1896b76bc019834e9bab8e710d0fe5521e2fdae078e31ecd18ee0",
+          "size": 3342
         }
       ]
     },
@@ -233,7 +647,7 @@
       "category": "utilities",
       "name": "Weather",
       "description": "Check the current weather for any city (needs internet).",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "weather",
       "alias": [],
       "tags": [
@@ -242,16 +656,19 @@
         "temperature"
       ],
       "lockdown_safe": true,
+      "requires": [],
+      "changelog": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
+      "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "4780f90348428de43b5655b6a2e3541ad4ff24faeaa3ad7bd69d9beb2b257e49",
-          "size": 294
+          "sha256": "5d7169f98f95899c4cf5a6d529a81a1f8f3a7eea21b1448a7464a1375ea4ad2f",
+          "size": 402
         },
         {
           "path": "run.py",
-          "sha256": "76ab27281570106f1721a4d5d0ff52282ffc1f5861bc066c32c7e234aa6a19f2",
-          "size": 2144
+          "sha256": "490e58f17a2af38181cfe2c23447736ebd015f80dda0993cb059aa57233496a8",
+          "size": 4257
         }
       ]
     }

@@ -17,7 +17,7 @@ profile_pythonos() {
 	# Python and the libraries PythonOS needs (yaspin and ping3 are bundled with the OS itself), plus
 	# what the hardware setup uses: PCI/USB listing, ALSA audio tools, Wi-Fi tools and disk tools for
 	# persistent storage. No editor (nano can run shell commands) - PythonOS has its own.
-	apks="$apks python3 py3-rich py3-psutil py3-requests py3-pygments py3-prompt_toolkit"
+	apks="$apks python3 py3-rich py3-psutil py3-requests py3-pygments py3-prompt_toolkit tzdata"
 	apks="$apks pciutils hwdata-pci usbutils alsa-utils alsa-ucm-conf iw wpa_supplicant lsblk e2fsprogs"
 	apkovl="genapkovl-pythonos.sh"
 }

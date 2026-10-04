@@ -56,6 +56,7 @@ py3-psutil
 py3-requests
 py3-pygments
 py3-prompt_toolkit
+tzdata
 pciutils
 hwdata-pci
 usbutils

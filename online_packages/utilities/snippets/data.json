@@ -1,0 +1,21 @@
+{
+  "name": "Snippets",
+  "description": "A clipboard and a library of named snippets, stored as plain files.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "snippets",
+  "alias": [
+    "clip",
+    "clipboard"
+  ],
+  "tags": [
+    "clipboard",
+    "snippets",
+    "text",
+    "productivity"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release: clipboard, snippet library, pipes with 'snippets copy'."
+}

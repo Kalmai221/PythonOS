@@ -1,7 +1,7 @@
 {
   "name": "Notes",
   "description": "Write and read notes, stored as text files in ~/notes.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -12,5 +12,6 @@
     "text",
     "writing"
   ],
-  "lockdown_safe": true
+  "lockdown_safe": true,
+  "changelog": "Search your notes and edit them with the built-in editor; fixed the menu showing without its letters."
 }

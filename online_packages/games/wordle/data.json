@@ -1,0 +1,19 @@
+{
+  "name": "Wordle",
+  "description": "Guess the five-letter word in six tries; a new daily word every day.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "wordle",
+  "alias": [],
+  "tags": [
+    "game",
+    "words",
+    "puzzle",
+    "daily"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release: daily and random words, on-screen keyboard, streaks.",
+  "featured": true
+}

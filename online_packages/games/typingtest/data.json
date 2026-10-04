@@ -1,11 +1,9 @@
 {
-  "name": "Typing Test CLI",
-  "description": "Typing Speed Test Game.",
-  "version": "1.0.0",
+  "name": "Typing Test",
+  "description": "Measure your typing speed and accuracy.",
+  "version": "2.0.0",
   "scripts": {
-    "installer": "installer.py",
-    "run": "run.py",
-    "uninstaller": "uninstaller.py"
+    "run": "run.py"
   },
   "command": "typingtest",
   "alias": [],
@@ -14,5 +12,7 @@
     "typing",
     "speed",
     "keyboard"
-  ]
+  ],
+  "changelog": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
+  "lockdown_safe": true
 }

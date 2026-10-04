@@ -4,6 +4,11 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
+try:
+    from pyos import appdata
+except ImportError:
+    appdata = None
+
 console = Console()
 LINES = [(0, 1, 2), (3, 4, 5), (6, 7, 8), (0, 3, 6), (1, 4, 7), (2, 5, 8), (0, 4, 8), (2, 4, 6)]
 
@@ -27,9 +32,39 @@ def show(board):
     console.print(table)
 
 
-def computer_move(board):
-    """Win if possible, block if needed, otherwise centre, corner, then anything."""
+def minimax(board, mark):
+    """Best score for O: +1 O wins, -1 X wins, 0 draw (perfect play)."""
+    w = winner(board)
+    if w:
+        return 1 if w == "O" else -1
     free = [i for i, v in enumerate(board) if v == " "]
+    if not free:
+        return 0
+    scores = []
+    for i in free:
+        board[i] = mark
+        scores.append(minimax(board, "X" if mark == "O" else "O"))
+        board[i] = " "
+    return max(scores) if mark == "O" else min(scores)
+
+
+def computer_move(board, level="medium"):
+    """easy: random. medium: win/block/centre. hard: never loses."""
+    free = [i for i, v in enumerate(board) if v == " "]
+    if level == "easy":
+        return random.choice(free)
+    if level == "hard":
+        best = []
+        top = -2
+        for i in free:
+            board[i] = "O"
+            s = minimax(board, "X")
+            board[i] = " "
+            if s > top:
+                top, best = s, [i]
+            elif s == top:
+                best.append(i)
+        return random.choice(best)
     for mark in ("O", "X"):
         for i in free:
             trial = board[:]
@@ -42,7 +77,7 @@ def computer_move(board):
     return random.choice(free)
 
 
-def play_round():
+def play_round(level):
     board = [" "] * 9
     while True:
         console.clear()
@@ -57,7 +92,7 @@ def play_round():
             continue
         board[int(move) - 1] = "X"
         if not winner(board) and " " in board:
-            board[computer_move(board)] = "O"
+            board[computer_move(board, level)] = "O"
         result = winner(board)
         if result or " " not in board:
             console.clear()
@@ -70,12 +105,18 @@ def play_round():
 
 def main():
     score = {"X": 0, "O": 0, "draw": 0}
+    level = Prompt.ask("Difficulty", choices=["easy", "medium", "hard"], default="medium")
+    record = appdata.load("tictactoe", {"X": 0, "O": 0, "draw": 0}) if appdata else None
     while True:
-        result = play_round()
+        result = play_round(level)
         if result == "quit":
             break
         score[result] += 1
         console.print(f"Score - you: {score['X']}  computer: {score['O']}  draws: {score['draw']}")
+        if record is not None:
+            record[result] += 1
+            appdata.save("tictactoe", record)
+            console.print(f"[dim]All time - you: {record['X']}  computer: {record['O']}  draws: {record['draw']}[/dim]")
         if Prompt.ask("Play again?", choices=["y", "n"], default="y") == "n":
             break
 

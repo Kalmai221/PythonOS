@@ -1,0 +1,17 @@
+{
+  "name": "Trivia",
+  "description": "Ten multiple-choice questions, built in or fetched online.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "trivia",
+  "alias": [],
+  "tags": [
+    "game",
+    "quiz",
+    "questions"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release: 45 built-in questions plus the Open Trivia Database."
+}

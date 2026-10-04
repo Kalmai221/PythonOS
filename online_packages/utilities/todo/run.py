@@ -46,12 +46,34 @@ def show(items):
     console.print(table)
 
 
+def cli(args):
+    """todo add <text> | list | done <n> | remove <n>"""
+    items = load()
+    sub = args[0].lower()
+    if sub == "add" and len(args) > 1:
+        items.append({"text": " ".join(args[1:]), "done": False})
+        save(items)
+        console.print(f"[green]Added #{len(items)}.[/green]")
+    elif sub in ("list", "ls"):
+        show(items)
+    elif sub in ("done", "remove", "rm") and len(args) > 1 and args[1].isdigit() and 1 <= int(args[1]) <= len(items):
+        n = int(args[1]) - 1
+        if sub == "done":
+            items[n]["done"] = not items[n]["done"]
+        else:
+            items.pop(n)
+        save(items)
+        show(items)
+    else:
+        console.print("todo [add <text> | list | done <n> | remove <n>]   (no arguments opens the list)")
+
+
 def main():
     items = load()
     while True:
         console.print("\n[bold]To-do list[/bold]")
         show(items)
-        action = Prompt.ask("[a]dd  [d]one  [r]emove  [c]lear finished  [q]uit", choices=["a", "d", "r", "c", "q"], default="q")
+        action = Prompt.ask("(a)dd  (d)one  (e)dit  (r)emove  (c)lear finished  (q)uit", choices=["a", "d", "e", "r", "c", "q"], default="q")
         if action == "q":
             break
         if action == "a":
@@ -65,6 +87,10 @@ def main():
             if num.isdigit() and 1 <= int(num) <= len(items):
                 if action == "d":
                     items[int(num) - 1]["done"] = not items[int(num) - 1]["done"]
+                elif action == "e":
+                    text = Prompt.ask("New text", default=items[int(num) - 1]["text"]).strip()
+                    if text:
+                        items[int(num) - 1]["text"] = text
                 else:
                     items.pop(int(num) - 1)
             else:
@@ -76,5 +102,8 @@ if __name__ == "__main__":
     main()
 
 
-def execute():
-    main()
+def execute(args=None):
+    if args:
+        cli(list(args))
+    else:
+        main()

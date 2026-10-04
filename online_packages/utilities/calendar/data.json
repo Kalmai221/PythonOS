@@ -1,0 +1,22 @@
+{
+  "name": "Calendar",
+  "description": "A month view with events and reminders that arrive as notifications.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "calendar",
+  "alias": [
+    "cal",
+    "agenda"
+  ],
+  "tags": [
+    "calendar",
+    "events",
+    "reminders",
+    "productivity"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release: month view, events, reminders, 'calendar today'.",
+  "featured": true
+}

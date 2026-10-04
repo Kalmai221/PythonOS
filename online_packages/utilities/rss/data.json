@@ -1,0 +1,20 @@
+{
+  "name": "RSS Reader",
+  "description": "Follow news feeds and read headlines, with offline copies.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "rss",
+  "alias": [
+    "news"
+  ],
+  "tags": [
+    "rss",
+    "news",
+    "feeds",
+    "reader"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release."
+}

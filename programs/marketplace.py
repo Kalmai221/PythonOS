@@ -36,6 +36,15 @@ BRANCH = "main"
 RAW_BASE = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/online_packages"
 INDEX_URL = f"{RAW_BASE}/index.json"
 CACHE_FILE = Path(".OSData") / "market_index.json"
+FILE_CACHE = Path(".OSData") / "market_cache"          # downloaded package files by checksum: reinstalls work offline
+CATEGORY_BLURBS = {
+    "games": "Something to play",
+    "utilities": "Everyday tools",
+    "developer": "For people who write code",
+    "system": "Look after the system itself",
+    "network": "Online and network tools",
+    "productivity": "Get things done",
+}
 INSTALL_ROOT = Path("files")
 TIMEOUT = 15
 
@@ -68,6 +77,26 @@ def load_index():
             console.print("[dim]Check your internet connection. If you maintain the repo, run "
                           "'python tools/build_index.py' and push online_packages/index.json.[/dim]")
             return None, True
+
+
+def fetch_file(pkg, entry):
+    """A package file's bytes: from the local cache when its checksum is known, else downloaded and cached."""
+    sha = entry.get("sha256")
+    cached = FILE_CACHE / sha[:2] / sha if sha else None
+    if cached is not None and cached.is_file():
+        data = cached.read_bytes()
+        if hash_matches(data, sha):
+            return data
+    data = http_get(f"{RAW_BASE}/{pkg['id']}/{entry['path']}").content
+    if sha and not hash_matches(data, sha):
+        raise ValueError(f"checksum mismatch for {entry['path']}")
+    if cached is not None:
+        try:
+            cached.parent.mkdir(parents=True, exist_ok=True)
+            cached.write_bytes(data)
+        except OSError:
+            pass
+    return data
 
 
 def installed_packages():
@@ -173,6 +202,14 @@ def choose(matches, installed, prompt="Which one?"):
 
 
 # ----------------------------------------------------------------- display
+def changelog_for(pkg):
+    """What changed in this version (the catalog's changelog is a string, or {version: notes})."""
+    log = pkg.get("changelog", "")
+    if isinstance(log, dict):
+        log = log.get(pkg["version"], "")
+    return str(log).strip()
+
+
 def show_packages(packages, installed, title):
     table = Table(title=title, header_style="bold blue", expand=True)
     table.add_column("#", justify="right")
@@ -199,6 +236,8 @@ def show_details(pkg, installed):
         f"[bold]Category:[/bold] {pkg['category']}",
         f"[bold]Start with:[/bold] [cyan]run {pkg['command']}[/cyan]" if pkg.get("command") else "[bold]Start with:[/bold] run programs",
         f"[bold]Tags:[/bold]     {', '.join(pkg.get('tags', [])) or '-'}",
+        *([f"[bold]Needs:[/bold]    {escape(', '.join(pkg['requires']))}"] if pkg.get("requires") else []),
+        *([f"[bold]What's new:[/bold] {escape(changelog_for(pkg))}"] if changelog_for(pkg) else []),
         f"[bold]Size:[/bold]     {size / 1024:.1f} KB in {len(pkg['files'])} file(s)",
         f"[bold]Status:[/bold]   {status_label(status_of(pkg, installed), pkg, installed) or 'not installed'}"
         + (f" [dim](installed {local['version']})[/dim]" if local and status_of(pkg, installed) == "installed" else ""),
@@ -264,9 +303,7 @@ def install_package(pkg, installed, quiet=False):
                 rel = entry["path"]
                 if not safe_relative(rel):
                     raise ValueError(f"unsafe file path in catalog: {rel}")
-                data = http_get(f"{RAW_BASE}/{pkg['id']}/{rel}").content
-                if entry.get("sha256") and not hash_matches(data, entry["sha256"]):
-                    raise ValueError(f"checksum mismatch for {rel}")
+                data = fetch_file(pkg, entry)
                 target = tmp / rel
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(data)
@@ -300,8 +337,80 @@ def install_package(pkg, installed, quiet=False):
     return True
 
 
-def remove_package(pid, info, quiet=False):
+def find_required(packages, ref):
+    """The catalog entry a `requires` reference points at (an id like utilities/notes, a command or a name)."""
+    ref = str(ref).strip().lower()
+    for p in packages:
+        if ref in (p["id"].lower(), p.get("command", "").lower(), p["name"].lower()):
+            return p
+    return None
+
+
+def install_plan(pkg, packages, installed, seen=None):
+    """Packages to install, dependencies first. Returns (ordered list, missing references)."""
+    seen = seen if seen is not None else set()
+    order, missing = [], []
+    if pkg["id"] in seen:
+        return order, missing                       # already planned (also stops dependency cycles)
+    seen.add(pkg["id"])
+    for ref in pkg.get("requires", []):
+        dep = find_required(packages, ref)
+        if dep is None:
+            missing.append(ref)
+        elif status_of(dep, installed) == "":
+            sub, sub_missing = install_plan(dep, packages, installed, seen)
+            order += sub
+            missing += sub_missing
+    order.append(pkg)
+    return order, missing
+
+
+def install_with_dependencies(pkg, installed, packages, quiet=False):
+    """Install pkg after anything it requires that is not installed yet."""
+    order, missing = install_plan(pkg, packages, installed)
+    if missing:
+        console.print(f"[bold red]{escape(pkg['name'])} needs {', '.join(escape(m) for m in missing)}, "
+                      "which the marketplace does not have.[/bold red]")
+        return False
+    needed = order[:-1]
+    if needed:
+        console.print(f"[bold]{escape(pkg['name'])}[/bold] also needs: "
+                      + ", ".join(f"[cyan]{escape(p['name'])}[/cyan]" for p in needed))
+        if not quiet and not Confirm.ask("Install those too?", default=True):
+            console.print("[yellow]Cancelled.[/yellow]")
+            return False
+    for dep in needed:
+        if not install_package(dep, installed, quiet=True):
+            console.print(f"[bold red]Could not install {escape(dep['name'])}, so {escape(pkg['name'])} was not installed.[/bold red]")
+            return False
+        installed[dep["id"]] = {"version": dep["version"], "name": dep["name"], "path": None, "meta": {}}
+    return install_package(pkg, installed, quiet=quiet)
+
+
+def dependents(pid, installed, packages):
+    """Installed packages that list pid as a requirement."""
+    by_id = {p["id"]: p for p in packages}
+    target = by_id.get(pid)
+    found = []
+    for other, info in installed.items():
+        pkg = by_id.get(other)
+        if not pkg or other == pid:
+            continue
+        for ref in pkg.get("requires", []):
+            if target is not None and find_required([target], ref):
+                found.append(info["name"])
+    return found
+
+
+def remove_package(pid, info, quiet=False, packages=None, installed=None):
     folder, meta = info["path"], info.get("meta", {})
+    users = dependents(pid, installed, packages) if packages and installed else []
+    if users:
+        console.print(f"[yellow]{escape(', '.join(users))} needs {escape(info['name'])} and may stop working without it.[/yellow]")
+        if not Confirm.ask("Remove it anyway?", default=False):
+            console.print("[yellow]Cancelled.[/yellow]")
+            return False
+        quiet = True            # already asked
     if not quiet and not Confirm.ask(f"Remove {info['name']}?", default=False):
         console.print("[yellow]Cancelled.[/yellow]")
         return False
@@ -326,9 +435,13 @@ def update_all(packages, installed):
         console.print("[green]Everything is up to date.[/green]")
         return
     show_packages(pending, installed, "Updates available")
+    for p in pending:
+        notes = changelog_for(p)
+        if notes:
+            console.print(f"[bold cyan]{escape(p['name'])} {p['version']}[/bold cyan]: {escape(notes)}")
     if not Confirm.ask(f"Update {len(pending)} package(s)?", default=True):
         return
-    results = [install_package(p, installed, quiet=True) for p in pending]
+    results = [install_with_dependencies(p, installed, packages, quiet=True) for p in pending]
     console.print(f"[bold green]{sum(results)} updated[/bold green]" + (f", [bold red]{len(results) - sum(results)} failed[/bold red]" if not all(results) else ""))
     refresh_shell()
 
@@ -351,9 +464,9 @@ def manage(pkg, installed, packages):
         if action == "back":
             return
         if action in ("install", "update"):
-            install_package(pkg, installed)
+            install_with_dependencies(pkg, installed, packages)
         elif action == "remove":
-            remove_package(pkg["id"], installed[pkg["id"]])
+            remove_package(pkg["id"], installed[pkg["id"]], packages=packages, installed=installed)
         installed.clear()
         installed.update(installed_packages())
         return
@@ -378,9 +491,10 @@ def browse(packages, installed):
     table.add_column("#", justify="right")
     table.add_column("Category", style="magenta")
     table.add_column("Packages", justify="right")
-    table.add_row("0", "[bold]All[/bold]", str(len(packages)))
+    table.add_column("About")
+    table.add_row("0", "[bold]All[/bold]", str(len(packages)), "Everything, A to Z")
     for i, c in enumerate(cats, 1):
-        table.add_row(str(i), c, str(sum(1 for p in packages if p["category"] == c)))
+        table.add_row(str(i), c, str(sum(1 for p in packages if p["category"] == c)), CATEGORY_BLURBS.get(c, ""))
     console.print(table)
     n = IntPrompt.ask("Choose a category (blank to go back)", default=-1)
     if n == 0:
@@ -395,18 +509,26 @@ def main_menu():
         return
     installed = installed_packages()
     updates = sum(1 for p in packages if status_of(p, installed) == "update")
+    featured = [p for p in packages if p.get("featured") and p["id"] not in installed
+                and not (lockdown.enabled() and not p.get("lockdown_safe"))]
     console.print(Panel(f"[bold]PyOS Marketplace[/bold]  -  {len(packages)} packages"
                         + (f", [yellow]{updates} update(s) available[/yellow]" if updates else ""),
                         border_style="magenta", expand=False))
+    if featured:
+        console.print("[bold]Featured:[/bold] " + ", ".join(f"[cyan]{escape(p['name'])}[/cyan]" for p in featured[:6])
+                      + "  [dim](press f)[/dim]")
     while True:
         installed = installed_packages()
         console.print("\n[bold magenta]b[/bold magenta]rowse  [bold magenta]s[/bold magenta]earch  "
+                      "[bold magenta]f[/bold magenta]eatured  "
                       "[bold magenta]i[/bold magenta]nstalled  [bold magenta]u[/bold magenta]pdates  "
                       "[bold magenta]q[/bold magenta]uit")
-        choice = Prompt.ask("Choose", choices=["b", "s", "i", "u", "q"], default="s")
+        choice = Prompt.ask("Choose", choices=["b", "s", "f", "i", "u", "q"], default="s")
         if choice == "q":
             return
-        if choice == "b":
+        if choice == "f":
+            pick_from([p for p in packages if p.get("featured")], installed, "Featured packages")
+        elif choice == "b":
             browse(packages, installed)
         elif choice == "s":
             query = Prompt.ask("Search for").strip()
@@ -450,7 +572,11 @@ HELP = """[bold]marketplace[/bold] (also: market, store, pkg)
   marketplace install <name>     install a package
   marketplace remove <name>      remove a package
   marketplace update <name>      update one package (leave out the name to update everything)
-  marketplace list               show installed packages"""
+  marketplace update all         update every package that has a newer version
+  marketplace featured           hand-picked packages
+  marketplace list               show installed packages
+
+Some packages need others; they are installed together (and you are asked first)."""
 
 
 def cli(args):
@@ -473,6 +599,8 @@ def cli(args):
             show_packages(results, installed, f"Results for '{query}'" if query else "All packages")
         else:
             console.print(f"[yellow]Nothing matches '{escape(query)}'.[/yellow]")
+    elif cmd in ("featured", "popular"):
+        show_packages([p for p in packages if p.get("featured")] or packages[:8], installed, "Featured packages")
     elif cmd in ("info", "show"):
         pkg = choose(resolve(packages, query), installed) if query else None
         if pkg:
@@ -489,21 +617,21 @@ def cli(args):
         elif status_of(pkg, installed) == "installed":
             console.print(f"[green]{escape(pkg['name'])} is already installed.[/green]")
         else:
-            install_package(pkg, installed)
+            install_with_dependencies(pkg, installed, packages)
     elif cmd in ("remove", "uninstall", "rm"):
         matches = [p for p in resolve(packages, query) if p["id"] in installed] if query else []
         pkg = choose(matches, installed)
         if pkg:
-            remove_package(pkg["id"], installed[pkg["id"]])
+            remove_package(pkg["id"], installed[pkg["id"]], packages=packages, installed=installed)
         else:
             console.print("[yellow]That package is not installed. See: marketplace list[/yellow]")
     elif cmd in ("update", "upgrade"):
         if offline:
             console.print("[yellow]Updates need a connection to the marketplace.[/yellow]")
-        elif query:
+        elif query and query.lower() not in ("all", "--all", "-a"):
             pkg = choose([p for p in resolve(packages, query) if p["id"] in installed], installed)
             if pkg and status_of(pkg, installed) == "update":
-                install_package(pkg, installed)
+                install_with_dependencies(pkg, installed, packages)
             elif pkg:
                 console.print(f"[green]{escape(pkg['name'])} is up to date.[/green]")
             else:

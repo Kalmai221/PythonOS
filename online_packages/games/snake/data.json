@@ -1,0 +1,18 @@
+{
+  "name": "Snake",
+  "description": "Classic snake: real-time with arrow keys, or turn by turn where keys are limited.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "snake",
+  "alias": [],
+  "tags": [
+    "game",
+    "arcade",
+    "classic"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "featured": true
+}

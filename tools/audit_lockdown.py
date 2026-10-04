@@ -4,7 +4,8 @@
 On the live ISO PythonOS runs as root, so any path that executes a command or Python the user can
 influence is a way out to the Linux side. This scans the OS code (not the marketplace packages, which
 are covered by the catalog's lockdown_safe flag and hash checks) and reports every call that can spawn
-a process or evaluate code. Each such use must be listed in ALLOWED below with the reason it is safe;
+a process or evaluate code. Marketplace packages that claim lockdown_safe are held to the same standard with
+no exceptions: they may not spawn processes, evaluate code or import anything but the editor module. Each such use must be listed in ALLOWED below with the reason it is safe;
 a new, unreviewed use fails the build.
 
     python tools/audit_lockdown.py
@@ -33,6 +34,7 @@ ALLOWED = {
     "core/boot.py": "pip install of requirements.txt (skipped when PYOS_BUNDLED/lockdown) and clearing the screen",
     "core/BSOD.py": "clears the screen and restarts PythonOS itself with sys.executable",
     "core/screens.py": "clears the screen and restarts PythonOS itself with sys.executable",
+    "pyos/stdio.py": "clears the screen (constant command only)",
     "commands/restart.py": "restarts PythonOS itself with sys.executable",
     "commands/clear.py": "clears the screen",
     "programs/marketplace.py": "package installer scripts - never run in lockdown, packages are hash-checked",
@@ -87,8 +89,47 @@ def files():
                     yield os.path.join(full, name), f"{item}/{name}"
 
 
+SAFE_IMPORT_MODULES = {"commands.edit"}          # the built-in editor: it cannot run commands
+
+
+def safe_packages():
+    """(path, relative name) of every .py file in a catalog package that is marked lockdown_safe."""
+    import json
+    base = os.path.join(ROOT, "online_packages")
+    for category in sorted(os.listdir(base)):
+        cat_dir = os.path.join(base, category)
+        if not os.path.isdir(cat_dir):
+            continue
+        for name in sorted(os.listdir(cat_dir)):
+            folder = os.path.join(cat_dir, name)
+            try:
+                with open(os.path.join(folder, "data.json"), encoding="utf-8") as f:
+                    if not json.load(f).get("lockdown_safe"):
+                        continue
+            except (OSError, ValueError):
+                continue
+            for dirpath, _dirs, filenames in os.walk(folder):
+                for filename in sorted(filenames):
+                    if filename.endswith(".py"):
+                        full = os.path.join(dirpath, filename)
+                        yield full, os.path.relpath(full, ROOT).replace(os.sep, "/")
+
+
+def check_package(path, rel):
+    findings = check(path, rel)
+    tree = ast.parse(open(path, encoding="utf-8").read(), filename=rel)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in ("import_module", "__import__"):
+            arg = node.args[0] if node.args else None
+            if not (isinstance(arg, ast.Constant) and arg.value in SAFE_IMPORT_MODULES):
+                findings.append((rel, node.lineno, f"{node.func.attr}() of something other than {sorted(SAFE_IMPORT_MODULES)}"))
+    return findings
+
+
 def main():
     problems, reviewed = [], 0
+    for path, rel in safe_packages():
+        problems += check_package(path, rel)
     for path, rel in files():
         found = check(path, rel)
         if not found:

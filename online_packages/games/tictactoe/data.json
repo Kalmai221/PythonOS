@@ -1,7 +1,7 @@
 {
   "name": "Tic-Tac-Toe",
   "description": "Play tic-tac-toe against the computer.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -15,5 +15,6 @@
     "ai",
     "classic"
   ],
-  "lockdown_safe": true
+  "lockdown_safe": true,
+  "changelog": "Easy, medium and unbeatable hard levels; all-time record."
 }

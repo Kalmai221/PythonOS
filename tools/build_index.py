@@ -6,6 +6,8 @@ online_packages/index.json together with the package:
 
     python tools/build_index.py
 
+Optional data.json keys: requires (list of package ids or commands), changelog, featured (true).
+
 Each package is a folder online_packages/<category>/<name>/ containing a data.json
 (name, description, version, command, alias, tags, scripts) plus its files.
 """
@@ -71,6 +73,11 @@ def main():
                 # Only packages that cannot give access to the machine underneath (no shells, no code
                 # execution, no pip) may be marked safe; locked-down systems refuse everything else.
                 "lockdown_safe": bool(meta.get("lockdown_safe", False)),
+                # other packages this one needs (ids like "utilities/notes", or their command names)
+                "requires": list(meta.get("requires", [])),
+                # shown in the store before installing and on update: a string, or {version: notes}
+                "changelog": meta.get("changelog", ""),
+                "featured": bool(meta.get("featured", False)),
                 "files": package_files(folder),
             })
     index = {"format": 1, "packages": packages}

@@ -71,6 +71,7 @@ chaquopy {
             install("ping3")
             install("prompt_toolkit")
             install("pygments")
+            install("tzdata")
         }
     }
 }

@@ -73,11 +73,19 @@ def main():
     while True:
         console.print("\n[bold]Notes[/bold]")
         names = list_notes()
-        action = Prompt.ask("[n]ew  [r]ead  [d]elete  [q]uit", choices=["n", "r", "d", "q"], default="q")
+        action = Prompt.ask("(n)ew  (r)ead  (e)dit  (s)earch  (d)elete  (q)uit", choices=["n", "r", "e", "s", "d", "q"], default="q")
         if action == "q":
             break
         if action == "n":
             new_note()
+        elif action == "s":
+            term = Prompt.ask("Search for").strip().lower()
+            hits = []
+            for n in names:
+                with open(os.path.join(notes_dir(), n), encoding="utf-8") as f:
+                    if term and (term in n.lower() or term in f.read().lower()):
+                        hits.append(n[:-4])
+            console.print("Found in: " + (escape(", ".join(hits)) if hits else "nothing"))
         elif names:
             name = pick(names)
             if not name:
@@ -86,6 +94,12 @@ def main():
             if action == "r":
                 with open(path, encoding="utf-8") as f:
                     console.print(Panel(escape(f.read()), title=name[:-4], border_style="blue"))
+            elif action == "e":
+                try:
+                    import importlib
+                    importlib.import_module("commands.edit").execute(["/" + os.path.relpath(path, "files").replace(os.sep, "/")])
+                except ImportError:
+                    console.print("[yellow]Use: edit <file> from the shell.[/yellow]")
             else:
                 os.remove(path)
                 console.print("[green]Deleted.[/green]")

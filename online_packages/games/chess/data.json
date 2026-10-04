@@ -1,11 +1,9 @@
 {
-  "name": "Chess CLI",
-  "description": "Chess game.",
-  "version": "1.0.0",
+  "name": "Chess",
+  "description": "Play chess against the computer: full rules, three difficulty levels.",
+  "version": "2.0.0",
   "scripts": {
-    "installer": "installer.py",
-    "run": "run.py",
-    "uninstaller": "uninstaller.py"
+    "run": "run.py"
   },
   "command": "chess",
   "alias": [],
@@ -14,5 +12,7 @@
     "chess",
     "board",
     "strategy"
-  ]
+  ],
+  "changelog": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
+  "lockdown_safe": true
 }

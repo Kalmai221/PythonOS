@@ -1,0 +1,23 @@
+{
+  "name": "Markdown Viewer",
+  "description": "Read your notes and markdown files nicely formatted.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "mdview",
+  "alias": [
+    "md",
+    "markdown"
+  ],
+  "tags": [
+    "markdown",
+    "notes",
+    "reader"
+  ],
+  "lockdown_safe": true,
+  "requires": [
+    "utilities/notes"
+  ],
+  "changelog": "First release (needs the Notes app)."
+}

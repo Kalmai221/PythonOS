@@ -1,0 +1,20 @@
+{
+  "name": "Network Tools",
+  "description": "Connection check, DNS lookup, port test, TCP ping, web page check.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "nettools",
+  "alias": [
+    "net"
+  ],
+  "tags": [
+    "network",
+    "dns",
+    "ping",
+    "tools"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release."
+}

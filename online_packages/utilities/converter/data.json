@@ -1,0 +1,20 @@
+{
+  "name": "Converter",
+  "description": "Unit converter and a calculator that remembers its history.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "convert",
+  "alias": [
+    "units"
+  ],
+  "tags": [
+    "converter",
+    "units",
+    "calculator",
+    "history"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release: ten unit categories, calculator with history and 'ans'."
+}
