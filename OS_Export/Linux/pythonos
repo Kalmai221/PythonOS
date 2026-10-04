@@ -41,5 +41,8 @@ if [ ! -f "$VENV/.deps_ok" ]; then
     touch "$VENV/.deps_ok"
 fi
 
+# Tells PythonOS which package this is, so it can say when a newer one must be downloaded by hand
+[ -f "$HERE/export.json" ] && export PYOS_EXPORT_INFO="$HERE/export.json"
+
 cd "$DATA"
 exec "$VENV/bin/python" main.py "$@"

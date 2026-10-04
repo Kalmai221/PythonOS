@@ -1,0 +1,40 @@
+{
+  "_help": [
+    "One entry per export (the packages that cannot update themselves from inside PythonOS).",
+    "version: the release version in which this export last CHANGED. Bump it only when the package itself",
+    "         changed (new APK UI, new launcher or bundled Python, new ISO kernel/boot/lockdown) - NOT for core-only",
+    "         changes, which the in-OS updater installs. Users on an older export are told to download the new one.",
+    "api:     minimum export compatibility the CURRENT core needs. Bump it when a core change needs something the",
+    "         older export lacks (a new Android bridge function, a new library, a new boot feature). Exports with a",
+    "         lower api are told they must be reinstalled before the core update can be applied.",
+    "assets:  release file names; {v} is the release version the file is downloaded from."
+  ],
+  "android": {
+    "title": "Android app",
+    "version": "1.1.0",
+    "api": 1,
+    "assets": ["PythonOS-{v}-android.apk"],
+    "notes": "New terminal screen: type straight into the terminal, always scrolled to the bottom, symbol keys, zoom."
+  },
+  "windows": {
+    "title": "Windows app",
+    "version": "1.0.0",
+    "api": 1,
+    "assets": ["PythonOS-{v}-setup.exe", "PythonOS-{v}-windows-portable.zip"],
+    "notes": ""
+  },
+  "linux": {
+    "title": "Linux package",
+    "version": "1.0.0",
+    "api": 1,
+    "assets": ["pythonos_{v}_all.deb", "pythonos-{v}-linux.tar.gz"],
+    "notes": ""
+  },
+  "iso": {
+    "title": "Bootable ISO",
+    "version": "1.1.0",
+    "api": 1,
+    "assets": ["pythonos-{v}-x86_64.iso"],
+    "notes": "Locked down: boot menu and consoles can no longer reach the Linux system underneath."
+  }
+}

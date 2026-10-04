@@ -32,6 +32,21 @@ Every release has two extra files besides the installers: **`pythonos-core-<vers
 * **ISO:** it is a live image that boots straight into the OS, so it carries the core inside. An
   update applies until the next reboot; build a new ISO for a permanent one.
 
+### Two kinds of update
+
+* **Core updates install themselves** (everything inside PythonOS: the shell, commands, apps, the updater).
+* **Export updates can't.** The APK and its terminal screen, the Windows launcher and bundled Python, the Linux
+  launcher and the ISO's kernel, boot menu and lockdown are the package *around* PythonOS and cannot be replaced
+  from inside it. PythonOS detects these and says so plainly: *"A newer Android app is available ... PythonOS can't
+  update it automatically"*, with the download links (`updatecheck`, and a notification after login). If a new core
+  needs something the installed package lacks, the core update is held back and the user is told to install the new
+  package first. Each export carries a tiny identity (`export.json`: platform, version, api); `version` shows it.
+
+`OS_Export/exports.json` controls this. When you change an export, set its `version` to the release you are
+shipping it in (leave it alone otherwise, so nobody is told to reinstall an APK that did not change). If a core change
+needs something the older package does not have, raise `api`; packages with a lower `api` are held back from that core
+until they are reinstalled. The manifest of every release lists each export's version, api and download links.
+
 `PYOS_UPDATE_URL` can point the downloader and updater at a different `core-manifest.json`
 (self-hosting, testing).
 

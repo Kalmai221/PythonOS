@@ -26,7 +26,7 @@ mkdir -p "$OUT"
 chmod 777 "$OUT"
 
 # The OS plus the pure-Python dependencies Alpine does not package (the rest come from apk)
-python3 "$REPO/OS_Export/stage.py" "$WORK/payload" --vendor yaspin ping3
+python3 "$REPO/OS_Export/stage.py" "$WORK/payload" --vendor yaspin ping3 --export iso
 chmod -R a+rX "$WORK/payload"
 
 docker run --rm \

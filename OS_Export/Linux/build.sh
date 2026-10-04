@@ -19,6 +19,7 @@ mkdir -p "$OUT/$NAME"
 # --- portable tarball: extract anywhere and run ./pythonos
 cp "$HERE/pythonos" "$OUT/$NAME/pythonos"
 cp "$REPO/OS_Export/bootstrap.py" "$OUT/$NAME/bootstrap.py"
+python3 "$REPO/OS_Export/stage.py" --write-export linux "$OUT/$NAME/export.json"   # which package this is (update detection)
 cp "$HERE/pythonos.desktop" "$OUT/$NAME/pythonos.desktop"
 chmod +x "$OUT/$NAME/pythonos"
 cat > "$OUT/$NAME/README.txt" <<EOF
@@ -39,6 +40,7 @@ if command -v dpkg-deb >/dev/null 2>&1; then
     mkdir -p "$DEB/DEBIAN" "$DEB/opt/pythonos" "$DEB/usr/bin" "$DEB/usr/share/applications"
     cp "$HERE/pythonos" "$DEB/opt/pythonos/pythonos"
     cp "$REPO/OS_Export/bootstrap.py" "$DEB/opt/pythonos/bootstrap.py"
+    cp "$OUT/$NAME/export.json" "$DEB/opt/pythonos/export.json"
     chmod 755 "$DEB/opt/pythonos/pythonos"
     ln -s /opt/pythonos/pythonos "$DEB/usr/bin/pythonos"
     cp "$HERE/pythonos.desktop" "$DEB/usr/share/applications/pythonos.desktop"

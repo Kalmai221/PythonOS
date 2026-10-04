@@ -22,7 +22,8 @@ def main():
         input("Press Enter to close...")
         return 1
     os.chdir(HERE)
-    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8",
+               PYOS_EXPORT_INFO=os.path.join(HERE, "export.json"))
     if not os.path.isfile(os.path.join(HERE, "main.py")):
         print("Downloading PythonOS (first start only)...")
         if subprocess.call([PYTHON, "bootstrap.py", "--dest", HERE], env=env) != 0:

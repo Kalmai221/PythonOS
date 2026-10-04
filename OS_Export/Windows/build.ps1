@@ -26,6 +26,8 @@ New-Item -ItemType Directory -Path $Out | Out-Null
 # 1. Just the bootstrap script - the OS is downloaded on first run
 New-Item -ItemType Directory -Path $App | Out-Null
 Copy-Item (Join-Path $Repo "OS_Export\bootstrap.py") (Join-Path $App "bootstrap.py")
+# Which package this is, so PythonOS can say when a newer one must be installed by hand
+python (Join-Path $Repo "OS_Export\stage.py") --write-export windows (Join-Path $App "export.json")
 
 # 2. An embedded Python runtime
 $Runtime = Join-Path $App "python"

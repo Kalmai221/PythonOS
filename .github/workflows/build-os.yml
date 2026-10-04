@@ -76,7 +76,9 @@ jobs:
           gradle-version: "8.9"
       - name: Add the bootstrap script to the app
         # The app downloads the OS from the latest release on first launch; it only ships this script.
-        run: cp OS_Export/bootstrap.py OS_Export/Android/app/src/main/python/bootstrap.py
+        run: |
+          cp OS_Export/bootstrap.py OS_Export/Android/app/src/main/python/bootstrap.py
+          python OS_Export/stage.py --write-export android OS_Export/Android/app/src/main/python/pyos_export.py
       - name: Prepare the signing key
         env:
           # Optional repository secrets. Without them a throwaway key is generated, which gives an

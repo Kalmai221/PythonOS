@@ -161,6 +161,13 @@ def main(files_dir):
     os.chdir(files_dir)
     if files_dir not in sys.path:
         sys.path.insert(0, files_dir)
+    # Which app this is (generated at build time), so PythonOS can say when a newer APK must be installed
+    try:
+        import json
+        import pyos_export
+        os.environ["PYOS_EXPORT"] = json.dumps(pyos_export.INFO)
+    except Exception:
+        pass
     os.environ.update({
         "PYOS_BUNDLED": "1",
         "TERM": "xterm-256color",

@@ -7,6 +7,7 @@
 
 export PYOS_BUNDLED=1
 export PYOS_LIVE=1
+export PYOS_EXPORT_INFO=/opt/pythonos/export.json   # which image this is (update detection)
 export PYOS_LOCKDOWN=1      # PythonOS refuses anything that could reach the system underneath it
 export HOME=/root
 export TERM="${TERM:-linux}"

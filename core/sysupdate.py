@@ -9,6 +9,7 @@ import sys
 import zipfile
 import requests
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
 from rich.prompt import Confirm
 from rich.progress import Progress, BarColumn, TextColumn
@@ -245,8 +246,114 @@ def offer_restart():
         module.restart_system()
 
 
+# ------------------------------------------------------------------ exports
+# PythonOS updates its core by itself. The package around it - the APK and its terminal screen, the Windows
+# launcher and bundled Python, the Linux launcher, the ISO's kernel and boot setup - cannot be replaced from
+# inside the running OS. Those are "exports"; the release manifest says what the latest ones are, and this
+# works out whether the one in use needs to be downloaded and installed by hand.
+CHECK_FILE = Path(".OSData") / "update_check.json"
+CHECK_INTERVAL = 24 * 3600
+
+
+def export_status(manifest):
+    """Compare this export with the latest release. Returns None for a source checkout, else a dict:
+
+    state: "current" | "update" (newer package exists, core update still works) |
+           "incompatible" (the new core needs a newer package first) | "unknown"
+    """
+    from pyos import export
+    local = export.info()
+    if not local:
+        return None
+    remote = (manifest.get("exports") or {}).get(local["platform"])
+    status = {"platform": local["platform"], "title": export.title(local["platform"]), "local": local,
+              "remote": remote, "state": "unknown", "reason": ""}
+    if not remote:
+        return status
+    status["state"] = "current"
+    if int(remote.get("api", 1)) > int(local.get("api", 1)):
+        status["state"], status["reason"] = "incompatible", "it needs features this version of the package does not have"
+    elif os.environ.get("PYOS_BUNDLED") == "1" and manifest.get("requirements_sha256") not in (None, requirements_hash()):
+        status["state"], status["reason"] = "incompatible", "it needs new libraries, which this package cannot install itself"
+    elif version_key(remote["version"]) > version_key(local["version"]):
+        status["state"] = "update"
+    return status
+
+
+def print_export_notice(status, blocking=False):
+    """Explain, in plain words, that this package must be replaced by hand."""
+    remote, local = status["remote"], status["local"]
+    if blocking:
+        console.print(Panel(
+            f"The latest PythonOS can't be installed on this {status['title']} yet: {status['reason']}.\n"
+            f"You have package version [bold]{local['version']}[/bold]; version [bold green]{remote['version']}[/bold green] "
+            f"is needed.\n\n[bold]This can't be done from inside PythonOS[/bold] - download and install the new "
+            f"{status['title']}:", title="[bold yellow]Install the new package first[/bold yellow]", border_style="yellow", expand=False))
+    else:
+        console.print(Panel(
+            f"A newer [bold]{status['title']}[/bold] is available: {local['version']} -> [bold green]{remote['version']}[/bold green]\n"
+            f"[dim]{remote.get('notes') or ''}[/dim]\n\n"
+            "This is a change to the package itself, so PythonOS [bold]can't update it automatically[/bold]. "
+            "The core still updates by itself; to get the new package, download and install it:",
+            title="[bold yellow]Manual update available[/bold yellow]", border_style="yellow", expand=False))
+    for url in remote.get("urls") or [remote.get("url")]:
+        console.print(f"  [bold cyan]{url}[/bold cyan]", soft_wrap=True)   # never break a link across lines
+
+
+def check_export_update(timeout=8):
+    """For the Android app and scripts: the export status dict (with 'state') or None. Never raises."""
+    try:
+        response = requests.get(MANIFEST_URL, timeout=timeout)
+        response.raise_for_status()
+        return export_status(response.json())
+    except Exception:
+        return None
+
+
+def check_in_background(user):
+    """After login: look for updates at most once a day and leave notifications (never blocks the prompt)."""
+    import threading
+    from pyos import notify, settings
+    if not settings.get("update_check") or not packaged_version():
+        return
+
+    def work():
+        try:
+            state = {}
+            try:
+                state = json.loads(CHECK_FILE.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                pass
+            if time.time() - state.get("last", 0) < CHECK_INTERVAL:
+                return
+            response = requests.get(MANIFEST_URL, timeout=8)
+            response.raise_for_status()
+            manifest = response.json()
+            state["last"] = time.time()
+            current = packaged_version()
+            latest = str(manifest["version"])
+            if version_key(latest) > version_key(current) and state.get("core") != latest:
+                notify.notify(f"PythonOS {latest} is available - it updates itself: run updatecheck.",
+                              title="Update available", user=user)
+                state["core"] = latest
+            es = export_status(manifest)
+            if es and es["state"] in ("update", "incompatible"):
+                key = f"{es['remote']['version']}:{es['state']}"
+                if state.get("export") != key:
+                    what = "needs" if es["state"] == "incompatible" else "has"
+                    notify.notify(f"A new {es['title']} ({es['remote']['version']}) {what} a manual download - it can't "
+                                  "update itself. Run updatecheck for the link.", title="Manual update", level="warn", user=user)
+                    state["export"] = key
+            CHECK_FILE.parent.mkdir(exist_ok=True)
+            CHECK_FILE.write_text(json.dumps(state), encoding="utf-8")
+        except Exception:
+            pass   # offline or GitHub unavailable - try again next time
+
+    threading.Thread(target=work, name="update-check", daemon=True).start()
+
+
 def update_packaged(current, auto_update):
-    """Update a packaged build from the latest GitHub release. Returns True if updated."""
+    """Update a packaged build from the latest GitHub release. Returns True if the core was updated."""
     console.print(f"[bold cyan]PythonOS {current}[/bold cyan] - checking for a newer release...")
     try:
         manifest = fetch_manifest()
@@ -258,52 +365,58 @@ def update_packaged(current, auto_update):
         return False
 
     latest = str(manifest["version"])
-    if version_key(latest) <= version_key(current):
-        console.print(f"[bold green]You are up to date (latest release: {latest}).[/bold green]")
+    export_info = export_status(manifest)
+    core_newer = version_key(latest) > version_key(current)
+
+    if export_info and export_info["state"] == "incompatible" and core_newer:
+        print_export_notice(export_info, blocking=True)
         return False
 
-    # Android and the ISO ship their libraries and cannot install new ones
-    if os.environ.get("PYOS_BUNDLED") == "1" and manifest.get("requirements_sha256") not in (None, requirements_hash()):
-        console.print(f"[bold yellow]Version {latest} needs new libraries, which this build cannot install itself."
-                      "[/bold yellow]\nInstall the new app / image from the releases page to update.")
-        return False
-
-    table = Table(show_header=False, box=None)
-    table.add_row("[bold]Installed[/bold]", str(current))
-    table.add_row("[bold]Available[/bold]", f"[green]{latest}[/green]")
-    if manifest.get("size"):
-        table.add_row("[bold]Download[/bold]", f"{int(manifest['size']) / 1024:.0f} KB")
-    console.print(table)
-    if manifest.get("notes"):
-        console.print(f"[dim]{manifest['notes']}[/dim]")
-
-    if not (auto_update or Confirm.ask("Install this update?", default=True)):
-        console.print("[bold yellow]Update cancelled.[/bold yellow]")
-        return False
-
-    zip_path = UPDATE_DIR / manifest["asset"]
-    stage_dir = UPDATE_DIR / "stage"
-    try:
-        UPDATE_DIR.mkdir(parents=True, exist_ok=True)
-        download_core(manifest, zip_path)
-        extract_core(zip_path, manifest, stage_dir)
-        apply_core(stage_dir, latest)
-    except (requests.RequestException, OSError, ValueError, zipfile.BadZipFile, KeyError) as e:
-        console.print(f"[bold red]Update failed - nothing was changed:[/bold red] {e}")
-        return False
-    finally:
-        shutil.rmtree(stage_dir, ignore_errors=True)
-        try:
-            zip_path.unlink()
-        except OSError:
-            pass
-
-    console.print(f"[bold green]Updated to {latest}![/bold green] Your files and accounts were not touched.")
-    if not auto_update:
-        offer_restart()
+    updated = False
+    if not core_newer:
+        console.print(f"[bold green]PythonOS itself is up to date (latest release: {latest}).[/bold green]")
     else:
-        console.print("[bold cyan]Restart PythonOS to start using it.[/bold cyan]")
-    return True
+        table = Table(show_header=False, box=None)
+        table.add_row("[bold]Installed[/bold]", str(current))
+        table.add_row("[bold]Available[/bold]", f"[green]{latest}[/green]")
+        if manifest.get("size"):
+            table.add_row("[bold]Download[/bold]", f"{int(manifest['size']) / 1024:.0f} KB")
+        console.print(table)
+        if manifest.get("notes"):
+            console.print(f"[dim]{manifest['notes']}[/dim]")
+
+        if not (auto_update or Confirm.ask("Install this update?", default=True)):
+            console.print("[bold yellow]Update cancelled.[/bold yellow]")
+        else:
+            zip_path = UPDATE_DIR / manifest["asset"]
+            stage_dir = UPDATE_DIR / "stage"
+            try:
+                UPDATE_DIR.mkdir(parents=True, exist_ok=True)
+                download_core(manifest, zip_path)
+                extract_core(zip_path, manifest, stage_dir)
+                apply_core(stage_dir, latest)
+                updated = True
+            except (requests.RequestException, OSError, ValueError, zipfile.BadZipFile, KeyError) as e:
+                console.print(f"[bold red]Update failed - nothing was changed:[/bold red] {e}")
+            finally:
+                shutil.rmtree(stage_dir, ignore_errors=True)
+                try:
+                    zip_path.unlink()
+                except OSError:
+                    pass
+            if updated:
+                console.print(f"[bold green]Updated to {latest}![/bold green] Your files and accounts were not touched.")
+                if not auto_update:
+                    offer_restart()
+                else:
+                    console.print("[bold cyan]Restart PythonOS to start using it.[/bold cyan]")
+
+    # The package around PythonOS is a separate matter: tell the user if it needs replacing by hand
+    if export_info and export_info["state"] == "update":
+        print_export_notice(export_info)
+    elif export_info and export_info["state"] == "current" and not core_newer:
+        console.print(f"[dim]This {export_info['title']} ({export_info['local']['version']}) is the latest.[/dim]")
+    return updated
 
 
 def update_system(auto_update=False):

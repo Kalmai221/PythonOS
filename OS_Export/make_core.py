@@ -26,6 +26,7 @@ import zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import stage  # noqa: E402
 
+RELEASES_URL = "https://github.com/Kalmai221/PythonOS/releases"
 EXCLUDE = {"config.json"}  # user settings are never overwritten by an update
 MANIFEST_NAME = "core-manifest.json"
 
@@ -87,6 +88,17 @@ def main():
             "requirements_sha256": requirements_hash(root),
             "files": files,
         }
+        # What each export (APK, Windows app, Linux package, ISO) is at in this release, so an installed
+        # one can tell when a package it cannot update itself has a newer version to download.
+        base = f"{RELEASES_URL}/download/{tag}/"
+        manifest["exports"] = {}
+        for platform, entry in stage.exports().items():
+            assets = [a.replace("{v}", ver) for a in entry["assets"]]
+            manifest["exports"][platform] = {
+                "title": entry["title"], "version": entry["version"], "api": entry["api"],
+                "assets": assets, "url": base + assets[0], "urls": [base + a for a in assets],
+                "notes": entry.get("notes", ""),
+            }
         notes = os.environ.get("RELEASE_NOTES", "").strip()
         if notes:
             manifest["notes"] = notes
