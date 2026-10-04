@@ -554,6 +554,10 @@ def start_shell(username):
     last_activity = time.time()
     while True:
         role = pyos.userinfo()[1]
+        tidy = settings.get("auto_clear_lines")
+        if tidy and stdio.lines_on_screen() > tidy:
+            stdio.clear_screen()
+            console.print("[dim]Screen tidied (settings auto_clear_lines). Earlier output: 'history', 'logs'.[/dim]")
         show_notifications(username)
         try:
             line = input(make_prompt(username, role)).strip()

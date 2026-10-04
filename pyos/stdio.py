@@ -6,12 +6,14 @@
 # has one) and everything else to the real terminal.
 import contextlib
 import io
+import os
 import sys
 import threading
 
 _local = threading.local()
 _targets = {}  # thread id -> buffer
 _lock = threading.Lock()
+_screen = {"lines": 0}   # lines printed to the real terminal since the last clear (for the auto_clear_lines setting)
 
 
 class _Router(io.TextIOBase):
@@ -28,6 +30,7 @@ class _Router(io.TextIOBase):
         buf = self._buffer()
         if buf is not None:
             return buf.write(text)
+        _screen["lines"] += text.count(chr(10))
         return self._real.write(text)
 
     def writelines(self, lines):
@@ -60,6 +63,25 @@ class _Router(io.TextIOBase):
 
     def __getattr__(self, name):  # buffer, name, mode, ...
         return getattr(self._real, name)
+
+
+def lines_on_screen():
+    return _screen["lines"]
+
+
+def clear_screen(scrollback=True):
+    """Clear the terminal (and by default its scrollback) and reset the line counter. Works on Windows 10+, Linux,
+    macOS and the Android terminal, which all understand the ANSI sequences; falls back to the OS command."""
+    install()
+    real = sys.stdout._real if isinstance(sys.stdout, _Router) else sys.stdout
+    try:
+        if os.name == "nt":
+            os.system("")                        # switches the Windows console into ANSI mode
+        real.write("\x1b[H\x1b[2J" + ("\x1b[3J" if scrollback else ""))
+        real.flush()
+    except (OSError, ValueError):
+        os.system("cls" if os.name == "nt" else "clear")
+    _screen["lines"] = 0
 
 
 def install():

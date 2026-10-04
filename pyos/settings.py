@@ -16,6 +16,7 @@ SCHEMA = {
     "notifications": (True, bool, "Show notifications before the prompt"),
     "update_check": (True, bool, "Check for PythonOS updates in the background after login"),
     "auto_lock_minutes": (0, int, "Ask for the password again after this many idle minutes (0 = never)"),
+    "auto_clear_lines": (0, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
 }
 

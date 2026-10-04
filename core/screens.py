@@ -18,7 +18,7 @@ console = Console()
 
 
 def _clear():
-    os.system("cls" if os.name == "nt" else "clear")
+    pyos.stdio.clear_screen(scrollback=False)
 
 
 def pause(seconds):

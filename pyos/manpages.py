@@ -88,7 +88,9 @@ page("run", "start a program", ["run <program> [args]"],
      "command name start with run too.", examples=[("run marketplace", "open the store"), ("run calc", "calculator")], see=["pkg", "help"])
 page("reload", "re-read commands and programs", ["reload"], "Use after installing a package that added commands.")
 page("exit", "leave the shell", ["exit"], "Logs you out.", see=["logout", "shutdown"])
-page("clear", "clear the screen", ["clear"], "Wipes the terminal.")
+page("clear", "clear the screen", ["clear [-x]"], "Wipes the terminal and its scrollback so old output stops piling up. Use -x to keep the scrollback. "
+     "Set settings auto_clear_lines to a number (say 300) and the screen tidies itself before a prompt once that many lines have printed.",
+     [("-x", "keep the scrollback")], [("clear", "wipe it all"), ("settings set auto_clear_lines 300", "tidy automatically")], ["settings"])
 page("echo", "print text", ["echo <text>"], "Prints its words.", examples=[("echo hello > hi.txt", "write a file")])
 page("date", "show the date and time", ["date"], "Prints the current day, date and time.", see=["uptime", "schedule"])
 page("history", "show earlier commands", ["history"], "Lists what you typed before; the up arrow recalls them.")
