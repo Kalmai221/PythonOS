@@ -64,7 +64,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"   # Chaquopy uses this to install the app's Python packages
+          # Must match chaquopy { version } in app/build.gradle.kts: Chaquopy runs a Python of the
+          # same version on the build machine to install the app's pip packages.
+          python-version: "3.13"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
