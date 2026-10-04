@@ -10,13 +10,14 @@ config = {"name": "hostname", "description": "Show the system hostname (admins: 
 def execute(args=None):
     if not args:
         console.print(fs.hostname(), markup=False)
-        return
+        return True
     if pyos.userinfo()[1] != "admin":
         console.print("[bold red]hostname: Permission denied[/bold red]")
-        return
+        return False
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,31}", args[0]):
         console.print("[bold red]hostname: invalid name (letters, numbers, '-' and '_', max 32)[/bold red]")
-        return
+        return False
     with open(fs.resolve("/etc/hostname", write=True), "w") as f:
         f.write(args[0] + "\n")
     pyos.log.log(f"hostname changed to {args[0]}", user=pyos.userinfo()[0])
+    return True

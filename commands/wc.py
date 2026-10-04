@@ -13,10 +13,11 @@ def execute(args=None):
                 text = f.read()
         except Exception as e:
             console.print(f"[bold red]wc: {args[0]}: {e}[/bold red]")
-            return
+            return False
     elif stdio.read_stdin() is not None:
         text = stdio.read_stdin()
     else:
         console.print("[bold red]Usage:[/bold red] wc <file>")
-        return
+        return False
     console.print(f"{text.count(chr(10)):>6} {len(text.split()):>6} {len(text):>6}", markup=False)
+    return True

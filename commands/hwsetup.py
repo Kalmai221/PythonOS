@@ -13,7 +13,7 @@ def execute(args=None):
     reason = hardware.unavailable_reason()
     if reason:
         console.print(f"[yellow]{reason}[/yellow]")
-        return
+        return False
     sub = (args[0].lower() if args else "")
     if sub in ("check", "hardware", "firmware"):
         hardware.hardware_check()
@@ -25,3 +25,4 @@ def execute(args=None):
         hardware.menu()
     else:
         console.print("[red]Usage:[/red] hwsetup [check|audio|network]")
+        return False

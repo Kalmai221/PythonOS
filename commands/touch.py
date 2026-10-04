@@ -9,7 +9,8 @@ config = {"name": "touch", "description": "Create an empty file or update its ti
 def execute(args=None):
     if not args:
         console.print("[bold red]Usage:[/bold red] touch <file>")
-        return
+        return False
+    ok = True
     for name in args:
         try:
             path = fs.resolve(name, write=True)
@@ -17,3 +18,5 @@ def execute(args=None):
                 os.utime(path, None)
         except Exception as e:
             console.print(f"[bold red]touch: {name}: {e}[/bold red]")
+            ok = False
+    return ok

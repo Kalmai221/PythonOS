@@ -30,16 +30,19 @@ def execute(args=None):
     paths = [a for a in args if not a.startswith("-")]
     try:
         directory = fs.resolve(paths[0]) if paths else fs.current_dir()
+        if not os.path.exists(directory):
+            console.print(f"[bold red]ls: {escape(paths[0])}: No such file or directory[/bold red]")
+            return False
         if not os.path.isdir(directory):
-            console.print(f"[bold red]Error:[/bold red] {fs.display(directory)} is not a valid directory.")
-            return
+            console.print(escape(os.path.basename(directory)))   # a plain file: just print it
+            return True
 
         items = sorted(os.listdir(directory), key=str.lower)
         if not show_hidden:
             items = [i for i in items if not i.startswith(".")]
         if not items:
             console.print("[bold yellow]Directory is empty.[/bold yellow]")
-            return
+            return True
 
         if "-l" in args:
             table = Table(box=None, header_style="bold", pad_edge=False)
@@ -58,5 +61,10 @@ def execute(args=None):
             cells = [Text(i + "/", style="bold blue") if os.path.isdir(os.path.join(directory, i)) else Text(i)
                      for i in items]
             console.print(Columns(cells, padding=(0, 2), column_first=True))
+        return True
+    except PermissionError as e:
+        console.print(f"[bold red]ls: {e}[/bold red]")
+        return False
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
+        return False

@@ -13,10 +13,10 @@ def execute(args=None):
         root = fs.resolve(args[0]) if args else fs.current_dir()
     except PermissionError as e:
         console.print(f"[bold red]tree: {e}[/bold red]")
-        return
+        return False
     if not os.path.isdir(root):
         console.print("[bold red]tree: not a directory[/bold red]")
-        return
+        return False
 
     count = [0]
     console.print(fs.display(root, tilde=True), markup=False)
@@ -45,3 +45,4 @@ def execute(args=None):
     walk(root, "")
     if count[0] >= MAX_ENTRIES:
         console.print(f"... (stopped after {MAX_ENTRIES} entries)", markup=False)
+    return True

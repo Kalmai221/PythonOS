@@ -26,11 +26,12 @@ def execute(args=None):
                 lines = f.read().splitlines()
         except Exception as e:
             console.print(f"[bold red]head: {files[0]}: {e}[/bold red]")
-            return
+            return False
     elif stdio.read_stdin() is not None:
         lines = stdio.read_stdin().splitlines()
     else:
         console.print("[bold red]Usage:[/bold red] head [-n N] <file>")
-        return
+        return False
     for line in lines[:n]:
         console.print(line, markup=False, highlight=False)
+    return True

@@ -8,7 +8,7 @@ console = Console()
 # Metadata dictionary for the command
 config = {
     "name": "cd",
-    "description": "Change the current directory."
+    "description": "Change the current directory (cd with no argument goes home)."
 }
 
 
@@ -23,9 +23,10 @@ def execute(args=None):
         new_path = fs.resolve(target)
     except PermissionError:
         console.print(f"[bold red]cd: {target}: Permission denied[/bold red]")
-        return
+        return False
 
     if os.path.isdir(new_path):
         fs.save_current_dir(new_path)
-    else:
-        console.print(f"[bold red]cd: {target}: No such directory[/bold red]")
+        return True
+    console.print(f"[bold red]cd: {target}: No such directory[/bold red]")
+    return False
