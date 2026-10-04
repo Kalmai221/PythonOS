@@ -46,15 +46,17 @@ PLATFORMS = ("android", "windows", "linux", "iso")
 
 
 def exports():
-    """OS_Export/exports.json: for each export, the version it last changed in and the api it provides."""
+    """OS_Export/exports.json: for each export, its api, assets and the inputs that decide whether it is rebuilt."""
     with open(EXPORTS_FILE, encoding="utf-8") as f:
         data = json.load(f)
     return {k: v for k, v in data.items() if not k.startswith("_")}
 
 
 def export_info(platform):
+    # An export's version is the release it was built in. Unchanged exports are not rebuilt (see plan.py),
+    # so theirs stays at the release where they last changed.
     entry = exports()[platform]
-    return {"platform": platform, "version": entry["version"], "api": entry["api"]}
+    return {"platform": platform, "version": version(), "api": entry["api"]}
 
 
 def write_export(platform, path):

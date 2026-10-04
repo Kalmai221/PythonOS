@@ -42,10 +42,21 @@ Every release has two extra files besides the installers: **`pythonos-core-<vers
   needs something the installed package lacks, the core update is held back and the user is told to install the new
   package first. Each export carries a tiny identity (`export.json`: platform, version, api); `version` shows it.
 
-`OS_Export/exports.json` controls this. When you change an export, set its `version` to the release you are
-shipping it in (leave it alone otherwise, so nobody is told to reinstall an APK that did not change). If a core change
-needs something the older package does not have, raise `api`; packages with a lower `api` are held back from that core
-until they are reinstalled. The manifest of every release lists each export's version, api and download links.
+### Unchanged exports are not rebuilt
+
+A release only builds the exports that actually changed. Before building, the `plan` job in the workflow fingerprints each
+export's inputs (`OS_Export/inputs.py`; the files listed under `inputs` in `exports.json`) and compares them with the
+fingerprints stored in the previous release's `core-manifest.json`. If they match and the old download still works, the
+export's job is skipped, the new release **links to and re-attaches the old file**, and that export's version stays at the
+release it last changed in (so installs of it are not told to update). Nothing to bump by hand.
+
+* The Android, Windows and Linux packages do not contain the core, so **a core-only change skips all three**.
+* The ISO embeds the core (`"embeds_core": true`), so it is rebuilt whenever the core changes. Set it to `false` if you would
+  rather reuse the ISO and let it self-update the core on each boot.
+* Manual runs from the Actions tab, re-runs of an existing tag, and the first release with fingerprints build everything.
+* If an export that had to be built fails, the release is not published (its manifest would link to a missing file).
+* `exports.json` still holds the one thing that is a decision: **`api`**. Raise it when a core change needs something older
+  packages lack; that also forces the export to rebuild, and older packages are held back from the new core until reinstalled.
 
 `PYOS_UPDATE_URL` can point the downloader and updater at a different `core-manifest.json`
 (self-hosting, testing).

@@ -1,8 +1,9 @@
 name: Build PythonOS
 
 # Builds the Linux, Windows, Android and ISO packages from OS_Export/.
-#   - Run it by hand from the Actions tab ("Run workflow"), or
-#   - push a tag like v1.2.0 to also publish everything as a GitHub release.
+#   - Run it by hand from the Actions tab ("Run workflow"): builds everything, publishes nothing.
+#   - Push a tag like v1.2.0 to also publish a GitHub release. For a release, an export whose inputs did not
+#     change since the previous release is NOT rebuilt: the release links to (and re-attaches) the old file.
 on:
   workflow_dispatch:
   push:
@@ -16,8 +17,30 @@ env:
   VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'dev' }}
 
 jobs:
+  plan:
+    name: Plan (what changed since the last release?)
+    runs-on: ubuntu-24.04
+    outputs:
+      android: ${{ steps.plan.outputs.android }}
+      windows: ${{ steps.plan.outputs.windows }}
+      linux: ${{ steps.plan.outputs.linux }}
+      iso: ${{ steps.plan.outputs.iso }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - id: plan
+        run: python OS_Export/plan.py --out plan.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pythonos-plan
+          path: plan.json
+
   linux:
     name: Linux (.tar.gz and .deb)
+    needs: plan
+    if: needs.plan.outputs.linux == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -34,6 +57,8 @@ jobs:
 
   windows:
     name: Windows (portable zip and installer)
+    needs: plan
+    if: needs.plan.outputs.windows == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -59,6 +84,8 @@ jobs:
 
   android:
     name: Android (APK)
+    needs: plan
+    if: needs.plan.outputs.android == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -124,6 +151,8 @@ jobs:
 
   iso:
     name: ISO (bootable live image)
+    needs: plan
+    if: needs.plan.outputs.iso == 'true'
     runs-on: ubuntu-24.04
     # A stuck mirror or mkimage step must not hold up the release for hours (default is 6 h)
     timeout-minutes: 40
@@ -142,15 +171,23 @@ jobs:
 
   core:
     name: Core update package
+    needs: plan
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      - uses: actions/download-artifact@v8
+        with:
+          name: pythonos-plan
+          path: planfile
       # pythonos-core-<version>.zip + core-manifest.json: installed copies of PythonOS (every
-      # export) download these from the latest release to update their own core files.
+      # export) download these from the latest release to update their own core files. The plan tells
+      # make_core which exports were reused, so the manifest keeps pointing at their old files.
       - run: python OS_Export/make_core.py
+        env:
+          PLAN_FILE: ${{ github.workspace }}/planfile/plan.json
       - uses: actions/upload-artifact@v7
         with:
           name: pythonos-core
@@ -160,16 +197,24 @@ jobs:
 
   release:
     name: Publish release
-    # The core update package is what installed copies update from, so it gates the release;
-    # a platform build that failed is simply missing from the release.
-    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.core.result == 'success' }}
-    needs: [linux, windows, android, iso, core]
+    # The core package is what installed copies update from, so it must succeed; an export that had to be
+    # built must succeed too (the manifest links to its files). Reused exports are simply skipped jobs.
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.core.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+    needs: [plan, linux, windows, android, iso, core]
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
       - uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
+      - name: Re-attach the files of exports that were not rebuilt
+        run: |
+          python OS_Export/plan.py --fetch-reused artifacts/plan.json artifacts
+          rm artifacts/plan.json
       - uses: softprops/action-gh-release@v3
         with:
           files: artifacts/*

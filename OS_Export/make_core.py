@@ -25,6 +25,7 @@ import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import stage  # noqa: E402
+import inputs  # noqa: E402
 
 RELEASES_URL = "https://github.com/Kalmai221/PythonOS/releases"
 EXCLUDE = {"config.json"}  # user settings are never overwritten by an update
@@ -90,14 +91,30 @@ def main():
         }
         # What each export (APK, Windows app, Linux package, ISO) is at in this release, so an installed
         # one can tell when a package it cannot update itself has a newer version to download.
+        # Exports that did not change since an earlier release are not rebuilt: the plan (plan.py) says so, and
+        # their entry is carried over, still pointing at the release that has the files.
         base = f"{RELEASES_URL}/download/{tag}/"
+        plan = None
+        plan_file = os.environ.get("PLAN_FILE", "")
+        if plan_file and os.path.exists(plan_file):
+            with open(plan_file, encoding="utf-8") as f:
+                plan = json.load(f)
+        hashes = None
         manifest["exports"] = {}
         for platform, entry in stage.exports().items():
+            item = ((plan or {}).get("exports") or {}).get(platform)
+            if item and not item["build"]:
+                manifest["exports"][platform] = item["entry"]
+                continue
+            digest = (item or {}).get("inputs_sha256")
+            if not digest:
+                hashes = hashes or inputs.all_hashes()
+                digest = hashes[platform]
             assets = [a.replace("{v}", ver) for a in entry["assets"]]
             manifest["exports"][platform] = {
-                "title": entry["title"], "version": entry["version"], "api": entry["api"],
+                "title": entry["title"], "version": ver, "api": entry["api"],
                 "assets": assets, "url": base + assets[0], "urls": [base + a for a in assets],
-                "notes": entry.get("notes", ""),
+                "notes": entry.get("notes", ""), "inputs_sha256": digest,
             }
         notes = os.environ.get("RELEASE_NOTES", "").strip()
         if notes:
