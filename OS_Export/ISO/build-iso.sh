@@ -7,7 +7,6 @@
 # "mkimage" tooling inside an Alpine container, so nothing is installed on the host.
 #
 # Kernel: ISO_KERNEL=lts (default, normal PCs) or ISO_KERNEL=virt (much smaller, virtual machines only).
-# ISO_FIRMWARE=1 adds back the large firmware bundle (Wi-Fi and some network cards).
 #
 # What you get: a live system (runs from RAM) that boots straight into PythonOS and powers
 # off when you shut PythonOS down. Anything you create is lost at power off - it is a live CD.
@@ -31,7 +30,7 @@ python3 "$REPO/OS_Export/stage.py" "$WORK/payload" --vendor yaspin ping3
 chmod -R a+rX "$WORK/payload"
 
 docker run --rm \
-    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-lts}" -e ISO_FIRMWARE="${ISO_FIRMWARE:-0}" \
+    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-lts}" \
     -v "$WORK/payload:/payload:ro" \
     -v "$HERE:/iso:ro" \
     -v "$OUT:/out" \

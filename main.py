@@ -86,6 +86,10 @@ try:
         mark_first_time_done()
         console.print("[bold green]First-time setup complete! Continuing boot...[/bold green]")
 
+    # On the live ISO, offer hardware setup (drivers/firmware, audio, network) before login
+    if os.environ.get("PYOS_LIVE") == "1":
+        core.live_setup()
+
     attempts = 0
     username = None
 

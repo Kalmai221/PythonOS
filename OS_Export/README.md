@@ -103,11 +103,11 @@ keystore file, base64-encoded), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`
 straight into PythonOS on the first console and powers off when you shut PythonOS down; Alt+F2 is
 a recovery shell. It is a live CD: everything runs from RAM and is lost at power off. Try it with
 `qemu-system-x86_64 -m 1024 -cdrom pythonos-<version>-x86_64.iso`.
-It uses Alpine's full `lts` kernel, so it boots normal PCs as well as virtual machines. To keep the
-image smaller it leaves out the large firmware bundle (Wi-Fi and some network cards; wired
-networking and the console work). Options when building locally:
-`ISO_FIRMWARE=1` adds the firmware back, and `ISO_KERNEL=virt` builds a much smaller image that
-only suits virtual machines (QEMU, VirtualBox, VMware, Hyper-V).
+It uses Alpine's full `lts` kernel with the complete firmware bundle, so it boots normal PCs and
+most Wi-Fi cards and GPUs work. On every boot it offers a hardware setup (also available any time
+as the `hwsetup` command): a hardware and firmware check, choosing and testing the audio output,
+and picking a network and connecting to the internet (wired or Wi-Fi). Building locally with
+`ISO_KERNEL=virt` gives a smaller image that only suits virtual machines.
 
 ## Bundled mode
 

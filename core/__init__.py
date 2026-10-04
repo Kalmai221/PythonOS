@@ -4,3 +4,4 @@ from .BSOD import simulate_bsod
 from .sysupdate import update_system
 from .shutdownwipe import simulate_shutdown_wipe
 from .firsttimeuse import firsttimeuse
+from .hardware import live_setup

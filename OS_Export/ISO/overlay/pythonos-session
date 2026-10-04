@@ -4,6 +4,7 @@
 #   - PythonOS fails to start                    -> drop to a shell so the error can be read
 
 export PYOS_BUNDLED=1
+export PYOS_LIVE=1          # tells PythonOS it is the live ISO: offers hardware setup at boot
 export HOME=/root
 export TERM="${TERM:-linux}"
 export LANG=C.UTF-8

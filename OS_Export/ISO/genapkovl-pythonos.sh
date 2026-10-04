@@ -57,6 +57,13 @@ py3-requests
 py3-pygments
 py3-prompt_toolkit
 nano
+pciutils
+hwdata-pci
+usbutils
+alsa-utils
+alsa-ucm-conf
+iw
+wpa_supplicant
 EOF
 
 makefile root:root 0644 "$tmp"/etc/motd <<EOF

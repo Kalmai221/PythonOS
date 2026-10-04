@@ -6,23 +6,16 @@ profile_pythonos() {
 	arch="x86_64"
 	output_format="iso"
 
-	# Kernel: "lts" is the full kernel and boots normal PCs (default). "virt" is a much smaller
-	# kernel for virtual machines only.
+	# "lts" is the full kernel and boots normal PCs (default); "virt" is a smaller kernel for virtual
+	# machines only. The standard profile's firmware bundle is kept: the hardware setup in PythonOS
+	# (hwsetup) needs it for Wi-Fi, some network cards and GPUs.
 	kernel_flavors="${PYTHONOS_KERNEL:-lts}"
-
-	# Size: the standard profile also ships hundreds of MB of firmware (Wi-Fi, some network cards),
-	# netfilter extras and CPU microcode. A console live image does not need them, so they are left
-	# out unless PYTHONOS_FIRMWARE=1. Wired networking and the console/framebuffer still work.
-	if [ "${PYTHONOS_FIRMWARE:-0}" != "1" ]; then
-		kernel_addons=""
-		boot_addons=""
-		initrd_ucode=""
-		apks="$(echo $apks | tr ' ' '\n' | grep -v -e '^linux-firmware' -e '^wireless-regdb' | tr '\n' ' ')"
-	fi
-
 	kernel_cmdline="console=tty0 console=ttyS0,115200"
 	syslinux_serial="0 115200"
-	# Python and the libraries PythonOS needs (yaspin and ping3 are bundled with the OS itself)
+
+	# Python and the libraries PythonOS needs (yaspin and ping3 are bundled with the OS itself),
+	# plus what the hardware setup uses: PCI/USB listing, ALSA audio tools and Wi-Fi tools.
 	apks="$apks python3 py3-rich py3-psutil py3-requests py3-pygments py3-prompt_toolkit nano"
+	apks="$apks pciutils hwdata-pci usbutils alsa-utils alsa-ucm-conf iw wpa_supplicant"
 	apkovl="genapkovl-pythonos.sh"
 }
