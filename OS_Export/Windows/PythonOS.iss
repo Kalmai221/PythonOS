@@ -34,9 +34,9 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 
 [Files]
 ; Never overwrite the user's data on upgrade
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion; \
-    Excludes: "files\*,users.json,current_user.json,current_directory.txt,.OSData\*,config.json"
-Source: "{#SourceDir}\config.json"; DestDir: "{app}"; Flags: onlyifdoesntexist
+; The package holds PythonOS.exe, the bundled Python and bootstrap.py. The OS itself is downloaded
+; on first run (and updates itself), so an upgrade of this installer never touches it or the user's data.
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
 Name: "{group}\PythonOS"; Filename: "{app}\PythonOS.exe"; WorkingDir: "{app}"

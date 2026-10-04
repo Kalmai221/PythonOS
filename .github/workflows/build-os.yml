@@ -74,8 +74,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
-      - name: Put the OS inside the app
-        run: python OS_Export/stage.py OS_Export/Android/app/src/main/assets/pythonos
+      - name: Add the bootstrap script to the app
+        # The app downloads the OS from the latest release on first launch; it only ships this script.
+        run: cp OS_Export/bootstrap.py OS_Export/Android/app/src/main/python/bootstrap.py
       - name: Prepare the signing key
         env:
           # Optional repository secrets. Without them a throwaway key is generated, which gives an
@@ -133,10 +134,30 @@ jobs:
           name: pythonos-iso
           path: dist/iso/*.iso
 
+  core:
+    name: Core update package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # pythonos-core-<version>.zip + core-manifest.json: installed copies of PythonOS (every
+      # export) download these from the latest release to update their own core files.
+      - run: python OS_Export/make_core.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pythonos-core
+          path: |
+            dist/core/*.zip
+            dist/core/core-manifest.json
+
   release:
     name: Publish release
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [linux, windows, android, iso]
+    # The core update package is what installed copies update from, so it gates the release;
+    # a platform build that failed is simply missing from the release.
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.core.result == 'success' }}
+    needs: [linux, windows, android, iso, core]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

@@ -22,6 +22,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
+import java.io.File
 
 /** A full-screen terminal: scrolling output on top, an input line and a few keys below. */
 class MainActivity : Activity(), TerminalBridge.Listener {
@@ -173,7 +174,8 @@ class MainActivity : Activity(), TerminalBridge.Listener {
         TerminalBridge.reset()
         Thread({
             try {
-                val dir = PayloadInstaller.install(applicationContext)
+                // The OS itself is downloaded into here on first launch (see pyos_android.py)
+                val dir = File(filesDir, "pythonos").apply { mkdirs() }
                 if (!Python.isStarted()) Python.start(AndroidPlatform(applicationContext))
                 Python.getInstance().getModule("pyos_android").callAttr("main", dir.absolutePath)
             } catch (e: Throwable) {

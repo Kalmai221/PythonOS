@@ -25,6 +25,7 @@ PAYLOAD_FILES = [
 ]
 PAYLOAD_DIRS = ["commands", "core", "programs", "pyos"]
 IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")
+FORBIDDEN_TOP = {"online_packages", "files", "OS_Export", "tools", ".github", ".OSData", "users.json", "current_user.json"}
 
 
 def version():
@@ -51,6 +52,13 @@ def stage(dest, vendor=()):
             shutil.copy2(src, os.path.join(dest, name))
     for name in PAYLOAD_DIRS:
         shutil.copytree(os.path.join(REPO, name), os.path.join(dest, name), ignore=IGNORE)
+    # Marketplace packages, user data and build tooling must never ship inside the OS itself
+    # (packages are downloaded from the marketplace and live in files/installed_*).
+    for dirpath, dirnames, filenames in os.walk(dest):
+        for name in dirnames + filenames:
+            rel = os.path.relpath(os.path.join(dirpath, name), dest).replace(os.sep, "/")
+            if rel.split("/")[0] in FORBIDDEN_TOP or "installed_" in name:
+                raise SystemExit(f"stage.py: '{rel}' must not be part of the OS payload")
     with open(os.path.join(dest, "VERSION"), "w", encoding="utf-8", newline="\n") as f:
         f.write(version() + "\n")
     if vendor:

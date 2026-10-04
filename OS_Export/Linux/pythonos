@@ -1,14 +1,14 @@
 #!/bin/sh
-# PythonOS launcher (Linux). Installed next to an "app" folder holding the OS files.
+# PythonOS launcher (Linux).
 #
-# The OS reads and writes files relative to its working directory, so each user gets a
-# private data directory (default ~/.local/share/pythonos) with its own copy of the code,
-# a Python virtual environment, and their files, accounts and settings.
+# This package does not contain the OS itself. On first run bootstrap.py downloads the latest
+# PythonOS core from GitHub releases into the user's data directory (default
+# ~/.local/share/pythonos); after that PythonOS updates its own core files from inside
+# (see the sysupdate command). The data directory also holds a Python virtual environment and
+# the user's files and accounts, because the OS reads and writes relative to its working directory.
 set -e
 
 HERE="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
-APP="$HERE/app"
-[ -d "$APP" ] || APP="$HERE"                      # running straight from a staged folder
 DATA="${PYTHONOS_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pythonos}"
 VENV="$DATA/venv"
 
@@ -19,19 +19,14 @@ fi
 
 mkdir -p "$DATA"
 
-# Refresh the code when the installed version changes (user data is never touched)
-NEW_VERSION="$(cat "$APP/VERSION" 2>/dev/null || echo unknown)"
-if [ "$(cat "$DATA/.installed_version" 2>/dev/null)" != "$NEW_VERSION" ]; then
-    for item in commands core programs pyos; do
-        rm -rf "$DATA/$item"
-        cp -R "$APP/$item" "$DATA/$item"
-    done
-    for item in main.py shell.py users.py requirements.txt boot-requirements.txt readme.md VERSION; do
-        [ -f "$APP/$item" ] && cp "$APP/$item" "$DATA/$item"
-    done
-    [ -f "$DATA/config.json" ] || cp "$APP/config.json" "$DATA/config.json"
-    rm -f "$VENV/.deps_ok"                        # dependencies may have changed too
-    echo "$NEW_VERSION" > "$DATA/.installed_version"
+# First run: download the core
+if [ ! -f "$DATA/main.py" ]; then
+    echo "Downloading PythonOS (first run only)..."
+    if ! python3 "$HERE/bootstrap.py" --dest "$DATA"; then
+        echo "Could not download PythonOS. Check your internet connection and try again." >&2
+        exit 1
+    fi
+    rm -f "$VENV/.deps_ok"
 fi
 
 # First run: create the virtual environment and install dependencies

@@ -2,7 +2,10 @@
 
 PythonOS loads commands and marketplace packages from disk and installs packages with
 pip, so the OS itself runs on the bundled Python in the "python" folder. This launcher
-just starts it from the right folder, which gives users a normal double-clickable .exe.
+starts it from the right folder, which gives users a normal double-clickable .exe.
+
+The package does not contain the OS: on first start this runs bootstrap.py, which downloads
+the latest core from GitHub releases. After that PythonOS updates its own files.
 """
 import os
 import subprocess
@@ -20,6 +23,12 @@ def main():
         return 1
     os.chdir(HERE)
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    if not os.path.isfile(os.path.join(HERE, "main.py")):
+        print("Downloading PythonOS (first start only)...")
+        if subprocess.call([PYTHON, "bootstrap.py", "--dest", HERE], env=env) != 0:
+            print("\nCould not download PythonOS. Check your internet connection and start it again.")
+            input("Press Enter to close...")
+            return 1
     try:
         code = subprocess.call([PYTHON, "main.py", *sys.argv[1:]], env=env)
     except KeyboardInterrupt:

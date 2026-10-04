@@ -157,6 +157,7 @@ def _purge_project_modules():
 
 def main(files_dir):
     _purge_project_modules()
+    os.makedirs(files_dir, exist_ok=True)
     os.chdir(files_dir)
     if files_dir not in sys.path:
         sys.path.insert(0, files_dir)
@@ -179,6 +180,15 @@ def main(files_dir):
     subprocess.call = _call
     subprocess.run = _run
 
+    # The app does not contain the OS itself: the first launch downloads the latest core from
+    # GitHub releases (bootstrap.py, shipped with the app). After that PythonOS updates itself.
+    if not os.path.isfile(os.path.join(files_dir, "main.py")):
+        import bootstrap
+        print("Downloading PythonOS (first launch only)...")
+        if not bootstrap.install(files_dir, log=print):
+            print("\nConnect to the internet, then close and reopen the app to try again.")
+            Bridge.finished()
+            return
     while True:
         try:
             runpy.run_path(os.path.join(files_dir, "main.py"), run_name="__main__")

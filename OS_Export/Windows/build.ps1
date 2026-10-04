@@ -6,7 +6,8 @@ Build the Windows packages: dist\windows\PythonOS-<version>-windows-portable.zip
 
 The package bundles its own Python (the official "embeddable" build) with every
 dependency installed, so users do not need Python installed. PythonOS.exe is a small
-PyInstaller-built launcher that starts it.
+PyInstaller-built launcher that starts it. The OS itself is NOT in the package: on first
+start the launcher runs bootstrap.py, which downloads the latest core from GitHub releases.
 #>
 param(
     [string]$PythonVersion = "3.12.8"
@@ -22,8 +23,9 @@ $App = Join-Path $Out "PythonOS"
 if (Test-Path $Out) { Remove-Item $Out -Recurse -Force }
 New-Item -ItemType Directory -Path $Out | Out-Null
 
-# 1. The OS files
-python "$Repo\OS_Export\stage.py" $App
+# 1. Just the bootstrap script - the OS is downloaded on first run
+New-Item -ItemType Directory -Path $App | Out-Null
+Copy-Item (Join-Path $Repo "OS_Export\bootstrap.py") (Join-Path $App "bootstrap.py")
 
 # 2. An embedded Python runtime
 $Runtime = Join-Path $App "python"
@@ -47,7 +49,7 @@ Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $GetPip
 if ($LASTEXITCODE -ne 0) { throw "get-pip failed" }
 Remove-Item $GetPip
 & "$Runtime\python.exe" -m pip install --no-warn-script-location --quiet `
-    -r "$App\requirements.txt" -r "$App\boot-requirements.txt"
+    -r (Join-Path $Repo "requirements.txt") -r (Join-Path $Repo "boot-requirements.txt")
 if ($LASTEXITCODE -ne 0) { throw "installing dependencies failed" }
 Get-ChildItem $App -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
 

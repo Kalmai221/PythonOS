@@ -3,17 +3,37 @@
 Everything GitHub Actions (or you, locally) need to turn PythonOS into installable
 packages. Nothing in here changes how the OS itself runs.
 
-| Folder | Produces | Needs |
+| Folder | Produces | Contains the OS? |
 |---|---|---|
-| [`Linux/`](Linux) | `pythonos-<version>-linux.tar.gz` and `pythonos_<version>_all.deb` | bash, python3, tar (dpkg-deb for the .deb) |
-| [`Windows/`](Windows) | `PythonOS-<version>-windows-portable.zip` and `PythonOS-<version>-setup.exe` | Windows, Python 3, [Inno Setup](https://jrsoftware.org/isinfo.php) (optional, for the installer) |
-| [`Android/`](Android) | `PythonOS-<version>-android.apk`, an app | JDK 17, Gradle 8.9, Android SDK, Python 3 |
-| [`ISO/`](ISO) | `pythonos-<version>-x86_64.iso`, a bootable live image | Linux with Docker |
+| [`Linux/`](Linux) | `pythonos-<version>-linux.tar.gz` and `pythonos_<version>_all.deb` | No - downloads it on first run |
+| [`Windows/`](Windows) | `PythonOS-<version>-windows-portable.zip` and `PythonOS-<version>-setup.exe` | No - downloads it on first start |
+| [`Android/`](Android) | `PythonOS-<version>-android.apk`, an app | No - downloads it on first launch |
+| [`ISO/`](ISO) | `pythonos-<version>-x86_64.iso`, a bootable live image | Yes - it is a live CD with no installer |
 
-`stage.py` is shared by all four: it copies the OS files (`main.py`, `shell.py`, `users.py`,
-`commands/`, `programs/`, `core/`, `pyos/`, ...) into a folder, so the list of files that make up
-PythonOS lives in one place. If you add a new top-level file or folder to the OS, add it to
-`PAYLOAD_FILES` / `PAYLOAD_DIRS` there.
+## How the OS gets onto a device, and how it updates
+
+Every release has two extra files besides the installers: **`pythonos-core-<version>.zip`**
+(the OS: `main.py`, `shell.py`, `users.py`, `commands/`, `core/`, `programs/`, `pyos/`, ...) and
+**`core-manifest.json`** (version and SHA-256 checksums). They are built by
+[`make_core.py`](make_core.py) and never contain marketplace packages, user data or build tooling.
+
+* **Install:** the Linux, Windows and Android packages hold only a small launcher and
+  [`bootstrap.py`](bootstrap.py). On first run `bootstrap.py` downloads the latest core from the
+  newest GitHub release, verifies it, and installs it into the user's data folder. So a fresh
+  install is always the latest release, and it needs internet once.
+* **Update:** from inside PythonOS, the `sysupdate` command (it also runs on first setup) checks the
+  newest release, downloads the core, verifies every file, swaps the core files in and rolls back if
+  anything goes wrong. Users' files, accounts and `config.json` are never touched.
+* **Packaged builds vs. a source checkout:** a folder with a `VERSION` file (written by `stage.py`) is
+  a packaged build and updates from releases. A plain git checkout has no `VERSION` file and keeps
+  updating from the repository's `main` branch.
+* **Android and the ISO** ship their Python libraries and cannot install new ones. If a release adds
+  a dependency, their updater says a new app/image is needed instead of installing a broken update.
+* **ISO:** it is a live image that boots straight into the OS, so it carries the core inside. An
+  update applies until the next reboot; build a new ISO for a permanent one.
+
+`PYOS_UPDATE_URL` can point the downloader and updater at a different `core-manifest.json`
+(self-hosting, testing).
 
 ## Building with GitHub Actions
 
@@ -21,13 +41,17 @@ The workflow is [`.github/workflows/build-os.yml`](../.github/workflows/build-os
 
 * **Manual run:** Actions tab → *Build PythonOS* → *Run workflow*. Each platform's output is
   attached to the run as an artifact.
-* **Release:** push a tag such as `v1.2.0`. All four builds run and the files are attached to a
-  GitHub release.
+* **Release:** push a tag such as `v1.2.0`. All builds run, and the installers plus the core update
+  package are attached to a GitHub release.
 
 ```bash
 git tag v1.2.0
 git push origin v1.2.0
 ```
+
+> The installers download the core from the **latest published release**, so the first release must
+> exist before they can install anything. Builds from a manual run (no release) fetch whatever the
+> latest release currently is.
 
 ## Building locally
 
@@ -36,6 +60,7 @@ From the repository root (set `VERSION` to stamp a version, otherwise `config.js
 ```bash
 VERSION=1.2.0 bash OS_Export/Linux/build.sh          # -> dist/linux/
 VERSION=1.2.0 bash OS_Export/ISO/build-iso.sh        # -> dist/iso/   (needs Docker)
+VERSION=v1.2.0 python OS_Export/make_core.py         # -> dist/core/  (the release's update package)
 ```
 
 ```powershell
@@ -43,34 +68,38 @@ $env:VERSION = "1.2.0"; ./OS_Export/Windows/build.ps1   # -> dist\windows\
 ```
 
 ```bash
-python OS_Export/stage.py OS_Export/Android/app/src/main/assets/pythonos
+cp OS_Export/bootstrap.py OS_Export/Android/app/src/main/python/bootstrap.py
 cd OS_Export/Android && gradle assembleRelease          # -> app/build/outputs/apk/release/
 ```
 
+`stage.py` copies the OS files into a folder (used by `make_core.py` and the ISO). It refuses to
+include anything that is not part of the OS, such as `online_packages/`. If you add a new top-level
+file or folder to the OS, add it to `PAYLOAD_FILES` / `PAYLOAD_DIRS` there.
+
 ## Notes per platform
 
-**Linux** – the launcher keeps each user's files, accounts and a private virtual environment in
+**Linux** - the launcher keeps each user's files, accounts and a private virtual environment in
 `~/.local/share/pythonos` (override with `PYTHONOS_HOME`), so the install location can be read-only.
 
-**Windows** – the package carries its own Python (the official *embeddable* build) with all
-dependencies, so nothing has to be installed. `PythonOS.exe` is a small PyInstaller launcher
-that starts it. PythonOS itself is deliberately *not* frozen into one exe: it loads commands and
+**Windows** - the package carries its own Python (the official *embeddable* build) with all
+dependencies, so nothing has to be installed. `PythonOS.exe` is a small PyInstaller launcher that
+starts it. PythonOS itself is deliberately *not* frozen into one exe: it loads commands and
 marketplace packages from disk and installs packages with pip, which a frozen exe cannot do.
 The installer puts PythonOS in `%LOCALAPPDATA%\PythonOS` (no admin rights needed) because the OS
 writes its files next to itself.
 
-**Android** – a real app: a terminal screen (with colours) that runs PythonOS through
-[Chaquopy](https://chaquo.com/chaquopy/). The OS is copied from the APK into the app's private
-storage on first launch, and users' files survive app updates. Differences from desktop:
-pip is not available (dependencies ship in the app, `PYOS_BUNDLED=1`), so marketplace
-packages that install pip libraries (Chess, Typing Test, IPython) cannot be set up there; the
-rest work. `shutdown` closes the app. CI signs the APK with a throwaway key by default, which is
-fine for sideloading, but every run's APK has a different signature so a new one cannot be installed
-over an old one (uninstall first). For updatable releases, add these repository secrets:
-`ANDROID_KEYSTORE_BASE64` (your keystore file, base64-encoded), `ANDROID_KEYSTORE_PASSWORD`,
-`ANDROID_KEY_ALIAS` and optionally `ANDROID_KEY_PASSWORD`.
+**Android** - a real app: a terminal screen (with colours) that runs PythonOS through
+[Chaquopy](https://chaquo.com/chaquopy/). The OS is downloaded into the app's private storage on
+first launch, and users' files survive app updates. Differences from desktop: pip is not available
+(dependencies ship in the app, `PYOS_BUNDLED=1`), so marketplace packages that install pip
+libraries (Chess, Typing Test, IPython) cannot be set up there; the rest work. `shutdown` closes
+the app. CI signs the APK with a throwaway key by default, which is fine for sideloading, but every
+run's APK has a different signature so a new one cannot be installed over an old one (uninstall
+first). For updatable releases, add these repository secrets: `ANDROID_KEYSTORE_BASE64` (your
+keystore file, base64-encoded), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and optionally
+`ANDROID_KEY_PASSWORD`.
 
-**ISO** – an Alpine Linux live image built with Alpine's `mkimage`. It boots (BIOS or UEFI)
+**ISO** - an Alpine Linux live image built with Alpine's `mkimage`. It boots (BIOS or UEFI)
 straight into PythonOS on the first console and powers off when you shut PythonOS down; Alt+F2 is
 a recovery shell. It is a live CD: everything runs from RAM and is lost at power off. Try it with
 `qemu-system-x86_64 -m 1024 -cdrom pythonos-<version>-x86_64.iso`.
