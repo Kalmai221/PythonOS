@@ -1,53 +1,94 @@
 #!/usr/bin/env python3
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
-from rich import box
+import importlib.metadata
+import os
+import shutil
+import socket
 import subprocess
 import sys
-import shutil
+import sysconfig
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm
 
 console = Console()
-command_name = "cli-chess"
+DIST = "cli-chess"
+COMMAND = "cli-chess"
+TITLE = "CLI Chess"
 
-def check_command_available(cmd):
-    """Check if the command is available in PATH."""
-    return shutil.which(cmd) is not None
+# Different systems need different pip flags (venvs, Debian/Termux "externally managed"
+# Python, read-only system site-packages), so try the safe options in order.
+PIP_FLAG_SETS = [[], ["--user"], ["--break-system-packages"], ["--user", "--break-system-packages"]]
 
-def launch_game(cmd):
-    """Launch the CLI game."""
+
+def is_installed():
     try:
-        subprocess.run([cmd], check=True)
-    except subprocess.CalledProcessError as e:
-        console.print(f"[bold red]{cmd} failed to start or crashed.[/bold red]\n{e}")
-        sys.exit(1)
-    except FileNotFoundError:
-        console.print(f"[bold red]{cmd} not found![/bold red] Make sure cli-chess is installed.")
-        sys.exit(1)
+        importlib.metadata.version(DIST)
+        return True
+    except importlib.metadata.PackageNotFoundError:
+        return False
+
+
+def has_internet(host="pypi.org", port=443, timeout=3):
+    try:
+        socket.create_connection((host, port), timeout=timeout).close()
+        return True
+    except OSError:
+        return False
+
+
+def pip(action, *extra):
+    """Run `pip <action> DIST`, retrying with other flag sets. Returns (ok, error_text)."""
+    error = ""
+    for flags in PIP_FLAG_SETS:
+        result = subprocess.run([sys.executable, "-m", "pip", action, DIST, *extra, *flags],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            return True, ""
+        error = (result.stderr or result.stdout or "").strip()
+    return False, error
+
+
+def find_command():
+    """Locate the command even when pip's scripts folder is not on PATH."""
+    found = shutil.which(COMMAND)
+    if found:
+        return found
+    dirs = [sysconfig.get_path("scripts")]
+    try:
+        dirs.append(sysconfig.get_path("scripts", f"{os.name}_user"))
+    except Exception:
+        pass
+    for directory in dirs:
+        for name in (COMMAND, COMMAND + ".exe"):
+            candidate = os.path.join(directory or "", name)
+            if directory and os.path.isfile(candidate):
+                return candidate
+    return None
+
 
 def main():
-    console.clear()
+    command = find_command()
+    if not command:
+        console.print(Panel(f"[bold red]{TITLE} is not installed.[/bold red]\n\n"
+                            "Open the marketplace to install it, or run its installer from 'run programs'.",
+                            border_style="red", expand=False))
+        return
+    extra = []
+    if extra is None:
+        return
+    console.print(f"[bold green]Launching {TITLE}...[/bold green]\n")
+    try:
+        subprocess.run([command, *extra], check=True)
+    except subprocess.CalledProcessError as e:
+        console.print(f"[bold red]{TITLE} exited with an error.[/bold red] {e}")
+    except KeyboardInterrupt:
+        pass
 
-    # Header
-    console.print(Panel(Text("CLI Chess Launcher", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
-
-    # Check if command is available
-    if not check_command_available(command_name):
-        console.print(Panel(
-            f"[bold red]{command_name} not found![/bold red]\n\n"
-            "Please install cli-chess first using:\n"
-            "[green]python -m pip install cli-chess --user[/green]",
-            style="red",
-            box=box.ROUNDED,
-            padding=(1, 2)
-        ))
-        sys.exit(1)
-
-    console.print(f"[bold green]Launching {command_name}...[/bold green]\n")
-    launch_game(command_name)
 
 if __name__ == "__main__":
     main()
+
 
 def execute():
     main()

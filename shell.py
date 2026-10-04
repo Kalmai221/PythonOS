@@ -1,14 +1,28 @@
 import os
+import io
+import contextlib
+import sys
+import difflib
+import shlex
+import inspect
+import subprocess
 import importlib.util
 import time
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
+from rich.markup import escape
 from rich.prompt import Prompt
 import json
+import pyos
+import pyos.fs as fs
 try:
     import readline
 except ImportError:
-    import pyreadline3 as readline
+    try:
+        import pyreadline3 as readline
+    except ImportError:
+        from pyos import readline_stub as readline
 
 # Initialize the console for rich output
 console = Console()
@@ -16,8 +30,7 @@ console = Console()
 # Metadata dictionary for commands
 commands_config = {}
 
-base_directory = os.path.abspath("files")  # Base directory is '/files'
-current_directory_file = "current_directory.txt"  # File containing the current directory
+HISTORY_FILE = os.path.join(".OSData", "history")
 
 def load_installed_packages(base_path="files"):
     """Load commands from all data.json files under 'files/installed_*' recursively."""
@@ -43,7 +56,7 @@ def load_installed_packages(base_path="files"):
                                 def make_execute_func(script_path):
                                     def execute():
                                         if os.path.exists(script_path):
-                                            os.system(f'python "{script_path}"')
+                                            subprocess.call([sys.executable, script_path])
                                         else:
                                             console.print(f"[bold red]Run script not found:[/bold red] {script_path}")
                                     return execute
@@ -60,20 +73,213 @@ def load_installed_packages(base_path="files"):
     return installed
 
 
-def get_relative_path():
-    """Returns the shell path from 'current_directory.txt' relative to '/files'."""
-    try:
-        with open(current_directory_file, "r") as file:
-            current_directory = file.read().strip()
+def make_prompt(username, role=None):
+    """user@host:path$ (# for admins); coloured where readline handles ANSI escapes."""
+    host = fs.hostname()
+    path = fs.display(fs.current_dir(), tilde=True)
+    sign = "#" if role == "admin" else "$"
+    if os.name == "nt" or not sys.stdout.isatty():
+        return f"{username}@{host}:{path}{sign} "
+    # \001 / \002 tell readline the escape codes take up no screen width
+    return (f"\001\033[1;32m\002{username}@{host}\001\033[0m\002:"
+            f"\001\033[1;34m\002{path}\001\033[0m\002{sign} ")
 
-        # Ensure that the path is relative to '/files'
-        if current_directory.startswith(base_directory):
-            relative_path = os.path.relpath(current_directory, base_directory)
-            return f"/{relative_path}" if relative_path != "." else ""
-        else:
-            return "[bold red]Error:[/bold red] Current directory is outside of '/files'."
-    except FileNotFoundError:
-        return "[bold red]Error:[/bold red] current_directory.txt not found."
+
+def invoke(module, args=None):
+    """Call module.execute, passing the argument list only if it accepts one."""
+    try:
+        takes_args = len(inspect.signature(module.execute).parameters) > 0
+    except (TypeError, ValueError):
+        takes_args = False
+    if takes_args:
+        return module.execute(args or [])
+    return module.execute()
+
+
+def split_command(line):
+    """Split a command line into tokens (quotes honoured; | > >> ; are separate tokens)."""
+    if os.name == "nt":
+        line = line.replace("\\", "/")  # allow Windows-style paths
+    try:
+        lexer = shlex.shlex(line, posix=True, punctuation_chars=True)
+        lexer.whitespace_split = True
+        return list(lexer)
+    except ValueError as e:
+        console.print(f"[bold red]Parse error:[/bold red] {e}")
+        return []
+
+
+OPERATORS = {"|", ">", ">>", ";"}
+UNSUPPORTED = {"&&", "||", "&", "<", "(", ")", "<<", ">&"}
+
+
+def parse_line(tokens):
+    """Turn tokens into a list of pipelines; each stage is (argv, redirect) with
+    redirect = None or (">" | ">>", filename). Returns None on a syntax error."""
+    pipelines, stages, argv, redirect = [], [], [], None
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok in UNSUPPORTED:
+            console.print(f"[bold red]syntax error:[/bold red] '{tok}' is not supported (use ';' to run commands in order)")
+            return None
+        if tok in (">", ">>"):
+            if i + 1 >= len(tokens) or tokens[i + 1] in OPERATORS:
+                console.print("[bold red]syntax error:[/bold red] missing file name after redirect")
+                return None
+            redirect = (tok, tokens[i + 1])
+            i += 2
+            continue
+        if tok in ("|", ";"):
+            if not argv:
+                if tok == ";" and not stages:
+                    i += 1
+                    continue
+                console.print(f"[bold red]syntax error:[/bold red] nothing before '{tok}'")
+                return None
+            stages.append((argv, redirect))
+            argv, redirect = [], None
+            if tok == ";":
+                pipelines.append(stages)
+                stages = []
+            i += 1
+            continue
+        argv.append(tok)
+        i += 1
+    if argv:
+        stages.append((argv, redirect))
+    elif stages:
+        console.print("[bold red]syntax error:[/bold red] nothing after '|'")
+        return None
+    if stages:
+        pipelines.append(stages)
+    return pipelines
+
+
+class ExitShell(Exception):
+    pass
+
+
+def run_stage(argv):
+    """Run one command. Returns False if it reported failure."""
+    name, args = argv[0], argv[1:]
+    user = pyos.userinfo()[0]
+
+    if name == "exit":
+        raise ExitShell
+    if name == "help":
+        show_help(available_commands, available_programs, args[0] if args else None)
+        return True
+    if name == "reload":
+        reload_all()
+        return True
+    if name == "run":
+        if not args:
+            console.print("[bold red]Usage:[/bold red] run <program>")
+            return False
+        matched = find_entry(available_programs, args[0])
+        if not matched:
+            console.print(f"[bold red]Program '{args[0]}' not found.[/bold red]")
+            return False
+        readline.parse_and_bind("set editing-mode emacs")
+        try:
+            return invoke(available_programs[matched]["module"], args[1:]) is not False
+        except Exception as e:
+            console.print(f"[bold red]Program '{args[0]}' crashed: {e}[/bold red]")
+            pyos.log.log(f"program {args[0]} crashed: {e}", "ERROR", user=user)
+            return False
+        finally:
+            readline.parse_and_bind("set editing-mode vi")
+
+    matched = find_entry(available_commands, name)
+    if not matched:
+        names = list(available_commands) + ["help", "run", "reload", "exit"]
+        close = difflib.get_close_matches(name, names, n=1)
+        hint = f" Did you mean [bold]{close[0]}[/bold]?" if close else " Type 'help' for a list of commands."
+        console.print(f"[bold red]{escape(name)}: command not found.[/bold red]{hint}")
+        return False
+    try:
+        return invoke(available_commands[matched]["module"], args) is not False
+    except ExitShell:
+        raise
+    except Exception as e:
+        console.print(f"[bold red]Command '{name}' failed: {e}[/bold red]")
+        pyos.log.log(f"command {name} failed: {e}", "ERROR", user=user)
+        return False
+
+
+def run_pipeline(stages):
+    """Run `a | b > file`: each stage's output is captured and fed to the next."""
+    data = None
+    for i, (argv, redirect) in enumerate(stages):
+        last = i == len(stages) - 1
+        pyos.stdio.stdin = data
+        try:
+            if last and redirect is None:
+                run_stage(argv)
+                return
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                run_stage(argv)
+            data = buf.getvalue()
+        finally:
+            pyos.stdio.stdin = None
+        if last and redirect:
+            op, target = redirect
+            try:
+                path = fs.resolve(target, write=True)
+                with open(path, "a" if op == ">>" else "w", encoding="utf-8") as f:
+                    f.write(data)
+            except Exception as e:
+                console.print(f"[bold red]{escape(target)}: {e}[/bold red]")
+
+
+def run_line(line):
+    tokens = split_command(line)
+    if not tokens:
+        return
+    pipelines = parse_line(tokens)
+    for stages in pipelines or []:
+        run_pipeline(stages)
+
+
+def find_entry(table, name):
+    return next((k for k, info in table.items() if name == k or name in info["aliases"]), None)
+
+
+def setup_readline():
+    """History + tab completion for commands, programs and paths."""
+    try:
+        os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
+        readline.read_history_file(HISTORY_FILE)
+    except Exception:
+        pass
+
+    def completer(text, state):
+        try:
+            line = readline.get_line_buffer()
+            parts = line.lstrip().split(" ")
+            if len(parts) <= 1:
+                options = ["exit", "help", "reload", "run"] + list(available_commands)
+            elif parts[0] == "run" and len(parts) == 2:
+                options = list(available_programs)
+            else:
+                directory, _, prefix = text.rpartition("/")
+                base = fs.resolve(directory + "/" if directory else ".")
+                options = [(directory + "/" if directory else "") + n + ("/" if os.path.isdir(os.path.join(base, n)) else "")
+                           for n in os.listdir(base)]
+                text = directory + "/" + prefix if directory else prefix
+            matches = sorted(o for o in options if o.startswith(text))
+            return matches[state] if state < len(matches) else None
+        except Exception:
+            return None
+
+    try:
+        readline.set_completer(completer)
+        readline.set_completer_delims(" \t\n")
+    except Exception:
+        pass
+
 
 def load_module(file_path, module_name):
     """Dynamically loads a Python module from a given file path."""
@@ -132,149 +338,77 @@ def start_shell(username):
     installed_programs = load_installed_packages("files")
     available_programs.update(installed_programs)
 
+    # Every login starts in the user's home directory
+    fs.ensure_layout()
+    fs.save_current_dir(fs.ensure_home(username))
+
     readline.parse_and_bind("tab: complete")
     readline.parse_and_bind("set editing-mode vi")
+    setup_readline()
+
+    try:
+        with open(os.path.join(fs.BASE_DIR, "etc", "motd")) as f:
+            motd = f.read().strip()
+        if motd:
+            console.print(f"[dim]{escape(motd)}[/dim]")
+    except OSError:
+        pass
 
     while True:
-        relative_path = get_relative_path()
-        prompt = f"{username}@pyOS{relative_path}> "
-
+        role = pyos.userinfo()[1]
         try:
-            cmd = input(prompt).strip()
+            line = input(make_prompt(username, role)).strip()
         except (KeyboardInterrupt, EOFError):
             console.print("\n[bold yellow]Exiting shell...[/bold yellow]")
             break
 
-        if cmd == "exit":
+        if not line:
+            continue
+
+        try:
+            run_line(line)
+        except ExitShell:
             console.print("[bold green]Logging out...[/bold green]")
             break
-        elif cmd == "help":
-            show_help(available_commands, available_programs)
-        elif cmd == "reload":
-            reload_all()
-        elif cmd.startswith("cd "):
-            args = cmd[3:].strip()
-            if "cd" in available_commands:
-                available_commands["cd"]["module"].execute(args)
-            else:
-                console.print("[bold red]cd command not found![/bold red]")
-        elif cmd.startswith("run "):
-            program_name = cmd[4:].strip()
-            matched_program = next((name for name, info in available_programs.items()
-                                    if program_name == name or program_name in info["aliases"]), None)
+        except KeyboardInterrupt:
+            console.print("\n[bold yellow]^C[/bold yellow]")
 
-            if matched_program:
-                readline.parse_and_bind("set editing-mode emacs")
-                available_programs[matched_program]["module"].execute()
-                readline.parse_and_bind("set editing-mode vi")
-            else:
-                console.print(f"[bold red]Program '{program_name}' not found.[/bold red]")
-        else:
-            matched_command = next((name for name, info in available_commands.items()
-                                    if cmd == name or cmd in info["aliases"]), None)
-
-            if matched_command:
-                available_commands[matched_command]["module"].execute()
-            else:
-                console.print("[bold red]Command not found.[/bold red] Type 'help' for a list of commands.")
+    pyos.log.log("logout", user=username)
+    try:
+        readline.write_history_file(HISTORY_FILE)
+    except Exception:
+        pass
 
 
-def draw_help_menu(selected_index, mode, available_commands, available_programs):
-    """Generates and displays the help menu."""
-    console.clear()
-    table = Table(title=f"[bold cyan]Help Menu ({mode.capitalize()})[/bold cyan]", expand=True)
-    table.add_column("Name", style="bold")
-    table.add_column("Description", style="yellow")
-    table.add_column("Aliases", justify="right", style="blue")
+def _help_table(title, data):
+    table = Table(title=f"[bold cyan]{title}[/bold cyan]", title_justify="left", header_style="bold",
+                  border_style="blue", expand=True)
+    table.add_column("Name", style="bold green", no_wrap=True)
+    table.add_column("Description", style="white")
+    table.add_column("Aliases", style="dim", no_wrap=True)
+    for name in sorted(data):
+        info = data[name]
+        table.add_row(escape(name), escape(info["description"]), escape(", ".join(info["aliases"])) if info["aliases"] else "")
+    return table
 
-    data = available_commands if mode == "commands" else available_programs
-    items = list(data.items())
 
-    for i, (name, info) in enumerate(items):
-        highlight = "[bold green]→[/bold green] " if i == selected_index else "   "
-        aliases = ", ".join(info['aliases']) if info['aliases'] else "None"
-        table.add_row(f"{highlight}{name}", info['description'], aliases)
-
-    table.add_row("\n[bold cyan]Use [W/S] to navigate, [Enter] to select, [T] for Programs, [Q] to quit[/bold cyan]", "", "")
-    console.print(table)
-    
-def show_help(available_commands, available_programs):
-    """Interactive help menu following the correct structure."""
-    mode = None  # No mode selected initially
-    selected_index = 0
-    options = ["Programs", "Commands"]
-
-    while True:
-        console.clear()
-
-        if mode is None:
-            # TITLE: Choose between Programs or Commands
-            console.print("[bold cyan]HELP MENU[/bold cyan]\n")
-            for i, option in enumerate(options):
-                prefix = "[bold green]→[/bold green] " if i == selected_index else "   "
-                console.print(f"{prefix}{option}")
-            key = console.input("\n[bold cyan]Use [W/S] to move, [Enter] to select, [Q] to quit: [/bold cyan]").strip().lower()
-
-            if key in ["w", "up"]:
-                selected_index = (selected_index - 1) % len(options)
-            elif key in ["s", "down"]:
-                selected_index = (selected_index + 1) % len(options)
-            elif key == "":
-                mode = options[selected_index].lower()  # Set mode to 'programs' or 'commands'
-                selected_index = 0  # Reset selection
-            elif key == "q":
-                console.print("[bold yellow]Exiting Help Menu...[/bold yellow]")
+def show_help(available_commands, available_programs, topic=None):
+    """Print all commands and programs, or details for one (help <name>)."""
+    if topic:
+        for kind, data in (("command", available_commands), ("program", available_programs)):
+            key = find_entry(data, topic)
+            if key:
+                info = data[key]
+                usage = f"run {key}" if kind == "program" else key
+                aliases = ", ".join(info["aliases"]) or "none"
+                console.print(Panel(
+                    f"{escape(info['description'])}\n\n[bold]Usage:[/bold] {escape(usage)}\n[bold]Aliases:[/bold] {aliases}",
+                    title=f"[bold cyan]{key}[/bold cyan] [dim]({kind})[/dim]", border_style="blue", expand=False))
                 return
+        console.print(f"[bold red]No help entry for '{topic}'.[/bold red]")
+        return
 
-        else:
-            # SELECT COMMAND OR PROGRAM NAME
-            console.clear()
-            data = available_programs if mode == "programs" else available_commands
-            items = list(data.keys())
-
-            if not items:
-                console.print(f"[bold red]No {mode} available.[/bold red]")
-                console.input("\n[bold cyan]Press Enter to go back...[/bold cyan]")
-                mode = None
-                continue
-
-            console.print(f"[bold cyan]Select a {mode[:-1].capitalize()}[/bold cyan]\n")
-            for i, name in enumerate(items):
-                prefix = "[bold green]→[/bold green] " if i == selected_index else "   "
-                console.print(f"{prefix}{name}")
-            key = console.input("\n[bold cyan]Use [W/S] to move, [Enter] to select, [B] to go back: [/bold cyan]").strip().lower()
-
-            if key in ["w", "up"]:
-                selected_index = (selected_index - 1) % len(items)
-            elif key in ["s", "down"]:
-                selected_index = (selected_index + 1) % len(items)
-            elif key == "":
-                selected_item = items[selected_index]
-                if show_command_info(selected_item, mode, available_commands, available_programs):
-                    return  # If the user runs a command, exit help completely
-                selected_index = 0  # Reset selection after returning
-            elif key == "b":
-                mode = None
-                selected_index = 0  # Reset selection
-
-def show_command_info(item_name, mode, available_commands, available_programs):
-    """Displays command or program details with options to run or go back."""
-    console.clear()
-    data = available_programs if mode == "programs" else available_commands
-    info = data.get(item_name, {})
-
-    description = info.get("description", "No description available.")
-    aliases = ", ".join(info.get("aliases", [])) if info.get("aliases") else "None"
-
-    console.print(f"[bold cyan]{item_name} Information[/bold cyan]\n")
-    console.print(f"[bold]Description:[/bold] {description}")
-    console.print(f"[bold]Aliases:[/bold] {aliases}")
-
-    while True:
-        key = console.input("\n[bold cyan][R] Run, [B] Back: [/bold cyan]").strip().lower()
-        if key == "r":
-            console.print(f"[bold green]Running {item_name}...[/bold green]\n")
-            info["module"].execute()  # Run the command or program
-            return True  # Exit help completely after running
-        elif key == "b":
-            return False  # Go back to the previous menu
+    console.print(_help_table("Commands", available_commands))
+    if available_programs:
+        console.print(_help_table("Programs  (start with: run <name>)", available_programs))
+    console.print("[dim]Built in: help " + escape("[name]") + ", run <program>, reload, exit  |  Tab completes names and paths[/dim]")

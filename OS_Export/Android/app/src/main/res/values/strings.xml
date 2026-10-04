@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PythonOS</string>
+    <string name="input_hint">Type a command</string>
+    <string name="key_ctrl_c">Ctrl+C</string>
+    <string name="key_up">↑</string>
+    <string name="key_down">↓</string>
+    <string name="key_send">Enter</string>
+</resources>

@@ -1,0 +1,16 @@
+{
+  "name": "Hangman",
+  "description": "Guess the word before the drawing is finished.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "hangman",
+  "alias": [],
+  "tags": [
+    "game",
+    "words",
+    "puzzle",
+    "classic"
+  ]
+}

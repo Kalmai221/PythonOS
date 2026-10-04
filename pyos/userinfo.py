@@ -16,11 +16,20 @@ def load_session():
         return None
 
 def userinfo():
-    """Return the logged-in user's username and role from current_user.json."""
+    """Return [username, role] for the logged-in user.
+
+    The role is read from users.json rather than trusted from the session file,
+    so editing current_user.json cannot grant admin rights.
+    """
     session_data = load_session()
-    if session_data:
-        username = session_data.get('username')  # Get the username
-        role = session_data.get('role')  # Get the role
-        return [username, role]  # Return a list with username and role
-    else:
-        return [None, None]  # Return a list with None if no user is logged in
+    if not session_data:
+        return [None, None]
+    username = session_data.get('username')
+    try:
+        with open(USER_DB, 'r') as f:
+            users = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return [None, None]
+    if username not in users:
+        return [None, None]
+    return [username, users[username].get('role')]

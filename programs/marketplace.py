@@ -1,366 +1,510 @@
-import requests
-import os
-from pathlib import Path
-from rich.console import Console
-from rich.table import Table
-from rich.prompt import IntPrompt, Confirm
-import zipfile
-import io
+import difflib
 import hashlib
-import pyos
-import socket
 import json
+import re
 import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+import requests
+from rich.console import Console
+from rich.markup import escape
+from rich.panel import Panel
+from rich.progress import BarColumn, Progress, TextColumn
+from rich.prompt import Confirm, IntPrompt, Prompt
+from rich.table import Table
 
 config = {
     "name": "marketplace",
-    "description": "Download Packages from Online."
+    "description": "Find, install, update and remove packages (marketplace search <term>).",
+    "alias": ["market", "store"],
 }
 
 # === CONFIGURATION ===
 REPO_OWNER = "Kalmai221"
 REPO_NAME = "PythonOS"
-BASE_API_URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/online_packages"
+BRANCH = "main"
+RAW_BASE = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/online_packages"
+INDEX_URL = f"{RAW_BASE}/index.json"
+CACHE_FILE = Path(".OSData") / "market_index.json"
+INSTALL_ROOT = Path("files")
+TIMEOUT = 15
 
 console = Console()
 
-def check_internet(host="api.github.com", port=443, timeout=3):
-    """Check if machine can connect to GitHub API."""
+
+# ----------------------------------------------------------------- catalog
+def http_get(url):
+    response = requests.get(url, timeout=TIMEOUT)
+    response.raise_for_status()
+    return response
+
+
+def load_index():
+    """Fetch the package catalog, falling back to the last copy we saw when offline."""
     try:
-        socket.create_connection((host, port), timeout=timeout)
-        return True
-    except (socket.timeout, socket.gaierror, OSError):
-        return False
+        with console.status("Contacting the marketplace..."):
+            index = http_get(INDEX_URL).json()
+        CACHE_FILE.parent.mkdir(exist_ok=True)
+        CACHE_FILE.write_text(json.dumps(index), encoding="utf-8")
+        return index["packages"], False
+    except (requests.RequestException, ValueError, KeyError) as e:
+        try:
+            cached = json.loads(CACHE_FILE.read_text(encoding="utf-8"))["packages"]
+            console.print("[yellow]Could not reach the marketplace; showing the last catalog we saw "
+                          "(installing needs internet).[/yellow]")
+            return cached, True
+        except (OSError, ValueError, KeyError):
+            console.print(f"[bold red]Could not load the marketplace catalog:[/bold red] {escape(str(e))}")
+            console.print("[dim]Check your internet connection. If you maintain the repo, run "
+                          "'python tools/build_index.py' and push online_packages/index.json.[/dim]")
+            return None, True
 
-def fetch_categories():
-    try:
-        response = requests.get(BASE_API_URL)
-        response.raise_for_status()
-        entries = response.json()
-        return [entry for entry in entries if entry["type"] == "dir"]
-    except Exception as e:
-        console.print(f"[bold red]Failed to fetch categories: {e}[/bold red]")
-        return []
 
-def fetch_items_in_category(remote_path):
-    url = f"{BASE_API_URL}/{remote_path}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        items = response.json()
-        return items
-    except Exception as e:
-        console.print(f"[bold red]Failed to fetch items from '{remote_path}': {e}[/bold red]")
-        return []
-
-def get_raw_url(item):
-    download_url = item.get("download_url")
-    if download_url and "github.com" in download_url:
-        download_url = download_url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
-    return download_url
-
-def calculate_file_hash(file_path):
-    """Calculates the SHA256 hash of a file."""
-    hasher = hashlib.sha256()
-    try:
-        with open(file_path, "rb") as f:
-            while True:
-                chunk = f.read(4096)
-                if not chunk:
-                    break
-                hasher.update(chunk)
-        return hasher.hexdigest()
-    except Exception as e:
-        console.print(f"[bold red]Failed to calculate hash for '{file_path}': {e}[/bold red]")
-        return None
-
-def download_file(item, category, install_dir, *, force=False):
-    name = item["name"]
-    raw_url = get_raw_url(item)
-    if not raw_url:
-        console.print(f"[bold red]No raw URL found for {name}[/bold red]")
-        return False
-
-    save_path = install_dir / name
-
-    try:
-        response = requests.get(raw_url)
-        response.raise_for_status()
-        remote_content = response.content
-    except Exception as e:
-        console.print(f"[bold red]Failed to download '{name}': {e}[/bold red]")
-        return False
-
-    try:
-        with open(save_path, "wb") as f:
-            f.write(remote_content)
-        console.print(f"[bold green]✓ Downloaded '{name}' to {save_path}[/bold green]")
-        return True
-    except Exception as e:
-        console.print(f"[bold red]Failed to write '{name}': {e}[/bold red]")
-        return False
-
-def show_table(title, items):
-    table = Table(title=title, header_style="bold blue")
-    table.add_column("Index", justify="right")
-    table.add_column("Name", style="cyan")
-    table.add_column("Type", style="yellow")
-    for idx, item in enumerate(items, start=1):
-        table.add_row(str(idx), item["name"], item["type"])
-    console.print(table)
-
-def list_installed_programs():
-    base_path = Path("files")
-    installed = []
-    if not base_path.exists():
-        return installed
-    for cat_dir in base_path.glob("installed_*"):
-        category = cat_dir.name.replace("installed_", "")
-        for program_dir in cat_dir.glob("*"):
-            if program_dir.is_dir():
-                installed.append({
-                    "category": category,
-                    "name": program_dir.name,
-                    "path": program_dir
-                })
-    return installed
-
-def recursively_download_folder(remote_path, local_path, category):
-    items = fetch_items_in_category(remote_path)
-    if not items:
-        console.print(f"[yellow]No items found in remote path '{remote_path}'[/yellow]")
-        return
-
-    for item in items:
-        if item["type"] == "file":
-            console.print(f"Downloading file: {item['name']} from {item.get('download_url')}")
-            download_file(item, category, local_path)
-        elif item["type"] == "dir":
-            subdir_name = item["name"]
-            new_local_subdir = local_path / subdir_name
-            new_local_subdir.mkdir(parents=True, exist_ok=True)
-            console.print(f"[bold green]✓ Created subdirectory '{subdir_name}' in {local_path}[/bold green]")
-            recursively_download_folder(f"{remote_path}/{subdir_name}", new_local_subdir, category)
-
-def download_program_flow():
-    if not check_internet():
-        console.print("[bold red]No internet connection detected. Please connect and try again.[/bold red]")
-        return
-
-    categories = fetch_categories()
-    if not categories:
-        console.print("[bold yellow]No categories found.[/bold yellow]")
-        return
-
-    show_table("📁 Available Categories", categories)
-    category_choice = IntPrompt.ask("Enter the index of the category to browse (0 to cancel)", default=0)
-
-    if category_choice == 0:
-        console.print("[bold]Cancelled.[/bold]")
-        return
-
-    if not (1 <= category_choice <= len(categories)):
-        console.print("[bold red]Invalid category selection.[/bold red]")
-        return
-
-    category = categories[category_choice - 1]["name"]
-
-    items = fetch_items_in_category(category)
-    directories = [item for item in items if item["type"] == "dir"]
-
-    if not directories:
-        console.print(f"[bold yellow]No directories found in category '{category}'.[/bold yellow]")
-        return
-
-    show_table(f"📦 Available Directories in '{category}'", directories)
-    dir_choice = IntPrompt.ask("Enter the index of the directory to download (0 to cancel)", default=0)
-
-    if dir_choice == 0:
-        console.print("[bold]Cancelled.[/bold]")
-        return
-
-    if 1 <= dir_choice <= len(directories):
-        directory = directories[dir_choice - 1]
-        directory_name = directory["name"]
-        install_dir = Path(f"files/installed_{category}")
-        install_dir.mkdir(parents=True, exist_ok=True)
-        new_directory_path = install_dir / directory_name
-        new_directory_path.mkdir(parents=True, exist_ok=True)
-        console.print(f"[bold green]✓ Created directory '{directory_name}' in {install_dir}[/bold green]")
-
-        recursively_download_folder(f"{category}/{directory_name}", new_directory_path, category)
-
-        data_json_path = new_directory_path / "data.json"
-        if data_json_path.exists():
+def installed_packages():
+    """{package id: {"path", "version", "name"}} for everything under files/installed_*/."""
+    found = {}
+    if not INSTALL_ROOT.exists():
+        return found
+    for cat_dir in sorted(INSTALL_ROOT.glob("installed_*")):
+        category = cat_dir.name[len("installed_"):]
+        for pkg_dir in sorted(p for p in cat_dir.iterdir() if p.is_dir() and not p.name.startswith(".")):
+            meta = {}
             try:
-                with open(data_json_path, "r") as f:
-                    data = json.load(f)
-                requires_restart = str(data.get("requires_restart_on_download", "false")).lower()
-                if requires_restart == "true":
-                    console.print("\n[bold yellow]⚠️ This package requires a restart of the OS to register new commands.[/bold yellow]")
-                    restart_confirm = Confirm.ask("Would you like to restart now?")
-                    if restart_confirm:
-                        pyos.system("restart")
-                    else:
-                        console.print("[bold yellow]Remember to restart later for changes to take effect.[/bold yellow]")
-            except Exception as e:
-                console.print(f"[bold red]Failed to read/parse data.json for restart info: {e}[/bold red]")
+                meta = json.loads((pkg_dir / "data.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                pass
+            found[f"{category}/{pkg_dir.name}"] = {
+                "path": pkg_dir,
+                "version": str(meta.get("version", "?")),
+                "name": meta.get("name", pkg_dir.name),
+                "meta": meta,
+            }
+    return found
+
+
+def version_key(text):
+    return tuple(int(n) for n in re.findall(r"\d+", str(text))) or (0,)
+
+
+def status_of(pkg, installed):
+    local = installed.get(pkg["id"])
+    if not local:
+        return ""
+    return "update" if version_key(pkg["version"]) > version_key(local["version"]) else "installed"
+
+
+def status_label(status, pkg=None, installed=None):
+    if status == "installed":
+        return "[green]installed[/green]"
+    if status == "update":
+        return f"[yellow]update ({installed[pkg['id']]['version']} -> {pkg['version']})[/yellow]"
+    return ""
+
+
+# ------------------------------------------------------------------ search
+def score(pkg, words):
+    """Higher is a better match; 0 means no match. All words must match something."""
+    name = pkg["name"].lower()
+    ident = pkg["id"].lower()
+    command = (pkg.get("command") or "").lower()
+    aliases = [a.lower() for a in pkg.get("alias", [])]
+    tags = [t.lower() for t in pkg.get("tags", [])] + [pkg["category"].lower()]
+    desc = pkg.get("description", "").lower()
+    total = 0
+    for w in words:
+        s = 0
+        if w == command or w in aliases or w == ident.split("/")[-1]:
+            s = 100
+        elif name.startswith(w) or command.startswith(w):
+            s = 60
+        elif w in name or w in ident:
+            s = 45
+        elif w in tags:
+            s = 30
+        elif any(w in t for t in tags):
+            s = 20
+        elif w in desc:
+            s = 10
         else:
-            console.print("[bold yellow]Warning: data.json not found after download; unable to check restart requirement.[/bold yellow]")
-    else:
-        console.print("[bold red]Invalid directory selection.[/bold red]")
+            close = difflib.get_close_matches(w, [name, command, ident.split("/")[-1]] + tags, n=1, cutoff=0.75)
+            s = 8 if close else 0
+        if s == 0:
+            return 0
+        total += s
+    return total
 
-def uninstall_package_flow():
-    installed = list_installed_programs()
-    if not installed:
-        console.print("[yellow]No installed programs found to uninstall.[/yellow]")
-        return
 
-    table = Table(title="Installed Packages", header_style="bold blue")
-    table.add_column("Index", justify="right")
-    table.add_column("Category", style="cyan")
-    table.add_column("Name", style="green")
-    for idx, pkg in enumerate(installed, start=1):
-        table.add_row(str(idx), pkg["category"], pkg["name"])
+def search(packages, query):
+    words = [w for w in re.split(r"\s+", query.lower().strip()) if w]
+    if not words:
+        return sorted(packages, key=lambda p: p["name"].lower())
+    ranked = [(score(p, words), p) for p in packages]
+    return [p for s, p in sorted(ranked, key=lambda x: (-x[0], x[1]["name"].lower())) if s > 0]
+
+
+def resolve(packages, query):
+    """Exact lookup by id, command, alias, folder name or display name."""
+    q = query.lower().strip()
+    exact = [p for p in packages
+             if q in (p["id"].lower(), (p.get("command") or "").lower(), p["name"].lower(), p["id"].split("/")[-1].lower())
+             or q in [a.lower() for a in p.get("alias", [])]]
+    return exact or search(packages, query)
+
+
+def choose(matches, installed, prompt="Which one?"):
+    """Pick one package from several matches (or return the only one)."""
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return matches[0]
+    show_packages(matches, installed, "Several packages match")
+    n = IntPrompt.ask(f"{prompt} (0 to cancel)", default=0)
+    return matches[n - 1] if 1 <= n <= len(matches) else None
+
+
+# ----------------------------------------------------------------- display
+def show_packages(packages, installed, title):
+    table = Table(title=title, header_style="bold blue", expand=True)
+    table.add_column("#", justify="right")
+    table.add_column("Name", style="cyan", no_wrap=True)
+    table.add_column("Category", style="magenta")
+    table.add_column("Description")
+    table.add_column("Version", style="yellow")
+    table.add_column("Status")
+    for i, p in enumerate(packages, 1):
+        table.add_row(str(i), escape(p["name"]), p["category"], escape(p.get("description", "")),
+                      p["version"], status_label(status_of(p, installed), p, installed))
     console.print(table)
 
-    choice = IntPrompt.ask("Enter the index of the package to uninstall (0 to cancel)", default=0)
-    if choice == 0:
-        console.print("[bold]Cancelled.[/bold]")
-        return
 
-    if not (1 <= choice <= len(installed)):
-        console.print("[bold red]Invalid selection.[/bold red]")
-        return
+def show_details(pkg, installed):
+    size = sum(f.get("size", 0) for f in pkg["files"])
+    local = installed.get(pkg["id"])
+    lines = [
+        escape(pkg.get("description", "")),
+        "",
+        f"[bold]Version:[/bold]  {pkg['version']}",
+        f"[bold]Category:[/bold] {pkg['category']}",
+        f"[bold]Start with:[/bold] [cyan]run {pkg['command']}[/cyan]" if pkg.get("command") else "[bold]Start with:[/bold] run programs",
+        f"[bold]Tags:[/bold]     {', '.join(pkg.get('tags', [])) or '-'}",
+        f"[bold]Size:[/bold]     {size / 1024:.1f} KB in {len(pkg['files'])} file(s)",
+        f"[bold]Status:[/bold]   {status_label(status_of(pkg, installed), pkg, installed) or 'not installed'}"
+        + (f" [dim](installed {local['version']})[/dim]" if local and status_of(pkg, installed) == "installed" else ""),
+    ]
+    console.print(Panel("\n".join(lines), title=f"[bold cyan]{escape(pkg['name'])}[/bold cyan] [dim]{pkg['id']}[/dim]",
+                        border_style="blue", expand=False))
 
-    pkg = installed[choice - 1]
-    pkg_path = pkg["path"]
-    data_json_path = pkg_path / "data.json"
 
-    if not data_json_path.exists():
-        console.print(f"[bold red]data.json not found in {pkg_path}. Cannot proceed with uninstallation.[/bold red]")
-        return
+# ----------------------------------------------------------------- install
+def safe_relative(path):
+    p = Path(path)
+    return not p.is_absolute() and ".." not in p.parts and path.strip() != ""
+
+
+def hash_matches(data, expected):
+    if hashlib.sha256(data).hexdigest() == expected:
+        return True
+    # The index hashes text files with LF line endings
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest() == expected
+
+
+def refresh_shell():
+    """Make new commands usable immediately instead of requiring a restart."""
+    try:
+        import shell
+        shell.reload_all()
+    except Exception:
+        console.print("[yellow]Type 'reload' to start using the new package.[/yellow]")
+
+
+def run_script(folder, meta, key, label):
+    script = meta.get("scripts", {}).get(key)
+    if not script or not (folder / script).exists():
+        return True
+    console.print(f"[bold green]Running {label}...[/bold green]")
+    code = subprocess.call([sys.executable, str(folder / script)])
+    if code != 0:
+        console.print(f"[bold yellow]The {label} exited with code {code}.[/bold yellow]")
+    return code == 0
+
+
+def install_package(pkg, installed, quiet=False):
+    """Download into a temporary folder, verify every file, then swap into place."""
+    dest = INSTALL_ROOT / f"installed_{pkg['category']}" / pkg["id"].split("/", 1)[1]
+    tmp = dest.parent / f".tmp_{dest.name}"
+    old = dest.parent / f".old_{dest.name}"
+    was_installed = pkg["id"] in installed
+    for leftover in (tmp, old):
+        shutil.rmtree(leftover, ignore_errors=True)
 
     try:
-        with open(data_json_path, "r") as f:
-            data = json.load(f)
+        tmp.mkdir(parents=True)
+        with Progress(TextColumn("[cyan]{task.description}"), BarColumn(), TextColumn("{task.completed}/{task.total}"),
+                      console=console, transient=True) as progress:
+            task = progress.add_task(f"Downloading {pkg['name']}", total=len(pkg["files"]))
+            for entry in pkg["files"]:
+                rel = entry["path"]
+                if not safe_relative(rel):
+                    raise ValueError(f"unsafe file path in catalog: {rel}")
+                data = http_get(f"{RAW_BASE}/{pkg['id']}/{rel}").content
+                if entry.get("sha256") and not hash_matches(data, entry["sha256"]):
+                    raise ValueError(f"checksum mismatch for {rel}")
+                target = tmp / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+                progress.advance(task)
+        if dest.exists():
+            dest.rename(old)
+        tmp.rename(dest)
+        shutil.rmtree(old, ignore_errors=True)
     except Exception as e:
-        console.print(f"[bold red]Failed to read data.json: {e}[/bold red]")
-        return
+        console.print(f"[bold red]Could not install {escape(pkg['name'])}: {escape(str(e))}[/bold red]")
+        shutil.rmtree(tmp, ignore_errors=True)
+        if old.exists() and not dest.exists():
+            old.rename(dest)  # put the previous version back
+        return False
 
-    uninstaller_script = data.get("scripts", {}).get("uninstaller")
-    if not uninstaller_script:
-        console.print("[bold yellow]No uninstaller script defined. Skipping uninstallation script step.[/bold yellow]")
-    else:
-        uninstaller_path = pkg_path / uninstaller_script
-        if not uninstaller_path.exists():
-            console.print(f"[bold red]Uninstaller script '{uninstaller_script}' not found in package folder.[/bold red]")
-            return
-
-        console.print(f"[bold green]Running uninstaller script: {uninstaller_script}[/bold green]")
-        ret_code = os.system(f'python "{uninstaller_path}"')
-        if ret_code != 0:
-            console.print(f"[bold red]Uninstaller script exited with code {ret_code}. Aborting deletion.[/bold red]")
-            return
-
+    verb = "Updated" if was_installed else "Installed"
+    console.print(f"[bold green]{verb} {escape(pkg['name'])} {pkg['version']}.[/bold green]")
+    meta = {}
     try:
-        shutil.rmtree(pkg_path)
-        console.print(f"[bold green]Successfully uninstalled and removed package '{pkg['name']}'.[/bold green]")
-    except Exception as e:
-        console.print(f"[bold red]Failed to delete package folder: {e}[/bold red]")
+        meta = json.loads((dest / "data.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        pass
+    if not was_installed and meta.get("scripts", {}).get("installer") and not quiet:
+        if Confirm.ask("This package has a setup step. Run it now?", default=True):
+            run_script(dest, meta, "installer", "installer")
+    if not quiet:
+        refresh_shell()
+        if meta.get("command"):
+            console.print(f"Start it with: [bold cyan]run {meta['command']}[/bold cyan]")
+    return True
 
 
-def check_updates_flow():
-    if not check_internet():
-        console.print("[bold red]No internet connection detected. Please connect and try again.[/bold red]")
+def remove_package(pid, info, quiet=False):
+    folder, meta = info["path"], info.get("meta", {})
+    if not quiet and not Confirm.ask(f"Remove {info['name']}?", default=False):
+        console.print("[yellow]Cancelled.[/yellow]")
+        return False
+    if not run_script(folder, meta, "uninstaller", "uninstaller"):
+        if not Confirm.ask("The uninstaller reported a problem. Remove the package files anyway?", default=False):
+            return False
+    try:
+        shutil.rmtree(folder)
+    except OSError as e:
+        console.print(f"[bold red]Could not delete {folder}: {e}[/bold red]")
+        return False
+    console.print(f"[bold green]Removed {escape(info['name'])}.[/bold green]")
+    if not quiet:
+        refresh_shell()
+    return True
+
+
+def update_all(packages, installed):
+    pending = [p for p in packages if status_of(p, installed) == "update"]
+    if not pending:
+        console.print("[green]Everything is up to date.[/green]")
+        return
+    show_packages(pending, installed, "Updates available")
+    if not Confirm.ask(f"Update {len(pending)} package(s)?", default=True):
+        return
+    results = [install_package(p, installed, quiet=True) for p in pending]
+    console.print(f"[bold green]{sum(results)} updated[/bold green]" + (f", [bold red]{len(results) - sum(results)} failed[/bold red]" if not all(results) else ""))
+    refresh_shell()
+
+
+# ----------------------------------------------------------- interactive UI
+def manage(pkg, installed, packages):
+    """Details + actions for one package."""
+    while True:
+        show_details(pkg, installed)
+        status = status_of(pkg, installed)
+        actions = ["back"]
+        if not status:
+            actions.insert(0, "install")
+        if status == "update":
+            actions.insert(0, "update")
+        if status:
+            actions.insert(len(actions) - 1, "remove")
+        action = Prompt.ask("What now?", choices=actions, default=actions[0])
+        if action == "back":
+            return
+        if action in ("install", "update"):
+            install_package(pkg, installed)
+        elif action == "remove":
+            remove_package(pkg["id"], installed[pkg["id"]])
+        installed.clear()
+        installed.update(installed_packages())
         return
 
-    installed = list_installed_programs()
-    if not installed:
-        console.print("[yellow]No installed programs found to check for updates.[/yellow]")
-        return
 
-    any_updated = False
+def pick_from(packages, installed, title):
+    """Show a numbered list and let the user open entries until they go back."""
+    while True:
+        if not packages:
+            console.print("[yellow]Nothing to show.[/yellow]")
+            return
+        show_packages(packages, installed, title)
+        n = IntPrompt.ask("Open a package by number (0 to go back)", default=0)
+        if not 1 <= n <= len(packages):
+            return
+        manage(packages[n - 1], installed, packages)
 
-    for program in installed:
-        category = program["category"]
-        program_name = program["name"]
-        install_dir = program["path"]
 
-        console.print(f"\n[bold cyan]Checking updates for '{program_name}' in category '{category}'[/bold cyan]")
+def browse(packages, installed):
+    cats = sorted({p["category"] for p in packages})
+    table = Table(title="Categories", header_style="bold blue")
+    table.add_column("#", justify="right")
+    table.add_column("Category", style="magenta")
+    table.add_column("Packages", justify="right")
+    table.add_row("0", "[bold]All[/bold]", str(len(packages)))
+    for i, c in enumerate(cats, 1):
+        table.add_row(str(i), c, str(sum(1 for p in packages if p["category"] == c)))
+    console.print(table)
+    n = IntPrompt.ask("Choose a category (blank to go back)", default=-1)
+    if n == 0:
+        pick_from(sorted(packages, key=lambda p: p["name"].lower()), installed, "All packages")
+    elif 1 <= n <= len(cats):
+        pick_from([p for p in packages if p["category"] == cats[n - 1]], installed, f"{cats[n - 1].title()} packages")
 
-        remote_items = fetch_items_in_category(f"{category}/{program_name}")
-
-        if not remote_items:
-            console.print(f"[yellow]Failed to fetch remote items for '{program_name}' in category '{category}'. Skipping.[/yellow]")
-            continue
-
-        remote_files = {item["name"]: item for item in remote_items if item["type"] == "file"}
-
-        for local_file in install_dir.glob("*"):
-            if local_file.is_file():
-                remote_item = remote_files.get(local_file.name)
-
-                if remote_item:
-                    remote_url = get_raw_url(remote_item)
-                    if not remote_url:
-                        console.print(f"[yellow]No raw URL found for remote file '{local_file.name}'. Skipping.[/yellow]")
-                        continue
-
-                    local_hash = calculate_file_hash(local_file)
-
-                    try:
-                        response = requests.get(remote_url)
-                        response.raise_for_status()
-                        remote_content = response.content
-                        remote_hash = hashlib.sha256(remote_content).hexdigest()
-                    except Exception as e:
-                        console.print(f"[bold red]Failed to fetch remote content for '{local_file.name}': {e}[/bold red]")
-                        continue
-
-                    if local_hash and remote_hash and local_hash != remote_hash:
-                        console.print(f"[yellow]'{local_file.name}' has changed. Downloading update.[/yellow]")
-                        if download_file(remote_item, category, install_dir):
-                            any_updated = True
-                    else:
-                        console.print(f"[green]'{local_file.name}' is up-to-date.[/green]")
-                else:
-                    console.print(f"[yellow]'{local_file.name}' exists locally but not remotely. It might be an orphaned file.[/yellow]")
-
-        for remote_file_name, remote_item in remote_files.items():
-            if not (install_dir / remote_file_name).exists():
-                console.print(f"[yellow]New file '{remote_file_name}' found remotely. Downloading.[/yellow]")
-                if download_file(remote_item, category, install_dir):
-                    any_updated = True
-
-    if not any_updated:
-        console.print("[green]All programs are up-to-date.[/green]")
 
 def main_menu():
-    if not check_internet():
-        console.print("[bold red]No internet connection detected. Marketplace requires internet access.[/bold red]")
+    packages, offline = load_index()
+    if packages is None:
         return
-
+    installed = installed_packages()
+    updates = sum(1 for p in packages if status_of(p, installed) == "update")
+    console.print(Panel(f"[bold]PyOS Marketplace[/bold]  -  {len(packages)} packages"
+                        + (f", [yellow]{updates} update(s) available[/yellow]" if updates else ""),
+                        border_style="magenta", expand=False))
     while True:
-        console.print("\n[bold magenta]Marketplace Menu[/bold magenta]")
-        console.print("1. Download Programs")
-        console.print("2. Check for Updates")
-        console.print("3. Uninstall a Package")
-        console.print("4. Exit")
-        choice = IntPrompt.ask("Choose an option", choices=["1", "2", "3", "4"])
+        installed = installed_packages()
+        console.print("\n[bold magenta]b[/bold magenta]rowse  [bold magenta]s[/bold magenta]earch  "
+                      "[bold magenta]i[/bold magenta]nstalled  [bold magenta]u[/bold magenta]pdates  "
+                      "[bold magenta]q[/bold magenta]uit")
+        choice = Prompt.ask("Choose", choices=["b", "s", "i", "u", "q"], default="s")
+        if choice == "q":
+            return
+        if choice == "b":
+            browse(packages, installed)
+        elif choice == "s":
+            query = Prompt.ask("Search for").strip()
+            results = search(packages, query)
+            if results:
+                pick_from(results, installed, f"Results for '{query}'")
+            else:
+                console.print(f"[yellow]Nothing matches '{escape(query)}'. Try a different word or browse by category.[/yellow]")
+        elif choice == "i":
+            show_installed(packages, installed)
+        elif choice == "u":
+            if offline:
+                console.print("[yellow]Updates need a connection to the marketplace.[/yellow]")
+            else:
+                update_all(packages, installed)
 
-        if choice == 1:
-            download_program_flow()
-        elif choice == 2:
-            check_updates_flow()
-        elif choice == 3:
-            uninstall_package_flow()
-        elif choice == 4:
-            console.print("Goodbye!")
-            break
+
+def show_installed(packages, installed):
+    if not installed:
+        console.print("[yellow]No packages installed yet. Use 'search' or 'browse' to find some.[/yellow]")
+        return
+    by_id = {p["id"]: p for p in packages}
+    table = Table(title="Installed packages", header_style="bold blue")
+    table.add_column("Name", style="cyan")
+    table.add_column("Category", style="magenta")
+    table.add_column("Version", style="yellow")
+    table.add_column("Status")
+    for pid, info in installed.items():
+        pkg = by_id.get(pid)
+        table.add_row(escape(info["name"]), pid.split("/")[0], info["version"],
+                      status_label(status_of(pkg, installed), pkg, installed) if pkg else "[dim]not in catalog[/dim]")
+    console.print(table)
+
+
+# ------------------------------------------------------------ command line
+HELP = """[bold]marketplace[/bold] (also: market, store, pkg)
+
+  marketplace                    open the interactive store
+  marketplace search <words>     find packages
+  marketplace info <name>        show details
+  marketplace install <name>     install a package
+  marketplace remove <name>      remove a package
+  marketplace update <name>      update one package (leave out the name to update everything)
+  marketplace list               show installed packages"""
+
+
+def cli(args):
+    cmd, rest = args[0].lower(), args[1:]
+    if cmd in ("help", "-h", "--help"):
+        console.print(HELP)
+        return
+    packages, offline = load_index()
+    if cmd in ("list", "installed", "ls"):
+        show_installed(packages or [], installed_packages())
+        return
+    if packages is None:
+        return
+    installed = installed_packages()
+    query = " ".join(rest)
+
+    if cmd in ("search", "find"):
+        results = search(packages, query)
+        if results:
+            show_packages(results, installed, f"Results for '{query}'" if query else "All packages")
+        else:
+            console.print(f"[yellow]Nothing matches '{escape(query)}'.[/yellow]")
+    elif cmd in ("info", "show"):
+        pkg = choose(resolve(packages, query), installed) if query else None
+        if pkg:
+            show_details(pkg, installed)
+        else:
+            console.print("[yellow]Usage: marketplace info <name>[/yellow]")
+    elif cmd in ("install", "add"):
+        if not query:
+            console.print("[yellow]Usage: marketplace install <name>[/yellow]")
+            return
+        pkg = choose(resolve(packages, query), installed)
+        if not pkg:
+            console.print(f"[yellow]No package matches '{escape(query)}'. Try: marketplace search {escape(query)}[/yellow]")
+        elif status_of(pkg, installed) == "installed":
+            console.print(f"[green]{escape(pkg['name'])} is already installed.[/green]")
+        else:
+            install_package(pkg, installed)
+    elif cmd in ("remove", "uninstall", "rm"):
+        matches = [p for p in resolve(packages, query) if p["id"] in installed] if query else []
+        pkg = choose(matches, installed)
+        if pkg:
+            remove_package(pkg["id"], installed[pkg["id"]])
+        else:
+            console.print("[yellow]That package is not installed. See: marketplace list[/yellow]")
+    elif cmd in ("update", "upgrade"):
+        if offline:
+            console.print("[yellow]Updates need a connection to the marketplace.[/yellow]")
+        elif query:
+            pkg = choose([p for p in resolve(packages, query) if p["id"] in installed], installed)
+            if pkg and status_of(pkg, installed) == "update":
+                install_package(pkg, installed)
+            elif pkg:
+                console.print(f"[green]{escape(pkg['name'])} is up to date.[/green]")
+            else:
+                console.print("[yellow]That package is not installed.[/yellow]")
+        else:
+            update_all(packages, installed)
+    else:
+        console.print(f"[red]Unknown subcommand '{escape(cmd)}'.[/red]")
+        console.print(HELP)
+
+
+def execute(args=None):
+    try:
+        if args:
+            cli(args)
+        else:
+            main_menu()
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Cancelled.[/yellow]")
+
 
 if __name__ == "__main__":
-    main_menu()
-
-def execute():
-    main_menu()
+    execute(sys.argv[1:])

@@ -1,0 +1,80 @@
+# OS_Export
+
+Everything GitHub Actions (or you, locally) need to turn PythonOS into installable
+packages. Nothing in here changes how the OS itself runs.
+
+| Folder | Produces | Needs |
+|---|---|---|
+| [`Linux/`](Linux) | `pythonos-<version>-linux.tar.gz` and `pythonos_<version>_all.deb` | bash, python3, tar (dpkg-deb for the .deb) |
+| [`Windows/`](Windows) | `PythonOS-<version>-windows-portable.zip` and `PythonOS-<version>-setup.exe` | Windows, Python 3, [Inno Setup](https://jrsoftware.org/isinfo.php) (optional, for the installer) |
+| [`Android/`](Android) | `PythonOS-<version>-android.apk`, an app | JDK 17, Gradle 8.9, Android SDK, Python 3 |
+| [`ISO/`](ISO) | `pythonos-<version>-x86_64.iso`, a bootable live image | Linux with Docker |
+
+`stage.py` is shared by all four: it copies the OS files (`main.py`, `shell.py`, `users.py`,
+`commands/`, `programs/`, `core/`, `pyos/`, ...) into a folder, so the list of files that make up
+PythonOS lives in one place. If you add a new top-level file or folder to the OS, add it to
+`PAYLOAD_FILES` / `PAYLOAD_DIRS` there.
+
+## Building with GitHub Actions
+
+The workflow is [`.github/workflows/build-os.yml`](../.github/workflows/build-os.yml).
+
+* **Manual run:** Actions tab → *Build PythonOS* → *Run workflow*. Each platform's output is
+  attached to the run as an artifact.
+* **Release:** push a tag such as `v1.2.0`. All four builds run and the files are attached to a
+  GitHub release.
+
+```bash
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+## Building locally
+
+From the repository root (set `VERSION` to stamp a version, otherwise `config.json`'s is used):
+
+```bash
+VERSION=1.2.0 bash OS_Export/Linux/build.sh          # -> dist/linux/
+VERSION=1.2.0 bash OS_Export/ISO/build-iso.sh        # -> dist/iso/   (needs Docker)
+```
+
+```powershell
+$env:VERSION = "1.2.0"; ./OS_Export/Windows/build.ps1   # -> dist\windows\
+```
+
+```bash
+python OS_Export/stage.py OS_Export/Android/app/src/main/assets/pythonos
+cd OS_Export/Android && gradle assembleRelease          # -> app/build/outputs/apk/release/
+```
+
+## Notes per platform
+
+**Linux** – the launcher keeps each user's files, accounts and a private virtual environment in
+`~/.local/share/pythonos` (override with `PYTHONOS_HOME`), so the install location can be read-only.
+
+**Windows** – the package carries its own Python (the official *embeddable* build) with all
+dependencies, so nothing has to be installed. `PythonOS.exe` is a small PyInstaller launcher
+that starts it. PythonOS itself is deliberately *not* frozen into one exe: it loads commands and
+marketplace packages from disk and installs packages with pip, which a frozen exe cannot do.
+The installer puts PythonOS in `%LOCALAPPDATA%\PythonOS` (no admin rights needed) because the OS
+writes its files next to itself.
+
+**Android** – a real app: a terminal screen (with colours) that runs PythonOS through
+[Chaquopy](https://chaquo.com/chaquopy/). The OS is copied from the APK into the app's private
+storage on first launch, and users' files survive app updates. Differences from desktop:
+pip is not available (dependencies ship in the app, `PYOS_BUNDLED=1`), so marketplace
+packages that install pip libraries (Chess, Typing Test, IPython) cannot be set up there; the
+rest work. `shutdown` closes the app. APKs are signed with the debug key unless you add these
+repository secrets to sign with your own: `ANDROID_KEYSTORE_FILE` (path on the runner),
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+
+**ISO** – an Alpine Linux live image built with Alpine's `mkimage`. It boots (BIOS or UEFI)
+straight into PythonOS on the first console and powers off when you shut PythonOS down; Alt+F2 is
+a recovery shell. It is a live CD: everything runs from RAM and is lost at power off. Try it with
+`qemu-system-x86_64 -m 1024 -cdrom pythonos-<version>-x86_64.iso`.
+
+## Bundled mode
+
+Builds that cannot run pip at runtime (Android, ISO) start the OS with `PYOS_BUNDLED=1`. In that
+mode `main.py` and the boot sequence skip dependency installation and the internet check, and a
+`site-packages` folder next to `main.py` is added to the import path.

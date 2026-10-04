@@ -2,10 +2,20 @@ import os
 import platform
 import subprocess
 import sys
+import site
+
+# Bundled builds (Android app, ISO, packaged installers) ship their dependencies
+# and cannot run pip; they set PYOS_BUNDLED=1 and may include a local site-packages.
+BUNDLED = os.environ.get("PYOS_BUNDLED") == "1"
+_local_packages = os.path.join(os.path.dirname(os.path.abspath(__file__)), "site-packages")
+if os.path.isdir(_local_packages):
+    site.addsitedir(_local_packages)
 
 def install_requirements():
     """Install dependencies from boot-requirements.txt with platform-specific options."""
-    cmd = ["python", "-m", "pip", "install", "-r", "boot-requirements.txt", "-U", "--quiet"]
+    if BUNDLED:
+        return
+    cmd = [sys.executable, "-m", "pip", "install", "-r", "boot-requirements.txt", "-U", "--quiet"]
 
     # Add --break-system-packages if running on Linux
     if platform.system() == "Linux":
@@ -13,7 +23,7 @@ def install_requirements():
 
     try:
         subprocess.run(cmd, check=True)
-        os.system("clear")
+        os.system("cls" if os.name == "nt" else "clear")
     except subprocess.CalledProcessError:
         print("❌ Failed to install dependencies. Make sure Python and pip are installed.")
         sys.exit(0)

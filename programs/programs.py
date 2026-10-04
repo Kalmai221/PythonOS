@@ -41,7 +41,6 @@ def load_program_metadata(program_folder: Path):
        try:
            with open(data_file, 'r') as f:
                data = json.load(f)
-               print(f"Successfully loaded metadata from {data_file}")  # Add this line
                return data
        except json.JSONDecodeError as e:
            console.print(f"[bold yellow]Warning: Could not read metadata for {program_folder.name}: Invalid JSON in {data_file}: {e}[/bold yellow]")

@@ -1,0 +1,15 @@
+{
+  "name": "Weather",
+  "description": "Check the current weather for any city (needs internet).",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "weather",
+  "alias": [],
+  "tags": [
+    "internet",
+    "forecast",
+    "temperature"
+  ]
+}

@@ -2,8 +2,12 @@ import os
 import json
 import hashlib
 import getpass
+import hmac
+import secrets
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.panel import Panel
+from rich.table import Table
 import time
 import pyos
 
@@ -16,14 +20,43 @@ def load_or_create_user_db():
         with open(USER_DB, "w") as f:
             json.dump({}, f)
 
+PBKDF2_ROUNDS = 200_000
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_SECONDS = 30
+_failed_logins = {}  # username -> (count, last_failure_time)
+
+
 def hash_password(password):
-    """Hash the password using SHA-256"""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Hash a password with salted PBKDF2-SHA256 ("pbkdf2$rounds$salt$hash")."""
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), PBKDF2_ROUNDS).hex()
+    return f"pbkdf2${PBKDF2_ROUNDS}${salt}${digest}"
+
+
+def verify_password(password, stored):
+    """Check a password against a stored hash (also accepts legacy unsalted SHA-256)."""
+    if stored.startswith("pbkdf2$"):
+        _, rounds, salt, digest = stored.split("$")
+        candidate = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), int(rounds)).hex()
+        return hmac.compare_digest(candidate, digest)
+    legacy = hashlib.sha256(password.encode()).hexdigest()
+    return hmac.compare_digest(legacy, stored)
+
+
+def save_users(users):
+    """Write the user database atomically so a crash cannot corrupt it."""
+    tmp = USER_DB + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(users, f, indent=4)
+    os.replace(tmp, USER_DB)
 
 def get_users():
     """Get the list of registered users"""
-    with open(USER_DB, "r") as f:
-        return json.load(f)
+    try:
+        with open(USER_DB, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 def save_session(username, role):
     """Save the current user session with username and role."""
@@ -43,25 +76,35 @@ def register():
     username = Prompt.ask("[bold yellow]New username[/bold yellow]").strip()
     users = get_users()
 
+    if not username or not username.replace("_", "").replace("-", "").isalnum():
+        console.print("[bold red]Usernames may only contain letters, numbers, '-' and '_'.[/bold red]")
+        return None
+
     if username in users:
         console.print("[bold red]User already exists![/bold red]")
         return None
 
     password = getpass.getpass("New password: ")
+    if len(password) < 4:
+        console.print("[bold red]Password must be at least 4 characters.[/bold red]")
+        return None
+    if getpass.getpass("Confirm password: ") != password:
+        console.print("[bold red]Passwords do not match.[/bold red]")
+        return None
 
     # Determine if the new user is an admin or a regular user
     is_admin = len(users) == 0  # First user is admin
     role = "admin" if is_admin else "user"
 
-    with open(USER_DB, "r+") as f:
-        users[username] = {
-            "password": hash_password(password),
-            "role": role
-        }
-        f.seek(0)
-        json.dump(users, f, indent=4)
+    users[username] = {
+        "password": hash_password(password),
+        "role": role
+    }
+    save_users(users)
+    pyos.fs.ensure_home(username)
+    pyos.log.log(f"account created (role: {role})", user=username)
 
-    console.print(f"[bold green]User  registered successfully! Role: {role}[/bold green]")
+    console.print(f"[bold green]User registered successfully! Role: {role}[/bold green]")
     return username
 
 def delete_user():
@@ -69,7 +112,7 @@ def delete_user():
     current_user = load_session()
     users = get_users()
 
-    if users[current_user]['role'] != 'admin':
+    if users.get(current_user, {}).get('role') != 'admin':
         console.print("[bold red]You do not have permission to delete users.[/bold red]")
         return
 
@@ -78,9 +121,13 @@ def delete_user():
         console.print(f"[bold red]User {username} not found.[/bold red]")
         return
 
+    if username == current_user:
+        console.print("[bold red]You cannot delete the account you are logged in with.[/bold red]")
+        return
+
     del users[username]
-    with open(USER_DB, "w") as f:
-        json.dump(users, f, indent=4)
+    save_users(users)
+    pyos.log.log(f"account deleted by {current_user}", "WARN", user=username)
 
     console.print(f"[bold green]User {username} deleted successfully![/bold green]")
 
@@ -89,41 +136,56 @@ def view_users():
     users = get_users()
     current_user = load_session()  # Get the current logged-in user
     if users:
-        console.print("[bold yellow]Registered Users:[/bold yellow]")
+        table = Table(title="Registered Users", header_style="bold", border_style="blue")
+        table.add_column("User", style="bold")
+        table.add_column("Role")
         for username, details in users.items():
-            # Add "- You" next to the current logged-in user
-            if username == current_user:
-                console.print(f"- {username} [bold cyan](You)[/bold cyan] - Role: {details['role']}")
-            else:
-                console.print(f"- {username} - Role: {details['role']}")
+            label = f"{username} [bold cyan](you)[/bold cyan]" if username == current_user else username
+            table.add_row(label, details['role'])
+        console.print(table)
     else:
         console.print("[bold red]No users found.[/bold red]")
 
 def change_password():
-    """Change the password for a user"""
+    """Change a password. Admins can change anyone's; other users only their own."""
     current_user = load_session()
     users = get_users()
 
-    if users[current_user]['role'] != 'admin':
-        console.print("[bold red]You do not have permission to change other users' passwords.[/bold red]")
+    if current_user not in users:
+        console.print("[bold red]You must be logged in to change a password.[/bold red]")
         return False
 
-    username = Prompt.ask("[bold yellow]Enter the username whose password you want to change[/bold yellow]").strip()
+    is_admin = users[current_user]['role'] == 'admin'
+    if is_admin:
+        username = Prompt.ask("[bold yellow]Enter the username whose password you want to change[/bold yellow]").strip()
+    else:
+        username = current_user
     if username not in users:
-        console.print("[bold red]User  not found.[/bold red]")
+        console.print("[bold red]User not found.[/bold red]")
         return False
 
-    new_password = getpass.getpass(f"Enter a new password for {username}: ").strip()
-    users[username]['password'] = hash_password(new_password)
+    if username == current_user:
+        old = getpass.getpass("Current password: ")
+        if not verify_password(old, users[username]['password']):
+            console.print("[bold red]Incorrect password.[/bold red]")
+            return False
 
-    with open(USER_DB, "w") as f:
-        json.dump(users, f, indent=4)
+    new_password = getpass.getpass(f"Enter a new password for {username}: ")
+    if len(new_password) < 4:
+        console.print("[bold red]Password must be at least 4 characters.[/bold red]")
+        return False
+    users[username]['password'] = hash_password(new_password)
+    save_users(users)
     console.print(f"[bold green]Password for {username} changed successfully![/bold green]")
     return True
 
 def change_role():
     """Change the role of a user between admin and user."""
     users = get_users()
+
+    if users.get(load_session(), {}).get('role') != 'admin':
+        console.print("[bold red]You do not have permission to change roles.[/bold red]")
+        return False
 
     username = Prompt.ask("[bold yellow]Enter the username whose role you want to change[/bold yellow]").strip()
     if username not in users:
@@ -147,29 +209,43 @@ def change_role():
 
     # Change the role
     users[username]['role'] = new_role
-    with open(USER_DB, "w") as f:
-        json.dump(users, f, indent=4)
+    save_users(users)
     pyos.system("clear")
     console.print(f"[bold green]Role for {username} changed to {new_role} successfully![/bold green]")
     return True
 
 
 def login():
-    """Handle user login"""
+    """Handle user login (with a short lockout after repeated failures)"""
     users = get_users()
     username = input("Username: ").strip()
-    if username not in users:
-        console.print(f"[bold red]{username} not found in users database.[/bold red]")
-        return None
+
+    count, last = _failed_logins.get(username, (0, 0))
+    if count >= MAX_LOGIN_ATTEMPTS:
+        wait = LOCKOUT_SECONDS - (time.time() - last)
+        if wait > 0:
+            console.print(f"[bold red]Too many failed attempts. Try again in {int(wait) + 1}s.[/bold red]")
+            return None
+        _failed_logins.pop(username, None)
+
     password = getpass.getpass("Password: ")
-    if users[username]['password'] == hash_password(password):
-        os.system("clear")
-        console.print(f"[bold green]Welcome back, {username}! Role: {users[username]['role']}[/bold green]")
+    # Same message for unknown user / wrong password so usernames cannot be probed
+    if username in users and verify_password(password, users[username]['password']):
+        _failed_logins.pop(username, None)
+        if not users[username]['password'].startswith("pbkdf2$"):
+            users[username]['password'] = hash_password(password)  # upgrade legacy hash
+            save_users(users)
+        os.system("cls" if os.name == "nt" else "clear")
+        console.print(f"[bold green]Welcome back, {username}![/bold green] [dim]({users[username]['role']})[/dim]")
         save_session(username, users[username]['role'])  # Save username and role
+        pyos.fs.ensure_home(username)
+        pyos.log.log("login ok", user=username)
         return username
-    else:
-        console.print("[bold red]Incorrect password.[/bold red]")
-        return None
+
+    _failed_logins[username] = (count + 1, time.time())
+    pyos.log.log("login failed", "WARN", user=username or "?")
+    console.print("[bold red]Incorrect username or password.[/bold red]")
+    return None
 
 def logout():
     """Logout the current user by removing session"""
@@ -197,6 +273,14 @@ def user_menu():
         elif choice == "Delete User":
             delete_user()
 
+def register_and_login():
+    """Create the first account and sign it in, so it has a session straight away."""
+    username = register()
+    if username:
+        save_session(username, get_users()[username]['role'])
+    return username
+
+
 def boot_sequence():
     """Boot the system and check user session"""
     load_or_create_user_db()  # Ensure the user database is loaded
@@ -204,11 +288,12 @@ def boot_sequence():
 
     # If users exist, proceed to login, else go to register
     if users_data:
-        console.print("[bold yellow]Users found. Please log in.[/bold yellow]")
+        console.print(Panel("Please log in to continue.", title="[bold cyan]Login[/bold cyan]", border_style="blue", expand=False))
         return login()
     else:
-        console.print("[bold yellow]No users found. Please create an account.[/bold yellow]")
-        return register()
+        console.print(Panel("No users found. Create the first account (it will be an admin).",
+                            title="[bold cyan]Setup[/bold cyan]", border_style="blue", expand=False))
+        return register_and_login()
 
 def login_after_logout():
     """Boot the system and check user session"""
@@ -217,8 +302,9 @@ def login_after_logout():
 
     # If users exist, proceed to login, else go to register
     if users_data:
-        console.print("[bold yellow]Users found. Please log in.[/bold yellow]")
+        console.print(Panel("Please log in to continue.", title="[bold cyan]Login[/bold cyan]", border_style="blue", expand=False))
         return login()
     else:
-        console.print("[bold yellow]No users found. Please create an account.[/bold yellow]")
-        return register()
+        console.print(Panel("No users found. Create the first account (it will be an admin).",
+                            title="[bold cyan]Setup[/bold cyan]", border_style="blue", expand=False))
+        return register_and_login()

@@ -1,0 +1,15 @@
+{
+  "name": "Notes",
+  "description": "Write and read notes, stored as text files in ~/notes.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "notes",
+  "alias": [],
+  "tags": [
+    "productivity",
+    "text",
+    "writing"
+  ]
+}

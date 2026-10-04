@@ -1,74 +1,73 @@
 #!/usr/bin/env python3
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
-from rich.prompt import Confirm
-from rich import box
+import importlib.metadata
+import os
+import shutil
+import socket
 import subprocess
 import sys
-import pkg_resources
+import sysconfig
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm
 
 console = Console()
-package_name = "cli-chess"
+DIST = "cli-chess"
+COMMAND = "cli-chess"
+TITLE = "CLI Chess"
 
-def check_package_installed(name):
-    """Check if the pip package is installed."""
-    installed = {pkg.key for pkg in pkg_resources.working_set}
-    return name in installed
+# Different systems need different pip flags (venvs, Debian/Termux "externally managed"
+# Python, read-only system site-packages), so try the safe options in order.
+PIP_FLAG_SETS = [[], ["--user"], ["--break-system-packages"], ["--user", "--break-system-packages"]]
 
-def uninstall_package(name):
-    """Uninstall the pip package."""
-    with console.status(f"[bold red]Uninstalling {name}...[/bold red]", spinner="dots"):
-        try:
-            subprocess.run(
-                [sys.executable, "-m", "pip", "uninstall", name, "-y"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-        except subprocess.CalledProcessError as e:
-            console.print(Panel(f"[bold red]Uninstallation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
-            sys.exit(1)
-        else:
-            console.print(Panel(f"[bold green]{name} uninstalled successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
+
+def is_installed():
+    try:
+        importlib.metadata.version(DIST)
+        return True
+    except importlib.metadata.PackageNotFoundError:
+        return False
+
+
+def has_internet(host="pypi.org", port=443, timeout=3):
+    try:
+        socket.create_connection((host, port), timeout=timeout).close()
+        return True
+    except OSError:
+        return False
+
+
+def pip(action, *extra):
+    """Run `pip <action> DIST`, retrying with other flag sets. Returns (ok, error_text)."""
+    error = ""
+    for flags in PIP_FLAG_SETS:
+        result = subprocess.run([sys.executable, "-m", "pip", action, DIST, *extra, *flags],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            return True, ""
+        error = (result.stderr or result.stdout or "").strip()
+    return False, error
+
 
 def main():
-    console.clear()
-
-    # Header
-    console.print(Panel(Text("CLI Chess Uninstaller", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
-
-    # Description
-    console.print(Panel(
-        "This will uninstall [bold]cli-chess[/bold] from your system.\n\n"
-        "Command run:\n[red]python -m pip uninstall cli-chess -y[/red]",
-        style="grey93",
-        box=box.ROUNDED,
-        padding=(1, 4)
-    ))
-
-    # Installation check
-    if not check_package_installed(package_name):
-        console.print(Panel(
-            f"[bold yellow]{package_name} is not installed.[/bold yellow]\n\n"
-            "Nothing to uninstall.",
-            style="yellow",
-            box=box.ROUNDED,
-            padding=(1, 2)
-        ))
+    if not is_installed():
+        console.print(f"[bold yellow]{DIST} is not installed. Nothing to do.[/bold yellow]")
+        return
+    if not Confirm.ask(f"Remove {DIST} from this system?", default=False):
+        console.print("[bold yellow]Uninstall cancelled.[/bold yellow]")
+        return
+    with console.status(f"[bold red]Removing {DIST}...[/bold red]", spinner="dots"):
+        ok, error = pip("uninstall", "-y")
+    if ok:
+        console.print(f"[bold green]{DIST} removed.[/bold green]")
     else:
-        # Confirmation
-        console.print(f"[bold red]Warning:[/bold red] This will permanently remove {package_name} from your system.")
-    
-        if not Confirm.ask(f"Are you sure you want to uninstall {package_name}?", default=False):
-            console.print("[bold yellow]Uninstallation cancelled.[/bold yellow]")
-            sys.exit(0)
-    
-        uninstall_package(package_name)
-        console.print(f"\n[bold green]{package_name} has been completely removed from your system.[/bold green]")
+        console.print(Panel(f"[bold red]Could not remove {DIST}.[/bold red]\n\n{error[-800:]}", border_style="red"))
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
+
 
 def execute():
     main()

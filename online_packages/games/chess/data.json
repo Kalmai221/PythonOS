@@ -6,5 +6,13 @@
     "installer": "installer.py",
     "run": "run.py",
     "uninstaller": "uninstaller.py"
-  }
+  },
+  "command": "chess",
+  "alias": [],
+  "tags": [
+    "game",
+    "chess",
+    "board",
+    "strategy"
+  ]
 }

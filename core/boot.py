@@ -8,12 +8,14 @@ import importlib.util
 from yaspin import yaspin
 from rich.panel import Panel
 from rich.align import Align
+from rich.console import Group
+from rich.text import Text
 from rich.table import Table
 import datetime
 import platform
 import psutil
 import socket
-import pkg_resources
+import importlib.metadata
 
 # Initialize the console for rich output
 console = Console()
@@ -76,12 +78,13 @@ def get_packages_from_requirements(requirements_file="requirements.txt"):
 
 def check_packages_installed(packages):
     missing = []
-    installed_packages = {pkg.key for pkg in pkg_resources.working_set}
     for pkg in packages:
-        if pkg.lower() not in installed_packages:
+        try:
+            importlib.metadata.version(pkg)
+        except importlib.metadata.PackageNotFoundError:
             missing.append(pkg)
     return missing
-    
+
 def check_system_integrity(debug, spinner):
     spinner.text = "Checking system integrity..."
     missing_files = [file for file in SYSTEM_FILES if not os.path.exists(file)]
@@ -191,6 +194,14 @@ def set_current_directory_to_files(debug, spinner):
     # Write the path of the 'files' directory to the current_directory.txt file
     with open("current_directory.txt", "w") as f:
         f.write(files_directory)
+
+    # Standard directory tree (/home, /etc, /tmp, /var/log), boot time and log entry
+    import pyos
+    pyos.fs.ensure_layout()
+    os.makedirs(".OSData", exist_ok=True)
+    with open(os.path.join(".OSData", "boot_time"), "w") as f:
+        f.write(str(time.time()))
+    pyos.log.log("System booted")
         
     if debug == "Yes":
         spinner.text = f"Current directory set to: {files_directory}"
@@ -221,82 +232,112 @@ def get_system_version():
 
 def display_home_screen():
     """Displays the home screen after boot."""
-    system_info = get_system_info()
     system_version = get_system_version()
+    now = datetime.datetime.now()
+    try:
+        uptime = time.strftime("%H:%M:%S", time.gmtime(time.time() - psutil.boot_time()))
+    except Exception:
+        uptime = "unknown"
 
-    # Content inside the panel
-    panel_content = Align.center(
-        f"[bold cyan]Welcome to pyOS v{system_version}![/bold cyan]\n\n{system_info}"
+    info = Table.grid(padding=(0, 2))
+    info.add_column(style="bold magenta", justify="right")
+    info.add_column(style="cyan")
+    info.add_row("Date", now.strftime("%A, %d %B %Y"))
+    info.add_row("Time", now.strftime("%H:%M:%S"))
+    info.add_row("Uptime", uptime)
+    info.add_row("Platform", f"{platform.system()} {platform.release()}")
+
+    body = Group(
+        Align.center(Text(BANNER, style="bold cyan")),
+        Align.center(Text(f"v{system_version}", style="dim")),
+        Text(""),
+        Align.center(info),
+        Text(""),
+        Align.center(Text("Type 'help' once logged in to see what you can do.", style="dim italic")),
     )
+    console.print(Panel(body, title="[bold green]Welcome[/bold green]", border_style="blue", padding=(1, 4)))
 
-    # Home screen panel
-    home_panel = Panel(
-        panel_content,
-        title="[bold green]Home Page[/bold green]",
-        border_style="blue"
-    )
 
-    # Print the panel
-    console.print(home_panel)
-    
+BANNER = r"""
+ ____        ___  ____
+|  _ \ _   _/ _ \/ ___|
+| |_) | | | | | | \___ \
+|  __/| |_| | |_| |___) |
+|_|    \__, |\___/|____/
+       |___/
+""".strip("\n")
+
+
+def _log(spinner, label, status="ok", detail=""):
+    """Print a boot log line above the spinner."""
+    marks = {"ok": "[bold green][  OK  ][/bold green]",
+             "warn": "[bold yellow][ WARN ][/bold yellow]",
+             "fail": "[bold red][FAILED][/bold red]"}
+    suffix = f" [dim]{detail}[/dim]" if detail else ""
+    with console.capture() as cap:
+        console.print(f"{marks[status]} {label}{suffix}")
+    spinner.write(cap.get().rstrip("\n"))
+
+
 def boot_sequence(debug):
-    with yaspin(text="Booting system...") as spinner:
-        time.sleep(1)  # Simulate booting delay
+    pause = 0.35  # short pauses keep the boot feeling like a boot without making you wait
+    with yaspin(text="Booting system...", color="cyan") as spinner:
+        time.sleep(pause)
+
         spinner.text = "Initializing hardware components..."
-        time.sleep(2)  # Simulate hardware initialization
+        time.sleep(pause)
+        _log(spinner, "Initialized hardware components")
 
         spinner.text = "Loading kernel..."
-        time.sleep(2)  # Simulate kernel loading
-
-        spinner.text = "Checking system memory..."
-        time.sleep(1)
+        time.sleep(pause)
+        _log(spinner, "Loaded kernel")
 
         spinner.text = "Verifying file system integrity..."
         check_system_integrity(debug, spinner)
-        time.sleep(1)
+        time.sleep(pause)
+        _log(spinner, "Verified file system")
 
-        spinner.text = "Loading system services..."
-        time.sleep(2)
-
-        # Check Python files in the pyos folder
         check_pyos_files(debug, spinner)
+        _log(spinner, "Loaded system services")
 
-        spinner.text = "Starting network services..."
-        time.sleep(1)
         packages = get_packages_from_requirements("requirements.txt")
-
-        with yaspin(text="Checking internet connection...") as spinner:
+        if os.environ.get("PYOS_BUNDLED") == "1":
+            _log(spinner, "Bundled packages", "ok", "dependencies ship with this build")
+            internet = None
+        else:
+            spinner.text = "Checking internet connection..."
             internet = check_internet_connection()
-            time.sleep(3)
-            if not internet:
+        if internet is None:
+            pass
+        elif internet:
+            _log(spinner, "Network online")
+            spinner.text = "Installing required packages..."
+            try:
+                install_requirements(debug, spinner)
+                _log(spinner, "Required packages up to date")
+            except Exception as e:
+                _log(spinner, "Could not update packages", "warn", str(e).splitlines()[0] if str(e) else "")
+        else:
+            _log(spinner, "No internet connection", "warn", "running offline")
+            missing = check_packages_installed(packages) if packages else []
+            if missing:
+                _log(spinner, "Missing packages", "fail", ", ".join(missing))
                 spinner.fail("✗")
-                console.print("[bold yellow]No internet connection detected.[/bold yellow]")
-                if packages:
-                    spinner.text = "Checking if required packages are installed..."
-                    missing = check_packages_installed(packages)
-                    if missing:
-                        console.print(f"[bold red]Missing packages detected: {', '.join(missing)}[/bold red]")
-                        console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
-                        sys.exit(1)
-                    else:
-                        spinner.ok("✔")
-                        console.print("[bold green]All required packages are installed.[/bold green]")
-                else:
-                    spinner.ok("✔")
-                    console.print("[bold green]No requirements to check. Proceeding.[/bold green]")
-            else:
-                spinner.ok("✔")
-                install_requirements(debug, spinner)  # Install required packages from requirements.txt
-        time.sleep(1)
+                console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
+                sys.exit(1)
+            _log(spinner, "All required packages are installed")
 
-        load_programs(debug, spinner)  # No longer showing programs
-        time.sleep(1)
-        load_commands(debug, spinner)  # No longer showing commands
+        spinner.text = "Loading programs and commands..."
+        load_programs(debug, spinner)
+        load_commands(debug, spinner)
+        _log(spinner, "Loaded programs and commands")
 
-        # Set the current directory to the "files" folder
         set_current_directory_to_files(debug, spinner)
+        time.sleep(pause)
+        spinner.ok("✔")
 
-    console.print("[bold green]System ready![/bold green]\n")
-    os.system("clear")
+    console.print("[bold green]System ready![/bold green]")
+    time.sleep(0.8)
+    os.system("cls" if os.name == "nt" else "clear")
     display_home_screen()
     return True

@@ -10,6 +10,7 @@ import subprocess
 console = Console()
 
 def simulate_shutdown():
+    pyos.log.log("System shutting down")
     pyos.system("clear")
     console.print("\n[bold red]Initiating system shutdown...[/bold red]", style="bold")
     time.sleep(1)

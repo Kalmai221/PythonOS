@@ -1,84 +1,80 @@
-    #!/usr/bin/env python3
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-    from rich.prompt import Confirm
-    from rich import box
-    import subprocess
-    import sys
-    import pkg_resources
-    import shutil
-    import socket
+#!/usr/bin/env python3
+import importlib.metadata
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import sysconfig
 
-    console = Console()
-    package_name = "ipython"
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm
 
-    def check_package_installed(name):
-        """Check if the pip package is installed."""
-        installed = {pkg.key for pkg in pkg_resources.working_set}
-        return name in installed or shutil.which(name) is not None
+console = Console()
+DIST = "ipython"
+COMMAND = "ipython"
+TITLE = "IPython"
 
-    def check_internet(host="pypi.org", port=443, timeout=3):
-        """Check if the machine has internet access by attempting to connect to a known host."""
-        try:
-            socket.create_connection((host, port), timeout=timeout)
-            return True
-        except (socket.timeout, socket.gaierror, OSError):
-            return False
+# Different systems need different pip flags (venvs, Debian/Termux "externally managed"
+# Python, read-only system site-packages), so try the safe options in order.
+PIP_FLAG_SETS = [[], ["--user"], ["--break-system-packages"], ["--user", "--break-system-packages"]]
 
-    def install_package(name):
-        """Install the pip package."""
-        if not check_internet():
-            console.print(Panel(
-                "[bold red]No internet connection detected.[/bold red]\n\n"
-                "Please check your network connection and try again.",
-                style="red", box=box.ROUNDED, padding=(1, 2)
-            ))
-            sys.exit(1)
 
-        with console.status(f"[bold green]Installing {name}...[/bold green]", spinner="dots"):
-            try:
-                subprocess.run(
-                    [sys.executable, "-m", "pip", "install", name, "--user", "--break-system-packages"],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
-            except subprocess.CalledProcessError as e:
-                console.print(Panel(f"[bold red]Installation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
-                sys.exit(1)
-            else:
-                console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
+def is_installed():
+    try:
+        importlib.metadata.version(DIST)
+        return True
+    except importlib.metadata.PackageNotFoundError:
+        return False
 
-    def main():
-        console.clear()
 
-        # Header
-        console.print(Panel(Text("Python Installer", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
+def has_internet(host="pypi.org", port=443, timeout=3):
+    try:
+        socket.create_connection((host, port), timeout=timeout).close()
+        return True
+    except OSError:
+        return False
 
-        # Description
-        console.print(Panel(
-            "This installer will help you install [bold]ipython[/bold].\n\n"
-            "Command run:\n[green]python -m pip install ipython --user[/green]",
-            style="grey93",
-            box=box.ROUNDED,
-            padding=(1, 4)
-        ))
 
-        # Installation check
-        if check_package_installed(package_name):
-            console.print(f"[bold green]{package_name} is already installed.[/bold green]")
-        else:
-            if not Confirm.ask("Do you want to install ipython?", default=True):
-                console.print("[bold yellow]Installation cancelled.[/bold yellow]")
-                sys.exit(0)
-            install_package(package_name)
+def pip(action, *extra):
+    """Run `pip <action> DIST`, retrying with other flag sets. Returns (ok, error_text)."""
+    error = ""
+    for flags in PIP_FLAG_SETS:
+        result = subprocess.run([sys.executable, "-m", "pip", action, DIST, *extra, *flags],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            return True, ""
+        error = (result.stderr or result.stdout or "").strip()
+    return False, error
 
-        console.print(f"\n[bold green]{package_name} installation complete![/bold green]")
-        console.print(f"You can now run it with: [bold cyan]ipython[/bold cyan]")
 
-    if __name__ == "__main__":
-        main()
+def main():
+    console.print(Panel(f"[bold]{TITLE}[/bold] installer\n\nThis installs [cyan]{DIST}[/cyan] from PyPI.",
+                        border_style="blue", expand=False))
+    if is_installed():
+        console.print(f"[bold green]{DIST} is already installed.[/bold green]")
+        return
+    if not has_internet():
+        console.print("[bold red]No internet connection detected. Connect and try again.[/bold red]")
+        sys.exit(1)
+    if not Confirm.ask(f"Install {DIST}?", default=True):
+        console.print("[bold yellow]Installation cancelled.[/bold yellow]")
+        return
+    with console.status(f"[bold green]Installing {DIST}...[/bold green]", spinner="dots"):
+        ok, error = pip("install", "--quiet")
+    if ok:
+        console.print(f"[bold green]{DIST} installed.[/bold green] Start it with: [bold cyan]run {RUN_NAME}[/bold cyan]")
+    else:
+        console.print(Panel(f"[bold red]Installation failed.[/bold red]\n\n{error[-800:]}", border_style="red"))
+        sys.exit(1)
 
-    def execute():
-        main()
+
+RUN_NAME = "python"
+
+if __name__ == "__main__":
+    main()
+
+
+def execute():
+    main()

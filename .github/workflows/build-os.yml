@@ -1,0 +1,124 @@
+name: Build PythonOS
+
+# Builds the Linux, Windows, Android and ISO packages from OS_Export/.
+#   - Run it by hand from the Actions tab ("Run workflow"), or
+#   - push a tag like v1.2.0 to also publish everything as a GitHub release.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  # v1.2.0 for tags, "dev" for manual runs
+  VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'dev' }}
+
+jobs:
+  linux:
+    name: Linux (.tar.gz and .deb)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: bash OS_Export/Linux/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pythonos-linux
+          path: |
+            dist/linux/*.tar.gz
+            dist/linux/*.deb
+
+  windows:
+    name: Windows (portable zip and installer)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Make sure Inno Setup is available
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+      - name: Build
+        shell: pwsh
+        run: ./OS_Export/Windows/build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pythonos-windows
+          path: |
+            dist/windows/*.zip
+            dist/windows/*.exe
+            !dist/windows/PythonOS/**
+
+  android:
+    name: Android (APK)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"   # Chaquopy uses this to install the app's Python packages
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Put the OS inside the app
+        run: python OS_Export/stage.py OS_Export/Android/app/src/main/assets/pythonos
+      - name: Build the APK
+        working-directory: OS_Export/Android
+        env:
+          # Optional: add these as repository secrets to sign with your own key
+          ANDROID_KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_FILE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          gradle assembleRelease --no-daemon \
+            -PversionName="${VERSION#v}" -PversionCode="${{ github.run_number }}"
+      - name: Name the APK
+        run: |
+          mkdir -p dist/android
+          cp OS_Export/Android/app/build/outputs/apk/release/*.apk "dist/android/PythonOS-${VERSION#v}-android.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pythonos-android
+          path: dist/android/*.apk
+
+  iso:
+    name: ISO (bootable live image)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: bash OS_Export/ISO/build-iso.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pythonos-iso
+          path: dist/iso/*.iso
+
+  release:
+    name: Publish release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows, android, iso]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

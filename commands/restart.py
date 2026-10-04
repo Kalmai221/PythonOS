@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 from rich.console import Console
 from rich.progress import track
@@ -77,7 +78,7 @@ def restart_system():
     time.sleep(3)
     pyos.system("clear")
     time.sleep(1)
-    os.system("python main.py")
+    sys.exit(subprocess.call([sys.executable, "main.py"]))
     sys.exit(0)
 
 def execute():

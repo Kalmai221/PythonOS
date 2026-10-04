@@ -1,0 +1,18 @@
+{
+  "name": "Tic-Tac-Toe",
+  "description": "Play tic-tac-toe against the computer.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "tictactoe",
+  "alias": [
+    "ttt"
+  ],
+  "tags": [
+    "game",
+    "puzzle",
+    "ai",
+    "classic"
+  ]
+}

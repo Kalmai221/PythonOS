@@ -8,5 +8,13 @@
     "uninstaller": "uninstaller.py"
   },
   "command": "python",
-  "requires_restart_on_download": "true"
+  "requires_restart_on_download": "true",
+  "alias": [],
+  "tags": [
+    "developer",
+    "python",
+    "repl",
+    "ipython",
+    "coding"
+  ]
 }

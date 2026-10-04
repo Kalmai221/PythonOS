@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PythonOS
+Comment=A terminal-based operating system simulator
+Exec=pythonos
+Icon=pythonos
+Terminal=true
+Categories=System;Utility;

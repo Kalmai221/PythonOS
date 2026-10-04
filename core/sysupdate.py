@@ -88,7 +88,27 @@ def show_update_table(files_to_update):
 
     console.print(table)
 
+def packaged_version():
+    """Version string if this is a packaged build (APK, ISO, installer, .deb ...), else None.
+
+    Packaged builds are made by OS_Export/stage.py, which writes a VERSION file; bundled
+    builds (Android, ISO) also set PYOS_BUNDLED. They are updated by installing a newer
+    release, not by overwriting files from the repository's main branch.
+    """
+    if os.path.isfile("VERSION"):
+        try:
+            return Path("VERSION").read_text(encoding="utf-8").strip() or "unknown"
+        except OSError:
+            return "unknown"
+    return "bundled" if os.environ.get("PYOS_BUNDLED") == "1" else None
+
+
 def update_system(auto_update=False):
+    packaged = packaged_version()
+    if packaged:
+        console.print(f"[bold cyan]This is a packaged build of PythonOS ({packaged}).[/bold cyan] "
+                      "Install a newer release to update.")
+        return False
     base_path = Path.cwd()  # Detect current working directory dynamically
     console.print(f"[bold blue]Working directory detected as:[/bold blue] {base_path}\n")
     # Check internet connection before proceeding

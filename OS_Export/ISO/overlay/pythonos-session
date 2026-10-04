@@ -1,0 +1,27 @@
+#!/bin/sh
+# Starts PythonOS on a console. Installed as /usr/local/bin/pythonos-session.
+#   - PythonOS ends normally (shutdown command)  -> power off
+#   - PythonOS fails to start                    -> drop to a shell so the error can be read
+
+export PYOS_BUNDLED=1
+export HOME=/root
+export TERM="${TERM:-linux}"
+export LANG=C.UTF-8
+export PYTHONIOENCODING=utf-8
+
+cd /opt/pythonos || { echo "PythonOS files are missing."; exec /bin/sh; }
+
+clear
+python3 main.py
+code=$?
+
+if [ "$code" -eq 0 ]; then
+    echo "PythonOS has shut down. Powering off..."
+    sleep 2
+    poweroff
+    exit 0
+fi
+
+echo
+echo "PythonOS exited with code $code. Dropping to a shell (type 'poweroff' to turn off)."
+exec /bin/sh

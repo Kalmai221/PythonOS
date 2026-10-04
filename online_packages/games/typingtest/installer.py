@@ -1,84 +1,80 @@
 #!/usr/bin/env python3
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
-from rich.prompt import Confirm
-from rich import box
-import subprocess
-import sys
-import pkg_resources
+import importlib.metadata
+import os
 import shutil
 import socket
+import subprocess
+import sys
+import sysconfig
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm
 
 console = Console()
-package_name = "typing_test"
+DIST = "typing_test"
+COMMAND = "tt"
+TITLE = "Typing Test"
 
-def check_package_installed(name):
-    """Check if the pip package is installed."""
-    installed = {pkg.key for pkg in pkg_resources.working_set}
-    return name in installed or shutil.which(name) is not None
+# Different systems need different pip flags (venvs, Debian/Termux "externally managed"
+# Python, read-only system site-packages), so try the safe options in order.
+PIP_FLAG_SETS = [[], ["--user"], ["--break-system-packages"], ["--user", "--break-system-packages"]]
 
-def check_internet(host="pypi.org", port=443, timeout=3):
-    """Check if the machine has internet access by attempting to connect to a known host."""
+
+def is_installed():
     try:
-        socket.create_connection((host, port), timeout=timeout)
+        importlib.metadata.version(DIST)
         return True
-    except (socket.timeout, socket.gaierror, OSError):
+    except importlib.metadata.PackageNotFoundError:
         return False
 
-def install_package(name):
-    """Install the pip package."""
-    if not check_internet():
-        console.print(Panel(
-            "[bold red]No internet connection detected.[/bold red]\n\n"
-            "Please check your network connection and try again.",
-            style="red", box=box.ROUNDED, padding=(1, 2)
-        ))
-        sys.exit(1)
 
-    with console.status(f"[bold green]Installing {name}...[/bold green]", spinner="dots"):
-        try:
-            subprocess.run(
-                [sys.executable, "-m", "pip", "install", name, "--user", "--break-system-packages"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-        except subprocess.CalledProcessError as e:
-            console.print(Panel(f"[bold red]Installation failed![/bold red]\n\n{e.stderr}", style="red", box=box.ROUNDED, padding=(1, 2)))
-            sys.exit(1)
-        else:
-            console.print(Panel(f"[bold green]{name} installed successfully![/bold green]", style="green", box=box.ROUNDED, padding=(1, 2)))
+def has_internet(host="pypi.org", port=443, timeout=3):
+    try:
+        socket.create_connection((host, port), timeout=timeout).close()
+        return True
+    except OSError:
+        return False
+
+
+def pip(action, *extra):
+    """Run `pip <action> DIST`, retrying with other flag sets. Returns (ok, error_text)."""
+    error = ""
+    for flags in PIP_FLAG_SETS:
+        result = subprocess.run([sys.executable, "-m", "pip", action, DIST, *extra, *flags],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            return True, ""
+        error = (result.stderr or result.stdout or "").strip()
+    return False, error
+
 
 def main():
-    console.clear()
-
-    # Header
-    console.print(Panel(Text("TypingTest Installer", style="bold black on white", justify="center"), box=box.ROUNDED, padding=(1, 4)))
-
-    # Description
-    console.print(Panel(
-        "This installer will help you install [bold]typing_test[/bold].\n\n"
-        "Command run:\n[green]python -m pip install typing_test --user[/green]",
-        style="grey93",
-        box=box.ROUNDED,
-        padding=(1, 4)
-    ))
-
-    # Installation check
-    if check_package_installed(package_name):
-        console.print(f"[bold green]{package_name} is already installed.[/bold green]")
+    console.print(Panel(f"[bold]{TITLE}[/bold] installer\n\nThis installs [cyan]{DIST}[/cyan] from PyPI.",
+                        border_style="blue", expand=False))
+    if is_installed():
+        console.print(f"[bold green]{DIST} is already installed.[/bold green]")
+        return
+    if not has_internet():
+        console.print("[bold red]No internet connection detected. Connect and try again.[/bold red]")
+        sys.exit(1)
+    if not Confirm.ask(f"Install {DIST}?", default=True):
+        console.print("[bold yellow]Installation cancelled.[/bold yellow]")
+        return
+    with console.status(f"[bold green]Installing {DIST}...[/bold green]", spinner="dots"):
+        ok, error = pip("install", "--quiet")
+    if ok:
+        console.print(f"[bold green]{DIST} installed.[/bold green] Start it with: [bold cyan]run {RUN_NAME}[/bold cyan]")
     else:
-        if not Confirm.ask("Do you want to install typing_test?", default=True):
-            console.print("[bold yellow]Installation cancelled.[/bold yellow]")
-            sys.exit(0)
-        install_package(package_name)
+        console.print(Panel(f"[bold red]Installation failed.[/bold red]\n\n{error[-800:]}", border_style="red"))
+        sys.exit(1)
 
-    console.print(f"\n[bold green]{package_name} installation complete![/bold green]")
-    console.print(f"You can now run it with: [bold cyan]{package_name}[/bold cyan]")
+
+RUN_NAME = "typingtest"
 
 if __name__ == "__main__":
     main()
+
 
 def execute():
     main()

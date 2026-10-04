@@ -1,0 +1,251 @@
+{
+  "format": 1,
+  "packages": [
+    {
+      "id": "developer/python",
+      "category": "developer",
+      "name": "Python REPL",
+      "description": "Installs a python environment",
+      "version": "1.0.0",
+      "command": "python",
+      "alias": [],
+      "tags": [
+        "developer",
+        "python",
+        "repl",
+        "ipython",
+        "coding"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "347eb072e45bc4915cbdf3b01dc243dc123714ed9d6e3a2122e59329fae74280",
+          "size": 378
+        },
+        {
+          "path": "installer.py",
+          "sha256": "6abccbffabcccde1008a63430d094706039c23d25874aa1b28f0bfe1cb5c9ac1",
+          "size": 2508
+        },
+        {
+          "path": "run.py",
+          "sha256": "5a68d5299484870af64479680d5e634550c12f406d9dfd77f006954847317510",
+          "size": 2454
+        },
+        {
+          "path": "uninstaller.py",
+          "sha256": "e98bb32e8e93b1ee50c0d0bcb6f457fc0d0b6f774f763c708208fc8d704fc154",
+          "size": 2142
+        }
+      ]
+    },
+    {
+      "id": "games/chess",
+      "category": "games",
+      "name": "Chess CLI",
+      "description": "Chess game.",
+      "version": "1.0.0",
+      "command": "chess",
+      "alias": [],
+      "tags": [
+        "game",
+        "chess",
+        "board",
+        "strategy"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "762b624f57364127698e972abe2c52ac43ef03ed81c0022839bb4a8ef6a76214",
+          "size": 297
+        },
+        {
+          "path": "installer.py",
+          "sha256": "5a831b4367ecca418605a6972ce6927939edcebd9e3195ba4c4704e2be692c45",
+          "size": 2513
+        },
+        {
+          "path": "run.py",
+          "sha256": "741e5c2b3c5cb07500a1999d602a0f0fefc684983e387a77d42edccfdc0c94c2",
+          "size": 2736
+        },
+        {
+          "path": "uninstaller.py",
+          "sha256": "b4c4f16fd8496d137b9f950778d7040f825f689b451a246ab8c3cc547e983789",
+          "size": 2148
+        }
+      ]
+    },
+    {
+      "id": "games/hangman",
+      "category": "games",
+      "name": "Hangman",
+      "description": "Guess the word before the drawing is finished.",
+      "version": "1.0.0",
+      "command": "hangman",
+      "alias": [],
+      "tags": [
+        "game",
+        "words",
+        "puzzle",
+        "classic"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "cde685da75228970564cb5f40a08b2d201a6934537da32320ae4eaf9e9859997",
+          "size": 262
+        },
+        {
+          "path": "run.py",
+          "sha256": "646b1f192dfae8b954bca52a346b1d5b90b1612eda3057b1e28e479745d7f505",
+          "size": 2124
+        }
+      ]
+    },
+    {
+      "id": "games/tictactoe",
+      "category": "games",
+      "name": "Tic-Tac-Toe",
+      "description": "Play tic-tac-toe against the computer.",
+      "version": "1.0.0",
+      "command": "tictactoe",
+      "alias": [
+        "ttt"
+      ],
+      "tags": [
+        "game",
+        "puzzle",
+        "ai",
+        "classic"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "65f7cb7c947f4fabc47c7fb7c1a651a786587954df7aeb2c4f40e7ed74a5e4f7",
+          "size": 270
+        },
+        {
+          "path": "run.py",
+          "sha256": "07c80dbb38a1dcc0fab9c13da14d254b236bfc5b48db161232ea396547212b57",
+          "size": 2782
+        }
+      ]
+    },
+    {
+      "id": "games/typingtest",
+      "category": "games",
+      "name": "Typing Test CLI",
+      "description": "Typing Speed Test Game.",
+      "version": "1.0.0",
+      "command": "typingtest",
+      "alias": [],
+      "tags": [
+        "game",
+        "typing",
+        "speed",
+        "keyboard"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "7e580556f723876518d0d49fe5d7d1f58728ee2016c708aee4c1285d0248093e",
+          "size": 321
+        },
+        {
+          "path": "installer.py",
+          "sha256": "ed3f08a61606a9fe84fa7e403c90fb5f6d6c1e74c3a72c126b51b767a5340db7",
+          "size": 2515
+        },
+        {
+          "path": "run.py",
+          "sha256": "4b5f9db677e4aff5006ddcee3adee45216213cf2c5177cb10014725619c1623f",
+          "size": 3048
+        },
+        {
+          "path": "uninstaller.py",
+          "sha256": "e4f8da187587094aabcf19d257ac2240248afcfa5c34c6774dda8e84abd80785",
+          "size": 2145
+        }
+      ]
+    },
+    {
+      "id": "utilities/notes",
+      "category": "utilities",
+      "name": "Notes",
+      "description": "Write and read notes, stored as text files in ~/notes.",
+      "version": "1.0.0",
+      "command": "notes",
+      "alias": [],
+      "tags": [
+        "productivity",
+        "text",
+        "writing"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "fcd22aeaca1dbc434f89162e1f8ad485f8e311d61746117bfa8be1b77bd731f1",
+          "size": 259
+        },
+        {
+          "path": "run.py",
+          "sha256": "0ffefdd1da37bf7121ad87dc3d6795bc53e08ccdab5458ef8c3baa284ea7c0bc",
+          "size": 2975
+        }
+      ]
+    },
+    {
+      "id": "utilities/todo",
+      "category": "utilities",
+      "name": "To-do List",
+      "description": "Keep a simple to-do list saved in your home folder.",
+      "version": "1.0.0",
+      "command": "todo",
+      "alias": [],
+      "tags": [
+        "productivity",
+        "tasks",
+        "list"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "67829fcdfc54dd9f954f2cea41ab9e4fb42f4fafae576518fc508e13f31318a0",
+          "size": 258
+        },
+        {
+          "path": "run.py",
+          "sha256": "dd70fece6d3ca363c485b9797c6409bef3c3aa136e13191d5aa391f8080b6b57",
+          "size": 2272
+        }
+      ]
+    },
+    {
+      "id": "utilities/weather",
+      "category": "utilities",
+      "name": "Weather",
+      "description": "Check the current weather for any city (needs internet).",
+      "version": "1.0.0",
+      "command": "weather",
+      "alias": [],
+      "tags": [
+        "internet",
+        "forecast",
+        "temperature"
+      ],
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "953f897bbda8241e8e96ebba19620c3c18c7c9e3fb09b30bba4c93b7059099e3",
+          "size": 269
+        },
+        {
+          "path": "run.py",
+          "sha256": "76ab27281570106f1721a4d5d0ff52282ffc1f5861bc066c32c7e234aa6a19f2",
+          "size": 2144
+        }
+      ]
+    }
+  ]
+}

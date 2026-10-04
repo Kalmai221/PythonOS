@@ -1,0 +1,50 @@
+#!/bin/sh
+# PythonOS launcher (Linux). Installed next to an "app" folder holding the OS files.
+#
+# The OS reads and writes files relative to its working directory, so each user gets a
+# private data directory (default ~/.local/share/pythonos) with its own copy of the code,
+# a Python virtual environment, and their files, accounts and settings.
+set -e
+
+HERE="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+APP="$HERE/app"
+[ -d "$APP" ] || APP="$HERE"                      # running straight from a staged folder
+DATA="${PYTHONOS_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pythonos}"
+VENV="$DATA/venv"
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "PythonOS needs Python 3.8 or newer (python3 was not found)." >&2
+    exit 1
+fi
+
+mkdir -p "$DATA"
+
+# Refresh the code when the installed version changes (user data is never touched)
+NEW_VERSION="$(cat "$APP/VERSION" 2>/dev/null || echo unknown)"
+if [ "$(cat "$DATA/.installed_version" 2>/dev/null)" != "$NEW_VERSION" ]; then
+    for item in commands core programs pyos; do
+        rm -rf "$DATA/$item"
+        cp -R "$APP/$item" "$DATA/$item"
+    done
+    for item in main.py shell.py users.py requirements.txt boot-requirements.txt readme.md VERSION; do
+        [ -f "$APP/$item" ] && cp "$APP/$item" "$DATA/$item"
+    done
+    [ -f "$DATA/config.json" ] || cp "$APP/config.json" "$DATA/config.json"
+    rm -f "$VENV/.deps_ok"                        # dependencies may have changed too
+    echo "$NEW_VERSION" > "$DATA/.installed_version"
+fi
+
+# First run: create the virtual environment and install dependencies
+if [ ! -f "$VENV/.deps_ok" ]; then
+    echo "Setting up PythonOS (first run only)..."
+    python3 -m venv "$VENV" || {
+        echo "Could not create a virtual environment. On Debian/Ubuntu run: sudo apt install python3-venv" >&2
+        exit 1
+    }
+    "$VENV/bin/python" -m pip install --quiet --upgrade pip
+    "$VENV/bin/python" -m pip install --quiet -r "$DATA/requirements.txt" -r "$DATA/boot-requirements.txt"
+    touch "$VENV/.deps_ok"
+fi
+
+cd "$DATA"
+exec "$VENV/bin/python" main.py "$@"

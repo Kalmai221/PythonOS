@@ -1,0 +1,17 @@
+# /etc/inittab for the PythonOS live system
+
+::sysinit:/sbin/openrc sysinit
+::sysinit:/sbin/openrc boot
+::wait:/sbin/openrc default
+
+# PythonOS runs on the first console
+tty1::respawn:/usr/local/bin/pythonos-session
+
+# A plain shell on the second console for recovery and debugging (Alt+F2)
+tty2::respawn:/sbin/getty -n -l /bin/sh 38400 tty2
+
+# Stuff to do for the 3-finger salute
+::ctrlaltdel:/sbin/reboot
+
+# Stuff to do before rebooting
+::shutdown:/sbin/openrc shutdown

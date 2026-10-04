@@ -174,3 +174,13 @@ files/
 .replit
 replit.nix
 .prettierignore
+
+# Build output (OS_Export)
+dist/
+OS_Export/Android/app/src/main/assets/pythonos/
+OS_Export/Android/.gradle/
+OS_Export/Android/build/
+OS_Export/Android/app/build/
+OS_Export/Android/local.properties
+*.apk
+*.iso
