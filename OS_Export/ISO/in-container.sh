@@ -31,6 +31,9 @@ for attempt in 1 2 3; do
 done
 [ -n "$cloned" ] || { echo "Could not download Alpine's aports (mkimage scripts)." >&2; exit 1; }
 cp /iso/mkimg.pythonos.sh /iso/genapkovl-pythonos.sh /home/build/aports/scripts/
+# mkimage runs the overlay script directly (through fakeroot), so it must be executable;
+# a checkout from Windows does not preserve the executable bit.
+chmod 755 /home/build/aports/scripts/genapkovl-pythonos.sh /home/build/aports/scripts/mkimg.pythonos.sh
 mkdir -p /home/build/overlay
 cp -R /iso/overlay/. /home/build/overlay/
 chown -R build:build /home/build/aports /home/build/overlay
