@@ -3,7 +3,8 @@
 set -eu
 
 ALPINE="${ALPINE_VERSION:-3.19}"
-KERNEL="${ISO_KERNEL:-virt}"
+KERNEL="${ISO_KERNEL:-lts}"
+FIRMWARE="${ISO_FIRMWARE:-0}"
 case "$KERNEL" in
     virt|lts) ;;
     *) echo "ISO_KERNEL must be 'virt' or 'lts' (got '$KERNEL')" >&2; exit 1 ;;
@@ -44,7 +45,7 @@ cp -R /iso/overlay/. /home/build/overlay/
 chown -R build:build /home/build/aports /home/build/overlay
 
 su build -c "cd /home/build/aports/scripts && \
-    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay PYTHONOS_KERNEL=$KERNEL \
+    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay PYTHONOS_KERNEL=$KERNEL PYTHONOS_FIRMWARE=$FIRMWARE \
     sh mkimage.sh \
         --tag 'v$ALPINE' \
         --outdir /out \

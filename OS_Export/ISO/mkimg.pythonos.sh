@@ -6,15 +6,19 @@ profile_pythonos() {
 	arch="x86_64"
 	output_format="iso"
 
-	# Size: the standard profile ships the full "lts" kernel plus hundreds of MB of firmware,
-	# wireless and netfilter extras. A console live image with wired networking needs none of that.
-	#   virt (default) - small kernel for virtual machines (QEMU, VirtualBox, VMware, Hyper-V, ...)
-	#   lts            - full kernel for real hardware (still without the firmware bundle)
-	kernel_flavors="${PYTHONOS_KERNEL:-virt}"
-	kernel_addons=""
-	boot_addons=""
-	initrd_ucode=""
-	apks="$(echo $apks | tr ' ' '\n' | grep -v -e '^linux-firmware' -e '^wireless-regdb' | tr '\n' ' ')"
+	# Kernel: "lts" is the full kernel and boots normal PCs (default). "virt" is a much smaller
+	# kernel for virtual machines only.
+	kernel_flavors="${PYTHONOS_KERNEL:-lts}"
+
+	# Size: the standard profile also ships hundreds of MB of firmware (Wi-Fi, some network cards),
+	# netfilter extras and CPU microcode. A console live image does not need them, so they are left
+	# out unless PYTHONOS_FIRMWARE=1. Wired networking and the console/framebuffer still work.
+	if [ "${PYTHONOS_FIRMWARE:-0}" != "1" ]; then
+		kernel_addons=""
+		boot_addons=""
+		initrd_ucode=""
+		apks="$(echo $apks | tr ' ' '\n' | grep -v -e '^linux-firmware' -e '^wireless-regdb' | tr '\n' ' ')"
+	fi
 
 	kernel_cmdline="console=tty0 console=ttyS0,115200"
 	syslinux_serial="0 115200"
