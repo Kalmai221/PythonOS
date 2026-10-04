@@ -135,6 +135,20 @@ as the `hwsetup` command): a hardware and firmware check, choosing and testing t
 and picking a network and connecting to the internet (wired or Wi-Fi). Building locally with
 `ISO_KERNEL=virt` gives a smaller image that only suits virtual machines.
 
+## Keeping data on the ISO
+
+A live system forgets everything at power-off. `persist create` (an administrator, inside PythonOS) turns a USB stick or spare
+disk into a data disk labelled `PYOS_DATA` and copies the accounts, files and settings onto it. At boot,
+`ISO/overlay/pythonos-persist` mounts that disk (`nosuid,nodev,noexec`) and points PythonOS's `files/`, `.OSData/` and account
+database (`PYOS_USERS_FILE`) at it. `persist` never offers the disk PythonOS booted from, or anything that is mounted, and the
+build fails if the persistence script could start a shell or mount without `noexec`. The keyboard layout, time zone, audio output
+and known Wi-Fi networks chosen in `hwsetup` are saved in the same place and re-applied at every boot.
+
+## Windows installer artwork
+
+`Windows/make_art.py` draws the installer's wizard images and icon (Pillow) at build time, so the repository holds no binary art.
+Change the colours or text there.
+
 ## The ISO is locked down
 
 The ISO exists to run PythonOS and nothing else, so the Linux system underneath is closed off:

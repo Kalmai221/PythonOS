@@ -90,9 +90,16 @@ PyOS behaves like a small Unix-style system:
 
 * **Filesystem** – `files/` is `/`, with `/home/<user>`, `/etc`, `/tmp` and `/var/log`. Every login starts in your home (`~`).
 * **Permissions** – regular users can write only in their own home and `/tmp` and cannot enter other homes; admins can do everything (prompt ends in `#` instead of `$`).
-* **Shell** – quotes, pipes (`ls | grep txt`), redirects (`echo hi > a.txt`, `>>`), `;` to chain commands, tab completion and command history.
-* **Commands** – `ls cd pwd cat head tail wc grep touch mkdir rm cp mv tree edit echo date uname hostname uptime free df whoami history logs` and more; run `help` for the full list or `help <name>` for details.
-* **Marketplace** – `run marketplace` opens the store (browse, search, update, remove). From the shell, `pkg search <words>`, `pkg install <name>`, `pkg update`, `pkg remove <name>` and `pkg list` do the same. Packages are verified with checksums and usable straight away.
+* **Shell** – quotes, pipes (`ls | grep txt`), redirects (`echo hi > a.txt`, `>>`), `;`, `&&`, `||` and `&` (background jobs), `$?`, tab completion and history. Commands report success or failure, so `make && echo ok` works.
+* **Commands** – `ls cd pwd cat head tail wc grep find touch mkdir rm cp mv tree edit echo date uname hostname uptime free df whoami history logs` and more; run `help` for the list, `man <command>` for the manual and `tutorial` for a guided tour.
+* **Editor** – `edit <file>` is a built-in editor (full screen on a real terminal, a line editor elsewhere).
+* **Jobs and scheduling** – `sleep 30 &`, `jobs`, `fg`, `kill`; `schedule add daily 08:00 backup create`; results arrive as notifications.
+* **Settings and themes** – `settings` (themes, prompt style, boot speed, auto-lock, `auto_clear_lines` to keep the screen tidy). `clear` wipes the screen and scrollback (`clear -x` keeps it).
+* **Backup and sharing** – `backup create|restore`, and `share send|receive` to move files between devices on the same network.
+* **Accounts and security** – salted password hashes, escalating lockout after wrong passwords, `passwd`, `su`, `lock` and `last`.
+* **Marketplace** – `market` opens the store (browse, featured, search, update, remove); `pkg install <name>`, `pkg update all`. Packages are verified with checksums, can depend on each other (installed together), show what changed in an update, and reinstall offline from a local cache. Apps include Clock (timer, stopwatch, alarms), Calendar, Converter, Snippets, Files, Notes, Markdown Viewer, RSS Reader, Network Tools, System Monitor, Weather, Chess, Snake, 2048, Wordle, Trivia and more.
+* **Updates** – PythonOS updates itself from GitHub releases; installers (APK, Windows, Linux package, ISO) cannot, so PythonOS tells you when a newer one is available.
+* **Live ISO** – a locked-down, PythonOS-only system: hardware, audio, Wi-Fi, keyboard and time-zone setup (`hwsetup`) and optional persistent storage on a USB stick (`persist create`).
 * **Logs** – logins, account changes, crashes and boot/shutdown are recorded in `/var/log/system.log` (view with `logs`).
 
 ---
