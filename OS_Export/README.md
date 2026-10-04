@@ -64,9 +64,11 @@ writes its files next to itself.
 storage on first launch, and users' files survive app updates. Differences from desktop:
 pip is not available (dependencies ship in the app, `PYOS_BUNDLED=1`), so marketplace
 packages that install pip libraries (Chess, Typing Test, IPython) cannot be set up there; the
-rest work. `shutdown` closes the app. APKs are signed with the debug key unless you add these
-repository secrets to sign with your own: `ANDROID_KEYSTORE_FILE` (path on the runner),
-`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+rest work. `shutdown` closes the app. CI signs the APK with a throwaway key by default, which is
+fine for sideloading, but every run's APK has a different signature so a new one cannot be installed
+over an old one (uninstall first). For updatable releases, add these repository secrets:
+`ANDROID_KEYSTORE_BASE64` (your keystore file, base64-encoded), `ANDROID_KEYSTORE_PASSWORD`,
+`ANDROID_KEY_ALIAS` and optionally `ANDROID_KEY_PASSWORD`.
 
 **ISO** – an Alpine Linux live image built with Alpine's `mkimage`. It boots (BIOS or UEFI)
 straight into PythonOS on the first console and powers off when you shut PythonOS down; Alt+F2 is
