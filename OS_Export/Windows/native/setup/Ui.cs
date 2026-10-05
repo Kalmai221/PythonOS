@@ -26,7 +26,7 @@ namespace PythonOS.Setup
         private StepList steps;
         private Label detail;
         private TextBox pathBox;
-        private ModernCheck desktop, launch, keepData, webview;
+        private ModernCheck desktop, startMenu, launch, keepData, webview;
         private string page = "";
         private bool working;
         private Release finished;
@@ -144,8 +144,9 @@ namespace PythonOS.Setup
                 }
             };
             body.Controls.Add(browse);
-            desktop = new ModernCheck(p, Strings.T("desktop"), o.DesktopShortcut); desktop.SetBounds(0, 84, 596, 28); body.Controls.Add(desktop);
-            int y = 124;
+            startMenu = new ModernCheck(p, Strings.T("startmenu"), o.StartMenuShortcut); startMenu.SetBounds(0, 78, 596, 28); body.Controls.Add(startMenu);
+            desktop = new ModernCheck(p, Strings.T("desktop"), o.DesktopShortcut); desktop.SetBounds(0, 110, 596, 28); body.Controls.Add(desktop);
+            int y = 152;
             if (!Core.HasWebView2())
             {
                 Label w = Small(Strings.T("webview")); w.SetBounds(0, y, 596, 22); w.ForeColor = p.Text; body.Controls.Add(w);
@@ -227,6 +228,7 @@ namespace PythonOS.Setup
             {
                 o.Directory = pathBox.Text.Trim();
                 o.DesktopShortcut = desktop.Checked;
+                o.StartMenuShortcut = startMenu.Checked;
                 o.FixWebView2 = webview == null || webview.Checked;
                 if (o.Directory.Length == 0) return;
                 ShowProgress();

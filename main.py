@@ -15,6 +15,8 @@ def install_requirements():
     """Install dependencies from boot-requirements.txt with platform-specific options."""
     if BUNDLED:
         return
+    if not os.path.isfile("boot-requirements.txt"):
+        return                                    # nothing to install (a packaged copy ships its libraries and may not carry the file)
     cmd = [sys.executable, "-m", "pip", "install", "-r", "boot-requirements.txt", "-U", "--quiet"]
 
     # Add --break-system-packages if running on Linux

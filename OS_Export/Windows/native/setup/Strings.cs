@@ -51,6 +51,7 @@ namespace PythonOS.Setup
             en["where"] = "Install location";
             en["browse"] = "Browse...";
             en["desktop"] = "Create a desktop shortcut";
+            en["startmenu"] = "Create a Start menu shortcut";
             en["install"] = "Install";
             en["update"] = "Update";
             en["repair"] = "Repair";
@@ -103,6 +104,7 @@ namespace PythonOS.Setup
             es["where"] = "Carpeta de instalación";
             es["browse"] = "Examinar...";
             es["desktop"] = "Crear un acceso directo en el escritorio";
+            es["startmenu"] = "Crear un acceso directo en el menú Inicio";
             es["install"] = "Instalar"; es["update"] = "Actualizar"; es["repair"] = "Reparar"; es["uninstall"] = "Desinstalar";
             es["next"] = "Siguiente"; es["back"] = "Atrás"; es["cancel"] = "Cancelar"; es["close"] = "Cerrar"; es["retry"] = "Reintentar";
             es["launch"] = "Iniciar PythonOS ahora";
@@ -148,6 +150,7 @@ namespace PythonOS.Setup
             fr["where"] = "Dossier d'installation";
             fr["browse"] = "Parcourir...";
             fr["desktop"] = "Créer un raccourci sur le Bureau";
+            fr["startmenu"] = "Créer un raccourci dans le menu Démarrer";
             fr["install"] = "Installer"; fr["update"] = "Mettre à jour"; fr["repair"] = "Réparer"; fr["uninstall"] = "Désinstaller";
             fr["next"] = "Suivant"; fr["back"] = "Retour"; fr["cancel"] = "Annuler"; fr["close"] = "Fermer"; fr["retry"] = "Réessayer";
             fr["launch"] = "Démarrer PythonOS maintenant";
@@ -193,6 +196,7 @@ namespace PythonOS.Setup
             de["where"] = "Installationsordner";
             de["browse"] = "Durchsuchen...";
             de["desktop"] = "Verknüpfung auf dem Desktop erstellen";
+            de["startmenu"] = "Verknüpfung im Startmenü erstellen";
             de["install"] = "Installieren"; de["update"] = "Aktualisieren"; de["repair"] = "Reparieren"; de["uninstall"] = "Deinstallieren";
             de["next"] = "Weiter"; de["back"] = "Zurück"; de["cancel"] = "Abbrechen"; de["close"] = "Schließen"; de["retry"] = "Erneut versuchen";
             de["launch"] = "PythonOS jetzt starten";

@@ -59,7 +59,9 @@ FinishedLabel=Start it from the Start menu or your desktop. The first start down
 FinishedLabelNoIcons=PythonOS is installed. Start it from the Start menu.
 
 [Tasks]
-Name: "desktopicon"; Description: "Put a PythonOS shortcut on my &desktop"; GroupDescription: "Extras:"
+; Both shortcuts are offered on the wizard's "Select Additional Tasks" page; the Start menu one is ticked by default.
+Name: "startmenuicon"; Description: "Create a &Start menu shortcut"; GroupDescription: "Shortcuts:"
+Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked
 
 [Files]
 ; Never overwrite the user's data on upgrade
@@ -68,8 +70,8 @@ Name: "desktopicon"; Description: "Put a PythonOS shortcut on my &desktop"; Grou
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{group}\PythonOS"; Filename: "{app}\PythonOS.exe"; WorkingDir: "{app}"
-Name: "{group}\Uninstall PythonOS"; Filename: "{uninstallexe}"
+Name: "{group}\PythonOS"; Filename: "{app}\PythonOS.exe"; WorkingDir: "{app}"; Tasks: startmenuicon
+Name: "{group}\Uninstall PythonOS"; Filename: "{uninstallexe}"; Tasks: startmenuicon
 Name: "{userdesktop}\PythonOS"; Filename: "{app}\PythonOS.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]

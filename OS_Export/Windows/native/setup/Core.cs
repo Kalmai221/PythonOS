@@ -48,6 +48,7 @@ namespace PythonOS.Setup
     {
         public string Directory = DefaultDirectory();
         public bool DesktopShortcut;
+        public bool StartMenuShortcut = true;
         public bool Silent;
         public bool Launch = true;
         public string Mode = "install";           // install | update | repair | uninstall
@@ -86,8 +87,10 @@ namespace PythonOS.Setup
         public const long NeedBytes = 450L * 1024 * 1024;
         // user data that a repair or an update never touches
         private static readonly string[] KeepNames = new string[] { "files", ".OSData", "users.json", "current_user.json", "current_directory.txt", "config.json" };
-        // the OS itself (downloaded by the app); a repair removes it so the app fetches a fresh copy
-        private static readonly string[] CoreNames = new string[] { "commands", "core", "programs", "pyos", "main.py", "shell.py", "users.py", "VERSION" };
+        // the OS itself (downloaded by the app, not part of this package); a repair removes it so the app fetches a fresh copy.
+        // Anything NOT named here or in the package is left alone: an update must never delete files the installer does not own.
+        private static readonly string[] CoreNames = new string[] { "commands", "core", "programs", "pyos", "main.py", "shell.py", "users.py", "VERSION",
+                                                                    "boot-requirements.txt", "requirements.txt", "readme.md", "__pycache__" };
 
         public delegate void Progress(string step, double fraction, string detail);
 
@@ -441,12 +444,17 @@ namespace PythonOS.Setup
 
             Directory.CreateDirectory(target);
             bool repair = o.Mode == "repair";
+            // Remove only what this package brings (it is about to be replaced) and, for a repair, the OS files (the app fetches them again).
+            List<string> owned = new List<string>();
+            foreach (string entry in Directory.GetFileSystemEntries(source)) owned.Add(Path.GetFileName(entry).ToLowerInvariant());
             foreach (string entry in Directory.GetFileSystemEntries(target))
             {
                 string name = Path.GetFileName(entry);
                 if (Array.IndexOf(KeepNames, name) >= 0) continue;                       // your data stays
-                if (!repair && Array.IndexOf(CoreNames, name) >= 0) continue;            // an update leaves the OS files; the app updates them itself
                 if (string.Equals(name, "Uninstall.exe", StringComparison.OrdinalIgnoreCase)) continue;
+                bool replaced = owned.Contains(name.ToLowerInvariant());
+                bool core = repair && Array.IndexOf(CoreNames, name) >= 0;
+                if (!replaced && !core) continue;                                        // not ours: leave it
                 try { DeletePath(entry); }
                 catch (Exception ex) { throw new SetupException("could not replace " + name + ": " + ex.Message); }
             }
@@ -504,8 +512,13 @@ namespace PythonOS.Setup
         public static void MakeShortcuts(Options o)
         {
             string target = Path.Combine(Path.GetFullPath(o.Directory), "PythonOS.exe");
-            Directory.CreateDirectory(StartMenuFolder());
-            Shortcut(Path.Combine(StartMenuFolder(), "PythonOS.lnk"), target, Path.GetFullPath(o.Directory));
+            string startLink = Path.Combine(StartMenuFolder(), "PythonOS.lnk");
+            if (o.StartMenuShortcut)
+            {
+                Directory.CreateDirectory(StartMenuFolder());
+                Shortcut(startLink, target, Path.GetFullPath(o.Directory));
+            }
+            else if (File.Exists(startLink)) { try { File.Delete(startLink); } catch (Exception) { } }
             string desktop = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "PythonOS.lnk");
             if (o.DesktopShortcut) Shortcut(desktop, target, Path.GetFullPath(o.Directory));
             else if (File.Exists(desktop)) { try { File.Delete(desktop); } catch (Exception) { } }

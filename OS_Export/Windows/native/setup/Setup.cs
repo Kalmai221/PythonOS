@@ -6,7 +6,7 @@
 //   PythonOS-Setup.exe /update /silent      update an existing install (PythonOS itself runs this when it needs a new app package)
 //   PythonOS-Setup.exe /repair /silent      reinstall the program files, keep the data
 //   PythonOS-Setup.exe /uninstall [/silent] [/deletedata]
-//   options: /dir=PATH  /lang=en|es|fr|de  /nolaunch  /desktop  /nowebview2  /manifest=URL (developers: a stand-in for GitHub's "latest release" JSON)
+//   options: /dir=PATH  /lang=en|es|fr|de  /nolaunch  /desktop  /nostartmenu  /nowebview2  /manifest=URL (developers: a stand-in for GitHub's "latest release" JSON)
 //
 // It is also the uninstaller: after installing, a copy named Uninstall.exe stays in the install folder. Written in C# 5 so it builds
 // with the compiler that ships with Windows (see build-native.ps1). Log: %LOCALAPPDATA%\PythonOS\Setup\install-log.txt
@@ -36,6 +36,7 @@ namespace PythonOS.Setup
                 else if (low == "/uninstall") o.Mode = "uninstall";
                 else if (low == "/nolaunch") o.Launch = false;
                 else if (low == "/desktop") o.DesktopShortcut = true;
+                else if (low == "/nostartmenu") o.StartMenuShortcut = false;
                 else if (low == "/deletedata") o.DeleteData = true;
                 else if (low == "/nowebview2") o.FixWebView2 = false;
                 else if (low.StartsWith("/dir=")) { o.Directory = a.Substring(5).Trim('"'); dirGiven = true; }
