@@ -21,8 +21,10 @@ esac
 MIRROR="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE"
 
 mkdir -p /var/cache/apk && ln -sf /var/cache/apk /etc/apk/cache      # downloads are kept here when the host mounts it
-apk add alpine-sdk alpine-conf abuild xorriso squashfs-tools syslinux \
-    grub grub-efi grub-bios mtools dosfstools git sudo
+# The build tools. syslinux and grub-bios (the BIOS boot loader) exist only for PCs; an ARM image boots through UEFI and GRUB alone.
+TOOLS="alpine-sdk alpine-conf abuild xorriso squashfs-tools grub grub-efi mtools dosfstools git sudo"
+[ "$ARCH" = "x86_64" ] && TOOLS="$TOOLS syslinux grub-bios"
+apk add $TOOLS
 
 # mkimage must run as a normal user that owns a package-signing key
 adduser -D build
