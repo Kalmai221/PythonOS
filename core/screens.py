@@ -1,12 +1,16 @@
 """The shutdown, restart, factory-reset and crash screens - one themed implementation, scaled by the boot-speed setting."""
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import time
+import zlib
 
+from rich import box
 from rich.console import Console
+from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
 from yaspin import yaspin
@@ -125,10 +129,64 @@ def shutdown_sequence(kind="shutdown"):
     sys.exit(0)
 
 
+def _stop_info(detail):
+    """(stop code, one-line summary, short code) from the text of a traceback or message."""
+    lines = [l for l in str(detail).strip().splitlines() if l.strip()]
+    last = next((l for l in reversed(lines) if re.match(r"^[A-Za-z_][\w.]*(Error|Exception|Interrupt|Exit)\b", l)), "")
+    if last:
+        kind, _, message = last.partition(":")
+        code = re.sub(r"(?<!^)(?=[A-Z])", "_", kind.split(".")[-1]).upper()
+        summary = message.strip() or "No further details were given."
+    else:
+        code = "SYSTEM_ERROR"
+        summary = (lines[0] if lines else "Something went wrong.").removeprefix("Error:").strip()
+    short = "0x%08X" % (zlib.crc32((code + summary).encode()) & 0xFFFFFFFF)
+    return code, summary[:160], short
+
+
+def _save_crash_report(detail, code, short):
+    """Keep the full trace in /var/log (the 10 newest) so the screen can stay short. Returns the path shown to the user."""
+    folder = os.path.join(pyos.fs.BASE_DIR, "var", "log")
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    name = f"crash-{stamp}.log"
+    try:
+        os.makedirs(folder, exist_ok=True)
+        with open(os.path.join(folder, name), "w", encoding="utf-8") as f:
+            f.write(f"PythonOS crash report\nTime: {time.strftime('%Y-%m-%d %H:%M:%S')}\nStop code: {code} ({short})\n\n{detail}\n")
+        old = sorted(n for n in os.listdir(folder) if n.startswith("crash-") and n.endswith(".log"))
+        for n in old[:-10]:
+            os.remove(os.path.join(folder, n))
+    except OSError:
+        return None
+    return f"/var/log/{name}"
+
+
+def _bsod(code, summary, short, report, footer, looping=False):
+    """The whole screen: blue, with the short story at the top and the footer (countdown) at the bottom."""
+    body = Text(style="white on blue")
+    body.append(":(\n\n", style="bold white on blue")
+    body.append("PythonOS ran into a problem and has stopped.\n\n", style="bold white on blue")
+    body.append("What happened\n", style="bold white on blue")
+    body.append(f"  {summary}\n\n", style="white on blue")
+    body.append("Stop code\n", style="bold white on blue")
+    body.append(f"  {code}  ({short})\n\n", style="white on blue")
+    if report:
+        body.append("Details\n", style="bold white on blue")
+        body.append(f"  Saved to {report}. Open it with: cat {report}\n\n", style="white on blue")
+    body.append("Your files and accounts were not touched.\n\n", style="white on blue")
+    body.append(footer, style="bold black on white" if looping else "bold white on blue")
+    height = max(12, console.height - 1)
+    return Panel(body, style="white on blue", border_style="white", box=box.DOUBLE, height=height, padding=(1, 3),
+                 title="[bold white on blue] STOP [/bold white on blue]")
+
+
 def crash_screen(error_message):
-    """The blue screen: say what happened, record it, wait a moment, then restart PythonOS - unless it keeps crashing."""
+    """The blue screen: say what happened in a few words, keep the full trace in a log file, then restart PythonOS
+    (unless it keeps crashing)."""
     detail = str(error_message).strip()
-    log.log("PythonOS crashed: " + detail.splitlines()[0][:200] if detail else "PythonOS crashed", "ERROR")
+    code, summary, short = _stop_info(detail)
+    log.log(f"PythonOS crashed: {code}: {summary[:160]}", "ERROR")
+    report = _save_crash_report(detail, code, short)
 
     # crash-loop guard: remember recent crashes
     record = os.path.join(".OSData", "crashes.json")
@@ -148,19 +206,19 @@ def crash_screen(error_message):
     looping = len(recent) >= 4
 
     _clear()
-    body = Text()
-    body.append(":(\n\n", style="bold white on blue")
-    body.append("PythonOS ran into a problem.\n\n", style="bold white on blue")
-    body.append(detail[-1800:] + "\n", style="white on blue")
-    console.print(Panel(body, style="white on blue", border_style="white", title="[bold white on blue] STOP [/bold white on blue]"))
-
     if looping:
-        console.print("\n[bold white on red] PythonOS keeps crashing, so it will not restart by itself. [/bold white on red]")
-        console.print("The details above are also in the system log (logs). Start it again when you are ready.")
+        console.print(_bsod(code, summary, short, report,
+                            " PythonOS keeps crashing, so it will not restart by itself. Start it again when you are ready. ",
+                            looping=True))
         sys.exit(1)
+
     wait = max(1, round(5 * settings.boot_pause() / 0.35)) if settings.boot_pause() > 0 else 1
-    for remaining in range(wait, 0, -1):
-        console.print(f"Restarting in {remaining}...", style="white on blue")
-        time.sleep(1)
+    with Live(_bsod(code, summary, short, report, f"Restarting in {wait}...  [{'-' * wait}]"), console=console,
+              refresh_per_second=4, transient=False) as live:
+        for remaining in range(wait, 0, -1):
+            done = wait - remaining
+            live.update(_bsod(code, summary, short, report,
+                              f"Restarting in {remaining}...  [{'#' * done}{'-' * remaining}]"))
+            time.sleep(1)
     _clear()
     sys.exit(subprocess.call([sys.executable, "main.py"]))
