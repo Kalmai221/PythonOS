@@ -11,6 +11,9 @@ namespace PythonOS.Setup
 {
     internal sealed class SetupForm : Form
     {
+        [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
         private readonly Palette p = Palette.FromSystem();
         private readonly Options o;
         private readonly Existing existing;
@@ -54,6 +57,10 @@ namespace PythonOS.Setup
             primary.Click += delegate { OnPrimary(); };
             secondary.Click += delegate { OnSecondary(); };
             FormClosing += OnClosing;
+            HandleCreated += delegate
+            {
+                try { int on = p.Light ? 0 : 1; if (DwmSetWindowAttribute(Handle, 20, ref on, 4) != 0) DwmSetWindowAttribute(Handle, 19, ref on, 4); } catch (Exception) { }
+            };
             Load += delegate { Start(); };
         }
 

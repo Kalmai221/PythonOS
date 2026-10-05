@@ -15,6 +15,7 @@
 <div id="t"></div>
 <script src="xterm.js"></script>
 <script src="addon-fit.js"></script>
+<script src="addon-canvas.js"></script>
 <script>
 (function () {
   var dark = {
@@ -31,12 +32,13 @@
   var size = parseInt(localStorage.getItem("fontSize") || "15", 10);
   var term = new Terminal({
     fontFamily: '"Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace',
-    fontSize: size, cursorBlink: true, scrollback: 5000, allowProposedApi: true,
+    fontSize: size, cursorBlink: true, scrollback: 5000, allowProposedApi: true, customGlyphs: true, rescaleOverlappingGlyphs: true,
     theme: query.matches ? dark : light, macOptionIsMeta: false, convertEol: false
   });
   var fit = new FitAddon.FitAddon();
   term.loadAddon(fit);
   term.open(document.getElementById("t"));
+  try { term.loadAddon(new CanvasAddon.CanvasAddon()); } catch (e) { /* the DOM renderer still works */ }
 
   function post(text) { window.chrome.webview.postMessage(text); }
   function refit() { try { fit.fit(); } catch (e) {} }

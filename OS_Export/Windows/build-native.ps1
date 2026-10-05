@@ -23,6 +23,7 @@ $Deps = Join-Path $Repo "dist\native-deps"
 $WebView2Version = "1.0.2739.15"
 $Xterm = "5.5.0"
 $FitAddon = "0.10.0"
+$CanvasAddon = "0.7.0"
 $Csc = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 if (-not (Test-Path $Csc)) { throw "The .NET Framework C# compiler was not found: $Csc" }
 
@@ -44,6 +45,8 @@ function Get-Package($Name, $Url, $Check) {
 Get-Package "webview2" "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/$WebView2Version" "webview2\lib\net462\Microsoft.Web.WebView2.Core.dll"
 Get-Package "xterm" "https://registry.npmjs.org/@xterm/xterm/-/xterm-$Xterm.tgz" "xterm\package\lib\xterm.js"
 Get-Package "addon-fit" "https://registry.npmjs.org/@xterm/addon-fit/-/addon-fit-$FitAddon.tgz" "addon-fit\package\lib\addon-fit.js"
+
+Get-Package "addon-canvas" "https://registry.npmjs.org/@xterm/addon-canvas/-/addon-canvas-$CanvasAddon.tgz" "addon-canvas\package\lib\addon-canvas.js"
 
 $Wv = Join-Path $Deps "webview2"
 $Common = @("/nologo", "/optimize+", "/codepage:65001", "/platform:x64", "/r:System.dll", "/r:System.Core.dll", "/r:System.Drawing.dll", "/r:System.Windows.Forms.dll")
@@ -68,7 +71,7 @@ Copy-Item "$Wv\lib\net462\Microsoft.Web.WebView2.Core.dll", "$Wv\lib\net462\Micr
 $Web = Join-Path $Out "web"
 New-Item -ItemType Directory -Force -Path $Web | Out-Null
 Copy-Item (Join-Path $Here "native\host\web\terminal.html") $Web
-Copy-Item (Join-Path $Deps "xterm\package\lib\xterm.js"), (Join-Path $Deps "xterm\package\css\xterm.css"), (Join-Path $Deps "addon-fit\package\lib\addon-fit.js") $Web
+Copy-Item (Join-Path $Deps "xterm\package\lib\xterm.js"), (Join-Path $Deps "xterm\package\css\xterm.css"), (Join-Path $Deps "addon-fit\package\lib\addon-fit.js"), (Join-Path $Deps "addon-canvas\package\lib\addon-canvas.js") $Web
 
 # 2. The installer (when its sources exist)
 $Setup = Join-Path $Here "native\setup"
