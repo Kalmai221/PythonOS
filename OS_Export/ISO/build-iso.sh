@@ -33,7 +33,14 @@ chmod 777 "$OUT"
 python3 "$REPO/OS_Export/stage.py" "$WORK/payload" --vendor yaspin ping3 --export iso
 chmod -R a+rX "$WORK/payload"
 
-docker run --rm \
+# Optional download cache (CI keeps this folder between runs): the build tools (alpine-sdk and friends) are about 150 MB
+CACHE_ARGS=()
+if [ -n "${ISO_APK_CACHE:-}" ]; then
+    mkdir -p "$ISO_APK_CACHE"
+    CACHE_ARGS=(-v "$ISO_APK_CACHE:/var/cache/apk")
+fi
+
+docker run --rm "${CACHE_ARGS[@]}" \
     -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-lts}" -e ISO_VARIANT="$VARIANT" \
     -v "$WORK/payload:/payload:ro" \
     -v "$HERE:/iso:ro" \

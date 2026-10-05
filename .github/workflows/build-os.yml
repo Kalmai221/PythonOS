@@ -242,7 +242,7 @@ jobs:
           bash OS_Export/ISO/vm/make-images.sh "dist/iso/pythonos-$V-x86_64.iso" "$V" dist/iso
           cp OS_Export/ISO/tools/flash_iso.py "dist/iso/pythonos-flash-tool-$V.py"
           ls -la dist/iso
-      - name: Boot the ISO in QEMU (informational: software emulation is slow and a miss does not stop the release)
+      - name: Boot the ISO in QEMU (informational only - software emulation is slow and a miss does not stop the release)
         if: matrix.variant == 'full'
         continue-on-error: true
         run: |

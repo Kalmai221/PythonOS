@@ -15,7 +15,8 @@ case "$KERNEL" in
 esac
 MIRROR="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE"
 
-apk add --no-cache alpine-sdk alpine-conf abuild xorriso squashfs-tools syslinux \
+mkdir -p /var/cache/apk && ln -sf /var/cache/apk /etc/apk/cache      # downloads are kept here when the host mounts it
+apk add alpine-sdk alpine-conf abuild xorriso squashfs-tools syslinux \
     grub grub-efi grub-bios mtools dosfstools git sudo
 
 # mkimage must run as a normal user that owns a package-signing key
