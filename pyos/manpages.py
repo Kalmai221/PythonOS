@@ -186,6 +186,14 @@ page("help", "see what you can do", ["help", "help <category>", "help <command>"
      "one group, help <command> shows a single command, help search <word> looks through names, descriptions and the manual, and "
      "help all prints everything (in a pager on a real terminal). On a narrow screen it switches to a compact layout.",
      examples=[("help files", "the file commands"), ("help search backup", "find what mentions backup")], see=["man", "tutorial"])
+page("rollback", "go back to the previous version", ["rollback"],
+     "Goes back to the version that was installed before the last update. It works right after an update (one step back); the "
+     "version you leave is not kept, so updating again downloads it. Your files and accounts are not touched. Administrators only.",
+     see=["updatecheck", "whatsnew", "version"])
+page("whatsnew", "what the last update changed", ["whatsnew"],
+     "Shows the release notes and the files that changed in the last update. It also appears by itself the first time PythonOS "
+     "starts after an update. Updates download only the files that changed and carry on where they stopped if the connection drops.",
+     see=["updatecheck", "rollback", "version"])
 page("hwsetup", "hardware, audio, network, keyboard and time zone setup", ["hwsetup", "hwsetup check|audio|network|keyboard|timezone"],
      "On the live ISO (and any Linux system as root): check devices, drivers and firmware; choose and test the sound output; "
      "connect to a wired or Wi-Fi network and test the internet; pick the keyboard layout and time zone. Your choices (and Wi-Fi "
