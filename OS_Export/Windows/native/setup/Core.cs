@@ -65,6 +65,7 @@ namespace PythonOS.Setup
     {
         public string Version;
         public string Directory;
+        public string Source;          // web | inno | folder
     }
 
     internal sealed class Release
@@ -97,22 +98,74 @@ namespace PythonOS.Setup
         }
 
         // ----------------------------------------------------------------- what is already here
-        public static Existing FindExisting()
+        // The Inno Setup installer (the offline PythonOS-<version>-setup.exe, and every version before the web installer) registers
+        // itself under this key, per user or for the machine. The web installer must recognise those installs and update them in place.
+        public const string InnoKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\{6B0B3A63-5B6E-4C3E-9C47-7C1D2F6A9E11}_is1";
+
+        private static string FolderVersion(string dir)
+        {
+            foreach (string name in new string[] { "VERSION", "export.json" })
+            {
+                try
+                {
+                    string path = Path.Combine(dir, name);
+                    if (!File.Exists(path)) continue;
+                    string text = File.ReadAllText(path).Trim();
+                    if (name == "VERSION") return text.Length > 0 ? text : "?";
+                    System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(text, "\"version\"\\s*:\\s*\"([^\"]+)\"");
+                    if (m.Success) return m.Groups[1].Value;
+                }
+                catch (Exception) { }
+            }
+            return "?";
+        }
+
+        private static bool LooksLikePythonOS(string dir)
+        {
+            return Directory.Exists(dir) && (File.Exists(Path.Combine(dir, "PythonOS.exe")) || File.Exists(Path.Combine(dir, "main.py")) ||
+                                             Directory.Exists(Path.Combine(dir, "python")));
+        }
+
+        private static Existing FromKey(RegistryKey root, string subKey, string source)
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(UninstallKey))
+                using (RegistryKey key = root.OpenSubKey(subKey))
                 {
                     if (key == null) return null;
                     string dir = key.GetValue("InstallLocation") as string;
-                    if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir)) return null;
+                    if (string.IsNullOrEmpty(dir)) dir = key.GetValue("Inno Setup: App Path") as string;
+                    if (string.IsNullOrEmpty(dir) || !LooksLikePythonOS(dir)) return null;
                     Existing e = new Existing();
-                    e.Directory = dir;
-                    e.Version = key.GetValue("DisplayVersion") as string ?? "?";
+                    e.Directory = dir.TrimEnd('\\');
+                    e.Version = key.GetValue("DisplayVersion") as string ?? FolderVersion(e.Directory);
+                    e.Source = source;
                     return e;
                 }
             }
             catch (Exception) { return null; }
+        }
+
+        public static Existing FindExisting()
+        {
+            Existing e = FromKey(Registry.CurrentUser, UninstallKey, "web");
+            if (e != null) return e;
+            e = FromKey(Registry.CurrentUser, InnoKey, "inno");
+            if (e != null) return e;
+            e = FromKey(Registry.LocalMachine, InnoKey, "inno");
+            if (e != null) return e;
+            // No uninstall entry (a portable copy, or an install whose entry was removed): look where PythonOS usually lives
+            string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            foreach (string dir in new string[] { Path.Combine(local, "PythonOS"), Path.Combine(local, "Programs", "PythonOS") })
+            {
+                if (!LooksLikePythonOS(dir)) continue;
+                Existing f = new Existing();
+                f.Directory = dir;
+                f.Version = FolderVersion(dir);
+                f.Source = "folder";
+                return f;
+            }
+            return null;
         }
 
         // ----------------------------------------------------------------- requirements
@@ -472,6 +525,7 @@ namespace PythonOS.Setup
 
         private static void Register(string dir, string version, string uninstaller)
         {
+            try { Registry.CurrentUser.DeleteSubKeyTree(InnoKey, false); } catch (Exception) { }     // replaces an older installer's entry
             using (RegistryKey key = Registry.CurrentUser.CreateSubKey(UninstallKey))
             {
                 key.SetValue("DisplayName", "PythonOS");

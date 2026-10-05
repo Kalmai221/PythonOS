@@ -9,10 +9,31 @@
   @media (prefers-color-scheme: light) { html, body { background: #fafafa; } }
   #t { position: absolute; inset: 8px 0 0 10px; }
   .xterm-viewport { background-color: transparent !important; }
+
+  /* the scrollbar: slim, rounded, in the window's colours, and a little wider when the pointer is on it */
+  :root { --thumb: rgba(255, 255, 255, .22); --thumb-hover: rgba(255, 255, 255, .42); --thumb-active: rgba(139, 164, 255, .75); }
+  @media (prefers-color-scheme: light) { :root { --thumb: rgba(0, 0, 0, .25); --thumb-hover: rgba(0, 0, 0, .45); --thumb-active: rgba(47, 91, 216, .8); } }
+  .xterm .xterm-viewport { overscroll-behavior: contain; }
+  .xterm-viewport::-webkit-scrollbar { width: 12px; }
+  .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+  .xterm-viewport::-webkit-scrollbar-thumb { background: var(--thumb); border-radius: 99px; border: 3px solid transparent; background-clip: content-box; min-height: 48px; }
+  .xterm-viewport::-webkit-scrollbar-thumb:hover { background: var(--thumb-hover); background-clip: content-box; border-width: 2px; }
+  .xterm-viewport::-webkit-scrollbar-thumb:active { background: var(--thumb-active); background-clip: content-box; border-width: 2px; }
+
+  /* "jump to the latest" button, shown while scrolled back */
+  #latest { position: absolute; z-index: 50; right: 26px; bottom: 18px; display: none; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid rgba(255,255,255,.2);
+    border-radius: 99px; font: 600 12.5px "Segoe UI", system-ui, sans-serif; cursor: pointer; color: #fff; background: rgba(40, 52, 96, .92);
+    box-shadow: 0 6px 20px rgba(0,0,0,.35); backdrop-filter: blur(8px); }
+  #latest.show { display: inline-flex; animation: rise .18s ease-out; }
+  #latest:hover { background: rgba(58, 76, 140, .96); }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+  @media (prefers-color-scheme: light) { #latest { color: #fff; background: rgba(47, 91, 216, .94); border-color: rgba(0,0,0,.1); } #latest:hover { background: rgba(35, 72, 180, .98); } }
+  @media (prefers-reduced-motion: reduce) { #latest.show { animation: none; } }
 </style>
 </head>
 <body>
 <div id="t"></div>
+<button id="latest" type="button" aria-label="Jump to the latest output">&#8595; Latest</button>
 <script src="xterm.js"></script>
 <script src="addon-fit.js"></script>
 <script src="addon-canvas.js"></script>
@@ -32,7 +53,7 @@
   var size = parseInt(localStorage.getItem("fontSize") || "15", 10);
   var term = new Terminal({
     fontFamily: '"Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace',
-    fontSize: size, cursorBlink: true, scrollback: 5000, allowProposedApi: true, customGlyphs: true, rescaleOverlappingGlyphs: true,
+    fontSize: size, cursorBlink: true, scrollback: 20000, smoothScrollDuration: 90, scrollSensitivity: 1.4, fastScrollSensitivity: 6, scrollOnUserInput: true, allowProposedApi: true, customGlyphs: true, rescaleOverlappingGlyphs: true,
     theme: query.matches ? dark : light, macOptionIsMeta: false, convertEol: false
   });
   var fit = new FitAddon.FitAddon();
@@ -61,6 +82,13 @@
   // Ctrl+C copies when something is selected (otherwise it is the usual interrupt); Ctrl+V and a right click paste
   term.attachCustomKeyEventHandler(function (e) {
     if (e.type !== "keydown") return true;
+    // scrolling the output with the keyboard (the line you are typing stays where it is)
+    if (e.shiftKey && e.key === "PageUp") { term.scrollPages(-1); return false; }
+    if (e.shiftKey && e.key === "PageDown") { term.scrollPages(1); return false; }
+    if (e.ctrlKey && e.shiftKey && e.key === "ArrowUp") { term.scrollLines(-3); return false; }
+    if (e.ctrlKey && e.shiftKey && e.key === "ArrowDown") { term.scrollLines(3); return false; }
+    if (e.ctrlKey && e.key === "Home") { term.scrollToTop(); return false; }
+    if (e.ctrlKey && e.key === "End") { term.scrollToBottom(); return false; }
     if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "c" && term.hasSelection()) {
       navigator.clipboard.writeText(term.getSelection()); term.clearSelection(); return false;
     }
@@ -84,6 +112,17 @@
   window.addEventListener("wheel", function (e) { if (e.ctrlKey) { e.preventDefault(); zoom(e.deltaY < 0 ? 1 : -1); } }, { passive: false });
 
   query.addEventListener("change", function () { term.options.theme = query.matches ? dark : light; });
+  // the "Latest" button appears when the view is scrolled back from the bottom
+  var latest = document.getElementById("latest");
+  function checkBottom() {
+    var b = term.buffer.active;
+    latest.classList.toggle("show", b.viewportY < b.baseY);
+  }
+  term.onScroll(checkBottom);
+  setInterval(checkBottom, 250);      // also catches the wheel and the scrollbar, whichever way the view moved
+  term.onWriteParsed(checkBottom);
+  latest.addEventListener("click", function () { term.scrollToBottom(); term.focus(); });
+
   new ResizeObserver(refit).observe(document.body);
   window.addEventListener("focus", function () { term.focus(); });
   term.focus();

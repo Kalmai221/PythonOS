@@ -166,7 +166,7 @@ namespace PythonOS
             core.SetVirtualHostNameToFolderMapping("pythonos.app", Path.Combine(dir, "web"), CoreWebView2HostResourceAccessKind.Allow);
             core.WebMessageReceived += OnMessage;
             core.NewWindowRequested += delegate (object s, CoreWebView2NewWindowRequestedEventArgs e) { e.Handled = true; };
-            core.Navigate("https://pythonos.app/terminal.html");
+            core.Navigate("https://pythonos.app/terminal.html?v=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);    // the version in the address keeps an old cached page from being shown
         }
 
         private void CannotStart(Exception ex)
