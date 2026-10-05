@@ -66,6 +66,7 @@
   <section class="block" id="download" style="background:var(--bg-2)">
     <div class="wrap">
       <div class="section-head reveal"><h2>Download</h2><p class="muted" id="dl-sub">Pick your device. Everything updates itself from inside PythonOS later.</p></div>
+      <div class="archbar" id="archbar"></div>
       <div class="tabs" role="tablist" aria-label="Platform" id="tabs"></div>
       <div id="panels"><div class="files"><div class="skeleton"></div><div class="skeleton"></div></div></div>
       <p class="note" id="docker">Prefer a container? <code>docker run -it --rm ghcr.io/kalmai221/pythonos</code> (amd64 and arm64) <button class="copy" type="button" data-copy="docker run -it --rm ghcr.io/kalmai221/pythonos">Copy</button></p>
@@ -95,38 +96,67 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   "use strict";
-  var P = window.PyOS || {};
+  var P = window.PyOS;
+  var $ = function (id) { return document.getElementById(id); };
   var GROUPS = [
     { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows(-arm64)?-portable\.zip)$/, note: "Windows 10 (1809) or newer, on Intel/AMD or ARM. The web installer is a tiny download that fetches and checks the right package for your PC." },
     { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. Choose arm64 for nearly every phone; the universal APK works anywhere but is bigger." },
     { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz|\.pkg\.tar\.zst|\.rpm)$/, note: "Any Linux with Python 3.9+, on any processor. Debian/Ubuntu: .deb. Arch: .pkg.tar.zst. Fedora/RHEL/openSUSE: .rpm. Everything else: the tarball." },
     { id: "usb", title: "Bootable USB", match: /((x86_64|aarch64)\.iso|flash-tool.*\.py)$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it with the flash tool, which checks the download first." },
-    { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox." }
+    { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox. These are for PCs (x86_64)." }
   ];
   var USE = [
-    [/web-setup\.exe$/, "Recommended installer"], [/arm64-setup\.exe$/, "Full installer for Windows on ARM"], [/-setup\.exe$/, "Full installer (offline)"],
+    [/web-setup\.exe$/, "Recommended installer (picks the right package for your PC)"], [/arm64-setup\.exe$/, "Full installer for Windows on ARM"], [/-setup\.exe$/, "Full installer (offline)"],
     [/windows-arm64-portable/, "Portable, Windows on ARM"], [/windows-portable/, "Portable: unzip and run"],
     [/arm64-v8a\.apk$/, "Phones and tablets (smallest)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
     [/\.deb$/, "Debian, Ubuntu and friends"], [/pkg\.tar\.zst$/, "Arch, Manjaro"], [/\.rpm$/, "Fedora, RHEL, openSUSE"], [/linux\.tar\.gz$/, "Any Linux, any processor"],
-    [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"], [/flash-tool/, "Safely writes the ISO to a USB stick"],
+    [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"],
+    [/flash-tool/, "Safely writes the ISO to a USB stick"],
     [/\.ova$/, "VirtualBox / VMware appliance"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
   ];
+  var ARCHS = [["x64", "Intel / AMD (x64)"], ["arm64", "ARM (arm64)"]];
   function order(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return i; return 99; }
   function useOf(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return USE[i][1]; return ""; }
-  function detect() {
+
+  // which processor a file is for: "x64", "arm64", or "any" (works on both)
+  function archOf(name) {
+    if (/arm64-v8a\.apk$/.test(name) || /arm64/.test(name) || /aarch64/.test(name)) return "arm64";
+    if (/x86_64/.test(name)) return "x64";
+    if (/windows-portable\.zip$/.test(name) || (/-setup\.exe$/.test(name) && !/web-setup/.test(name))) return "x64";
+    return "any";
+  }
+  function platformGuess() {
     var ua = navigator.userAgent || "";
     if (/Android/i.test(ua)) return "android";
     if (/Windows/i.test(ua)) return "windows";
     if (/Linux|X11|CrOS/i.test(ua)) return "linux";
     return "usb";
   }
-  function mainFile(assets, id) {
-    var by = function (re) { return assets.filter(function (a) { return re.test(a.name); })[0]; };
-    if (id === "android") return by(/arm64-v8a\.apk$/) || by(/android\.apk$/);
-    if (id === "windows") return by(/web-setup\.exe$/) || by(/-setup\.exe$/);
-    if (id === "linux") return by(/\.deb$/) || by(/linux\.tar\.gz$/);
-    return by(/(?<!minimal-)x86_64\.iso$/);
+  function archFromUA() { return /aarch64|arm64|\barm\b/i.test(navigator.userAgent || "") ? "arm64" : "x64"; }
+
+  var state = { arch: null, detected: null, platform: platformGuess(), assets: [], release: null, tab: null };
+  try { state.arch = sessionStorage.getItem("arch"); } catch (e) {}
+
+  // Detect the processor where the browser says (Chromium reports it; others fall back to the user agent text), then let the visitor change it
+  function detectArch() {
+    var guess = archFromUA();
+    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+      return navigator.userAgentData.getHighEntropyValues(["architecture"]).then(function (v) {
+        return /arm/i.test(v.architecture || "") ? "arm64" : (v.architecture ? "x64" : guess);
+      }, function () { return guess; });
+    }
+    return Promise.resolve(guess);
   }
+
+  function fits(a, arch) { var x = archOf(a.name); return x === "any" || x === arch || (x === "arm64" && arch === "arm64"); }
+  function mainFile(assets, id, arch) {
+    var by = function (re) { return assets.filter(function (a) { return re.test(a.name); })[0]; };
+    if (id === "android") return (arch === "arm64" ? by(/arm64-v8a\.apk$/) : by(/x86_64\.apk$/)) || by(/android\.apk$/);
+    if (id === "windows") return by(/web-setup\.exe$/) || (arch === "arm64" ? by(/arm64-setup\.exe$/) : by(/-setup\.exe$/));
+    if (id === "linux") return by(/\.deb$/) || by(/linux\.tar\.gz$/);
+    return arch === "arm64" ? (by(/(?<!minimal-)aarch64\.iso$/) || by(/aarch64\.iso$/)) : by(/(?<!minimal-)x86_64\.iso$/);
+  }
+  var NAMES = { android: "Android", windows: "Windows", linux: "Linux", usb: "a bootable USB" };
 
   // typing demo in the terminal card (static text for reduced motion)
   var lines = [
@@ -135,7 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ["find -name \"*.md\" -size +1k", "<span class='d'>~/docs/readme.md\n~/docs/ideas.md</span>"],
     ["pkg install chess", "<span class='y'>Installed Chess 2.2.0</span> <span class='d'>(permissions: files)</span>"]
   ];
-  var demo = document.getElementById("demo");
+  var demo = $("demo");
   function prompt() { return "<span class='p'>you@pyOS</span>:<span class='c'>~</span>$ "; }
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
     demo.innerHTML = lines.map(function (l) { return prompt() + l[0] + "\n" + l[1]; }).join("\n") + "\n" + prompt() + "<span class='caret'></span>";
@@ -154,66 +184,92 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     })();
   }
-
   document.querySelectorAll("[data-copy]").forEach(function (b) { b.addEventListener("click", function () { P.copy(b.getAttribute("data-copy"), b); }); });
 
-  P.api("releases/latest").then(function (rel) {
-    var assets = rel.assets.filter(function (a) { return !/SHA256SUMS|core|manifest|\.json$/i.test(a.name); });
-    var version = rel.tag_name.replace(/^v/, "");
-    document.getElementById("ver").textContent = "Version " + version;
-    var platform = detect();
-    var main = mainFile(assets, platform);
-    var names = { android: "Android", windows: "Windows", linux: "Linux", usb: "a bootable USB" };
-    var cta = document.getElementById("cta");
+  // ---- drawing: the processor chooser, the main button and the file cards (called again whenever the processor changes)
+  function setArch(arch) {
+    state.arch = arch;
+    try { sessionStorage.setItem("arch", arch); } catch (e) {}
+    render();
+  }
+  function renderArchBar() {
+    var bar = $("archbar");
+    var note = state.detected ? " <span class='muted'>Detected: " + (state.detected === "arm64" ? "ARM" : "Intel / AMD") + (state.arch !== state.detected ? " (you chose " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + ")" : "") + "</span>" : "";
+    bar.innerHTML = "<span class='muted' id='archlabel'>Processor</span><div class='tabs chips' role='group' aria-labelledby='archlabel'>" + ARCHS.map(function (a) {
+      return "<button class='tab' type='button' data-arch='" + a[0] + "' aria-pressed='" + (state.arch === a[0]) + "'>" + a[1] + "</button>";
+    }).join("") + "</div>" + note;
+    bar.querySelectorAll("[data-arch]").forEach(function (b) { b.addEventListener("click", function () { setArch(b.getAttribute("data-arch")); }); });
+  }
+
+  function render() {
+    var assets = state.assets, rel = state.release;
+    if (!rel) return;
+    renderArchBar();
+    var main = mainFile(assets, state.platform, state.arch);
+    var cta = $("cta");
     if (main) {
-      cta.innerHTML = "<a class='btn primary' href='" + main.browser_download_url + "'>Download for " + names[platform] + "</a><a class='btn ghost' href='#download'>All downloads</a>";
+      cta.innerHTML = "<a class='btn primary' href='" + main.browser_download_url + "'>Download for " + NAMES[state.platform] + "</a><a class='btn ghost' href='#download'>All downloads</a>";
     }
-    document.getElementById("meta").innerHTML = (main ? "<span>" + P.esc(main.name) + " · " + P.size(main.size) + "</span>" : "") +
+    $("meta").innerHTML = (main ? "<span>" + P.esc(main.name) + " · " + P.size(main.size) + " · " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + "</span>" : "") +
       "<span>Released " + P.when(rel.published_at) + "</span><a href='" + rel.html_url + "'>Release notes</a>";
 
-    // downloads: one tab per platform
-    var tabs = document.getElementById("tabs"), panels = document.getElementById("panels");
+    var tabs = $("tabs"), panels = $("panels");
     tabs.innerHTML = ""; panels.innerHTML = "";
     var present = GROUPS.filter(function (g) { return assets.some(function (a) { return g.match.test(a.name); }); });
     present.forEach(function (g, i) {
-      var items = assets.filter(function (a) { return g.match.test(a.name); }).sort(function (a, b) { return order(a.name) - order(b.name); });
+      var all = assets.filter(function (a) { return g.match.test(a.name); });
+      var items = all.filter(function (a) { return fits(a, state.arch); }).sort(function (a, b) { return order(a.name) - order(b.name); });
+      var hidden = all.length - items.length;
       var tab = document.createElement("button");
       tab.className = "tab"; tab.type = "button"; tab.id = "tab-" + g.id; tab.textContent = g.title;
       tab.setAttribute("role", "tab"); tab.setAttribute("aria-controls", "panel-" + g.id);
       var panel = document.createElement("div");
       panel.className = "panel"; panel.id = "panel-" + g.id; panel.setAttribute("role", "tabpanel"); panel.setAttribute("aria-labelledby", tab.id);
-      panel.innerHTML = "<div class='files'>" + items.map(function (a) {
+      panel.innerHTML = (items.length ? "<div class='files'>" + items.map(function (a) {
         return "<div class='file'><span class='name'>" + P.esc(a.name) + "</span><span class='muted'>" + P.esc(useOf(a.name)) + "</span>" +
                "<div class='row'><span class='size'>" + P.size(a.size) + "</span><a class='btn primary' style='padding:9px 16px' href='" + a.browser_download_url + "'>Download</a></div></div>";
-      }).join("") + "</div><p class='note'>" + g.note + "</p>";
+      }).join("") + "</div>" : "<p class='note'>There is no " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + " build of this in the release. Pick the other processor above.</p>") +
+        "<p class='note'>" + g.note + (hidden > 0 ? " <span class='muted'>(" + hidden + " file" + (hidden > 1 ? "s" : "") + " for the other processor hidden.)</span>" : "") + "</p>";
       tabs.appendChild(tab); panels.appendChild(panel);
       tab.addEventListener("click", function () { select(g.id); });
       tab.addEventListener("keydown", function (e) {
         var k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!k) return;
-        var j = (i + k + present.length) % present.length; select(present[j].id); document.getElementById("tab-" + present[j].id).focus();
+        var j = (i + k + present.length) % present.length; select(present[j].id); $("tab-" + present[j].id).focus();
       });
     });
     function select(id) {
+      state.tab = id;
       present.forEach(function (g) {
         var on = g.id === id;
-        document.getElementById("tab-" + g.id).setAttribute("aria-selected", String(on));
-        document.getElementById("tab-" + g.id).tabIndex = on ? 0 : -1;
-        document.getElementById("panel-" + g.id).hidden = !on;
+        $("tab-" + g.id).setAttribute("aria-selected", String(on));
+        $("tab-" + g.id).tabIndex = on ? 0 : -1;
+        $("panel-" + g.id).hidden = !on;
       });
     }
-    select(present.some(function (g) { return g.id === platform; }) ? platform : (present[0] && present[0].id));
+    select(present.some(function (g) { return g.id === state.tab; }) ? state.tab : (present.some(function (g) { return g.id === state.platform; }) ? state.platform : (present[0] && present[0].id)));
 
-    var apk = mainFile(assets, "android");
-    if (apk && platform !== "android" && window.QRCode) {
+    var old = $("qrnote"); if (old) old.remove();
+    var apk = mainFile(assets, "android", state.arch);
+    if (apk && state.platform !== "android" && window.QRCode) {
       var q = document.createElement("div");
-      q.className = "note"; q.style.display = "flex"; q.style.gap = "16px"; q.style.alignItems = "center";
+      q.id = "qrnote"; q.className = "note"; q.style.display = "flex"; q.style.gap = "16px"; q.style.alignItems = "center";
       q.innerHTML = "<div style='background:#fff;padding:8px;border-radius:12px;line-height:0' id='qr'></div><span>Scan with your phone to download the Android app.</span>";
-      document.getElementById("docker").before(q);
-      try { new QRCode(document.getElementById("qr"), { text: apk.browser_download_url, width: 112, height: 112 }); } catch (e) { q.remove(); }
+      $("docker").before(q);
+      try { new QRCode($("qr"), { text: apk.browser_download_url, width: 112, height: 112 }); } catch (e) { q.remove(); }
     }
+  }
+
+  Promise.all([P.api("releases/latest"), detectArch()]).then(function (r) {
+    var rel = r[0];
+    state.detected = r[1];
+    if (state.arch !== "x64" && state.arch !== "arm64") state.arch = state.detected;
+    state.release = rel;
+    state.assets = rel.assets.filter(function (a) { return !/SHA256SUMS|core|manifest|\.json$/i.test(a.name); });
+    $("ver").textContent = "Version " + rel.tag_name.replace(/^v/, "");
+    render();
   }).catch(function (e) {
-    document.getElementById("panels").innerHTML = "<p class='note err'>Could not load the latest release (" + P.esc(e.message) + "). Open the <a href='https://github.com/Kalmai221/PythonOS/releases/latest'>releases page</a> instead.</p>";
-    document.getElementById("tabs").hidden = true;
+    $("panels").innerHTML = "<p class='note err'>Could not load the latest release (" + P.esc(e.message) + "). Open the <a href='https://github.com/Kalmai221/PythonOS/releases/latest'>releases page</a> instead.</p>";
+    $("tabs").hidden = true;
   });
 });
 </script>
