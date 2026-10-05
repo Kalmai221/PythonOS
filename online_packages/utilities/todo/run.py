@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import json
 import os
 from rich.console import Console
@@ -98,12 +99,17 @@ def main():
         save(items)
 
 
-if __name__ == "__main__":
-    main()
 
 
 def execute(args=None):
-    if args:
-        cli(list(args))
-    else:
-        main()
+    try:
+        if args:
+            cli(list(args))
+        else:
+            main()
+    except (KeyboardInterrupt, EOFError):
+        print()
+
+
+if __name__ == "__main__":
+    execute(sys.argv[1:])

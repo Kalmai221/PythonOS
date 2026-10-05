@@ -70,7 +70,7 @@ def load_installed_packages(base_path="files"):
                             if run_script:
                                 run_script_path = os.path.join(root, run_script)
                                 installed[command_name] = {
-                                    "module": type("DynamicModule", (), {"execute": staticmethod(make_execute_func(run_script_path))}),
+                                    "module": type("DynamicModule", (), {"execute": staticmethod(make_execute_func(run_script_path, root, data))}),
                                     "description": description,
                                     "aliases": data.get("alias", [])
                                 }
@@ -81,24 +81,28 @@ def load_installed_packages(base_path="files"):
     return installed
 
 
-def make_execute_func(script_path):
-    """Run a marketplace package's script. Returns False if it failed."""
+def make_execute_func(script_path, folder=None, meta=None):
+    """Run a marketplace package's script under its permission guard (pyos/sandbox.py). Returns False if it failed."""
     def execute(args=None):
         if not os.path.exists(script_path):
             console.print(f"[bold red]Run script not found:[/bold red] {script_path}")
             return False
         # Packages can `import pyos` (settings, notifications, the sandboxed filesystem, ...)
-        env = dict(os.environ)
-        env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
-        cmd = [sys.executable, script_path, *(args or [])]
+        if folder is not None:
+            cmd, env = pyos.sandbox.launch(script_path, args, folder, meta or {})
+        else:
+            env = dict(os.environ)
+            env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+            cmd = [sys.executable, script_path, *(args or [])]
         if sys.stdout.isatty():
             return subprocess.call(cmd, env=env) == 0
         # output is being piped or captured: collect it instead of letting it go to the terminal
-        result = subprocess.run(cmd, env=env, capture_output=True, text=True,
+        env["PYTHONIOENCODING"] = "utf-8"          # read it back as UTF-8 whatever the console's code page is
+        result = subprocess.run(cmd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace",
                                 stdin=subprocess.DEVNULL if stdio.read_stdin() is None else None,
                                 input=stdio.read_stdin())
-        sys.stdout.write(result.stdout)
-        sys.stdout.write(result.stderr)
+        sys.stdout.write(result.stdout or "")
+        sys.stdout.write(result.stderr or "")
         return result.returncode == 0
     return execute
 

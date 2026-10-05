@@ -13,5 +13,8 @@
     "list"
   ],
   "lockdown_safe": true,
-  "changelog": "Edit tasks, 'todo add/list/done/remove' from the shell, fixed the menu showing without its letters."
+  "changelog": "Edit tasks, 'todo add/list/done/remove' from the shell, fixed the menu showing without its letters.",
+  "permissions": [
+    "files"
+  ]
 }

@@ -14,5 +14,6 @@
   ],
   "lockdown_safe": true,
   "changelog": "First release.",
-  "featured": true
+  "featured": true,
+  "permissions": []
 }

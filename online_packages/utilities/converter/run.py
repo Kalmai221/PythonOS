@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Converter: unit conversions and a calculator that remembers its history. Nothing is ever evaluated as code."""
+import sys
 import ast
 import math
 import operator
@@ -240,4 +241,4 @@ def execute(args=None):
 
 
 if __name__ == "__main__":
-    execute()
+    execute(sys.argv[1:])

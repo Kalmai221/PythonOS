@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Weather: current conditions and a three-day forecast for any city (data from wttr.in). Remembers your city and
 your unit choice, and shows the last forecast it saw when you are offline."""
+import sys
 import time
 
 import requests
@@ -112,3 +113,7 @@ def execute(args=None):
         main(" ".join(args) if args else None)
     except (KeyboardInterrupt, EOFError):
         console.print()
+
+
+if __name__ == "__main__":
+    execute(sys.argv[1:])

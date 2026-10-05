@@ -16,5 +16,6 @@
     "classic"
   ],
   "lockdown_safe": true,
-  "changelog": "Easy, medium and unbeatable hard levels; all-time record."
+  "changelog": "Easy, medium and unbeatable hard levels; all-time record.",
+  "permissions": []
 }

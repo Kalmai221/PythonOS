@@ -1,4 +1,5 @@
 import json
+import os
 from rich.console import Console
 
 # Initialize the console for rich output
@@ -21,6 +22,12 @@ def userinfo():
     The role is read from users.json rather than trusted from the session file,
     so editing current_user.json cannot grant admin rights.
     """
+    # An app running under the package permission guard is not allowed to read the account database (it holds password
+    # hashes), so the guard hands it the answer instead: "name:role", worked out before the guard was installed.
+    sandboxed = os.environ.get("PYOS_SANDBOX_USER")
+    if sandboxed:
+        name, _, role = sandboxed.partition(":")
+        return [name or None, role or None]
     session_data = load_session()
     if not session_data:
         return [None, None]

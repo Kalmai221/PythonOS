@@ -16,5 +16,8 @@
     "reader"
   ],
   "lockdown_safe": true,
-  "changelog": "First release."
+  "changelog": "First release.",
+  "permissions": [
+    "network"
+  ]
 }

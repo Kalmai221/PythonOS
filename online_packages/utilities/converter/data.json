@@ -16,5 +16,6 @@
     "history"
   ],
   "lockdown_safe": true,
-  "changelog": "First release: ten unit categories, calculator with history and 'ans'."
+  "changelog": "First release: ten unit categories, calculator with history and 'ans'.",
+  "permissions": []
 }

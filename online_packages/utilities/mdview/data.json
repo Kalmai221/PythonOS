@@ -19,5 +19,8 @@
   "requires": [
     "utilities/notes"
   ],
-  "changelog": "First release (needs the Notes app)."
+  "changelog": "First release (needs the Notes app).",
+  "permissions": [
+    "files"
+  ]
 }

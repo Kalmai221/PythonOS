@@ -17,5 +17,8 @@
     "productivity"
   ],
   "lockdown_safe": true,
-  "changelog": "First release: clipboard, snippet library, pipes with 'snippets copy'."
+  "changelog": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
+  "permissions": [
+    "files"
+  ]
 }

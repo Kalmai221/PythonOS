@@ -13,5 +13,8 @@
     "questions"
   ],
   "lockdown_safe": true,
-  "changelog": "First release: 45 built-in questions plus the Open Trivia Database."
+  "changelog": "First release: 45 built-in questions plus the Open Trivia Database.",
+  "permissions": [
+    "network"
+  ]
 }

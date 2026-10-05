@@ -13,5 +13,8 @@
     "writing"
   ],
   "lockdown_safe": true,
-  "changelog": "Search your notes and edit them with the built-in editor; fixed the menu showing without its letters."
+  "changelog": "Search your notes and edit them with the built-in editor; fixed the menu showing without its letters.",
+  "permissions": [
+    "files"
+  ]
 }

@@ -9,6 +9,7 @@ from rich.table import Table
 from rich.prompt import IntPrompt, Prompt, Confirm
 import shutil
 import glob
+import pyos
 from pyos import lockdown
 
 console = Console()
@@ -81,6 +82,10 @@ def execute_program_script(program_folder: Path, script_name: str, metadata: dic
         console.print(f"[bold red]Script file {script_filename} not found in {program_folder.name}[/bold red]")
         return False
 
+    # run it as a separate process under the package's permission guard (the same way the shell runs it)
+    if script_name in ("run", "launcher", "start") and sys.executable:
+        cmd, env = pyos.sandbox.launch(script_path, [], program_folder, metadata)
+        return subprocess.call(cmd, env=env) == 0
     mod = import_program_module(script_path)
     if mod is None:
         console.print(f"[bold red]Import error. Cannot execute {script_filename}.[/bold red]")

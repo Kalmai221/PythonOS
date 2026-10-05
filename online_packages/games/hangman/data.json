@@ -14,5 +14,6 @@
     "classic"
   ],
   "lockdown_safe": true,
-  "changelog": "Four word categories and a won/lost record; no more screen clearing between guesses."
+  "changelog": "Four word categories and a won/lost record; no more screen clearing between guesses.",
+  "permissions": []
 }

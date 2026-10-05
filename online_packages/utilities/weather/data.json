@@ -13,5 +13,8 @@
     "temperature"
   ],
   "lockdown_safe": true,
-  "changelog": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline."
+  "changelog": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
+  "permissions": [
+    "network"
+  ]
 }

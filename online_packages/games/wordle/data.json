@@ -15,5 +15,6 @@
   ],
   "lockdown_safe": true,
   "changelog": "First release: daily and random words, on-screen keyboard, streaks.",
-  "featured": true
+  "featured": true,
+  "permissions": []
 }

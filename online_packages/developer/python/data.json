@@ -14,5 +14,9 @@
     "coding"
   ],
   "changelog": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
-  "lockdown_safe": false
+  "lockdown_safe": false,
+  "permissions": [
+    "exec",
+    "files"
+  ]
 }

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Calendar: a month view, events and reminders. Reminders arrive as notifications when they come due."""
+import sys
 import calendar
 import datetime
 import re
@@ -226,4 +227,4 @@ def execute(args=None):
 
 
 if __name__ == "__main__":
-    execute()
+    execute(sys.argv[1:])

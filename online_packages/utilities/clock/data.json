@@ -20,5 +20,9 @@
   ],
   "lockdown_safe": true,
   "changelog": "First release: world clocks, timer with presets, stopwatch with laps, alarms that ring even when the app is closed.",
-  "featured": true
+  "featured": true,
+  "permissions": [
+    "notifications",
+    "schedule"
+  ]
 }

@@ -121,9 +121,14 @@ def main():
             break
 
 
-if __name__ == "__main__":
-    main()
 
 
 def execute():
-    main()
+    try:
+        main()
+    except (KeyboardInterrupt, EOFError):
+        print()
+
+
+if __name__ == "__main__":
+    execute()

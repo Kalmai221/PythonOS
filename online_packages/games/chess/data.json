@@ -14,5 +14,6 @@
     "strategy"
   ],
   "changelog": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
-  "lockdown_safe": true
+  "lockdown_safe": true,
+  "permissions": []
 }

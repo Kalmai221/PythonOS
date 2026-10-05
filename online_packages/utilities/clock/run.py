@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Clock: the time, world clocks, a timer, a stopwatch and alarms in one app (like the phone Clock app)."""
+import sys
 import datetime
 import re
 import threading
@@ -255,4 +256,4 @@ def execute(args=None):
 
 
 if __name__ == "__main__":
-    execute()
+    execute(sys.argv[1:])

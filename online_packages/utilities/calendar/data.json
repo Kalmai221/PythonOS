@@ -18,5 +18,9 @@
   ],
   "lockdown_safe": true,
   "changelog": "First release: month view, events, reminders, 'calendar today'.",
-  "featured": true
+  "featured": true,
+  "permissions": [
+    "notifications",
+    "schedule"
+  ]
 }

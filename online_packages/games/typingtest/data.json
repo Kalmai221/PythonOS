@@ -14,5 +14,6 @@
     "keyboard"
   ],
   "changelog": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
-  "lockdown_safe": true
+  "lockdown_safe": true,
+  "permissions": []
 }
