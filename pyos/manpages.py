@@ -53,11 +53,21 @@ page("touch", "create an empty file", ["touch <file>..."], "Creates the file if 
      examples=[("touch todo.txt", "start a new file")], see=["edit", "mkdir"])
 page("mkdir", "make a folder", ["mkdir [-p] <name>..."], "Creates folders.", [("-p", "no error if it already exists")],
      [("mkdir projects", "new folder")], ["rm", "cd"])
-page("rm", "remove files and folders", ["rm [-f] <path>..."],
-     "Deletes files. Folders (and everything inside) ask first, unless you use -f or turn off the confirm_delete setting. "
-     "There is no undo or recycle bin - make a backup first if unsure.",
-     [("-f", "do not ask, and ignore missing files")], [("rm old.txt", "delete a file"), ("rm -f temp", "delete a folder without asking")],
-     ["backup", "settings"])
+page("rm", "remove files and folders", ["rm [-f] [-P] <path>..."],
+     "Moves files and folders to the trash, so a slip can be fixed: undo brings the last one back and trash lists everything. "
+     "Folders (and everything inside) ask first, unless you use -f or turn off the confirm_delete setting. The trash empties itself "
+     "after 30 days (settings trash_days); turn it off with settings set use_trash false.",
+     [("-f", "do not ask, and ignore missing files"), ("-P", "delete for good, skipping the trash")],
+     [("rm old.txt", "remove a file (it goes to the trash)"), ("rm -f temp", "remove a folder without asking"), ("undo", "bring the last one back")],
+     ["trash", "undo", "backup", "settings"])
+page("trash", "the trash", ["trash [list [--all]]", "trash restore <number|name> [path]", "trash delete <number|name>", "trash empty [--all]"],
+     "Everything rm removed waits here. list shows it newest first; restore puts an item back where it was (or at a path you give) and "
+     "never overwrites; delete and empty remove for good. You see your own items; admins can add --all.",
+     examples=[("trash", "what is in the trash"), ("trash restore 2", "bring back item 2"), ("trash restore notes.txt ~/docs", "restore to another folder")],
+     see=["rm", "undo"])
+page("undo", "bring back the last removed thing", ["undo [N]"],
+     "Restores what rm removed most recently (or the last N things) to where it was. If something is already there it stops instead "
+     "of overwriting.", examples=[("rm notes.txt", "oops"), ("undo", "and it is back")], see=["rm", "trash"])
 page("cp", "copy a file or folder", ["cp <source> <destination>"], "Copies a file, or a whole folder.",
      examples=[("cp a.txt b.txt", "copy to a new name"), ("cp -r not needed", "folders are copied automatically")], see=["mv"])
 page("mv", "move or rename", ["mv <source> <destination>"], "Moves a file or folder, or renames it.",

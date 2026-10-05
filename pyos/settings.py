@@ -23,6 +23,8 @@ SCHEMA = {
     "idle_logout_minutes": (0, int, "Log out (back to the login screen) after this many idle minutes (0 = never)"),
     "auto_clear_lines": (0, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
+    "use_trash": (True, bool, "rm moves things to the trash (restore with undo or trash restore) instead of deleting them"),
+    "trash_days": (30, int, "Empty items from the trash after this many days (0 = keep until emptied)"),
 }
 
 
