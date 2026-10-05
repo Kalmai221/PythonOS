@@ -605,6 +605,12 @@ def start_shell(username):
             console.print("[dim]New here? Type [bold]tutorial[/bold] for a short guided tour, or [bold]man[/bold] for the manual.[/dim]")
             flags["hint_shown"] = True
             pyos.appdata.save("shell", flags, user=username)
+            if os.environ.get("PYOS_LIVE") == "1":                      # a first start from the live USB: offer the two-minute tour
+                try:
+                    from commands import quickstart
+                    quickstart.offer()
+                except Exception:
+                    pass
     except Exception:
         pass
 
@@ -616,8 +622,14 @@ def start_shell(username):
     except Exception:
         pass
 
-    threading.Thread(target=_market_check, args=(username,), name="market-check", daemon=True).start()
+    from core import liveboot
+    if not liveboot.light_mode():                   # light mode (little memory): skip the optional background work
+        threading.Thread(target=_market_check, args=(username,), name="market-check", daemon=True).start()
     threading.Thread(target=_startup_items, args=(username,), name="startup-items", daemon=True).start()
+    from pyos import power
+    power_watch = power.Watcher(username, lambda text, level="info": notify.notify(text, title="Battery", level=level, user=username),
+                                pyos.shutdown.shutdown)
+    power_watch.start()
 
     last_activity = time.time()
     idle = IdleWatch(username)
@@ -674,6 +686,7 @@ def start_shell(username):
 
     sched.stop()
     idle.stop()
+    power_watch.stop()
     pyos.log.log("logout (idle)" if idled_out else "logout", user=username)
     try:
         readline.write_history_file(HISTORY_FILE)

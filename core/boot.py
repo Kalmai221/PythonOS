@@ -331,6 +331,14 @@ def boot_steps(debug):
         set_current_directory_to_files(debug, sink)
         return "ok", ""
 
+    def memory_step(debug, sink):
+        from core import liveboot
+        state, text = liveboot.memory_state()
+        if state in ("low", "very-low"):
+            os.environ["PYOS_LIGHT"] = "1"               # the shell skips optional background work
+            return "warn", text
+        return "ok", text
+
     def session_step(debug, sink):
         from pyos import session
         import pyos
@@ -344,7 +352,7 @@ def boot_steps(debug):
         return "ok", tr("last shutdown was clean") if state == "clean" else tr("first start")
 
     return [("Reading the configuration", config_step), ("Checking system files", integrity_step),
-            ("Starting system services", services_step), ("Checking dependencies", _step_internet),
+            ("Starting system services", services_step), ("Checking memory", memory_step), ("Checking dependencies", _step_internet),
             ("Loading commands", commands_step), ("Loading programs", programs_step),
             ("Preparing the file system", files_step), ("Checking the last shutdown", session_step)]
 

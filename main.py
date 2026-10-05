@@ -80,14 +80,30 @@ try:
     else:
         debug = "No"
         console.print("[bold yellow]Debug Mode Setting is not defined. Defaulting to Disabled.[/bold yellow]")
+    diagnostics = False
     if os.environ.get("PYOS_LIVE") == "1":
+        from core import liveboot
+        console.print("[dim]Press D now for a diagnostic start (verbose boot and a hardware report)...[/dim]")
+        diagnostics = liveboot.key_pressed("d", 1.5)
+        if diagnostics:
+            debug = "Yes"
+            console.print("[bold cyan]Diagnostic start.[/bold cyan]")
         core.apply_saved_hardware()        # keyboard layout, time zone, audio and Wi-Fi from last time
+        liveboot.sync_clock_in_background(lambda text: pyos.log.log(text),
+                                          lambda text: __import__("pyos.notify", fromlist=["notify"]).notify(text, title="Clock"))
         try:
             from core import persist
             persist.record_boot()          # when the data disk was last used (persist status)
         except Exception:
             pass
     core.boot_sequence(debug)
+    if diagnostics:
+        try:
+            path = liveboot.save_diagnostics()
+            console.print(f"[bold cyan]Diagnostics saved:[/bold cyan] {pyos.fs.display(path, tilde=True)} "
+                          "[dim](after you log in: cat it, or send it with 'share')[/dim]")
+        except Exception as e:
+            console.print(f"[yellow]Could not save diagnostics: {e}[/yellow]")
     try:
         from core import whathappened
         whathappened.show(full=False)              # only says something after a power cut or a crash

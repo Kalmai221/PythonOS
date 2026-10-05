@@ -26,6 +26,9 @@ SCHEMA = {
     "auto_clear_lines": (300, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
     "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = reports are only a link or a file)"),
+    "light_mode": (False, bool, "Light mode: skip background checks and long animations (switched on by itself on computers with little memory)"),
+    "low_battery_percent": (15, int, "Warn when the battery falls to this percent and is not charging (0 = never)"),
+    "critical_battery_percent": (5, int, "Shut down cleanly when the battery falls to this percent and is not charging (0 = never)"),
     "admin_reauth": (True, bool, "Ask administrators for their password again before risky actions (delete account, change role, wipe)"),
     "use_trash": (True, bool, "rm moves things to the trash (restore with undo or trash restore) instead of deleting them"),
     "trash_days": (30, int, "Empty items from the trash after this many days (0 = keep until emptied)"),
@@ -188,6 +191,8 @@ def reset_for(key, user):
 
 def boot_pause():
     """Seconds to pause between boot steps for the chosen boot speed."""
+    if get("light_mode") or os.environ.get("PYOS_LIGHT") == "1":
+        return 0.0                                    # light mode: no animation delays
     return {"normal": 0.35, "fast": 0.1, "instant": 0.0}[get("boot_speed")]
 
 

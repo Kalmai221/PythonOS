@@ -243,6 +243,14 @@ page("shutdown", "turn off", ["shutdown"],
      see=["restart", "whathappened"])
 page("restart", "restart", ["restart"],
      "Runs the same orderly shutdown, then starts PythonOS again as a fresh program, so updated files are really loaded.", see=["shutdown"])
+page("diag", "hardware and boot report", ["diag [--show]"],
+     "Writes a report of this computer to a file in your home folder: machine, memory, devices and their drivers, disks, network, firmware "
+     "the kernel could not load, recent kernel messages, the battery and how the last boot went. On the live USB you can also press D "
+     "during the start for a verbose boot plus this report. Attach the file to a problem report (report) when asking for help.",
+     examples=[("diag", "save the report"), ("diag --show", "save it and print it")], see=["hwsetup", "report", "bootlog"])
+page("quickstart", "two-minute tour", ["quickstart"],
+     "A short tour of what PythonOS offers: finding commands, apps, themes, keeping your data, undo and switching off. The live USB offers it "
+     "on the first start. For hands-on lessons that check what you type, use tutorial.", see=["tutorial", "help"])
 page("report", "send a problem report", ["report [what went wrong]"],
      "Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email "
      "and IP addresses. You read the whole text first, then choose: a link that opens a filled-in GitHub issue, a file to attach yourself, "
