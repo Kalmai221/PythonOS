@@ -69,6 +69,19 @@ def sizes_of(folder):
     return {n: os.path.getsize(os.path.join(folder, n)) for n in os.listdir(folder) if os.path.isfile(os.path.join(folder, n))}
 
 
+REPO_URL = "https://github.com/Kalmai221/PythonOS"
+
+
+def release_tag(version):
+    """The tag the files are attached to: v1.2.0 (from the VERSION variable of the workflow when it is a tag, otherwise built from the version)."""
+    raw = os.environ.get("VERSION", "").strip()
+    return raw if raw.startswith("v") else "v" + version
+
+
+def download_link(tag, name):
+    return f"{REPO_URL}/releases/download/{tag}/{name}"
+
+
 def file_table(version, sizes, exports):
     """Markdown table(s): one row per file, grouped, with size and purpose. Files that are not known are listed under 'Other'."""
     known = {}
@@ -76,6 +89,7 @@ def file_table(version, sizes, exports):
         known[pattern.replace("{v}", version)] = (key, group, title, use.replace("{v}", version))
     rows, seen = {}, set()
     order = []
+    tag = release_tag(version)
     for name, (key, group, title, use) in known.items():
         if sizes and name not in sizes:
             continue                       # not part of this release (for example a platform that was not built)
@@ -94,10 +108,10 @@ def file_table(version, sizes, exports):
     for group in order:
         out += [f"### {group}", "", "| File | What it is | Size | Use it for |", "|---|---|---|---|"]
         for name, title, size, use in rows[group]:
-            out.append(f"| `{name}` | {title} | {size or '-'} | {use} |")
+            out.append(f"| [`{name}`]({download_link(tag, name)}) | {title} | {size or '-'} | {use} |")
         out.append("")
     if other:
-        out += ["### Other", "", "| File | Size |", "|---|---|"] + [f"| `{n}` | {human(sizes[n])} |" for n in other] + [""]
+        out += ["### Other", "", "| File | Size |", "|---|---|"] + [f"| [`{n}`]({download_link(tag, n)}) | {human(sizes[n])} |" for n in other] + [""]
     return out
 
 
