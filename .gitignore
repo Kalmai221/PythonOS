@@ -185,3 +185,6 @@ OS_Export/Android/app/build/
 OS_Export/Android/local.properties
 *.apk
 *.iso
+
+# the File Manager marketplace package is a folder called files, which the rule above would hide
+!online_packages/utilities/files/
