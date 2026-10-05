@@ -18,7 +18,12 @@ config = {
 def restart_system():
     """Run the shutdown screen (without powering off), then start PythonOS again."""
     import core
-    core.simulate_shutdown(restart=True)
+    try:
+        core.simulate_shutdown(restart=True)
+    except TypeError:
+        # Just updated: the core already loaded in memory is the previous version, whose shutdown screen takes no
+        # arguments. Skip the animation and relaunch with the new files.
+        console.print("[bold yellow]Restarting...[/bold yellow]")
     sys.exit(subprocess.call([sys.executable, "main.py"]))
 
 

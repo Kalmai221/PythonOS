@@ -82,3 +82,55 @@ Type: filesandordirs; Name: "{app}\commands"
 Type: filesandordirs; Name: "{app}\core"
 Type: filesandordirs; Name: "{app}\programs"
 Type: filesandordirs; Name: "{app}\pyos"
+
+[Code]
+// ---------------------------------------------------------------- already installed?
+const
+  UninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{6B0B3A63-5B6E-4C3E-9C47-7C1D2F6A9E11}_is1';
+
+function InstalledVersion(): String;
+begin
+  Result := '';
+  if not RegQueryStringValue(HKCU, UninstallKey, 'DisplayVersion', Result) then
+    if not RegQueryStringValue(HKLM, UninstallKey, 'DisplayVersion', Result) then
+      Result := '';
+end;
+
+function InitializeSetup(): Boolean;
+var
+  Existing: String;
+  Question: String;
+begin
+  Result := True;
+  Existing := InstalledVersion();
+  if (Existing = '') or WizardSilent() then
+    Exit;
+  if Existing = '{#AppVersion}' then
+    Question := 'PythonOS ' + Existing + ' is already installed on this computer.' + #13#10#13#10 +
+                'Install it again over the top? Your accounts, files and settings are kept.'
+  else
+    Question := 'PythonOS ' + Existing + ' is already installed on this computer.' + #13#10#13#10 +
+                'Update it to version {#AppVersion}? Your accounts, files and settings are kept.';
+  Result := MsgBox(Question, mbConfirmation, MB_YESNO) = IDYES;
+end;
+
+// ------------------------------------------------------------ uninstalling
+var
+  DeleteUserData: Boolean;
+
+function InitializeUninstall(): Boolean;
+begin
+  Result := True;
+  DeleteUserData := False;                       // a silent uninstall always keeps the data
+  if not UninstallSilent() then
+    DeleteUserData := MsgBox('PythonOS is about to be removed.' + #13#10#13#10 +
+      'Do you also want to delete your PythonOS data (accounts, files, settings and installed apps)?' + #13#10#13#10 +
+      'Choose No to keep it: it stays in the PythonOS folder and is used again if you reinstall.',
+      mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if (CurUninstallStep = usPostUninstall) and DeleteUserData then
+    DelTree(ExpandConstant('{app}'), True, True, True);
+end;

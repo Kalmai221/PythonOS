@@ -77,11 +77,32 @@ def _computer_name():
             console.print("[yellow]Could not save the name; it stays " + escape(current) + ".[/yellow]")
 
 
+def _theme_sample(name):
+    """A little screen drawn in the theme's own colours, so it can be judged before it is chosen."""
+    roles = theme.THEMES[name]
+    lines = [f"[{roles['title']}]{name}[/{roles['title']}]  [{roles['dim']}]a sample of this theme[/{roles['dim']}]",
+             f"[{roles['prompt_user']}]you@pyOS[/{roles['prompt_user']}]:[{roles['prompt_path']}]~[/{roles['prompt_path']}]$ ls",
+             f"[{roles['success']}]Backup finished[/{roles['success']}]   [{roles['warning']}]Disk almost full[/{roles['warning']}]   "
+             f"[{roles['error']}]Something went wrong[/{roles['error']}]",
+             f"[{roles['accent']}]accent colour[/{roles['accent']}]"]
+    console.print(Panel(chr(10).join(lines), border_style=roles["border"], expand=False))
+
+
 def _look_and_feel():
     names = list(theme.THEMES)
-    console.print("Colour themes: " + ", ".join(f"[{theme.THEMES[n]['accent']}]{n}[/{theme.THEMES[n]['accent']}]" for n in names))
-    choice = Prompt.ask("Theme", choices=names, default=settings.get("theme"))
-    settings.set("theme", choice)
+    original = settings.get("theme")
+    console.print("[bold]Pick a colour theme.[/bold] Type a name to try it on a sample; you decide afterwards.")
+    for n in names:
+        _theme_sample(n)
+    chosen = original
+    while True:
+        pick = Prompt.ask("Theme to try", choices=names, default=chosen)
+        settings.set("theme", pick)             # applied right now, so everything after this is drawn in it
+        _theme_sample(pick)
+        if Confirm.ask(f"Keep the {pick} theme?", default=True):
+            chosen = pick
+            break
+        chosen = pick
     speed = Prompt.ask("Boot speed (how long the start-up animation takes)", choices=["normal", "fast", "instant"],
                        default=settings.get("boot_speed"))
     settings.set("boot_speed", speed)
