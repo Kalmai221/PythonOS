@@ -32,16 +32,23 @@ page("tail", "show the end of a file", ["tail [-n N] [file]"], "Prints the last 
      [("-n N", "how many lines")], [("tail -n 20 /var/log/system.log", "recent log entries")], ["head", "logs"])
 page("wc", "count lines, words and characters", ["wc [file]"], "Prints three numbers: lines, words, characters.",
      examples=[("wc notes.txt", "size of a file"), ("ls | wc", "how many names ls printed")])
-page("grep", "search for text", ["grep [-i] <pattern> [file...]"],
+page("grep", "search for text", ["grep [-inrvwclF] [-A n] [-B n] [-C n] <pattern> [file or folder...]"],
      "Prints the lines that match a pattern (a regular expression). It succeeds only if something matched, so it works "
-     "with && and ||.",
-     [("-i", "ignore upper/lower case")],
-     [("grep todo notes.txt", "lines with todo"), ("cat log.txt | grep -i error", "search piped text"), ("grep x file && echo found", "act on the result")],
-     ["find", "shell"])
-page("find", "find files by name", ["find <pattern> [folder]"],
-     "Searches a folder and everything inside it for names that match. A plain word matches any name containing it; * and ? "
-     "are wildcards. Upper/lower case does not matter. It only shows what you are allowed to see.",
-     examples=[("find *.txt", "every .txt file from here down"), ("find report ~/docs", "names containing report")], see=["ls", "grep", "tree"])
+     "with && and ||. With a folder and -r it searches every text file inside (hidden files and huge or binary files are skipped).",
+     [("-i", "ignore upper/lower case"), ("-n", "show line numbers"), ("-r", "search folders"), ("-v", "lines that do NOT match"),
+      ("-w", "whole words only"), ("-c", "only count matches"), ("-l", "only list file names"), ("-F", "plain text, not a pattern"),
+      ("-A/-B/-C n", "show n lines after / before / around each match")],
+     [("grep todo notes.txt", "lines with todo"), ("grep -rn error /var/log", "search a whole folder"), ("cat log.txt | grep -i error", "search piped text"),
+      ("grep -C 2 crash log.txt", "matches with context"), ("grep x file && echo found", "act on the result")],
+     ["find", "diff", "shell"])
+page("find", "find files", ["find [folder] [pattern] [-name p] [-iname p] [-type f|d] [-size +10k] [-mtime -7] [-maxdepth N] [-l]"],
+     "Searches a folder and everything inside it. A plain word matches any name containing it; * and ? are wildcards. "
+     "Tests can be combined: all of them must match. It only shows what you are allowed to see.",
+     [("-type f|d", "files or folders only"), ("-size +10k", "bigger than 10 KB (use - for smaller; k, M, G)"),
+      ("-mtime -7", "changed in the last 7 days (+30 = older than 30 days)"), ("-maxdepth N", "do not go deeper than N levels"),
+      ("-l", "show size and date")],
+     [("find *.txt", "every .txt file from here down"), ("find ~ -type f -size +1M", "big files in your home"),
+      ("find /var/log -mtime -1", "logs changed today")], ["ls", "grep", "tree"])
 page("touch", "create an empty file", ["touch <file>..."], "Creates the file if it does not exist, otherwise updates its time.",
      examples=[("touch todo.txt", "start a new file")], see=["edit", "mkdir"])
 page("mkdir", "make a folder", ["mkdir [-p] <name>..."], "Creates folders.", [("-p", "no error if it already exists")],
@@ -55,7 +62,15 @@ page("cp", "copy a file or folder", ["cp <source> <destination>"], "Copies a fil
      examples=[("cp a.txt b.txt", "copy to a new name"), ("cp -r not needed", "folders are copied automatically")], see=["mv"])
 page("mv", "move or rename", ["mv <source> <destination>"], "Moves a file or folder, or renames it.",
      examples=[("mv draft.txt final.txt", "rename"), ("mv a.txt docs", "move into docs")], see=["cp"])
-page("tree", "show folders as a tree", ["tree [path]"], "Draws the folder and everything inside it (hidden files left out).", see=["ls"])
+page("tree", "show folders as a tree", ["tree [-a] [-d] [-s] [-L depth] [path]"],
+     "Draws the folder and everything inside it, folders first, with a count at the end.",
+     [("-a", "include hidden files"), ("-d", "folders only"), ("-s", "show file sizes"), ("-L n", "only n levels deep")],
+     [("tree -L 2 ~", "two levels of your home")], ["ls", "find"])
+page("diff", "compare two files", ["diff [-u] [-q] <file1> <file2>"],
+     "Shows what changed between two text files: < is a line only in the first, > only in the second. It succeeds only when the files "
+     "are identical, so it works with && and ||.",
+     [("-u", "unified format with context"), ("-q", "only say whether they differ")],
+     [("diff old.txt new.txt", "what changed"), ("diff -q a b && echo same", "act on the result")], ["grep", "cat"])
 page("edit", "edit a text file", ["edit <file>"],
      "PythonOS's own editor. On a real terminal it opens full screen: type to edit, Ctrl+S saves, Ctrl+Q quits (twice if "
      "there are unsaved changes). On the Android app and in pipes it is a line editor: a adds lines (a single . finishes), "
