@@ -197,6 +197,11 @@ def delete_user():
         console.print("[bold red]You cannot delete the account you are logged in with.[/bold red]")
         return
 
+    from pyos import audit
+    if not audit.elevate(f"delete the account '{username}'"):
+        console.print("[bold red]Not deleted.[/bold red]")
+        return
+
     del users[username]
     save_users(users)
     pyos.log.log(f"account deleted by {current_user}", "WARN", user=username)
@@ -283,6 +288,11 @@ def change_role():
         if admin_count <= 1:
             console.print("[bold red]There must be at least one admin in the system.[/bold red]")
             return False
+
+    from pyos import audit
+    if not audit.elevate(f"change the role of '{username}' from {current_role} to {new_role}"):
+        console.print("[bold red]Role not changed.[/bold red]")
+        return False
 
     # Change the role
     users[username]['role'] = new_role

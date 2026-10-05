@@ -23,5 +23,9 @@ def execute():
     if typed.strip() != "WIPE":
         console.print("[bold green]Wipe cancelled. Nothing was changed.[/bold green]")
         return False
+    from pyos import audit
+    if not audit.elevate("erase the whole system (wipe)"):
+        console.print("[bold green]Wipe cancelled. Nothing was changed.[/bold green]")
+        return False
     core.simulate_shutdown_wipe()
     return True

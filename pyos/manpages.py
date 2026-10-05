@@ -159,11 +159,11 @@ page("sysinfo", "information about this system", ["sysinfo"], "A table of the op
 page("taskman", "task manager", ["taskman"], "Lists running processes and lets you sort them. Process killing and the machine's other "
      "processes are not available on a locked-down system.", see=["lockdown"])
 page("logs", "system log", ["logs [N]", "logs --user U --level L --since T --until T --grep W", "logs --summary", "logs --crashes",
-                            "logs --export FILE [--csv]"],
+                            "logs --admin", "logs --export FILE [--csv]"],
      "Shows the last N lines (20 by default) of the system log: boots, logins, account changes, crashes. Filter by user, by "
      "level (info, warn or error: warn shows warnings and errors), by time (today, yesterday, 2h, 3d, 2026-10-05) or by a word; "
      "--summary counts lines per level and user and shows recent failed logins; --export saves the matching lines to a file "
-     "(--csv for a spreadsheet). Administrators see everything, other users their own lines and system lines.",
+     "(--csv for a spreadsheet); --admin shows only what administrators did (account, password, role, setting, update and app changes). Before the riskiest ones - deleting an account, changing a role or someone's password, switching user, wiping - an administrator is asked for their password again (turn off with settings set admin_reauth false). Administrators see everything, other users their own lines and system lines.",
      [("--user U", "only this user"), ("--level L", "info, warn or error (and worse)"), ("--since T / --until T", "a time range"),
       ("--grep W", "lines containing W"), ("--summary", "counts and failed logins"), ("--crashes", "saved crash reports (admin)"),
       ("--export FILE", "write the result to a file")],

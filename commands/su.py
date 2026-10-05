@@ -36,6 +36,10 @@ def execute(args=None):
             console.print(f"[bold red]su: {escape(message)}[/bold red]")
             return False
 
+    if role == "admin":
+        from pyos import audit
+        if not audit.elevate(f"work as '{target}'"):
+            return False
     import shell
     previous_dir = fs.current_dir()
     pyos.log.log(f"su to {target}", "WARN", user=me)

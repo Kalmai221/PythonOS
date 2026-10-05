@@ -14,4 +14,6 @@ def execute(args=None):
     if sysupdate.packaged_version() is None:
         console.print("[yellow]This is a source checkout; use git to go back to an earlier version.[/yellow]")
         return False
+    from pyos import audit
+    audit.record("rollback of the system update", level="WARN")
     return sysupdate.rollback()

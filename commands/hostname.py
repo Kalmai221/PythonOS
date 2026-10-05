@@ -20,4 +20,7 @@ def execute(args=None):
     with open(fs.resolve("/etc/hostname", write=True), "w") as f:
         f.write(args[0] + "\n")
     pyos.log.log(f"hostname changed to {args[0]}", user=pyos.userinfo()[0])
+    if pyos.userinfo()[1] == "admin":
+        from pyos import audit
+        audit.record("changed the host name", f"to {args[0]}")
     return True

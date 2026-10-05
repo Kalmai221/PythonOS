@@ -38,6 +38,8 @@ def execute(args=None):
                 try:
                     console.print(f"[green]{f.area}: {escape(f.fix())}[/green]")
                     pyos.log.log(f"doctor fixed: {f.area}", user=pyos.userinfo()[0])
+                    from pyos import audit
+                    audit.record("doctor repaired", f.area)
                 except Exception as e:
                     console.print(f"[red]{f.area}: could not fix ({escape(str(e))})[/red]")
     except (EOFError, KeyboardInterrupt):

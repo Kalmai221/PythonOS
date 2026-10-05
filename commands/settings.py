@@ -119,6 +119,9 @@ def execute(args=None):
         if len(rest) != 2:
             console.print("[bold red]Usage:[/bold red] settings set <name> <value> [--user <name>]")
             return False
+        if pyos.userinfo()[1] == "admin":
+            from pyos import audit
+            audit.record("changed a setting", f"{rest[0]}={rest[1]}" + (f" for {who}" if who else ""))
         if who:
             try:
                 settings.set_for(rest[0], settings.parse_value(rest[0], rest[1]), who)

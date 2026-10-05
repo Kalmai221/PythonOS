@@ -11,4 +11,6 @@ config = {
 console = Console()
 
 def execute():
+    from pyos import audit
+    audit.record("checked for and applied a system update")
     core.update_system()

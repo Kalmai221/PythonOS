@@ -11,7 +11,7 @@ import pyos.fs as fs
 from pyos import log
 
 console = Console()
-config = {"name": "logs", "description": "Show and search the system log: logs [N] [--user U] [--level L] [--since T] [--grep W] [--export FILE]",
+config = {"name": "logs", "description": "Show and search the system log: logs [N] [--user U] [--level L] [--since T] [--grep W] [--admin] [--export FILE]",
           "alias": ["dmesg"]}
 
 HELP = """[bold]logs[/bold] - the system log (logins, account changes, crashes, updates)
@@ -23,6 +23,7 @@ HELP = """[bold]logs[/bold] - the system log (logins, account changes, crashes, 
   logs --since yesterday        from a time on: today, yesterday, 2h, 3d, 2026-10-05, '2026-10-05 14:30'
   logs --until 2026-10-06       up to a time
   logs --grep login             lines containing a word
+  logs --admin                  what administrators did (accounts, passwords, settings, updates, apps)
   logs --summary                counts by level and by user, and the last failed logins
   logs --crashes                list saved crash reports (open one with cat)
   logs --export ~/log.txt       write the matching lines to a file (add --csv for a spreadsheet file)
@@ -105,6 +106,8 @@ def execute(args=None):
         console.print(f"[bold red]logs: {escape(str(e))}[/bold red]")
         return False
     csv = "--csv" in args
+    admin_only = "--admin" in args
+    args = [a for a in args if a != "--admin"]
     summary = "--summary" in args
     crashes = "--crashes" in args
     args = [a for a in args if a not in ("--csv", "--summary", "--crashes")]
@@ -122,10 +125,12 @@ def execute(args=None):
         return True
     items = log.query(log.entries(), user=who, level=level, since=since, until=until, text=grep,
                       only_user=None if role == "admin" else me)
+    if admin_only:
+        items = [e for e in items if e["message"].startswith("admin: ")]
     if summary:
         _summary(items)
         return True
-    filtered = any([who, level, since, until, grep, export])
+    filtered = any([who, level, since, until, grep, export, admin_only])
     shown = items[-(count or (100000 if export else (200 if filtered else 20))):]
     if export:
         try:

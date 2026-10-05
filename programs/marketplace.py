@@ -500,10 +500,18 @@ def show_install_plan(order, installed):
                   "and can be changed any time with: pkg permissions <name>[/dim]")
 
 
+def _is_admin():
+    from pyos import userinfo
+    return userinfo()[1] == "admin"
+
+
 def install_with_dependencies(pkg, installed, packages, quiet=False, reason=None):
     """Install pkg after anything it requires that is not installed yet. Not quiet: shows the size and what each package may
     do, and asks first. Quiet (updates, starter apps): installs without asking, keeping what was allowed before."""
     order, missing = install_plan(pkg, packages, installed)
+    if not quiet and _is_admin():
+        from pyos import audit
+        audit.record("installed an app", pkg["name"])
     if missing:
         console.print(f"[bold red]{escape(pkg['name'])} needs {', '.join(escape(m) for m in missing)}, "
                       "which the marketplace does not have.[/bold red]")
@@ -685,6 +693,9 @@ def permissions_command(pkg, installed, args):
 
 def remove_package(pid, info, quiet=False, packages=None, installed=None):
     folder, meta = info["path"], info.get("meta", {})
+    if not quiet and _is_admin():
+        from pyos import audit
+        audit.record("removed an app", info.get("name", pid))
     users = dependents(pid, installed, packages) if packages and installed else []
     if users:
         console.print(f"[yellow]{escape(', '.join(users))} needs {escape(info['name'])} and may stop working without it.[/yellow]")

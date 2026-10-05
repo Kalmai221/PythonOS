@@ -23,6 +23,10 @@ def execute(args=None):
         console.print("[bold red]passwd: only admins can change someone else's password.[/bold red]")
         return False
 
+    if target != me:
+        from pyos import audit
+        if not audit.elevate(f"change the password of '{target}'"):
+            return False
     try:
         if target == me:
             ok, message = users.authenticate(me, getpass.getpass("Current password: "))
