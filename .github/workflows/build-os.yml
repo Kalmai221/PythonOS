@@ -193,12 +193,12 @@ jobs:
       - name: Name the APKs
         run: |
           mkdir -p dist/android
-          OUT=OS_Export/Android/app/build/outputs/apk/release
-          ls -la "$OUT"
+          OUT=OS_Export/Android/app/build/outputs/apk
+          find "$OUT" -name "*.apk" -print
           V="${VERSION#v}"
-          cp "$OUT"/*universal*.apk "dist/android/PythonOS-$V-android.apk"
-          cp "$OUT"/*arm64-v8a*.apk "dist/android/PythonOS-$V-android-arm64-v8a.apk"
-          cp "$OUT"/*x86_64*.apk "dist/android/PythonOS-$V-android-x86_64.apk"
+          cp "$(find "$OUT" -name "*universal*release*.apk" | head -n1)" "dist/android/PythonOS-$V-android.apk"
+          cp "$(find "$OUT" -name "*arm64*release*.apk" | head -n1)" "dist/android/PythonOS-$V-android-arm64-v8a.apk"
+          cp "$(find "$OUT" -name "*x64*release*.apk" | head -n1)" "dist/android/PythonOS-$V-android-x86_64.apk"
           ls -la dist/android
       - uses: actions/upload-artifact@v7
         with:

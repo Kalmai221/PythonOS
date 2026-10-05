@@ -18,13 +18,21 @@ android {
     }
 
     // One APK per processor type plus a universal one. Chaquopy's native libraries make a single APK large; a phone only needs
-    // the arm64-v8a one (about half the size). The universal APK works anywhere. (abiFilters must not be set together with splits.)
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "x86_64")
-            isUniversalApk = true
+    // the arm64-v8a one (about half the size). The universal APK works anywhere. Chaquopy requires ndk.abiFilters in every variant,
+    // so this is done with product flavors (Android's ABI "splits" are not supported together with it).
+    flavorDimensions += "abi"
+    productFlavors {
+        create("universal") {
+            dimension = "abi"
+            ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        }
+        create("arm64") {
+            dimension = "abi"
+            ndk { abiFilters += listOf("arm64-v8a") }
+        }
+        create("x64") {
+            dimension = "abi"
+            ndk { abiFilters += listOf("x86_64") }
         }
     }
 
