@@ -8,6 +8,7 @@ from rich.prompt import Confirm
 import pyos
 import pyos.fs as fs
 from pyos import settings, trash
+from pyos.i18n import tr
 from pyos.log import log
 
 console = Console()
@@ -60,5 +61,5 @@ def execute(args=None):
             console.print(f"[bold red]rm: {escape(name)}: {escape(fs.errtext(e))}[/bold red]")
             ok = False
     if moved:
-        console.print(f"[dim]{moved} item(s) moved to the trash - 'undo' brings the last one back, 'trash' lists them.[/dim]")
+        console.print("[dim]" + escape(tr("{n} item(s) moved to the trash - 'undo' brings the last one back, 'trash' lists them.", n=moved)) + "[/dim]")
     return ok

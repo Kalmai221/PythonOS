@@ -8,6 +8,7 @@ from rich.panel import Panel
 
 import pyos
 from pyos import log, session
+from pyos.i18n import tr
 
 console = Console()
 
@@ -39,9 +40,9 @@ def describe(previous=None):
     started = previous.get("started")
     when = time.strftime("%Y-%m-%d %H:%M", time.localtime(started)) if started else "an unknown time"
     if state == "unexpected":
-        headline = f"PythonOS was not shut down properly last time (it started at {when})."
-        details = ["The power may have been cut, the window closed, or the program ended without warning.",
-                   "Your files are safe: everything is written as you go."]
+        headline = tr("PythonOS was not shut down properly last time (it started at {when}).", when=when)
+        details = [tr("The power may have been cut, the window closed, or the program ended without warning."),
+                   tr("Your files are safe: everything is written as you go.")]
     elif state == "crashed":
         headline = f"PythonOS stopped with an error last time ({previous.get('code') or 'unknown error'})."
         details = ["The blue screen restarted it. The full trace was saved as a crash report."]
@@ -61,7 +62,7 @@ def describe(previous=None):
 def show(previous=None, full=True):
     headline, details = describe(previous)
     if headline is None:
-        console.print("[green]The last session ended normally.[/green]" if full else "")
+        console.print("[green]" + tr("The last session ended normally.") + "[/green]" if full else "")
         return False
     body = escape(headline) + "\n\n" + "\n".join(escape(d) for d in (details if full else details[:2]))
     console.print(Panel(body, title="[bold yellow]What happened[/bold yellow]", border_style="yellow", expand=False))

@@ -17,6 +17,7 @@ import psutil
 import socket
 import importlib.metadata
 from pyos import settings
+from pyos.i18n import tr
 
 # Initialize the console for rich output
 console = Console()
@@ -255,7 +256,7 @@ def display_home_screen():
         Text(""),
         Align.center(info),
         Text(""),
-        Align.center(Text("Type 'help' once logged in to see what you can do.", style="dim italic")),
+        Align.center(Text(tr("Type 'help' once logged in to see what you can do."), style="dim italic")),
     )
     console.print(Panel(body, title="[bold green]Welcome[/bold green]", border_style="blue", padding=(1, 4)))
 
@@ -290,7 +291,7 @@ def _step_internet(debug, sink):
         return "ok", "dependencies ship with this build"
     missing = check_packages_installed(packages) if packages else []
     if not missing:
-        return "ok", f"{len(packages)} packages present"           # nothing to install: no network needed, no upgrade on every boot
+        return "ok", tr("{n} packages present", n=len(packages))           # nothing to install: no network needed, no upgrade on every boot
     if check_internet_connection():
         try:
             install_requirements(debug, sink)
@@ -319,12 +320,12 @@ def boot_steps(debug):
     def commands_step(debug, sink):
         load_commands(debug, sink)
         n = len([f for f in os.listdir(COMMANDS_DIR) if f.endswith(".py")]) if os.path.isdir(COMMANDS_DIR) else 0
-        return "ok", f"{n} commands"
+        return "ok", tr("{n} commands", n=n)
 
     def programs_step(debug, sink):
         load_programs(debug, sink)
         n = len([f for f in os.listdir(PROGRAMS_DIR) if f.endswith(".py")]) if os.path.isdir(PROGRAMS_DIR) else 0
-        return "ok", f"{n} programs"
+        return "ok", tr("{n} programs", n=n)
 
     def files_step(debug, sink):
         set_current_directory_to_files(debug, sink)
@@ -337,10 +338,10 @@ def boot_steps(debug):
         state = before.get("state")
         if state == "unexpected":
             pyos.log.log("Unexpected shutdown detected: the previous session did not end properly", "WARN")
-            return "warn", "last session ended unexpectedly (type whathappened)"
+            return "warn", tr("last session ended unexpectedly (type whathappened)")
         if state == "crashed":
             return "warn", f"last session stopped with {before.get('code') or 'an error'} (type whathappened)"
-        return "ok", "last shutdown was clean" if state == "clean" else "first start"
+        return "ok", tr("last shutdown was clean") if state == "clean" else tr("first start")
 
     return [("Reading the configuration", config_step), ("Checking system files", integrity_step),
             ("Starting system services", services_step), ("Checking dependencies", _step_internet),
@@ -370,7 +371,7 @@ def boot_sequence(debug):
         ms = (time.perf_counter() - t0) * 1000
         record.append({"name": label, "ms": round(ms, 1), "status": status, "detail": detail})
         extra = f" [dim]{detail}[/dim]" if detail else ""
-        console.print(f"{MARKS[status]} {_progress_bar(number, len(steps))} {number * 100 // len(steps):>3}%  {label}{extra} [dim]{ms:.0f} ms[/dim]")
+        console.print(f"{MARKS[status]} {_progress_bar(number, len(steps))} {number * 100 // len(steps):>3}%  {tr(label)}{extra} [dim]{ms:.0f} ms[/dim]")
         if status == "fail" and label == "Checking dependencies":
             console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
             sys.exit(1)
@@ -378,7 +379,7 @@ def boot_sequence(debug):
     total_ms = (time.perf_counter() - started) * 1000
     bootlog.save_boot(record, total_ms, pause * len(steps) * 1000)
 
-    console.print("[bold green]System ready![/bold green]")
+    console.print("[bold green]" + tr("System ready!") + "[/bold green]")
     time.sleep(min(0.8, pause * 2.3))
     os.system("cls" if os.name == "nt" else "clear")
     display_home_screen()

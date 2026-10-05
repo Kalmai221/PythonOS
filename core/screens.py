@@ -18,6 +18,7 @@ from yaspin import yaspin
 
 import pyos
 from pyos import jobs, log, settings, theme
+from pyos.i18n import tr
 
 console = Console()
 
@@ -42,7 +43,7 @@ def _ok(label, detail="", number=0, total=0, ms=None):
     suffix = f" [dim]{detail}[/dim]" if detail else ""
     timing = f" [dim]{ms:.0f} ms[/dim]" if ms is not None else ""
     bar = f"{_bar(number, total)} {number * 100 // max(1, total):>3}%  " if total else ""
-    console.print(f"{theme.tag('success', '[  OK  ]')} {bar}{label}{suffix}{timing}")
+    console.print(f"{theme.tag('success', '[  OK  ]')} {bar}{tr(label)}{suffix}{timing}")
 
 
 def _step(label, action=None, seconds=0.6, number=0, total=0):
@@ -51,7 +52,7 @@ def _step(label, action=None, seconds=0.6, number=0, total=0):
     detail = ""
     t0 = time.perf_counter()
     if settings.boot_pause() > 0 and sys.stdout.isatty():
-        with yaspin(text=label + "...", spinner="dots") as spinner:
+        with yaspin(text=tr(label) + "...", spinner="dots") as spinner:
             detail = action() if action else ""
             pause(seconds)
     else:
@@ -136,7 +137,7 @@ def shutdown_sequence(kind="shutdown"):
     log.log("System restarting" if restarting else "System factory reset" if wiping else "System shutting down", "WARN" if wiping else "INFO")
     _clear()
     title = "Restarting" if restarting else "Resetting to factory settings" if wiping else "Shutting down"
-    console.print(Panel(f"[bold]{title}[/bold]", border_style=theme.style("border"), expand=False))
+    console.print(Panel(f"[bold]{tr(title)}[/bold]", border_style=theme.style("border"), expand=False))
 
     steps = [("Stopping background jobs", _stop_jobs, 0.5), ("Signing out", _close_sessions, 0.4),
              ("Writing the system log", _record_closing, 0.2)]
@@ -149,18 +150,18 @@ def shutdown_sequence(kind="shutdown"):
         _step(label, action, seconds, number, len(steps))
 
     if restarting:
-        console.print(f"\n{theme.tag('warning', 'Restarting now...')}")
+        console.print(f"\n{theme.tag('warning', tr('Restarting now...'))}")
         pause(0.8)
         return
     countdown = max(0, round(3 * settings.boot_pause() / 0.35))
     if countdown and sys.stdout.isatty():
-        with yaspin(text="Powering off", spinner="dots") as spinner:
+        with yaspin(text=tr("Powering off in {n}...", n=countdown), spinner="dots") as spinner:
             for remaining in range(countdown, 0, -1):
-                spinner.text = f"Powering off in {remaining}..."
+                spinner.text = tr("Powering off in {n}...", n=remaining)
                 time.sleep(1)
-    console.print(f"\n{theme.tag('error', 'Shutdown complete.')}")
+    console.print(f"\n{theme.tag('error', tr('Shutdown complete.'))}")
     if wiping:
-        console.print(f"\n{theme.tag('warning', 'Power on the device for first-time setup.')}")
+        console.print(f"\n{theme.tag('warning', tr('Power on the device for first-time setup.'))}")
     sys.exit(0)
 
 
@@ -215,15 +216,15 @@ def _bsod(code, summary, short, report, footer, looping=False):
     """The whole screen: blue, with the short story at the top and the footer (countdown) at the bottom."""
     body = Text(style="white on blue")
     body.append(":(\n\n", style="bold white on blue")
-    body.append("PythonOS ran into a problem and has stopped.\n\n", style="bold white on blue")
-    body.append("What happened\n", style="bold white on blue")
+    body.append(tr("PythonOS ran into a problem and has stopped.") + "\n\n", style="bold white on blue")
+    body.append(tr("What happened") + "\n", style="bold white on blue")
     body.append(f"  {summary}\n\n", style="white on blue")
-    body.append("Stop code\n", style="bold white on blue")
+    body.append(tr("Stop code") + "\n", style="bold white on blue")
     body.append(f"  {code}  ({short})\n\n", style="white on blue")
     if report:
-        body.append("Details\n", style="bold white on blue")
+        body.append(tr("Details") + "\n", style="bold white on blue")
         body.append(f"  Saved to {report}. Open it with: cat {report}\n\n", style="white on blue")
-    body.append("Your files and accounts were not touched.\n\n", style="white on blue")
+    body.append(tr("Your files and accounts were not touched.") + "\n\n", style="white on blue")
     body.append(footer, style="bold black on white" if looping else "bold white on blue")
     height = max(12, console.height - 1)
     return Panel(body, style="white on blue", border_style="white", box=box.DOUBLE, height=height, padding=(1, 3),
@@ -268,12 +269,12 @@ def crash_screen(error_message):
         sys.exit(1)
 
     wait = max(1, round(5 * settings.boot_pause() / 0.35)) if settings.boot_pause() > 0 else 1
-    with Live(_bsod(code, summary, short, report, f"Restarting in {wait}...  [{'-' * wait}]"), console=console,
+    with Live(_bsod(code, summary, short, report, tr("Restarting in {n}...", n=wait) + f"  [{'-' * wait}]"), console=console,
               refresh_per_second=4, transient=False) as live:
         for remaining in range(wait, 0, -1):
             done = wait - remaining
             live.update(_bsod(code, summary, short, report,
-                              f"Restarting in {remaining}...  [{'#' * done}{'-' * remaining}]"))
+                              tr("Restarting in {n}...", n=remaining) + f"  [{'#' * done}{'-' * remaining}]"))
             time.sleep(1)
     _clear()
     relaunch()

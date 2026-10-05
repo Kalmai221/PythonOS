@@ -12,6 +12,7 @@ _cache = {"mtime": None, "data": None}
 
 # key -> (default, allowed values or type, description)
 SCHEMA = {
+    "language": ("auto", ("auto", "en", "es", "fr", "de"), "Language of the system's own messages (auto = follow the computer; commands stay in English)"),
     "theme": ("default", ("default", "ocean", "forest", "sunset", "mono", "contrast"), "Colour theme"),
     "prompt_style": ("full", ("full", "short", "minimal"), "Prompt: full user@host:path$, short path$, or minimal $"),
     "boot_speed": ("normal", ("normal", "fast", "instant"), "How long the boot animation takes"),

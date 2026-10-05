@@ -149,7 +149,8 @@ page("settings", "themes and options", ["settings", "settings list|get|set|reset
      "that many idle minutes), auto_clear_lines, confirm_delete. auto_lock_minutes and idle_logout_minutes can be set per person: "
      "settings set idle_logout_minutes 5 --user bob (you can set your own; administrators can set anyone's). Installed apps that have "
      "options of their own (a default difficulty, units...) show them here too: settings apps lists them and settings app <app> changes them. "
-     "Other options: use_trash, trash_days (the trash), admin_reauth (password prompt before risky admin actions).",
+     "Other options: use_trash, trash_days (the trash), admin_reauth (password prompt before risky admin actions), language (auto, en, es, fr, de: the "
+     "system's own messages - boot, shutdown, login, the blue screen - change language; commands and the manual stay in English).",
      examples=[("settings set theme forest", "change colours"), ("settings set prompt_style short", "shorter prompt"),
                ("settings set auto_lock_minutes 10", "ask for the password after 10 idle minutes")], see=["lock"])
 page("version", "version and package", ["version"],

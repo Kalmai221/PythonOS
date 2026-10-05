@@ -152,12 +152,31 @@ def _updates_and_apps():
         console.print(f"[yellow]Could not install the starter apps: {escape(str(e))} (try 'market' later).[/yellow]")
 
 
+def _choose_language():
+    """The very first question, in every language at once: which language should the system speak?"""
+    from pyos import i18n
+    if settings.get("language") != "auto":
+        return
+    guess = i18n.language()
+    console.print("[bold]Language / Idioma / Langue / Sprache[/bold]")
+    for code, name in i18n.LANGUAGES.items():
+        console.print(f"  [bold]{code}[/bold]  {name}")
+    try:
+        chosen = Prompt.ask("Language", choices=list(i18n.LANGUAGES), default=guess)
+    except (EOFError, KeyboardInterrupt):
+        chosen = guess
+    settings.set("language", chosen)
+    console.print()
+
+
 def firsttimeuse():
     live = os.environ.get("PYOS_LIVE") == "1"
     total = 5 if live else 3
     console.clear()
-    console.print(Panel(Text("Welcome to PythonOS", style="bold white on dark_green", justify="center")))
-    console.print("Let's set things up. It takes a minute, and you can change everything later.\n")
+    _choose_language()
+    from pyos.i18n import tr
+    console.print(Panel(Text(tr("Welcome to PythonOS"), style="bold white on dark_green", justify="center")))
+    console.print(tr("Let's set things up. It takes a minute, and you can change everything later.") + "\n")
     number = 0
 
     if live:

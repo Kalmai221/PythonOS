@@ -305,14 +305,15 @@ def change_role():
 def login():
     """Handle user login (with a lockout that grows with repeated failures and survives restarts)"""
     users = get_users()
-    username = input("Username: ").strip()
+    from pyos.i18n import tr
+    username = input(tr("Username: ")).strip()
 
     wait = lockout_remaining(username)
     if wait:
-        console.print(f"[bold red]Too many failed attempts. Try again in {wait}s.[/bold red]")
+        console.print("[bold red]" + tr("Too many failed attempts. Try again in {n}s.", n=wait) + "[/bold red]")
         return None
 
-    password = getpass.getpass("Password: ")
+    password = getpass.getpass(tr("Password: "))
     ok, message = authenticate(username, password)   # same message for unknown user / wrong password
     if not ok:
         console.print(f"[bold red]{message}[/bold red]")
@@ -320,7 +321,7 @@ def login():
 
     users = get_users()
     os.system("cls" if os.name == "nt" else "clear")
-    console.print(f"[bold green]Welcome back, {username}![/bold green] [dim]({users[username]['role']})[/dim]")
+    console.print("[bold green]" + tr("Welcome back, {name}!", name=username) + f"[/bold green] [dim]({users[username]['role']})[/dim]")
     save_session(username, users[username]['role'])  # Save username and role
     pyos.fs.ensure_home(username)
     pyos.log.log("login ok", user=username)
@@ -331,7 +332,8 @@ def logout():
     try:
         pyos.system("clear")
         os.remove('current_user.json')
-        console.print("[bold green]Logged out successfully![/bold green]")
+        from pyos.i18n import tr
+        console.print("[bold green]" + tr("Logged out successfully!") + "[/bold green]")
         time.sleep(2)
         pyos.system("clear")
     except FileNotFoundError:
@@ -367,7 +369,7 @@ def boot_sequence():
 
     # If users exist, proceed to login, else go to register
     if users_data:
-        console.print(Panel("Please log in to continue.", title="[bold cyan]Login[/bold cyan]", border_style="blue", expand=False))
+        console.print(Panel(__import__("pyos.i18n", fromlist=["tr"]).tr("Please log in to continue."), title="[bold cyan]Login[/bold cyan]", border_style="blue", expand=False))
         return login()
     else:
         console.print(Panel("No users found. Create the first account (it will be an admin).",
@@ -381,7 +383,7 @@ def login_after_logout():
 
     # If users exist, proceed to login, else go to register
     if users_data:
-        console.print(Panel("Please log in to continue.", title="[bold cyan]Login[/bold cyan]", border_style="blue", expand=False))
+        console.print(Panel(__import__("pyos.i18n", fromlist=["tr"]).tr("Please log in to continue."), title="[bold cyan]Login[/bold cyan]", border_style="blue", expand=False))
         return login()
     else:
         console.print(Panel("No users found. Create the first account (it will be an admin).",
