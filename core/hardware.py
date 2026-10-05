@@ -4,6 +4,7 @@
 * audio_setup()     - pick the sound card/output, unmute, set the volume, play a test
 * network_setup()   - choose an interface, connect (wired DHCP or Wi-Fi) and test the internet
 * keyboard_setup() / timezone_setup() - keyboard layout and time zone
+* bluetooth_setup() / display_setup() / printer_setup() - pair devices, choose text size and resolution, add a printer
 * live_setup()      - the first-boot flow on the ISO that offers all of the above
 * apply_saved()     - every boot: put the saved keyboard, time zone, audio and Wi-Fi choices back (no questions)
 
@@ -232,7 +233,7 @@ def parse_playback_devices(text):
     """Parse `aplay -l` into [{card, device, label}]."""
     out = []
     for m in re.finditer(r"^card (\d+): (\S+) \[(.*?)\], device (\d+): (.*?) \[(.*?)\]", text, re.M):
-        out.append({"card": int(m.group(1)), "device": int(m.group(4)),
+        out.append({"card": int(m.group(1)), "device": int(m.group(4)), "id": m.group(2),
                     "label": f"{m.group(3)} - {m.group(6)}"})
     return out
 
@@ -297,7 +298,7 @@ def audio_setup():
             console.print(f"[red]Could not save the choice: {e}[/red]")
             return False
         touched = unmute_and_set_volume(chosen["card"], volume)
-        save_pref("audio", {"card": chosen["card"], "device": chosen["device"], "volume": volume})
+        save_audio_choice(chosen, volume)
         console.print(f"[green]Using {escape(chosen['label'])}; unmuted: {', '.join(touched) or 'nothing to unmute'}.[/green]")
 
         if not have("speaker-test"):
@@ -552,6 +553,36 @@ def network_setup():
 
 
 # ------------------------------------------------------------ saved choices
+def save_audio_choice(chosen, volume):
+    """Remember the output chosen for this sound card (by its id, which survives a changed card order) and make it the default."""
+    prefs = load_prefs()
+    devices = prefs.get("audio_devices", {})
+    card_id = chosen.get("id") or str(chosen["card"])
+    devices[card_id] = {"device": chosen["device"], "volume": volume, "label": chosen["label"]}
+    save_pref("audio_devices", devices)
+    save_pref("audio_default", card_id)
+
+
+def restore_audio(prefs):
+    """At boot: use the saved default output if that card is present, otherwise any saved card that is. Cards are found by
+    id because their numbers can change between boots (a USB headset plugged in first becomes card 0)."""
+    present = {c["id"]: c["index"] for c in parse_sound_cards(read("/proc/asound/cards"))}
+    saved = prefs.get("audio_devices") or {}
+    order = [prefs.get("audio_default")] + list(saved)
+    for card_id in order:
+        if card_id in saved and card_id in present:
+            item = saved[card_id]
+            write_asound_conf(present[card_id], item["device"])
+            unmute_and_set_volume(present[card_id], item.get("volume", 80))
+            return True
+    old = prefs.get("audio")
+    if old:                                      # a choice saved by an earlier version
+        write_asound_conf(old["card"], old["device"])
+        unmute_and_set_volume(old["card"], old.get("volume", 80))
+        return True
+    return False
+
+
 def load_prefs():
     try:
         with open(PREFS_FILE, encoding="utf-8") as f:
@@ -679,6 +710,212 @@ def timezone_setup():
             return True
 
 
+# ------------------------------------------------------------------- bluetooth
+MAC_RE = re.compile(r"^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$")
+
+
+def parse_bt_devices(text):
+    """`bluetoothctl devices` -> [{mac, name}]."""
+    return [{"mac": m.group(1).upper(), "name": m.group(2).strip()}
+            for m in re.finditer(r"^Device ([0-9A-Fa-f:]{17}) (.*)$", text, re.M)]
+
+
+def bluetooth_setup():
+    console.print(Panel("[bold]Bluetooth[/bold]", border_style="cyan", expand=False))
+    if not have("bluetoothctl"):
+        console.print("[yellow]The Bluetooth tools (bluez) are not installed on this system.[/yellow]")
+        return False
+    run(["rfkill", "unblock", "bluetooth"])
+    code, out = run(["bluetoothctl", "power", "on"], timeout=15)
+    if code != 0 and "succeeded" not in out.lower():
+        console.print(f"[yellow]No Bluetooth adapter is ready ({escape(out.strip()[-120:]) or 'none found'}). Is the adapter plugged in, "
+                      "and does it need firmware (run: hwsetup check)?[/yellow]")
+        return False
+    console.print("[dim]Put the device you want to pair in pairing mode. This works with devices that pair without typing a code "
+                  "(most speakers, mice and many keyboards).[/dim]")
+    while True:
+        with console.status("Looking for devices (10 seconds)..."):
+            run(["bluetoothctl", "--timeout", "10", "scan", "on"], timeout=25)
+        _, listing = run(["bluetoothctl", "devices"])
+        devices = parse_bt_devices(listing)
+        _, paired_text = run(["bluetoothctl", "devices", "Paired"])
+        paired = {d["mac"] for d in parse_bt_devices(paired_text)}
+        if not devices:
+            console.print("[yellow]No devices found.[/yellow]")
+        else:
+            table = Table(title="Bluetooth devices", header_style="bold blue")
+            for col in ("#", "Name", "Address", "State"):
+                table.add_column(col)
+            for i, d in enumerate(devices, 1):
+                table.add_row(str(i), escape(d["name"]), d["mac"], "[green]paired[/green]" if d["mac"] in paired else "")
+            console.print(table)
+        pick = IntPrompt.ask("Number to pair or connect (0 to scan again, blank to finish)", default=-1)
+        if pick == -1:
+            return True
+        if not 1 <= pick <= len(devices):
+            continue
+        d = devices[pick - 1]
+        if not MAC_RE.match(d["mac"]):
+            continue
+        with console.status(f"Pairing with {d['name']}..."):
+            if d["mac"] not in paired:
+                code, out = run(["bluetoothctl", "pair", d["mac"]], timeout=45)
+                if code != 0 and "already" not in out.lower():
+                    console.print(f"[red]Could not pair ({escape(out.strip()[-120:])}). Some devices need a code typed on them; "
+                                  "those are not supported yet.[/red]")
+                    continue
+            run(["bluetoothctl", "trust", d["mac"]])
+            code, out = run(["bluetoothctl", "connect", d["mac"]], timeout=30)
+        if code == 0 or "successful" in out.lower():
+            console.print(f"[green]Connected to {escape(d['name'])}. It will reconnect by itself next time.[/green]")
+            macs = [m for m in load_prefs().get("bluetooth", []) if m != d["mac"]]
+            save_pref("bluetooth", [d["mac"]] + macs[:9])
+        else:
+            console.print(f"[yellow]Paired, but could not connect ({escape(out.strip()[-120:])}).[/yellow]")
+
+
+# --------------------------------------------------------------------- display
+FONT_SIZES = [("Small", "ter-v16n"), ("Medium", "ter-v20n"), ("Large", "ter-v24n"), ("Extra large", "ter-v32n")]
+FONT_DIR = "/usr/share/consolefonts"
+
+
+def available_fonts():
+    return [(label, name) for label, name in FONT_SIZES
+            if os.path.exists(os.path.join(FONT_DIR, name + ".psf.gz")) or os.path.exists(os.path.join(FONT_DIR, name + ".psf"))]
+
+
+def screen_size():
+    """(width, height) of the console framebuffer, or None."""
+    text = read("/sys/class/graphics/fb0/virtual_size")
+    m = re.match(r"(\d+),(\d+)", text)
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def display_modes():
+    """Resolutions the connected screens report, largest first."""
+    modes = set()
+    for status in glob.glob("/sys/class/drm/card*-*/status"):
+        if read(status) != "connected":
+            continue
+        for line in read(os.path.join(os.path.dirname(status), "modes")).splitlines():
+            if re.fullmatch(r"\d+x\d+", line.strip()):
+                modes.add(line.strip())
+    return sorted(modes, key=lambda m: -int(m.split("x")[0]))
+
+
+def apply_font(name):
+    if not re.fullmatch(r"ter-v\d+n", name or ""):
+        return False
+    code, _ = run(["setfont", name], timeout=10)
+    return code == 0
+
+
+def display_setup():
+    console.print(Panel("[bold]Display[/bold]", border_style="cyan", expand=False))
+    size = screen_size()
+    console.print("Screen: " + (f"{size[0]} x {size[1]}" if size else "unknown"))
+    fonts = available_fonts()
+    if fonts and have("setfont"):
+        console.print("Text size makes everything bigger or smaller without changing the resolution:")
+        for i, (label, name) in enumerate(fonts, 1):
+            console.print(f"  [bold]{i}[/bold] {label}")
+        pick = IntPrompt.ask("Choose a size (blank to keep it)", default=0)
+        if 1 <= pick <= len(fonts):
+            label, name = fonts[pick - 1]
+            if apply_font(name):
+                prefs = load_prefs().get("display", {})
+                prefs["font"] = name
+                save_pref("display", prefs)
+                console.print(f"[green]Text size: {label}.[/green]")
+            else:
+                console.print("[yellow]Could not change the text size on this screen.[/yellow]")
+    else:
+        console.print("[dim]No console fonts are installed here, so the text size cannot be changed.[/dim]")
+    modes = display_modes()
+    if modes and have("fbset"):
+        console.print("Resolutions this screen offers: " + ", ".join(modes[:10]))
+        want = Prompt.ask("Resolution to try, like 1280x720 (blank to keep it)", default="").strip()
+        if want:
+            if want not in modes:
+                console.print("[yellow]The screen does not list that resolution.[/yellow]")
+            else:
+                w, h = want.split("x")
+                before = screen_size()
+                run(["fbset", "-xres", w, "-yres", h, "-vxres", w, "-vyres", h], timeout=10)
+                if screen_size() == (int(w), int(h)):
+                    prefs = load_prefs().get("display", {})
+                    prefs["mode"] = want
+                    save_pref("display", prefs)
+                    console.print(f"[green]Resolution: {want}.[/green]")
+                else:
+                    console.print("[yellow]This display only works at its native resolution (the graphics driver ignored the "
+                                  f"request).[/yellow] Staying at {before[0]}x{before[1]}." if before else "[yellow]Not changed.[/yellow]")
+    elif modes:
+        console.print("[dim]The resolution can only be changed with the fbset tool, which is not installed.[/dim]")
+    return True
+
+
+# --------------------------------------------------------------------- printer
+URI_RE = re.compile(r"^(ipp|ipps|http|https|socket|lpd|usb|dnssd)://[^\s'\"`;|&$<>]+$")
+NAME_RE = re.compile(r"^[A-Za-z0-9_-]{1,30}$")
+
+
+def parse_lpinfo(text):
+    """`lpinfo -v` -> [uri] for device types a person can use."""
+    out = []
+    for line in text.splitlines():
+        parts = line.split(None, 1)
+        if len(parts) == 2 and parts[0] in ("network", "direct") and URI_RE.match(parts[1].strip()) and not parts[1].startswith(("hp:", "hpfax")):
+            out.append(parts[1].strip())
+    return out
+
+
+def printer_setup():
+    console.print(Panel("[bold]Printer[/bold]", border_style="cyan", expand=False))
+    if not have("lpadmin"):
+        console.print("[yellow]The printing system (CUPS) is not installed on this system.[/yellow]")
+        return False
+    if have("rc-service"):
+        run(["rc-service", "cupsd", "start"], timeout=20)
+    code, out = run(["lpstat", "-p", "-d"], timeout=15)
+    if "printer" in out:
+        console.print(escape(out.strip()))
+    with console.status("Looking for printers..."):
+        _, found = run(["lpinfo", "-v"], timeout=30)
+    uris = parse_lpinfo(found)
+    for i, uri in enumerate(uris[:12], 1):
+        console.print(f"  [bold]{i}[/bold] {escape(uri)}")
+    answer = Prompt.ask("Number of a printer above, or type its address (like 192.168.1.20 or ipp://host/ipp/print); blank to finish",
+                        default="").strip()
+    if not answer:
+        return True
+    if answer.isdigit() and 1 <= int(answer) <= len(uris):
+        uri = uris[int(answer) - 1]
+    elif "://" in answer:
+        uri = answer
+    else:
+        uri = f"ipp://{answer}/ipp/print"
+    if not URI_RE.match(uri):
+        console.print("[red]That is not a printer address I can use.[/red]")
+        return False
+    name = Prompt.ask("Name for this printer (letters and digits)", default="printer").strip()
+    if not NAME_RE.match(name):
+        console.print("[red]Use letters, digits, - and _ only (up to 30).[/red]")
+        return False
+    with console.status("Adding the printer..."):
+        code, out = run(["lpadmin", "-p", name, "-E", "-v", uri, "-m", "everywhere"], timeout=60)
+    if code != 0:
+        console.print(f"[red]Could not add it ({escape(out.strip()[-150:])}). Only modern network printers that support "
+                      "driverless printing (IPP Everywhere) are supported.[/red]")
+        return False
+    run(["lpadmin", "-d", name])
+    console.print(f"[green]Added {escape(name)} and made it the default.[/green] Print a file with: [bold]print <file>[/bold]")
+    if Confirm.ask("Print a test page now?", default=False):
+        code, out = run(["lp", "-d", name, "/usr/share/cups/data/testprint"], timeout=30)
+        console.print("[green]Sent.[/green]" if code == 0 else f"[red]Could not print ({escape(out.strip()[-120:])}).[/red]")
+    return True
+
+
 # ----------------------------------------------------- every boot, no questions
 def pyos_notify(message):
     try:
@@ -720,10 +957,14 @@ def apply_saved():
             path = dict(keyboard_layouts()).get(layout)
             if path:
                 apply_keyboard(path)
-        audio = prefs.get("audio")
-        if audio and have("amixer"):
-            write_asound_conf(audio["card"], audio["device"])
-            unmute_and_set_volume(audio["card"], audio.get("volume", 80))
+        if have("amixer"):
+            restore_audio(prefs)
+        display = prefs.get("display") or {}
+        if display.get("font"):
+            apply_font(display["font"])
+        for mac in prefs.get("bluetooth", []):
+            if have("bluetoothctl") and MAC_RE.match(mac):
+                threading.Thread(target=run, args=(["bluetoothctl", "connect", mac], 30), daemon=True).start()
         if prefs.get("wifi") and have("wpa_supplicant"):
             threading.Thread(target=_reconnect_wifi, args=(prefs,), daemon=True).start()
     except Exception:
@@ -739,8 +980,11 @@ def menu():
         console.print("  [bold]3[/bold] Network and internet")
         console.print("  [bold]4[/bold] Keyboard layout")
         console.print("  [bold]5[/bold] Time zone")
-        console.print("  [bold]6[/bold] Done")
-        choice = Prompt.ask("Choose", choices=["1", "2", "3", "4", "5", "6"], default="6")
+        console.print("  [bold]6[/bold] Bluetooth")
+        console.print("  [bold]7[/bold] Display (text size, resolution)")
+        console.print("  [bold]8[/bold] Printer")
+        console.print("  [bold]9[/bold] Done")
+        choice = Prompt.ask("Choose", choices=[str(i) for i in range(1, 10)], default="9")
         if choice == "1":
             hardware_check()
         elif choice == "2":
@@ -751,6 +995,12 @@ def menu():
             keyboard_setup()
         elif choice == "5":
             timezone_setup()
+        elif choice == "6":
+            bluetooth_setup()
+        elif choice == "7":
+            display_setup()
+        elif choice == "8":
+            printer_setup()
         else:
             return
 

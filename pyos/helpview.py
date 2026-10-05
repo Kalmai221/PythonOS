@@ -25,7 +25,7 @@ CATEGORIES = {
     "System": ("About this computer and its settings",
                ["sysinfo", "uname", "hostname", "uptime", "free", "df", "date", "version", "settings", "bootlog", "bootspeed"]),
     "Network and hardware": ("Connect, share and set up hardware",
-                             ["ping", "ipinfo", "share", "hwsetup", "persist"]),
+                             ["ping", "ipinfo", "share", "hwsetup", "persist", "print"]),
     "Updates and apps": ("Keep PythonOS current and add apps",
                          ["updatecheck", "rollback", "whatsnew", "pkg", "backup"]),
     "Power": ("Turn off, restart or reset", ["shutdown", "restart", "wipe"]),

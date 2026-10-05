@@ -68,6 +68,14 @@ lsblk
 e2fsprogs
 kbd-bkeymaps
 cryptsetup
+kbd
+terminus-font
+fbset
+bluez
+bluez-openrc
+cups
+cups-client
+cups-openrc
 EOF
 
 makefile root:root 0644 "$tmp"/etc/motd <<EOF
@@ -99,6 +107,8 @@ rc_add hostname boot
 rc_add bootmisc boot
 rc_add syslog boot
 rc_add networking boot
+rc_add bluetooth default
+rc_add cupsd default
 
 rc_add mount-ro shutdown
 rc_add killprocs shutdown

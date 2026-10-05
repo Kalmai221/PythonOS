@@ -194,23 +194,17 @@ page("whatsnew", "what the last update changed", ["whatsnew"],
      "Shows the release notes and the files that changed in the last update. It also appears by itself the first time PythonOS "
      "starts after an update. Updates download only the files that changed and carry on where they stopped if the connection drops.",
      see=["updatecheck", "rollback", "version"])
-page("hwsetup", "hardware, audio, network, keyboard and time zone setup", ["hwsetup", "hwsetup check|audio|network|keyboard|timezone"],
-     "On the live ISO (and any Linux system as root): check devices, drivers and firmware; choose and test the sound output; "
-     "connect to a wired or Wi-Fi network and test the internet; pick the keyboard layout and time zone. Your choices (and Wi-Fi "
-     "networks, as a derived key rather than the password) are remembered and applied at every boot; with persistent storage they "
-     "survive a power-off.", see=["ping", "persist"])
-page("persist", "keep your data on the live system", ["persist", "persist list", "persist create [--encrypt] [device]", "persist resize",
-                                                        "persist migrate [device]"],
-     "The live ISO forgets everything when it shuts down, unless it has a data disk. 'persist create' turns a USB stick or "
-     "spare disk into that data disk (it is erased first, and you must type its name to confirm) and copies your accounts, files "
-     "and settings onto it. With --encrypt the disk is encrypted (LUKS) and the passphrase is asked for at every start. "
-     "'persist' alone shows the disk's health: free space, whether the filesystem is clean, how many times it was used and when. "
-     "'resize' grows the filesystem after you made the disk or partition bigger; 'migrate' moves everything to another disk "
-     "(the old one is kept, relabelled PYOS_OLD). Administrators only; the disk PythonOS started from can never be chosen.",
-     [("status", "is persistent storage active, and is it healthy?"), ("list", "disks that could be used"),
-      ("create [--encrypt] [device]", "set one up"), ("resize", "grow to fill the disk"), ("migrate [device]", "move to another disk")],
-     [("persist", "check"), ("persist create /dev/sdb", "use that USB stick"), ("persist create --encrypt /dev/sdb", "encrypted")],
-     ["hwsetup", "backup"])
+page("hwsetup", "hardware, audio, network, Bluetooth, display and printer setup",
+     ["hwsetup", "hwsetup check|audio|network|keyboard|timezone|bluetooth|display|printer"],
+     "On the live ISO (and any Linux system as root): check devices, drivers and firmware; choose and test the sound output "
+     "(remembered per sound card, so a USB headset is found again even if the card order changes); connect to a wired or Wi-Fi "
+     "network; pick the keyboard layout and time zone; pair Bluetooth devices (they reconnect by themselves); change the text size "
+     "and, where the screen allows it, the resolution; add a network printer (driverless IPP printers). Your choices are applied at "
+     "every boot and, with persistent storage, survive a power-off.", see=["ping", "persist", "print"])
+page("print", "print a file", ["print <file>"],
+     "Sends a text file or a PDF to the default printer (set one up with hwsetup printer). Plain text is turned into a PDF first, so "
+     "it works with printers that only accept PDF. Files up to 5 MB.", examples=[("print ~/notes/todo.txt", "print a note")],
+     see=["hwsetup"])
 page("shutdown", "turn off", ["shutdown"], "Closes PythonOS. On the ISO this powers the machine off; in the Android app it closes the app.",
      see=["restart"])
 page("restart", "restart", ["restart"], "Restarts PythonOS.", see=["shutdown"])

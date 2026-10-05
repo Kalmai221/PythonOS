@@ -4,7 +4,7 @@ from core import hardware
 console = Console()
 config = {
     "name": "hwsetup",
-    "description": "Hardware setup: hwsetup [check|audio|network|keyboard|timezone]. Drivers/firmware, audio, Wi-Fi, keyboard layout, time zone.",
+    "description": "Hardware setup: hwsetup [check|audio|network|keyboard|timezone|bluetooth|display|printer]. Drivers, audio, Wi-Fi, keyboard, time zone, Bluetooth, display, printer.",
     "alias": ["hardware"],
 }
 
@@ -25,8 +25,14 @@ def execute(args=None):
         hardware.keyboard_setup()
     elif sub in ("timezone", "time", "tz", "clock"):
         hardware.timezone_setup()
+    elif sub in ("bluetooth", "bt"):
+        hardware.bluetooth_setup()
+    elif sub in ("display", "screen", "resolution"):
+        hardware.display_setup()
+    elif sub in ("printer", "printers", "print"):
+        hardware.printer_setup()
     elif sub == "":
         hardware.menu()
     else:
-        console.print("[red]Usage:[/red] hwsetup \\[check|audio|network|keyboard|timezone]")
+        console.print("[red]Usage:[/red] hwsetup \\[check|audio|network|keyboard|timezone|bluetooth|display|printer]")
         return False

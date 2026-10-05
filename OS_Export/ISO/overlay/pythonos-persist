@@ -72,6 +72,17 @@ pyos_persist() {
         [ -L "$PYOS_HOME/$name" ] || rm -rf "${PYOS_HOME:?}/$name"
         [ -L "$PYOS_HOME/$name" ] || ln -s "$PYOS_DATA_MNT/$name" "$PYOS_HOME/$name"
     done
+    # Bluetooth pairings and printers survive too: keep their state on the data disk and restart the services onto it
+    for state in bluetooth cups; do
+        src="/var/lib/$state"
+        [ "$state" = cups ] && src=/etc/cups
+        mkdir -p "$PYOS_DATA_MNT/$state"
+        if [ -d "$src" ] && [ ! -L "$src" ]; then
+            [ -z "$(ls -A "$PYOS_DATA_MNT/$state" 2>/dev/null)" ] && cp -a "$src/." "$PYOS_DATA_MNT/$state/" 2>/dev/null
+            rm -rf "$src" && ln -s "$PYOS_DATA_MNT/$state" "$src"
+            command -v rc-service >/dev/null 2>&1 && rc-service "$( [ "$state" = cups ] && echo cupsd || echo bluetooth )" restart >/dev/null 2>&1
+        fi
+    done
     export PYOS_USERS_FILE="$PYOS_DATA_MNT/users.json"
     export PYOS_PERSISTENT=1
 }
