@@ -9,6 +9,7 @@
 # Kernel: ISO_KERNEL=lts (default, normal PCs) or ISO_KERNEL=virt (much smaller, virtual machines only).
 # Variant: ISO_VARIANT=full (default: Bluetooth, printing, the disk installer and virtual-machine guest tools) or
 # ISO_VARIANT=minimal (the live system only, much smaller). The minimal image's file name has "-minimal" in it.
+# Architecture: ISO_ARCH=x86_64 (default) or ISO_ARCH=aarch64 (64-bit ARM, UEFI). The container runs natively, so build aarch64 on an ARM machine.
 #
 # What you get: a live system (runs from RAM) that boots straight into PythonOS and powers
 # off when you shut PythonOS down. Anything you create is lost at power off - it is a live CD.
@@ -20,6 +21,7 @@ OUT="${OUT:-$REPO/dist/iso}"
 ALPINE="${ALPINE_VERSION:-3.19}"
 VERSION="$(python3 "$REPO/OS_Export/stage.py" --print-version)"
 VARIANT="${ISO_VARIANT:-full}"
+ARCH="${ISO_ARCH:-x86_64}"                      # x86_64 (PCs) or aarch64 (64-bit ARM; build it on an ARM machine, e.g. GitHub's ubuntu-24.04-arm)
 SUFFIX=""; [ "$VARIANT" = "full" ] || SUFFIX="-$VARIANT"
 
 command -v docker >/dev/null 2>&1 || { echo "Docker is required to build the ISO." >&2; exit 1; }
@@ -41,14 +43,14 @@ if [ -n "${ISO_APK_CACHE:-}" ]; then
 fi
 
 docker run --rm "${CACHE_ARGS[@]}" \
-    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-lts}" -e ISO_VARIANT="$VARIANT" \
+    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-lts}" -e ISO_VARIANT="$VARIANT" -e ISO_ARCH="$ARCH" \
     -v "$WORK/payload:/payload:ro" \
     -v "$HERE:/iso:ro" \
     -v "$OUT:/out" \
     "alpine:$ALPINE" sh /iso/in-container.sh
 
 ISO_FILE="$(ls -t "$OUT"/*.iso | head -n1)"
-FINAL="$OUT/pythonos-$VERSION$SUFFIX-x86_64.iso"
+FINAL="$OUT/pythonos-$VERSION$SUFFIX-$ARCH.iso"
 [ "$ISO_FILE" = "$FINAL" ] || mv "$ISO_FILE" "$FINAL"
 ls -la "$OUT"
 echo "Built $FINAL"

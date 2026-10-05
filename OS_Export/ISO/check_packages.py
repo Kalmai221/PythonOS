@@ -18,10 +18,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
 
 
-def repository_names(version, repos=("main", "community")):
+X86_ONLY = {"syslinux", "grub-bios", "open-vm-tools", "open-vm-tools-openrc", "virtualbox-guest-additions", "virtualbox-guest-additions-openrc"}
+
+
+def repository_names(version, repos=("main", "community"), arch="x86_64"):
     names = set()
     for repo in repos:
-        url = f"{MIRROR}/v{version}/{repo}/x86_64/APKINDEX.tar.gz"
+        url = f"{MIRROR}/v{version}/{repo}/{arch}/APKINDEX.tar.gz"
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "PythonOS-ci"}), timeout=60) as response:
             data = response.read()
         with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
@@ -60,11 +63,16 @@ def main():
         wanted = wanted_from_profile(f.read())
     with open(os.path.join(HERE, "genapkovl-pythonos.sh"), encoding="utf-8") as f:
         wanted |= wanted_from_overlay(f.read())
-    available = repository_names(version)
-    missing = sorted(n for n in wanted if n not in available)
-    print(f"{len(wanted)} package names checked against Alpine {version}.")
-    if missing:
-        print("Not in the repositories: " + ", ".join(missing))
+    failed = False
+    for arch in ("x86_64", "aarch64"):
+        names = wanted if arch == "x86_64" else wanted - X86_ONLY       # the ARM image leaves the PC-only packages out
+        available = repository_names(version, arch=arch)
+        missing = sorted(n for n in names if n not in available)
+        print(f"{len(names)} package names checked against Alpine {version} {arch}.")
+        if missing:
+            print("Not in the repositories: " + ", ".join(missing))
+            failed = True
+    if failed:
         return 1
     print("All package names exist.")
     return 0

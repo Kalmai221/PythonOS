@@ -3,7 +3,8 @@ profile_pythonos() {
 	profile_abbrev="pythonos"
 	title="PythonOS"
 	desc="PythonOS live system. Boots straight into PythonOS."
-	arch="x86_64"
+	# PYTHONOS_ARCH: x86_64 (default, BIOS and UEFI PCs) or aarch64 (64-bit ARM, UEFI only: ARM servers, Apple-silicon VMs, Raspberry Pi 4/5 with UEFI firmware)
+	arch="${PYTHONOS_ARCH:-x86_64}"
 	output_format="iso"
 
 	# "lts" is the full kernel and boots normal PCs (default); "virt" is a smaller kernel for virtual
@@ -12,7 +13,10 @@ profile_pythonos() {
 	kernel_flavors="${PYTHONOS_KERNEL:-lts}"
 	# quiet: the kernel's own messages stay off the screen (PythonOS draws the boot progress itself; press D at the
 	# PythonOS start for a diagnostic report that includes them)
-	kernel_cmdline="console=tty0 console=ttyS0,115200 quiet loglevel=3"
+	case "${PYTHONOS_ARCH:-x86_64}" in
+		aarch64) kernel_cmdline="console=tty0 console=ttyAMA0,115200 quiet loglevel=3" ;;
+		*) kernel_cmdline="console=tty0 console=ttyS0,115200 quiet loglevel=3" ;;
+	esac
 	syslinux_serial="0 115200"
 	syslinux_prompt=0
 
@@ -29,8 +33,13 @@ profile_pythonos() {
 	case "${PYTHONOS_VARIANT:-full}" in
 		full)
 			apks="$apks bluez bluez-openrc cups cups-client cups-openrc"
-			apks="$apks alpine-conf sfdisk syslinux grub grub-efi grub-bios dosfstools efibootmgr e2fsprogs-extra"
-			apks="$apks qemu-guest-agent qemu-guest-agent-openrc open-vm-tools open-vm-tools-openrc virtualbox-guest-additions virtualbox-guest-additions-openrc"
+			apks="$apks alpine-conf sfdisk grub grub-efi dosfstools efibootmgr e2fsprogs-extra"
+			apks="$apks qemu-guest-agent qemu-guest-agent-openrc"
+			case "${PYTHONOS_ARCH:-x86_64}" in
+				x86_64)           # BIOS boot loader and the PC-only virtualisation tools
+					apks="$apks syslinux grub-bios open-vm-tools open-vm-tools-openrc virtualbox-guest-additions virtualbox-guest-additions-openrc"
+					;;
+			esac
 			;;
 		minimal) ;;
 		*) echo "PYTHONOS_VARIANT must be full or minimal" >&2; return 1 ;;

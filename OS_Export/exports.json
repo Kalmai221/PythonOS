@@ -10,38 +10,83 @@
     "             fingerprint matches the previous release the export is NOT rebuilt - the new release links to the old",
     "             file - and its version stays at the release it last changed in. Nothing to bump by hand.",
     "embeds_core: true when the export contains the PythonOS core itself (the ISO), so a core change rebuilds it.",
-    "             The Android, Windows and Linux packages download the core on first run, so core-only changes skip them."
+    "             The Android, Windows and Linux packages download the core on first run, so core-only changes skip them.",
+    "extra_assets: files for other processors or formats. They are attached when they were built and never hold a release back; when an export is reused they are copied from the old release if it has them."
   ],
   "android": {
     "title": "Android app",
     "api": 1,
-    "assets": ["PythonOS-{v}-android.apk", "PythonOS-{v}-android-arm64-v8a.apk", "PythonOS-{v}-android-x86_64.apk"],
+    "assets": [
+      "PythonOS-{v}-android.apk",
+      "PythonOS-{v}-android-arm64-v8a.apk",
+      "PythonOS-{v}-android-x86_64.apk"
+    ],
     "notes": "New terminal screen: type straight into the terminal, always scrolled to the bottom, symbol keys, zoom.",
-    "inputs": ["OS_Export/Android", "OS_Export/bootstrap.py"],
+    "inputs": [
+      "OS_Export/Android",
+      "OS_Export/bootstrap.py"
+    ],
     "embeds_core": false
   },
   "windows": {
     "title": "Windows app",
     "api": 1,
-    "assets": ["PythonOS-{v}-web-setup.exe", "PythonOS-{v}-setup.exe", "PythonOS-{v}-windows-portable.zip"],
+    "assets": [
+      "PythonOS-{v}-web-setup.exe",
+      "PythonOS-{v}-setup.exe",
+      "PythonOS-{v}-windows-portable.zip"
+    ],
     "notes": "",
-    "inputs": ["OS_Export/Windows", "OS_Export/bootstrap.py", "requirements.txt", "boot-requirements.txt"],
-    "embeds_core": false
+    "inputs": [
+      "OS_Export/Windows",
+      "OS_Export/bootstrap.py",
+      "requirements.txt",
+      "boot-requirements.txt"
+    ],
+    "embeds_core": false,
+    "extra_assets": [
+      "PythonOS-{v}-windows-arm64-portable.zip",
+      "PythonOS-{v}-arm64-setup.exe"
+    ]
   },
   "linux": {
     "title": "Linux package",
     "api": 1,
-    "assets": ["pythonos_{v}_all.deb", "pythonos-{v}-linux.tar.gz"],
+    "assets": [
+      "pythonos_{v}_all.deb",
+      "pythonos-{v}-linux.tar.gz"
+    ],
     "notes": "",
-    "inputs": ["OS_Export/Linux", "OS_Export/bootstrap.py"],
-    "embeds_core": false
+    "inputs": [
+      "OS_Export/Linux",
+      "OS_Export/bootstrap.py"
+    ],
+    "embeds_core": false,
+    "extra_assets": [
+      "pythonos-{v}-1-any.pkg.tar.zst",
+      "pythonos-{v}-1.noarch.rpm"
+    ]
   },
   "iso": {
     "title": "Bootable ISO",
     "api": 1,
-    "assets": ["pythonos-{v}-x86_64.iso", "pythonos-{v}-minimal-x86_64.iso", "pythonos-{v}-vm.ova", "pythonos-{v}-vm.qcow2", "pythonos-{v}-vm-kit.zip", "pythonos-flash-tool-{v}.py"],
+    "assets": [
+      "pythonos-{v}-x86_64.iso",
+      "pythonos-{v}-minimal-x86_64.iso",
+      "pythonos-{v}-vm.ova",
+      "pythonos-{v}-vm.qcow2",
+      "pythonos-{v}-vm-kit.zip",
+      "pythonos-flash-tool-{v}.py"
+    ],
     "notes": "Locked down: boot menu and consoles can no longer reach the Linux system underneath.",
-    "inputs": ["OS_Export/ISO", "OS_Export/stage.py"],
-    "embeds_core": true
+    "inputs": [
+      "OS_Export/ISO",
+      "OS_Export/stage.py"
+    ],
+    "embeds_core": true,
+    "extra_assets": [
+      "pythonos-{v}-aarch64.iso",
+      "pythonos-{v}-minimal-aarch64.iso"
+    ]
   }
 }

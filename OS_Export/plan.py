@@ -29,6 +29,9 @@ RELEASES_URL = "https://github.com/Kalmai221/PythonOS/releases"
 LATEST_MANIFEST = f"{RELEASES_URL}/latest/download/core-manifest.json"
 API = "https://api.github.com"
 VARIANTS = {"iso": ["full", "minimal"]}          # exports built in more than one flavour: one artifact each
+# Extra builds that are attached when they exist but never hold a release back (other processors: Windows on ARM, ARM64 ISOs). A rerun
+# takes them from earlier runs if they are there and does not wait for them if they are not.
+OPTIONAL = {"windows": ["arm64"], "iso": ["aarch64-full", "aarch64-minimal"]}
 
 
 def artifact_names(platform, digest, version):
@@ -36,6 +39,11 @@ def artifact_names(platform, digest, version):
     short = digest[:12]
     return [f"export-{platform}-{variant}-{short}-{version}" for variant in VARIANTS[platform]] if platform in VARIANTS \
         else [f"export-{platform}-{short}-{version}"]
+
+
+def optional_names(platform, digest, version):
+    short = digest[:12]
+    return [f"export-{platform}-{x}-{short}-{version}" for x in OPTIONAL.get(platform, [])]
 
 
 def _api(url, token, accept="application/vnd.github+json", timeout=30):
@@ -123,7 +131,8 @@ def make_plan(version, is_release, hashes, previous, head=reachable, artifact_lo
         if item["build"] and is_release and artifact_lookup:
             found = [artifact_lookup(name) for name in artifact_names(platform, digest, version)]
             if found and all(found):
-                item.update(build=False, source="artifact", artifacts=found,
+                extra = [a for a in (artifact_lookup(n) for n in optional_names(platform, digest, version)) if a]
+                item.update(build=False, source="artifact", artifacts=found + extra,
                             reason=f"already built by an earlier run for {version} (run {found[0].get('run_id', '?')})")
         plan["exports"][platform] = item
     return plan
@@ -139,15 +148,25 @@ def fetch_reused(plan, destination):
             fetch_artifacts(platform, item, destination)
             continue
         for url in item["entry"].get("urls") or [item["entry"]["url"]]:
-            target = os.path.join(destination, url.rsplit("/", 1)[-1])
-            print(f"Reusing {platform}: {url}")
-            request = urllib.request.Request(url, headers={"User-Agent": "PythonOS-plan"})
-            with urllib.request.urlopen(request, timeout=120) as response, open(target, "wb") as f:
-                while True:
-                    chunk = response.read(1 << 20)
-                    if not chunk:
-                        break
-                    f.write(chunk)
+            _download(url, destination, platform)
+        for url in item["entry"].get("extra_urls") or []:        # other processors and extra formats: taken if the old release has them
+            try:
+                _download(url, destination, platform)
+            except Exception as e:
+                print(f"  (not available, skipped: {url.rsplit('/', 1)[-1]}: {e})")
+
+
+def _download(url, destination, platform):
+    target = os.path.join(destination, url.rsplit("/", 1)[-1])
+    print(f"Reusing {platform}: {url}")
+    request = urllib.request.Request(url, headers={"User-Agent": "PythonOS-plan"})
+    with urllib.request.urlopen(request, timeout=120) as response, open(target + ".part", "wb") as f:
+        while True:
+            chunk = response.read(1 << 20)
+            if not chunk:
+                break
+            f.write(chunk)
+    os.replace(target + ".part", target)
 
 
 def fetch_artifacts(platform, item, destination, repo=None, token=None):

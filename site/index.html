@@ -68,7 +68,7 @@
       <div class="section-head reveal"><h2>Download</h2><p class="muted" id="dl-sub">Pick your device. Everything updates itself from inside PythonOS later.</p></div>
       <div class="tabs" role="tablist" aria-label="Platform" id="tabs"></div>
       <div id="panels"><div class="files"><div class="skeleton"></div><div class="skeleton"></div></div></div>
-      <p class="note" id="docker">Prefer a container? <code>docker run -it --rm ghcr.io/kalmai221/pythonos</code> <button class="copy" type="button" data-copy="docker run -it --rm ghcr.io/kalmai221/pythonos">Copy</button></p>
+      <p class="note" id="docker">Prefer a container? <code>docker run -it --rm ghcr.io/kalmai221/pythonos</code> (amd64 and arm64) <button class="copy" type="button" data-copy="docker run -it --rm ghcr.io/kalmai221/pythonos">Copy</button></p>
     </div>
   </section>
 
@@ -97,17 +97,18 @@ document.addEventListener("DOMContentLoaded", function () {
   "use strict";
   var P = window.PyOS || {};
   var GROUPS = [
-    { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows-portable\.zip)$/, note: "Windows 10 (1809) or newer. The web installer is a tiny download that fetches and checks the rest." },
+    { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows(-arm64)?-portable\.zip)$/, note: "Windows 10 (1809) or newer, on Intel/AMD or ARM. The web installer is a tiny download that fetches and checks the right package for your PC." },
     { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. Choose arm64 for nearly every phone; the universal APK works anywhere but is bigger." },
-    { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz)$/, note: "Any Linux with Python 3.9+. Debian and Ubuntu users can install the .deb." },
-    { id: "usb", title: "Bootable USB", match: /(x86_64\.iso|flash-tool.*\.py)$/, note: "Boot a PC from a stick without touching its disk. Write it with the flash tool, which checks the download first." },
+    { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz|\.pkg\.tar\.zst|\.rpm)$/, note: "Any Linux with Python 3.9+, on any processor. Debian/Ubuntu: .deb. Arch: .pkg.tar.zst. Fedora/RHEL/openSUSE: .rpm. Everything else: the tarball." },
+    { id: "usb", title: "Bootable USB", match: /((x86_64|aarch64)\.iso|flash-tool.*\.py)$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it with the flash tool, which checks the download first." },
     { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox." }
   ];
   var USE = [
-    [/web-setup\.exe$/, "Recommended installer"], [/-setup\.exe$/, "Full installer (offline)"], [/windows-portable/, "Portable: unzip and run"],
+    [/web-setup\.exe$/, "Recommended installer"], [/arm64-setup\.exe$/, "Full installer for Windows on ARM"], [/-setup\.exe$/, "Full installer (offline)"],
+    [/windows-arm64-portable/, "Portable, Windows on ARM"], [/windows-portable/, "Portable: unzip and run"],
     [/arm64-v8a\.apk$/, "Phones and tablets (smallest)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
-    [/\.deb$/, "Debian, Ubuntu and friends"], [/linux\.tar\.gz$/, "Any Linux"],
-    [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"], [/flash-tool/, "Safely writes the ISO to a USB stick"],
+    [/\.deb$/, "Debian, Ubuntu and friends"], [/pkg\.tar\.zst$/, "Arch, Manjaro"], [/\.rpm$/, "Fedora, RHEL, openSUSE"], [/linux\.tar\.gz$/, "Any Linux, any processor"],
+    [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"], [/flash-tool/, "Safely writes the ISO to a USB stick"],
     [/\.ova$/, "VirtualBox / VMware appliance"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
   ];
   function order(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return i; return 99; }

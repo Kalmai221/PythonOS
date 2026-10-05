@@ -130,9 +130,11 @@ def main():
                 hashes = hashes or inputs.all_hashes()
                 digest = hashes[platform]
             assets = [a.replace("{v}", ver) for a in entry["assets"]]
+            extra = [a.replace("{v}", ver) for a in entry.get("extra_assets", [])]
             manifest["exports"][platform] = {
                 "title": entry["title"], "version": ver, "api": entry["api"],
                 "assets": assets, "url": base + assets[0], "urls": [base + a for a in assets],
+                "extra_urls": [base + a for a in extra],            # other processors and formats: attached when they were built
                 "notes": entry.get("notes", ""), "inputs_sha256": digest,
             }
         notes = os.environ.get("RELEASE_NOTES", "").strip() or changelog_notes(ver)

@@ -81,20 +81,24 @@ cups-client
 cups-openrc
 alpine-conf
 sfdisk
-syslinux
 grub
 grub-efi
-grub-bios
 dosfstools
 efibootmgr
 e2fsprogs-extra
 qemu-guest-agent
 qemu-guest-agent-openrc
+EOF
+	if [ "${PYTHONOS_ARCH:-x86_64}" = "x86_64" ]; then
+		cat >> "$tmp"/etc/apk/world <<EOF
+syslinux
+grub-bios
 open-vm-tools
 open-vm-tools-openrc
 virtualbox-guest-additions
 virtualbox-guest-additions-openrc
 EOF
+	fi
 fi
 
 makefile root:root 0644 "$tmp"/etc/motd <<EOF
@@ -130,8 +134,10 @@ if [ "$VARIANT" = "full" ]; then
 	rc_add bluetooth default
 	rc_add cupsd default
 	rc_add qemu-guest-agent default
-	rc_add open-vm-tools default
-	rc_add virtualbox-guest-additions default
+	if [ "${PYTHONOS_ARCH:-x86_64}" = "x86_64" ]; then
+		rc_add open-vm-tools default
+		rc_add virtualbox-guest-additions default
+	fi
 fi
 
 rc_add mount-ro shutdown

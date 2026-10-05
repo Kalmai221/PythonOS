@@ -83,7 +83,7 @@ jobs:
           pip-audit -r requirements.txt -r boot-requirements.txt
 
   linux:
-    name: Linux (.tar.gz and .deb)
+    name: Linux (.tar.gz, .deb, Arch .pkg.tar.zst, .rpm)
     needs: plan
     if: needs.plan.outputs.linux == 'true'
     runs-on: ubuntu-24.04
@@ -92,6 +92,12 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      - name: Tools for the Arch and RPM packages (a failure here only skips those two)
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq zstd rpm ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
       - run: bash OS_Export/Linux/build.sh
       - name: Smoke test (the staged OS, as the package would install it)
         run: |
@@ -104,12 +110,20 @@ jobs:
           path: |
             dist/linux/*.tar.gz
             dist/linux/*.deb
+            dist/linux/*.pkg.tar.zst
+            dist/linux/*.rpm
 
   windows:
-    name: Windows (portable zip and installer)
+    name: Windows ${{ matrix.arch }} (portable zip and installer)
     needs: plan
     if: needs.plan.outputs.windows == 'true'
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm64]       # arm64 is assembled here from ARM64 Python and wheels (nothing needs an ARM machine)
+    # The x64 build must pass. ARM64 is attached when it builds and never holds a release back.
+    continue-on-error: ${{ matrix.arch == 'arm64' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -123,10 +137,10 @@ jobs:
           }
       - name: Build
         shell: pwsh
-        run: ./OS_Export/Windows/build.ps1
+        run: ./OS_Export/Windows/build.ps1 -Arch ${{ matrix.arch }}
       - uses: actions/upload-artifact@v7
         with:
-          name: export-windows-${{ needs.plan.outputs.windows_fp }}-${{ needs.plan.outputs.version }}
+          name: export-windows-${{ matrix.arch == 'arm64' && 'arm64-' || '' }}${{ needs.plan.outputs.windows_fp }}-${{ needs.plan.outputs.version }}
           path: |
             dist/windows/*.zip
             dist/windows/*.exe
@@ -206,18 +220,26 @@ jobs:
           path: dist/android/*.apk
 
   iso:
-    name: ISO (${{ matrix.variant }})
+    name: ISO ${{ matrix.arch }} (${{ matrix.variant }})
     needs: plan
     if: needs.plan.outputs.iso == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
+    # The PC (x86_64) images must build. The 64-bit ARM (aarch64) images are built on GitHub's ARM runners and are attached
+    # when they build; a problem there never holds a release back.
+    continue-on-error: ${{ matrix.arch == 'aarch64' }}
     strategy:
       fail-fast: false          # a finished variant is kept as an artifact and reused if the other one has to be re-run
       matrix:
-        variant: [full, minimal]
+        include:
+          - { arch: x86_64,  variant: full,    runner: ubuntu-24.04 }
+          - { arch: x86_64,  variant: minimal, runner: ubuntu-24.04 }
+          - { arch: aarch64, variant: full,    runner: ubuntu-24.04-arm }
+          - { arch: aarch64, variant: minimal, runner: ubuntu-24.04-arm }
     # A stuck mirror or mkimage step must not hold up the release for hours (default is 6 h)
     timeout-minutes: 45
     env:
       ISO_VARIANT: ${{ matrix.variant }}
+      ISO_ARCH: ${{ matrix.arch }}
       ISO_APK_CACHE: ${{ github.workspace }}/.cache/apk
     steps:
       - uses: actions/checkout@v7
@@ -231,11 +253,11 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .cache/apk
-          key: alpine-apk-${{ matrix.variant }}-${{ hashFiles('OS_Export/ISO/in-container.sh', 'OS_Export/ISO/mkimg.pythonos.sh') }}
-          restore-keys: alpine-apk-${{ matrix.variant }}-
+          key: alpine-apk-${{ matrix.arch }}-${{ matrix.variant }}-${{ hashFiles('OS_Export/ISO/in-container.sh', 'OS_Export/ISO/mkimg.pythonos.sh') }}
+          restore-keys: alpine-apk-${{ matrix.arch }}-${{ matrix.variant }}-
       - run: bash OS_Export/ISO/build-iso.sh
-      - name: Virtual machine images, flash tool (full variant only)
-        if: matrix.variant == 'full'
+      - name: Virtual machine images, flash tool (full x86_64 image only)
+        if: matrix.variant == 'full' && matrix.arch == 'x86_64'
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq qemu-utils zip
           V="${VERSION#v}"
@@ -243,14 +265,14 @@ jobs:
           cp OS_Export/ISO/tools/flash_iso.py "dist/iso/pythonos-flash-tool-$V.py"
           ls -la dist/iso
       - name: Boot the ISO in QEMU (informational only - software emulation is slow and a miss does not stop the release)
-        if: matrix.variant == 'full'
+        if: matrix.variant == 'full' && matrix.arch == 'x86_64'
         continue-on-error: true
         run: |
           sudo apt-get install -y -qq qemu-system-x86
           python OS_Export/ISO/qemu_boot_check.py "dist/iso/pythonos-${VERSION#v}-x86_64.iso"
       - uses: actions/upload-artifact@v7
         with:
-          name: export-iso-${{ matrix.variant }}-${{ needs.plan.outputs.iso_fp }}-${{ needs.plan.outputs.version }}
+          name: export-iso-${{ matrix.arch == 'aarch64' && 'aarch64-' || '' }}${{ matrix.variant }}-${{ needs.plan.outputs.iso_fp }}-${{ needs.plan.outputs.version }}
           path: dist/iso/*
 
   core:
@@ -293,6 +315,7 @@ jobs:
       - run: |
           python OS_Export/stage.py dist/docker/payload
           cp tools/smoke_test.py dist/docker/tools_smoke.py
+      - uses: docker/setup-qemu-action@v3         # lets this x64 machine build the arm64 image too
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -304,10 +327,10 @@ jobs:
           V="${VERSION#v}"
           IMAGE="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr 'A-Z' 'a-z')"
           cp OS_Export/Docker/Dockerfile dist/docker/Dockerfile
-          docker build -t "$IMAGE:$V" -t "$IMAGE:latest" dist/docker
+          # build and check the amd64 image first, then publish one multi-architecture image (amd64 and arm64: PCs, Raspberry Pi, Apple silicon)
+          docker buildx build --load --platform linux/amd64 -t "$IMAGE:$V" dist/docker
           docker run --rm "$IMAGE:$V" python /opt/tools_smoke.py --dir /opt/pythonos
-          docker push "$IMAGE:$V"
-          docker push "$IMAGE:latest"
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t "$IMAGE:$V" -t "$IMAGE:latest" dist/docker
 
   release:
     name: Publish release

@@ -50,14 +50,25 @@ $ZipName = ($Pth.BaseName -replace "\._pth$", "") + ".zip"
 @($ZipName, ".", "..", "Lib\site-packages", "import site") | Set-Content -Path $Pth.FullName -Encoding ascii
 
 # 3. pip, then the dependencies
-$GetPip = Join-Path $Out "get-pip.py"
-Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $GetPip
-& "$Runtime\python.exe" $GetPip --no-warn-script-location --quiet
-if ($LASTEXITCODE -ne 0) { throw "get-pip failed" }
-Remove-Item $GetPip
-& "$Runtime\python.exe" -m pip install --no-warn-script-location --quiet `
-    -r (Join-Path $Repo "requirements.txt") -r (Join-Path $Repo "boot-requirements.txt")
-if ($LASTEXITCODE -ne 0) { throw "installing dependencies failed" }
+if ($Arch -eq "arm64") {
+    # The ARM64 Python cannot run on this (x64) build machine, so its libraries are fetched as ARM64 wheels and unpacked into its
+    # site-packages with the build machine's own pip; pip itself goes in too, so `python -m pip` works on the ARM64 PC (the requirement
+    # checks use it). Everything PythonOS imports is pure Python or has a win_arm64 wheel.
+    $Site = Join-Path $Runtime "Lib\site-packages"
+    New-Item -ItemType Directory -Force -Path $Site | Out-Null
+    python -m pip install --quiet --target $Site --platform win_arm64 --python-version 3.12 --implementation cp --abi cp312 --only-binary=:all: `
+        pip -r (Join-Path $Repo "requirements.txt") -r (Join-Path $Repo "boot-requirements.txt")
+    if ($LASTEXITCODE -ne 0) { throw "installing the ARM64 dependencies failed" }
+} else {
+    $GetPip = Join-Path $Out "get-pip.py"
+    Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $GetPip
+    & "$Runtime\python.exe" $GetPip --no-warn-script-location --quiet
+    if ($LASTEXITCODE -ne 0) { throw "get-pip failed" }
+    Remove-Item $GetPip
+    & "$Runtime\python.exe" -m pip install --no-warn-script-location --quiet `
+        -r (Join-Path $Repo "requirements.txt") -r (Join-Path $Repo "boot-requirements.txt")
+    if ($LASTEXITCODE -ne 0) { throw "installing dependencies failed" }
+}
 Get-ChildItem $App -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
 
 # 4. PythonOS.exe launcher (PyInstaller, running on the build machine's Python)
@@ -70,15 +81,21 @@ python (Join-Path $Here "make_art.py") $Art
 $IconArgs = @()
 $IconFile = Join-Path $Art "PythonOS.ico"
 if (Test-Path $IconFile) { $IconArgs = @("--icon", $IconFile) }
-python -m PyInstaller --onefile --console --name PythonOS-console @IconArgs `
-    --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
-if ($LASTEXITCODE -ne 0 -and $IconArgs.Count -gt 0) {
-    Write-Host "Icon conversion failed - building the launcher without an icon."
-    python -m PyInstaller --onefile --console --name PythonOS-console `
+if ($Arch -eq "arm64") {
+    # PyInstaller makes programs for the machine it runs on (x64 here), so the plain-console fallback is not built for ARM64;
+    # PythonOS.exe (the window) is the program on Windows on ARM.
+    Write-Host "ARM64: skipping the console launcher."
+} else {
+    python -m PyInstaller --onefile --console --name PythonOS-console @IconArgs `
         --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
+    if ($LASTEXITCODE -ne 0 -and $IconArgs.Count -gt 0) {
+        Write-Host "Icon conversion failed - building the launcher without an icon."
+        python -m PyInstaller --onefile --console --name PythonOS-console `
+            --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
+    }
+    if (-not (Test-Path (Join-Path $App "PythonOS-console.exe"))) { throw "PythonOS-console.exe was not built" }
+    Remove-Item $Work -Recurse -Force
 }
-if (-not (Test-Path (Join-Path $App "PythonOS-console.exe"))) { throw "PythonOS-console.exe was not built" }
-Remove-Item $Work -Recurse -Force
 
 # 4b. The PythonOS window and the web installer (C#, built with the compiler that ships with Windows)
 $Native = Join-Path $Out "native"

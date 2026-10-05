@@ -4,6 +4,11 @@ set -eu
 
 ALPINE="${ALPINE_VERSION:-3.19}"
 KERNEL="${ISO_KERNEL:-lts}"
+ARCH="${ISO_ARCH:-x86_64}"
+case "$ARCH" in
+    x86_64|aarch64) ;;
+    *) echo "ISO_ARCH must be 'x86_64' or 'aarch64' (got '$ARCH')" >&2; exit 1 ;;
+esac
 VARIANT="${ISO_VARIANT:-full}"
 case "$VARIANT" in
     full|minimal) ;;
@@ -60,13 +65,13 @@ case "$GRUB_HASH" in
 esac
 
 su build -c "cd /home/build/aports/scripts && \
-    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay PYTHONOS_KERNEL=$KERNEL PYTHONOS_VARIANT=$VARIANT \
+    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay PYTHONOS_KERNEL=$KERNEL PYTHONOS_VARIANT=$VARIANT PYTHONOS_ARCH=$ARCH \
     PYTHONOS_GRUB_PBKDF2=$GRUB_HASH \
     sh mkimage.sh \
         --tag 'v$ALPINE' \
         --outdir /out \
         --workdir /home/build/work \
-        --arch x86_64 \
+        --arch $ARCH \
         --repository $MIRROR/main \
         --repository $MIRROR/community \
         --profile pythonos"
@@ -85,16 +90,19 @@ xorriso -osirrox on -indev "$ISO_FILE" -extract / "$V/iso" >/dev/null 2>&1 || fa
 
 SYS="$V/iso/boot/syslinux/syslinux.cfg"
 GRUBCFG="$V/iso/boot/grub/grub.cfg"
-[ -f "$SYS" ] || fail "no syslinux.cfg"
 [ -f "$GRUBCFG" ] || fail "no grub.cfg"
-for want in "PROMPT 0" "NOESCAPE 1" "ALLOWOPTIONS 0"; do
-    grep -q "^$want\$" "$SYS" || fail "syslinux.cfg lacks '$want'"
-done
+if [ "$ARCH" = "x86_64" ]; then      # only PCs have the BIOS (syslinux) boot menu; ARM images boot through UEFI and GRUB only
+    [ -f "$SYS" ] || fail "no syslinux.cfg"
+    for want in "PROMPT 0" "NOESCAPE 1" "ALLOWOPTIONS 0"; do
+        grep -q "^$want\$" "$SYS" || fail "syslinux.cfg lacks '$want'"
+    done
+fi
 grep -q '^set superusers=' "$GRUBCFG" || fail "grub.cfg has no superuser lock"
 grep -q '^password_pbkdf2 pyos grub.pbkdf2.sha512' "$GRUBCFG" || fail "grub.cfg has no password hash"
 grep -q -- '--unrestricted' "$GRUBCFG" || fail "grub.cfg entry is not unrestricted (the machine could not boot)"
 grep -q 'MISSING-HASH' "$GRUBCFG" && fail "grub.cfg was built without its lock"
-grep -q -E 'init=|single|rescue|emergency' "$SYS" "$GRUBCFG" && fail "boot config contains init=/single/rescue"
+grep -q -E 'init=|single|rescue|emergency' "$GRUBCFG" && fail "boot config contains init=/single/rescue"
+[ -f "$SYS" ] && grep -q -E 'init=|single|rescue|emergency' "$SYS" && fail "boot config contains init=/single/rescue"
 
 OVL="$(ls "$V"/iso/*.apkovl.tar.gz 2>/dev/null | head -n1)"
 [ -n "$OVL" ] || fail "no overlay (apkovl) on the ISO"

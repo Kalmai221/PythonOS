@@ -3,6 +3,12 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
+## 1.0.5
+- More processors: Windows on ARM (portable zip and installer; the web installer picks the right one), 64-bit ARM live ISOs (full and minimal, UEFI), a multi-architecture Docker image (amd64 and arm64)
+- More Linux distributions: Arch and Manjaro (.pkg.tar.zst) and Fedora, RHEL, openSUSE (.rpm) packages next to the .deb and the tarball (all work on any processor)
+- Android covers every processor Chaquopy supports for Python 3.13 (arm64-v8a and x86_64, plus the universal APK)
+- The release page and website list the new files; extra builds never hold a release back
+
 ## 1.0.4
 - Windows: the web installer now recognises older installs (made by the offline installer or a portable copy) and updates them in place, and an update no longer deletes files it does not own (it removed boot-requirements.txt, which stopped PythonOS starting)
 - Every installer and launcher checks its requirements and downloads what is missing: the PythonOS system files and the Python libraries (Windows, Linux, Android); the web installer shows this as its own step
