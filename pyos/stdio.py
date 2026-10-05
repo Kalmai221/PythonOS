@@ -84,6 +84,30 @@ def clear_screen(scrollback=True):
     _screen["lines"] = 0
 
 
+def fresh_screen():
+    """Clear the screen (keeping the scrollback) before a full-screen program or menu takes over - only on a real terminal, not for
+    captured output or background jobs, and not when the clear_screens setting is off. Returns True if it cleared."""
+    try:
+        from pyos import settings
+        if not settings.get("clear_screens") or _targets.get(threading.get_ident()) is not None:
+            return False
+        real = sys.stdout._real if isinstance(sys.stdout, _Router) else sys.stdout
+        if not real.isatty() or threading.current_thread() is not threading.main_thread():
+            return False
+    except Exception:
+        return False
+    clear_screen(scrollback=False)
+    return True
+
+
+def overflowed():
+    """True if more lines were printed since the last clear than fit on the screen."""
+    try:
+        return _screen["lines"] > max(10, os.get_terminal_size().lines - 2)
+    except OSError:
+        return False
+
+
 def install():
     """Install the router on sys.stdout (safe to call more than once)."""
     if not isinstance(sys.stdout, _Router):

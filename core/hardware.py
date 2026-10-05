@@ -973,6 +973,8 @@ def apply_saved():
 
 # ---------------------------------------------------------------- the flows
 def menu():
+    from pyos import stdio
+    stdio.fresh_screen()
     while True:
         console.print("\n[bold cyan]Hardware setup[/bold cyan]")
         console.print("  [bold]1[/bold] Hardware and firmware check")

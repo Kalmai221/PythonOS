@@ -105,16 +105,19 @@ page("help", "list commands", ["help [name]"], "With no name, lists every comman
 page("man", "read the manual", ["man <name>", "man -k <word>", "man"],
      "Shows the manual page of a command or topic. man -k searches all pages for a word. Topics: shell, files, users, packages, "
      "updates, lockdown.", examples=[("man ls", "about ls"), ("man -k backup", "which pages mention backup")], see=["help", "tutorial"])
-page("tutorial", "learn PythonOS step by step", ["tutorial"],
-     "A short guided lesson series: you try real commands and it checks them. It uses a practice folder in your home that "
-     "it offers to remove at the end.", see=["man", "help"])
+page("tutorial", "learn PythonOS step by step", ["tutorial", "tutorial list", "tutorial <number>", "tutorial reset"],
+     "A guided tour of about thirty short lessons in six groups (basics, files, finding things, pipes, safety nets, everyday tools): you try real "
+     "commands and it checks them. It remembers where you stopped and offers to carry on; tutorial list shows every lesson, tutorial 12 jumps "
+     "to one (and sets up what it needs). It uses a practice folder in your home that it offers to remove at the end.",
+     examples=[("tutorial", "start or carry on"), ("tutorial list", "see every lesson"), ("tutorial 15", "jump to lesson 15")], see=["man", "help"])
 page("run", "start a program", ["run <program> [args]"],
      "Programs are bigger applications (the marketplace, the calculator, installed games). Installed packages with a "
      "command name start with run too.", examples=[("run marketplace", "open the store"), ("run calc", "calculator")], see=["pkg", "help"])
 page("reload", "re-read commands and programs", ["reload"], "Use after installing a package that added commands.")
 page("exit", "leave the shell", ["exit"], "Logs you out.", see=["logout", "shutdown"])
 page("clear", "clear the screen", ["clear [-x]"], "Wipes the terminal and its scrollback so old output stops piling up. Use -x to keep the scrollback. "
-     "Set settings auto_clear_lines to a number (say 300) and the screen tidies itself before a prompt once that many lines have printed.",
+     "The screen also tidies itself before a prompt once 300 lines have printed (settings auto_clear_lines, 0 = never), and a full-screen program or menu "
+     "starts on a clean screen (settings clear_screens).",
      [("-x", "keep the scrollback")], [("clear", "wipe it all"), ("settings set auto_clear_lines 300", "tidy automatically")], ["settings"])
 page("echo", "print text", ["echo <text>"], "Prints its words.", examples=[("echo hello > hi.txt", "write a file")])
 page("date", "show the date and time", ["date"], "Prints the current day, date and time.", see=["uptime", "schedule"])

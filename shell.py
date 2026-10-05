@@ -263,6 +263,7 @@ def run_stage(argv):
             return 127
         if main_thread:
             readline.parse_and_bind("set editing-mode emacs")
+        stdio.fresh_screen()                                   # the program gets a clean screen
         try:
             return 1 if invoke(available_programs[matched]["module"], args[1:]) is False else 0
         except ExitShell:
@@ -274,6 +275,8 @@ def run_stage(argv):
         finally:
             if main_thread:
                 readline.parse_and_bind("set editing-mode vi")
+            if stdio.overflowed() and stdio.fresh_screen():
+                console.print(f"[dim]{escape(args[0])} finished. Its output is gone from the screen; run it again or see 'history'.[/dim]")
 
     matched = find_entry(available_commands, name)
     if not matched:

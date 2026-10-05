@@ -3,7 +3,7 @@ from rich.markup import escape
 from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
 import pyos
-from pyos import appsettings, settings, theme
+from pyos import appsettings, settings, stdio, theme
 
 console = Console()
 config = {
@@ -74,6 +74,7 @@ def change(key, text):
 
 def menu():
     keys = list(settings.SCHEMA)
+    stdio.fresh_screen()
     while True:
         list_settings()
         choice = IntPrompt.ask("Number of the setting to change (0 to finish)", default=0)
