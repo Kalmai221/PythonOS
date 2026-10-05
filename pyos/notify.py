@@ -53,6 +53,22 @@ def pending(user=None):
         return [i for i in _load() if not i.get("shown") and _mine(i, user)]
 
 
+def _outdated_update_notice(item):
+    """An 'update available' notice that was queued before the update happened: the version it names is already installed."""
+    if item.get("title") != "Update available":
+        return False
+    try:
+        import re
+        from core import sysupdate
+        found = re.search(r"PythonOS (\S+) is available", item.get("message", ""))
+        current = sysupdate.packaged_version() or ""
+        if not found or not current[:1].isdigit():
+            return False
+        return sysupdate.version_key(found.group(1)) <= sysupdate.version_key(current)
+    except Exception:
+        return False
+
+
 def take_pending(user=None):
     """Return the unshown notifications and mark them shown (nothing is shown if they are switched off)."""
     with _lock:
@@ -62,6 +78,7 @@ def take_pending(user=None):
             i["shown"] = True
         if fresh:
             _save(items)
+        fresh = [i for i in fresh if not _outdated_update_notice(i)]
     return fresh if settings.get("notifications") else []
 
 
