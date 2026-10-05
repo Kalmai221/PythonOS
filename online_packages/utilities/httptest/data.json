@@ -1,0 +1,28 @@
+{
+  "name": "HTTP Tester",
+  "description": "Send HTTP requests and inspect status, timing, headers and the formatted body.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "httptest",
+  "alias": [
+    "http",
+    "curl"
+  ],
+  "tags": [
+    "http",
+    "api",
+    "developer",
+    "network"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "developer",
+    "network"
+  ],
+  "changelog": "First release."
+}

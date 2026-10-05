@@ -1,0 +1,28 @@
+{
+  "name": "Hash and Encoding",
+  "description": "Checksums of text and files, file verification, Base64/URL/hex/binary/HTML conversion.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "hashtool",
+  "alias": [
+    "hash",
+    "encode"
+  ],
+  "tags": [
+    "hash",
+    "checksum",
+    "base64",
+    "encoding"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools",
+    "developer"
+  ],
+  "changelog": "First release."
+}

@@ -1298,6 +1298,44 @@
       ]
     },
     {
+      "id": "utilities/datecalc",
+      "category": "utilities",
+      "name": "Date Calculator",
+      "description": "Days between dates, add or subtract time, day of the week, ages and countdowns.",
+      "version": "1.0.0",
+      "command": "datecalc",
+      "alias": [
+        "date"
+      ],
+      "tags": [
+        "date",
+        "calendar",
+        "calculator",
+        "age"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "c80a548ebd66ba05084627756bec8afe8131bbd963d707ece68f80ece812ddda",
+          "size": 435
+        },
+        {
+          "path": "run.py",
+          "sha256": "c019bd49385a4382ce1fda8411a773e692d45ecba70236c4b515655ab3094eb2",
+          "size": 6530
+        }
+      ]
+    },
+    {
       "id": "utilities/files",
       "category": "utilities",
       "name": "File Manager",
@@ -1337,6 +1375,177 @@
           "path": "run.py",
           "sha256": "cb1603be491c9af703622c9b1c24339c15d721aa6e07198cc708559bb6350b0b",
           "size": 11492
+        }
+      ]
+    },
+    {
+      "id": "utilities/hashtool",
+      "category": "utilities",
+      "name": "Hash and Encoding",
+      "description": "Checksums of text and files, file verification, Base64/URL/hex/binary/HTML conversion.",
+      "version": "1.0.0",
+      "command": "hashtool",
+      "alias": [
+        "hash",
+        "encode"
+      ],
+      "tags": [
+        "hash",
+        "checksum",
+        "base64",
+        "encoding"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "tools",
+        "developer"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "cf224cc19ed3bc2bf34248b6e239d59543fdf408ed7c22e426defafdda2ab826",
+          "size": 491
+        },
+        {
+          "path": "run.py",
+          "sha256": "d796beaeab5ba4312d58ca18674597b91787d1cedf67305d892efc286622b1b8",
+          "size": 6191
+        }
+      ]
+    },
+    {
+      "id": "utilities/httptest",
+      "category": "utilities",
+      "name": "HTTP Tester",
+      "description": "Send HTTP requests and inspect status, timing, headers and the formatted body.",
+      "version": "1.0.0",
+      "command": "httptest",
+      "alias": [
+        "http",
+        "curl"
+      ],
+      "tags": [
+        "http",
+        "api",
+        "developer",
+        "network"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "categories": [
+        "developer",
+        "network"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "ee1f4f331a2057314af8fa550bbad1a38f550facae55b70215062ca5d91e8f72",
+          "size": 476
+        },
+        {
+          "path": "run.py",
+          "sha256": "2f771a037d29ebddd3988b00acef6d318f45d27e8aac57784cc438ae5a2f6a5e",
+          "size": 6432
+        }
+      ]
+    },
+    {
+      "id": "utilities/jsonfmt",
+      "category": "utilities",
+      "name": "JSON Formatter",
+      "description": "Validate, pretty-print, minify and explore JSON, with the position of any mistake.",
+      "version": "1.0.0",
+      "command": "jsonfmt",
+      "alias": [
+        "json"
+      ],
+      "tags": [
+        "json",
+        "developer",
+        "format",
+        "validate"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "developer",
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "83500ed8a2a029b99c33b7e11645c9d2cd2ccc550398e566aa6d3bcb6a0274c4",
+          "size": 470
+        },
+        {
+          "path": "run.py",
+          "sha256": "13b027b5ef3454cfb21f4d15e7d7f6fbda4cbe2d8105469f94b054454d1fe274",
+          "size": 6215
+        }
+      ]
+    },
+    {
+      "id": "utilities/mdedit",
+      "category": "utilities",
+      "name": "Markdown Editor",
+      "description": "Write Markdown with a live formatted preview, and export a web page.",
+      "version": "1.0.0",
+      "command": "mdedit",
+      "alias": [
+        "mdw"
+      ],
+      "tags": [
+        "markdown",
+        "editor",
+        "writing",
+        "preview"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [
+        {
+          "ref": "utilities/mdview",
+          "why": "read your notes nicely formatted"
+        }
+      ],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "productivity",
+        "developer"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "576e2f3bda5f023416500e86de3cccbb604d127f4a96d1b4715db6fc3c79029f",
+          "size": 577
+        },
+        {
+          "path": "run.py",
+          "sha256": "98529859b010d95e73689738ea7dc4a3dc675f7905ec819faad8f2b08072d48e",
+          "size": 9403
         }
       ]
     },
@@ -1475,6 +1684,123 @@
       ]
     },
     {
+      "id": "utilities/passgen",
+      "category": "utilities",
+      "name": "Password Generator",
+      "description": "Random passwords and passphrases, and a strength checker. Nothing is saved.",
+      "version": "1.0.0",
+      "command": "passgen",
+      "alias": [
+        "password",
+        "pw"
+      ],
+      "tags": [
+        "password",
+        "security",
+        "random"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "17f70726feff8611d17cd502a65866624d5db94bfbe63019c76d5b88cc595c55",
+          "size": 436
+        },
+        {
+          "path": "run.py",
+          "sha256": "8c72832c952f49839876140d6775072b78cd3f429242b8410db67bfd1ffa79c0",
+          "size": 9181
+        }
+      ]
+    },
+    {
+      "id": "utilities/qr",
+      "category": "utilities",
+      "name": "QR Codes",
+      "description": "Make QR codes for text, links, Wi-Fi and contacts - written in plain Python.",
+      "version": "1.0.0",
+      "command": "qr",
+      "alias": [
+        "qrcode"
+      ],
+      "tags": [
+        "qr",
+        "code",
+        "wifi",
+        "share"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "bd787d5ef6b45160817dbc83630f4b6b47b6a1049fb80b1cc3416ff03a144a98",
+          "size": 426
+        },
+        {
+          "path": "run.py",
+          "sha256": "f66e2a604fd9b4e7dc06fc08003eaad1c8bcb87d37333033bd175cd2f48298ed",
+          "size": 13221
+        }
+      ]
+    },
+    {
+      "id": "utilities/regextest",
+      "category": "utilities",
+      "name": "Regex Tester",
+      "description": "Try regular expressions with highlighted matches, groups and plain-English explanations.",
+      "version": "1.0.0",
+      "command": "regextest",
+      "alias": [
+        "regex"
+      ],
+      "tags": [
+        "regex",
+        "developer",
+        "text",
+        "patterns"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "developer",
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "79bdb378d3866e0e0959c735aeccafcfd0bc5ae5e3b30b28fdeaa395ab951e2f",
+          "size": 461
+        },
+        {
+          "path": "run.py",
+          "sha256": "4844145a433b01ed74abd9f6ab3a106a0d2978802b9d7f20d292dfa5546dccf6",
+          "size": 7696
+        }
+      ]
+    },
+    {
       "id": "utilities/rss",
       "category": "utilities",
       "name": "RSS Reader",
@@ -1602,6 +1928,46 @@
           "path": "run.py",
           "sha256": "535e2660ecc06c0ed06f42b1c80bd3f8f200b35cb5cf1c49e7a0a70b1bede1f4",
           "size": 5229
+        }
+      ]
+    },
+    {
+      "id": "utilities/texttools",
+      "category": "utilities",
+      "name": "Text Tools",
+      "description": "Count, change case, sort, dedupe, replace, slugify, wrap and extract links or emails.",
+      "version": "1.0.0",
+      "command": "texttools",
+      "alias": [
+        "text"
+      ],
+      "tags": [
+        "text",
+        "tools",
+        "words",
+        "case"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "066ef6f9280218ff05ba08ff22f1a06c9cbe21ba7175a03e09c2d71c04cbc496",
+          "size": 445
+        },
+        {
+          "path": "run.py",
+          "sha256": "f30441c29395be5e18d1ea993b80b46e8bfbaa48322afe178969e4b182513508",
+          "size": 6261
         }
       ]
     },

@@ -1,0 +1,26 @@
+{
+  "name": "Text Tools",
+  "description": "Count, change case, sort, dedupe, replace, slugify, wrap and extract links or emails.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "texttools",
+  "alias": [
+    "text"
+  ],
+  "tags": [
+    "text",
+    "tools",
+    "words",
+    "case"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools"
+  ],
+  "changelog": "First release."
+}

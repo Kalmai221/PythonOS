@@ -1,0 +1,26 @@
+{
+  "name": "QR Codes",
+  "description": "Make QR codes for text, links, Wi-Fi and contacts - written in plain Python.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "qr",
+  "alias": [
+    "qrcode"
+  ],
+  "tags": [
+    "qr",
+    "code",
+    "wifi",
+    "share"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools"
+  ],
+  "changelog": "First release."
+}

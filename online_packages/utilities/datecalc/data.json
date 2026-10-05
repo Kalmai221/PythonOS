@@ -1,0 +1,24 @@
+{
+  "name": "Date Calculator",
+  "description": "Days between dates, add or subtract time, day of the week, ages and countdowns.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "datecalc",
+  "alias": [
+    "date"
+  ],
+  "tags": [
+    "date",
+    "calendar",
+    "calculator",
+    "age"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "tools"
+  ],
+  "changelog": "First release."
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Password Generator",
+  "description": "Random passwords and passphrases, and a strength checker. Nothing is saved.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "passgen",
+  "alias": [
+    "password",
+    "pw"
+  ],
+  "tags": [
+    "password",
+    "security",
+    "random"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "tools"
+  ],
+  "changelog": "First release."
+}

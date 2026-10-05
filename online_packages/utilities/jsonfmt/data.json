@@ -1,0 +1,27 @@
+{
+  "name": "JSON Formatter",
+  "description": "Validate, pretty-print, minify and explore JSON, with the position of any mistake.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "jsonfmt",
+  "alias": [
+    "json"
+  ],
+  "tags": [
+    "json",
+    "developer",
+    "format",
+    "validate"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "developer",
+    "tools"
+  ],
+  "changelog": "First release."
+}

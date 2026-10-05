@@ -1,0 +1,33 @@
+{
+  "name": "Markdown Editor",
+  "description": "Write Markdown with a live formatted preview, and export a web page.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "mdedit",
+  "alias": [
+    "mdw"
+  ],
+  "tags": [
+    "markdown",
+    "editor",
+    "writing",
+    "preview"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity",
+    "developer"
+  ],
+  "optional": [
+    {
+      "ref": "utilities/mdview",
+      "why": "read your notes nicely formatted"
+    }
+  ],
+  "changelog": "First release."
+}

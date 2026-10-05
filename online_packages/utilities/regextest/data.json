@@ -1,0 +1,25 @@
+{
+  "name": "Regex Tester",
+  "description": "Try regular expressions with highlighted matches, groups and plain-English explanations.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "regextest",
+  "alias": [
+    "regex"
+  ],
+  "tags": [
+    "regex",
+    "developer",
+    "text",
+    "patterns"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "developer",
+    "tools"
+  ],
+  "changelog": "First release."
+}
