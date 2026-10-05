@@ -3,6 +3,14 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
+## 1.0.4
+- Windows: the web installer now recognises older installs (made by the offline installer or a portable copy) and updates them in place, and an update no longer deletes files it does not own (it removed boot-requirements.txt, which stopped PythonOS starting)
+- Every installer and launcher checks its requirements and downloads what is missing: the PythonOS system files and the Python libraries (Windows, Linux, Android); the web installer shows this as its own step
+- Windows: both installers offer a Start menu shortcut and a desktop shortcut; the PythonOS window always shows colour, has a slim scrollbar, smooth wheel and keyboard scrolling, and a Latest button
+- Windows: the web installer picks the ARM64 package on Windows on ARM when a release has one
+- Linux: an Arch Linux package (.pkg.tar.zst) is built next to the .deb and .tar.gz
+- Website: redesigned download and build status pages
+
 ## 1.0.3
 - Trash and undo: rm moves things to a per-user trash; undo brings the last one back; trash lists, restores and empties
 - Search tools: find (type, size, age, depth), grep (-r -n -c -l -v -w, context), tree options, and a new diff
