@@ -6,7 +6,9 @@ online_packages/index.json together with the package:
 
     python tools/build_index.py
 
-Optional data.json keys: requires (list of package ids or commands), changelog, featured (true).
+Required: permissions (a list; [] for an app that needs nothing special). Optional: requires (package ids or commands, with
+version ranges such as "utilities/notes>=1.1"), optional (nice-to-have packages), categories, changelog (a string or {version: notes}),
+featured (true).
 
 Each package is a folder online_packages/<category>/<name>/ containing a data.json
 (name, description, version, command, alias, tags, scripts) plus its files.
@@ -14,6 +16,7 @@ Each package is a folder online_packages/<category>/<name>/ containing a data.js
 import hashlib
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "online_packages")
@@ -43,6 +46,31 @@ def package_files(folder):
             sha, size = digest(full)
             files.append({"path": rel, "sha256": sha, "size": size})
     return files
+
+
+PERMISSIONS = {"network", "files", "notifications", "schedule", "system", "exec"}
+
+
+def permissions_of(meta, pid):
+    """The declared permissions, checked: every package must say what it needs, and a lockdown-safe one cannot run programs."""
+    perms = meta.get("permissions")
+    if perms is None:
+        sys.exit(f"{pid}: data.json has no 'permissions' list (use [] for an app that needs nothing special)")
+    unknown = [p for p in perms if p not in PERMISSIONS]
+    if unknown:
+        sys.exit(f"{pid}: unknown permission(s) {unknown} (known: {sorted(PERMISSIONS)})")
+    if meta.get("lockdown_safe") and "exec" in perms:
+        sys.exit(f"{pid}: a lockdown_safe package cannot ask for the 'exec' permission")
+    return list(perms)
+
+
+def load_categories():
+    path = os.path.join(ROOT, "categories.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return []
 
 
 def main():
@@ -75,12 +103,29 @@ def main():
                 "lockdown_safe": bool(meta.get("lockdown_safe", False)),
                 # other packages this one needs (ids like "utilities/notes", or their command names)
                 "requires": list(meta.get("requires", [])),
+                # nice to have, offered but not installed automatically: strings or {"ref": ..., "why": ...}
+                "optional": list(meta.get("optional", [])),
+                # what the app may do (see pyos/sandbox.py); the store shows it before installing and the guard enforces it
+                "permissions": permissions_of(meta, f"{category}/{name}"),
+                # display categories (online_packages/categories.json); falls back to the folder name
+                "categories": list(meta.get("categories") or [category]),
                 # shown in the store before installing and on update: a string, or {version: notes}
                 "changelog": meta.get("changelog", ""),
                 "featured": bool(meta.get("featured", False)),
                 "files": package_files(folder),
             })
-    index = {"format": 1, "packages": packages}
+    known = {c["id"] for c in load_categories()}
+    for p in packages:
+        for c in p["categories"]:
+            if known and c not in known and c != p["category"]:
+                sys.exit(f"{p['id']}: category '{c}' is not in categories.json")
+    ids = {p["id"] for p in packages}
+    for p in packages:
+        for spec in p["requires"]:
+            ref = re.split(r"[<>=!,\s]", spec, maxsplit=1)[0]
+            if not any(ref in (i, i.split("/")[-1]) for i in ids):
+                sys.exit(f"{p['id']}: requires '{spec}' which is not in the catalog")
+    index = {"format": 2, "categories": load_categories(), "packages": packages}
     out = os.path.join(ROOT, "index.json")
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         json.dump(index, f, indent=2)

@@ -17,6 +17,7 @@ SCHEMA = {
     "clock_24h": (True, bool, "Show times as 24-hour (off = 12-hour)"),
     "notifications": (True, bool, "Show notifications before the prompt"),
     "update_check": (True, bool, "Check for PythonOS updates in the background after login"),
+    "market_update_check": (True, bool, "Check once a day for updates to installed apps and tell you (a notification)"),
     "auto_lock_minutes": (0, int, "Ask for the password again after this many idle minutes (0 = never)"),
     "idle_logout_minutes": (0, int, "Log out (back to the login screen) after this many idle minutes (0 = never)"),
     "auto_clear_lines": (0, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),

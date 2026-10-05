@@ -1,7 +1,7 @@
 {
   "name": "Tic-Tac-Toe",
   "description": "Play tic-tac-toe against the computer.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "scripts": {
     "run": "run.py"
   },
@@ -16,6 +16,12 @@
     "classic"
   ],
   "lockdown_safe": true,
-  "changelog": "Easy, medium and unbeatable hard levels; all-time record.",
-  "permissions": []
+  "changelog": {
+    "1.1.0": "Easy, medium and unbeatable hard levels; all-time record.",
+    "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+  },
+  "permissions": [],
+  "categories": [
+    "games"
+  ]
 }

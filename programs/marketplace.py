@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import requests
@@ -16,12 +17,20 @@ from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
 
 try:
-    from pyos import lockdown
+    from pyos import lockdown, sandbox
 except ImportError:  # running outside PythonOS
     class lockdown:  # noqa: N801 - stand-in with the same interface
         enabled = staticmethod(lambda: False)
         record_package = staticmethod(lambda *a, **k: None)
         forget_package = staticmethod(lambda *a, **k: None)
+
+    class sandbox:  # noqa: N801
+        PERMISSIONS = {"network": "connect to the internet", "files": "read and change your files", "notifications": "show notifications",
+                       "schedule": "schedule tasks", "system": "read system information", "exec": "start other programs"}
+        describe = staticmethod(lambda perms: ", ".join(perms) or "nothing special")
+        granted = staticmethod(lambda pid: None)
+        set_granted = staticmethod(lambda pid, perms: None)
+        forget = staticmethod(lambda pid: None)
 
 config = {
     "name": "marketplace",
@@ -36,6 +45,11 @@ BRANCH = "main"
 RAW_BASE = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/online_packages"
 INDEX_URL = f"{RAW_BASE}/index.json"
 CACHE_FILE = Path(".OSData") / "market_index.json"
+META_FILE = Path(".OSData") / "package_meta.json"          # why each package is installed (asked for, or needed by another)
+BACKUP_DIR = Path(".OSData") / "package_backups"           # the version before the last update of each package (pkg rollback)
+CHECK_STATE = Path(".OSData") / "market_check.json"        # quiet update checks
+CHECK_INTERVAL = 24 * 3600
+CATALOG = {"categories": []}                               # filled by load_index
 FILE_CACHE = Path(".OSData") / "market_cache"          # downloaded package files by checksum: reinstalls work offline
 CATEGORY_BLURBS = {
     "games": "Something to play",
@@ -65,10 +79,13 @@ def load_index():
             index = http_get(INDEX_URL).json()
         CACHE_FILE.parent.mkdir(exist_ok=True)
         CACHE_FILE.write_text(json.dumps(index), encoding="utf-8")
+        CATALOG["categories"] = index.get("categories", [])
         return index["packages"], False
     except (requests.RequestException, ValueError, KeyError) as e:
         try:
-            cached = json.loads(CACHE_FILE.read_text(encoding="utf-8"))["packages"]
+            cached_index = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+            CATALOG["categories"] = cached_index.get("categories", [])
+            cached = cached_index["packages"]
             console.print("[yellow]Could not reach the marketplace; showing the last catalog we saw "
                           "(installing needs internet).[/yellow]")
             return cached, True
@@ -125,6 +142,34 @@ def version_key(text):
     return tuple(int(n) for n in re.findall(r"\d+", str(text))) or (0,)
 
 
+def parse_requirement(spec):
+    """'utilities/notes>=1.1,<2' -> ('utilities/notes', [('>=', '1.1'), ('<', '2')]). A bare name has no constraints."""
+    spec = str(spec).strip()
+    m = re.match(r"^([^<>=!\s]+)\s*(.*)$", spec)
+    if not m:
+        return spec, []
+    constraints = []
+    for part in [c.strip() for c in m.group(2).split(",") if c.strip()]:
+        cm = re.fullmatch(r"(>=|<=|==|!=|>|<)\s*([\d.]+)", part)
+        if cm:
+            constraints.append((cm.group(1), cm.group(2)))
+    return m.group(1), constraints
+
+
+def version_ok(version, constraints):
+    """Does `version` satisfy every (operator, version) pair?"""
+    have = version_key(version)
+    ops = {">=": lambda a, b: a >= b, "<=": lambda a, b: a <= b, "==": lambda a, b: a == b, "!=": lambda a, b: a != b,
+           ">": lambda a, b: a > b, "<": lambda a, b: a < b}
+    for op, wanted in constraints:
+        w = version_key(wanted)
+        n = max(len(have), len(w))
+        a, b = have + (0,) * (n - len(have)), w + (0,) * (n - len(w))
+        if not ops[op](a, b):
+            return False
+    return True
+
+
 def status_of(pkg, installed):
     local = installed.get(pkg["id"])
     if not local:
@@ -147,7 +192,7 @@ def score(pkg, words):
     ident = pkg["id"].lower()
     command = (pkg.get("command") or "").lower()
     aliases = [a.lower() for a in pkg.get("alias", [])]
-    tags = [t.lower() for t in pkg.get("tags", [])] + [pkg["category"].lower()]
+    tags = [t.lower() for t in pkg.get("tags", [])] + [pkg["category"].lower()] + [c.lower() for c in pkg.get("categories", [])]
     desc = pkg.get("description", "").lower()
     total = 0
     for w in words:
@@ -210,6 +255,35 @@ def changelog_for(pkg):
     return str(log).strip()
 
 
+def changelog_history(pkg):
+    """[(version, notes)] newest first, from a changelog string or {version: notes}."""
+    log = pkg.get("changelog", "")
+    if isinstance(log, dict):
+        return sorted(((v, str(n).strip()) for v, n in log.items()), key=lambda kv: version_key(kv[0]), reverse=True)
+    return [(pkg["version"], str(log).strip())] if str(log).strip() else []
+
+
+def show_notes(pkg):
+    """The release notes page: what changed in every version the catalog remembers."""
+    history = changelog_history(pkg)
+    if not history:
+        console.print("[dim]This package has no release notes.[/dim]")
+        return
+    lines = []
+    for version, notes in history:
+        lines.append(f"[bold cyan]{escape(version)}[/bold cyan]")
+        lines += [f"  {escape(line)}" for line in notes.splitlines() or [""]]
+        lines.append("")
+    console.print(Panel("\n".join(lines).rstrip(), title=f"[bold]{escape(pkg['name'])} - release notes[/bold]", border_style="blue", expand=False))
+
+
+def category_title(category_id):
+    for c in CATALOG.get("categories", []):
+        if c["id"] == category_id:
+            return c["title"]
+    return category_id.title()
+
+
 def show_packages(packages, installed, title):
     table = Table(title=title, header_style="bold blue", expand=True)
     table.add_column("#", justify="right")
@@ -220,7 +294,7 @@ def show_packages(packages, installed, title):
     table.add_column("Status")
     for i, p in enumerate(packages, 1):
         blocked = lockdown.enabled() and not p.get("lockdown_safe")
-        table.add_row(str(i), escape(p["name"]), p["category"], escape(p.get("description", "")),
+        table.add_row(str(i), escape(p["name"]), category_title(p.get("categories", [p["category"]])[0]), escape(p.get("description", "")),
                       p["version"], "[dim]not available here[/dim]" if blocked
                       else status_label(status_of(p, installed), p, installed))
     console.print(table)
@@ -233,15 +307,21 @@ def show_details(pkg, installed):
         escape(pkg.get("description", "")),
         "",
         f"[bold]Version:[/bold]  {pkg['version']}",
-        f"[bold]Category:[/bold] {pkg['category']}",
+        f"[bold]Category:[/bold] {', '.join(category_title(c) for c in pkg.get('categories', [pkg['category']]))}",
         f"[bold]Start with:[/bold] [cyan]run {pkg['command']}[/cyan]" if pkg.get("command") else "[bold]Start with:[/bold] run programs",
         f"[bold]Tags:[/bold]     {', '.join(pkg.get('tags', [])) or '-'}",
         *([f"[bold]Needs:[/bold]    {escape(', '.join(pkg['requires']))}"] if pkg.get("requires") else []),
+        *([f"[bold]Works with:[/bold] {escape(', '.join(o if isinstance(o, str) else o.get('ref', '') for o in pkg['optional']))}"] if pkg.get("optional") else []),
+        f"[bold]Can:[/bold]      {sandbox.describe(pkg['permissions']) if pkg.get('permissions') is not None else '[yellow]not stated (older package)[/yellow]'}",
         *([f"[bold]What's new:[/bold] {escape(changelog_for(pkg))}"] if changelog_for(pkg) else []),
         f"[bold]Size:[/bold]     {size / 1024:.1f} KB in {len(pkg['files'])} file(s)",
         f"[bold]Status:[/bold]   {status_label(status_of(pkg, installed), pkg, installed) or 'not installed'}"
         + (f" [dim](installed {local['version']})[/dim]" if local and status_of(pkg, installed) == "installed" else ""),
     ]
+    if local:
+        reason = _meta().get(pkg["id"], {}).get("reason")
+        if reason:
+            lines.append(f"[bold]Installed because:[/bold] {escape(reason)}")
     console.print(Panel("\n".join(lines), title=f"[bold cyan]{escape(pkg['name'])}[/bold cyan] [dim]{pkg['id']}[/dim]",
                         border_style="blue", expand=False))
 
@@ -281,8 +361,8 @@ def run_script(folder, meta, key, label):
     return code == 0
 
 
-def install_package(pkg, installed, quiet=False):
-    """Download into a temporary folder, verify every file, then swap into place."""
+def install_package(pkg, installed, quiet=False, reason="you asked for it", grant=None):
+    """Download into a temporary folder, verify every file, then swap into place. grant: the permissions to record."""
     if lockdown.enabled() and not pkg.get("lockdown_safe"):
         console.print(f"[yellow]{escape(pkg['name'])} cannot be installed on this locked-down system "
                       "(it is not marked as safe for it).[/yellow]")
@@ -311,7 +391,7 @@ def install_package(pkg, installed, quiet=False):
         if dest.exists():
             dest.rename(old)
         tmp.rename(dest)
-        shutil.rmtree(old, ignore_errors=True)
+        keep_previous(pkg["id"], old, installed.get(pkg["id"], {}).get("version"))
     except Exception as e:
         console.print(f"[bold red]Could not install {escape(pkg['name'])}: {escape(str(e))}[/bold red]")
         shutil.rmtree(tmp, ignore_errors=True)
@@ -320,6 +400,17 @@ def install_package(pkg, installed, quiet=False):
         return False
 
     lockdown.record_package(dest, pkg.get("lockdown_safe", False))   # remember its hashes (see pyos/lockdown.py)
+    if grant is not None:
+        sandbox.set_granted(pkg["id"], grant)
+    elif sandbox.granted(pkg["id"]) is None and pkg.get("permissions") is not None:
+        sandbox.set_granted(pkg["id"], pkg["permissions"])
+    if not was_installed:
+        note_reason(pkg["id"], reason)
+    if was_installed and pkg.get("permissions") is not None:
+        extra = [p for p in pkg["permissions"] if p not in (sandbox.granted(pkg["id"]) or [])]
+        if extra:
+            console.print(f"[yellow]{escape(pkg['name'])} {pkg['version']} wants new permission(s): {escape(sandbox.describe(extra))}. "
+                          f"It keeps running without them until you allow them: pkg permissions {escape(pkg['id'])}[/yellow]")
     verb = "Updated" if was_installed else "Installed"
     console.print(f"[bold green]{verb} {escape(pkg['name'])} {pkg['version']}.[/bold green]")
     meta = {}
@@ -338,8 +429,9 @@ def install_package(pkg, installed, quiet=False):
 
 
 def find_required(packages, ref):
-    """The catalog entry a `requires` reference points at (an id like utilities/notes, a command or a name)."""
-    ref = str(ref).strip().lower()
+    """The catalog entry a `requires` reference points at (an id like utilities/notes, a command or a name). Version
+    constraints in the reference ("notes>=1.1") are ignored here; see install_plan."""
+    ref = parse_requirement(ref)[0].strip().lower()
     for p in packages:
         if ref in (p["id"].lower(), p.get("command", "").lower(), p["name"].lower()):
             return p
@@ -347,17 +439,24 @@ def find_required(packages, ref):
 
 
 def install_plan(pkg, packages, installed, seen=None):
-    """Packages to install, dependencies first. Returns (ordered list, missing references)."""
+    """Packages to install, dependencies first. Returns (ordered list, missing requirements). A requirement with a version
+    range ("notes>=1.1") is satisfied by the installed copy if it is new enough, else the newer one is installed."""
     seen = seen if seen is not None else set()
     order, missing = [], []
     if pkg["id"] in seen:
         return order, missing                       # already planned (also stops dependency cycles)
     seen.add(pkg["id"])
-    for ref in pkg.get("requires", []):
+    for spec in pkg.get("requires", []):
+        ref, constraints = parse_requirement(spec)
         dep = find_required(packages, ref)
         if dep is None:
-            missing.append(ref)
-        elif status_of(dep, installed) == "":
+            missing.append(spec)
+            continue
+        if not version_ok(dep["version"], constraints):
+            missing.append(f"{spec} (the marketplace has {dep['version']})")
+            continue
+        local = installed.get(dep["id"])
+        if local is None or not version_ok(local["version"], constraints):
             sub, sub_missing = install_plan(dep, packages, installed, seen)
             order += sub
             missing += sub_missing
@@ -365,26 +464,80 @@ def install_plan(pkg, packages, installed, seen=None):
     return order, missing
 
 
-def install_with_dependencies(pkg, installed, packages, quiet=False):
-    """Install pkg after anything it requires that is not installed yet."""
+def optional_for(pkg, packages, installed):
+    """[(catalog entry, why)] for the nice-to-have packages of pkg that are not installed yet."""
+    found = []
+    for item in pkg.get("optional", []):
+        ref, why = (item.get("ref", ""), item.get("why", "")) if isinstance(item, dict) else (item, "")
+        dep = find_required(packages, ref)
+        if dep and dep["id"] not in installed and dep["id"] != pkg["id"]:
+            found.append((dep, why))
+    return found
+
+
+def size_of(pkg):
+    return sum(f.get("size", 0) for f in pkg.get("files", []))
+
+
+def human(n):
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+
+
+def show_install_plan(order, installed):
+    """What is about to be installed: size and what each package may do."""
+    table = Table(title="About to install", header_style="bold blue", expand=True)
+    for col in ("Package", "Version", "Size", "It will be able to"):
+        table.add_column(col)
+    for p in order:
+        perms = p.get("permissions")
+        what = sandbox.describe(perms) if perms is not None else "[yellow]not stated (an older package)[/yellow]"
+        table.add_row(escape(p["name"]) + (" [dim](update)[/dim]" if p["id"] in installed else ""), p["version"], human(size_of(p)), what)
+    console.print(table)
+    console.print(f"[dim]Total download: {human(sum(size_of(p) for p in order))}. Permissions are enforced while the app runs "
+                  "and can be changed any time with: pkg permissions <name>[/dim]")
+
+
+def install_with_dependencies(pkg, installed, packages, quiet=False, reason=None):
+    """Install pkg after anything it requires that is not installed yet. Not quiet: shows the size and what each package may
+    do, and asks first. Quiet (updates, starter apps): installs without asking, keeping what was allowed before."""
     order, missing = install_plan(pkg, packages, installed)
     if missing:
         console.print(f"[bold red]{escape(pkg['name'])} needs {', '.join(escape(m) for m in missing)}, "
                       "which the marketplace does not have.[/bold red]")
         return False
     needed = order[:-1]
-    if needed:
-        console.print(f"[bold]{escape(pkg['name'])}[/bold] also needs: "
-                      + ", ".join(f"[cyan]{escape(p['name'])}[/cyan]" for p in needed))
-        if not quiet and not Confirm.ask("Install those too?", default=True):
+    if not quiet:
+        show_install_plan(order, installed)
+        if needed:
+            console.print(f"[bold]{escape(pkg['name'])}[/bold] also needs: " + ", ".join(f"[cyan]{escape(p['name'])}[/cyan]" for p in needed))
+        if not Confirm.ask("Install?", default=True):
             console.print("[yellow]Cancelled.[/yellow]")
             return False
     for dep in needed:
-        if not install_package(dep, installed, quiet=True):
+        if not install_package(dep, installed, quiet=True, reason=f"needed by {pkg['name']}", grant=_grant_for(dep, quiet)):
             console.print(f"[bold red]Could not install {escape(dep['name'])}, so {escape(pkg['name'])} was not installed.[/bold red]")
             return False
         installed[dep["id"]] = {"version": dep["version"], "name": dep["name"], "path": None, "meta": {}}
-    return install_package(pkg, installed, quiet=quiet)
+    ok = install_package(pkg, installed, quiet=quiet, reason=reason or "you asked for it", grant=_grant_for(pkg, quiet))
+    if ok and not quiet:
+        for dep, why in optional_for(pkg, packages, installed):
+            if Confirm.ask(f"{escape(pkg['name'])} works better with {escape(dep['name'])}" + (f" ({escape(why)})" if why else "") + ". Install it too?",
+                           default=False):
+                install_package(dep, installed, quiet=True, reason=f"suggested by {pkg['name']}", grant=_grant_for(dep, True))
+    return ok
+
+
+def _grant_for(pkg, quiet):
+    """The permissions to record for an install. Interactive: what was shown and agreed to. Quiet: a first install gets what
+    the package declares (the user chose the app); an update keeps what was allowed before, so it can never gain power silently."""
+    declared = pkg.get("permissions")
+    previous = sandbox.granted(pkg["id"])
+    if quiet and previous is not None and declared is not None:
+        return [p for p in previous if p in declared]
+    return list(declared) if declared is not None else None
 
 
 def dependents(pid, installed, packages):
@@ -400,6 +553,134 @@ def dependents(pid, installed, packages):
             if target is not None and find_required([target], ref):
                 found.append(info["name"])
     return found
+
+
+def keep_previous(pid, old_folder, version):
+    """After an update, keep the folder of the version it replaced (one step back) for `pkg rollback`."""
+    target = BACKUP_DIR / pid.replace("/", "__")
+    shutil.rmtree(target, ignore_errors=True)
+    if old_folder.exists():
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(old_folder), str(target))
+            (target / ".previous_version").write_text(str(version or "?"), encoding="utf-8")
+        except OSError:
+            shutil.rmtree(old_folder, ignore_errors=True)
+
+
+def can_rollback(pid):
+    return (BACKUP_DIR / pid.replace("/", "__") / "data.json").is_file()
+
+
+def rollback_package(pid, info):
+    """Put the version from before the last update back."""
+    backup = BACKUP_DIR / pid.replace("/", "__")
+    if not can_rollback(pid):
+        console.print("[yellow]There is no earlier version of this package to go back to (rollback works once, right after an update).[/yellow]")
+        return False
+    previous = (backup / ".previous_version").read_text(encoding="utf-8").strip() if (backup / ".previous_version").exists() else "?"
+    if not Confirm.ask(f"Go back to {escape(info['name'])} {previous} (from {info['version']})?", default=False):
+        return False
+    folder = info["path"]
+    swap = BACKUP_DIR / (pid.replace("/", "__") + ".swap")
+    shutil.rmtree(swap, ignore_errors=True)
+    try:
+        shutil.move(str(folder), str(swap))
+        shutil.move(str(backup), str(folder))
+        (folder / ".previous_version").unlink(missing_ok=True)
+    except OSError as e:
+        console.print(f"[bold red]Could not roll back: {escape(str(e))}[/bold red]")
+        if swap.exists() and not folder.exists():
+            shutil.move(str(swap), str(folder))
+        return False
+    shutil.rmtree(swap, ignore_errors=True)
+    lockdown.record_package(folder, bool(info.get("meta", {}).get("lockdown_safe")))
+    console.print(f"[bold green]{escape(info['name'])} is back at {previous}.[/bold green] Updating again brings the newer one back.")
+    refresh_shell()
+    return True
+
+
+def _meta():
+    try:
+        return json.loads(META_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def note_reason(pid, reason):
+    data = _meta()
+    data[pid] = {"reason": reason, "time": time.time()}
+    try:
+        META_FILE.parent.mkdir(exist_ok=True)
+        META_FILE.write_text(json.dumps(data), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def forget_reason(pid):
+    data = _meta()
+    if data.pop(pid, None) is not None:
+        try:
+            META_FILE.write_text(json.dumps(data), encoding="utf-8")
+        except OSError:
+            pass
+
+
+def explain_why(pkg, installed, packages):
+    """pkg why <name>: why it is installed and what depends on it."""
+    local = installed.get(pkg["id"])
+    if not local:
+        console.print(f"[yellow]{escape(pkg['name'])} is not installed.[/yellow]")
+        users = [p["name"] for p in packages if any(find_required([pkg], r) for r in p.get("requires", [])) and p["id"] in installed]
+        if users:
+            console.print(f"Installed packages that would need it: {escape(', '.join(users))}")
+        return
+    info = _meta().get(pkg["id"], {})
+    reason = info.get("reason", "it was installed before the store kept track")
+    console.print(f"[bold]{escape(pkg['name'])}[/bold] is installed because {escape(reason)}"
+                  + (f" ({time.strftime('%Y-%m-%d', time.localtime(info['time']))})." if info.get("time") else "."))
+    users = dependents(pkg["id"], installed, packages)
+    if users:
+        console.print(f"These installed packages need it: [cyan]{escape(', '.join(users))}[/cyan] - removing it may stop them working.")
+    else:
+        console.print("[dim]Nothing else installed needs it, so it can be removed safely.[/dim]")
+    needs = [find_required(packages, r) for r in pkg.get("requires", [])]
+    if pkg.get("requires"):
+        console.print("It needs: " + ", ".join(escape(str(r)) for r in pkg["requires"]))
+
+
+def permissions_command(pkg, installed, args):
+    """pkg permissions <name> [grant|revoke <permission>]"""
+    local = installed.get(pkg["id"])
+    if not local:
+        console.print(f"[yellow]{escape(pkg['name'])} is not installed.[/yellow]")
+        return False
+    declared = pkg.get("permissions") if pkg.get("permissions") is not None else (local.get("meta", {}).get("permissions"))
+    declared = declared if declared is not None else list(getattr(sandbox, "LEGACY_DEFAULT", []))
+    allowed = sandbox.granted(pkg["id"])
+    if allowed is None:
+        allowed = [p for p in declared]
+    if args and args[0] in ("grant", "revoke") and len(args) > 1:
+        perm = args[1].lower()
+        if perm not in sandbox.PERMISSIONS:
+            console.print(f"[red]Unknown permission '{escape(perm)}'. Known: {', '.join(sandbox.PERMISSIONS)}[/red]")
+            return False
+        if args[0] == "grant":
+            if perm not in declared:
+                console.print(f"[yellow]{escape(pkg['name'])} does not ask for '{perm}', so there is nothing to allow.[/yellow]")
+                return False
+            allowed = sorted(set(allowed) | {perm})
+        else:
+            allowed = [p for p in allowed if p != perm]
+        sandbox.set_granted(pkg["id"], allowed)
+        console.print(f"[green]{escape(pkg['name'])}: {'allowed' if args[0] == 'grant' else 'blocked'} {perm}.[/green]")
+    table = Table(title=f"{pkg['name']} - permissions", header_style="bold blue")
+    for col in ("Permission", "What it allows", "Asked for", "Allowed"):
+        table.add_column(col)
+    for perm, text in sandbox.PERMISSIONS.items():
+        table.add_row(perm, text, "yes" if perm in declared else "", "[green]yes[/green]" if perm in allowed else "[red]no[/red]" if perm in declared else "")
+    console.print(table)
+    return True
 
 
 def remove_package(pid, info, quiet=False, packages=None, installed=None):
@@ -423,6 +704,9 @@ def remove_package(pid, info, quiet=False, packages=None, installed=None):
         console.print(f"[bold red]Could not delete {folder}: {e}[/bold red]")
         return False
     lockdown.forget_package(folder)
+    sandbox.forget(pid)
+    forget_reason(pid)
+    shutil.rmtree(BACKUP_DIR / pid.replace("/", "__"), ignore_errors=True)
     console.print(f"[bold green]Removed {escape(info['name'])}.[/bold green]")
     if not quiet:
         refresh_shell()
@@ -460,6 +744,12 @@ def manage(pkg, installed, packages):
             actions.insert(0, "update")
         if status:
             actions.insert(len(actions) - 1, "remove")
+            actions.insert(len(actions) - 1, "permissions")
+            actions.insert(len(actions) - 1, "why")
+            if can_rollback(pkg["id"]):
+                actions.insert(len(actions) - 1, "rollback")
+        if changelog_history(pkg) and len(changelog_history(pkg)) > 1:
+            actions.insert(len(actions) - 1, "notes")
         action = Prompt.ask("What now?", choices=actions, default=actions[0])
         if action == "back":
             return
@@ -467,6 +757,21 @@ def manage(pkg, installed, packages):
             install_with_dependencies(pkg, installed, packages)
         elif action == "remove":
             remove_package(pkg["id"], installed[pkg["id"]], packages=packages, installed=installed)
+        elif action == "permissions":
+            permissions_command(pkg, installed, [])
+            if Confirm.ask("Change a permission?", default=False):
+                which = Prompt.ask("Permission", choices=list(sandbox.PERMISSIONS))
+                what = Prompt.ask("Allow or block", choices=["grant", "revoke"], default="revoke")
+                permissions_command(pkg, installed, [what, which])
+            continue
+        elif action == "why":
+            explain_why(pkg, installed, packages)
+            continue
+        elif action == "rollback":
+            rollback_package(pkg["id"], installed[pkg["id"]])
+        elif action == "notes":
+            show_notes(pkg)
+            continue
         installed.clear()
         installed.update(installed_packages())
         return
@@ -486,21 +791,30 @@ def pick_from(packages, installed, title):
 
 
 def browse(packages, installed):
-    cats = sorted({p["category"] for p in packages})
+    """Categories come from the catalog (online_packages/categories.json); a package can be in several."""
+    known = CATALOG.get("categories") or []
+    titles = {c["id"]: c for c in known}
+    members = {}
+    for p in packages:
+        for c in p.get("categories", [p["category"]]):
+            members.setdefault(c, []).append(p)
+    order = [c["id"] for c in known if c["id"] in members] + sorted(c for c in members if c not in titles)
     table = Table(title="Categories", header_style="bold blue")
     table.add_column("#", justify="right")
     table.add_column("Category", style="magenta")
-    table.add_column("Packages", justify="right")
+    table.add_column("Apps", justify="right")
     table.add_column("About")
     table.add_row("0", "[bold]All[/bold]", str(len(packages)), "Everything, A to Z")
-    for i, c in enumerate(cats, 1):
-        table.add_row(str(i), c, str(sum(1 for p in packages if p["category"] == c)), CATEGORY_BLURBS.get(c, ""))
+    for i, c in enumerate(order, 1):
+        info = titles.get(c, {"title": c.title(), "blurb": CATEGORY_BLURBS.get(c, "")})
+        table.add_row(str(i), info["title"], str(len(members[c])), info.get("blurb", ""))
     console.print(table)
     n = IntPrompt.ask("Choose a category (blank to go back)", default=-1)
     if n == 0:
         pick_from(sorted(packages, key=lambda p: p["name"].lower()), installed, "All packages")
-    elif 1 <= n <= len(cats):
-        pick_from([p for p in packages if p["category"] == cats[n - 1]], installed, f"{cats[n - 1].title()} packages")
+    elif 1 <= n <= len(order):
+        c = order[n - 1]
+        pick_from(sorted(members[c], key=lambda p: p["name"].lower()), installed, f"{titles.get(c, {'title': c.title()})['title']}")
 
 
 def main_menu():
@@ -563,6 +877,43 @@ def show_installed(packages, installed):
     console.print(table)
 
 
+# ------------------------------------------------------------ quiet checks
+def check_updates_quietly(user=None, force=False):
+    """At most once a day (and only when the market_update_check setting is on): compare installed packages with the
+    catalog and post one notification when updates are waiting. No output, never raises. Returns the number waiting."""
+    try:
+        try:
+            from pyos import notify, settings
+            if not force and not settings.get("market_update_check"):
+                return 0
+        except ImportError:
+            notify = None
+        try:
+            state = json.loads(CHECK_STATE.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            state = {}
+        if not force and time.time() - state.get("last", 0) < CHECK_INTERVAL:
+            return 0
+        installed = installed_packages()
+        if not installed:
+            return 0
+        index = http_get(INDEX_URL).json()
+        CATALOG["categories"] = index.get("categories", [])
+        waiting = sorted(p["id"] for p in index["packages"] if status_of(p, installed) == "update")
+        state["last"] = time.time()
+        if waiting and state.get("notified") != waiting and notify:
+            names = ", ".join(p["name"] for p in index["packages"] if p["id"] in waiting[:3])
+            more = f" and {len(waiting) - 3} more" if len(waiting) > 3 else ""
+            notify.notify(f"{len(waiting)} app update(s) available: {names}{more}. Install them with: pkg update all",
+                          title="Marketplace", user=user)
+            state["notified"] = waiting
+        CHECK_STATE.parent.mkdir(exist_ok=True)
+        CHECK_STATE.write_text(json.dumps(state), encoding="utf-8")
+        return len(waiting)
+    except Exception:
+        return 0
+
+
 # ------------------------------------------------------------ command line
 HELP = """[bold]marketplace[/bold] (also: market, store, pkg)
 
@@ -575,6 +926,10 @@ HELP = """[bold]marketplace[/bold] (also: market, store, pkg)
   marketplace update all         update every package that has a newer version
   marketplace featured           hand-picked packages
   marketplace list               show installed packages
+  marketplace why <name>         why a package is installed, and what needs it
+  marketplace permissions <name> [grant|revoke <permission>]   what an app may do (enforced while it runs)
+  marketplace notes <name>       the release notes of every version
+  marketplace rollback <name>    go back to the version before the last update
 
 Some packages need others; they are installed together (and you are asked first)."""
 
@@ -599,6 +954,20 @@ def cli(args):
             show_packages(results, installed, f"Results for '{query}'" if query else "All packages")
         else:
             console.print(f"[yellow]Nothing matches '{escape(query)}'.[/yellow]")
+    elif cmd in ("why", "permissions", "perms", "notes", "changelog", "rollback"):
+        pkg = choose(resolve(packages, rest[0]), installed) if rest else None
+        if not pkg:
+            console.print(f"[yellow]Usage: marketplace {cmd} <name>[/yellow]")
+        elif cmd == "why":
+            explain_why(pkg, installed, packages)
+        elif cmd in ("permissions", "perms"):
+            permissions_command(pkg, installed, rest[1:])
+        elif cmd in ("notes", "changelog"):
+            show_notes(pkg)
+        elif pkg["id"] in installed:
+            rollback_package(pkg["id"], installed[pkg["id"]])
+        else:
+            console.print("[yellow]That package is not installed.[/yellow]")
     elif cmd in ("featured", "popular"):
         show_packages([p for p in packages if p.get("featured")] or packages[:8], installed, "Featured packages")
     elif cmd in ("info", "show"):

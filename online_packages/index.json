@@ -1,12 +1,49 @@
 {
-  "format": 1,
+  "format": 2,
+  "categories": [
+    {
+      "id": "productivity",
+      "title": "Productivity",
+      "blurb": "Get things done: lists, notes, calendar, clock"
+    },
+    {
+      "id": "games",
+      "title": "Games",
+      "blurb": "Something to play"
+    },
+    {
+      "id": "tools",
+      "title": "Tools",
+      "blurb": "Everyday helpers"
+    },
+    {
+      "id": "network",
+      "title": "Network and online",
+      "blurb": "News, weather and network tools"
+    },
+    {
+      "id": "system",
+      "title": "System",
+      "blurb": "Look after this computer"
+    },
+    {
+      "id": "learning",
+      "title": "Learning",
+      "blurb": "Practise and learn"
+    },
+    {
+      "id": "developer",
+      "title": "Developer",
+      "blurb": "For people who write code"
+    }
+  ],
   "packages": [
     {
       "id": "developer/python",
       "category": "developer",
       "name": "Python",
       "description": "Run Python files or use an interactive Python prompt.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "command": "python",
       "alias": [],
       "tags": [
@@ -17,13 +54,24 @@
       ],
       "lockdown_safe": false,
       "requires": [],
-      "changelog": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
+      "optional": [],
+      "permissions": [
+        "exec",
+        "files"
+      ],
+      "categories": [
+        "developer"
+      ],
+      "changelog": {
+        "2.0.0": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "43545918502680c0f07fe03d6dbe858a3b4333fe583c8c68c729a7270b07bbfb",
-          "size": 417
+          "sha256": "7b1e62fa5b9ff3fda33b36250038ec51c1151e51930685ddd8a8e18e29238474",
+          "size": 716
         },
         {
           "path": "run.py",
@@ -37,7 +85,7 @@
       "category": "games",
       "name": "Chess",
       "description": "Play chess against the computer: full rules, three difficulty levels.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "command": "chess",
       "alias": [],
       "tags": [
@@ -48,13 +96,21 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": {
+        "2.0.0": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "8865ab4ecc2538b735f656c816683fbe2d4244e7a544b5bb1e1e2ec821021979",
-          "size": 430
+          "sha256": "af330c45d50174a3f6c325a6b0e14b0833b9c43f524277c985783708e8868dbf",
+          "size": 698
         },
         {
           "path": "run.py",
@@ -68,7 +124,7 @@
       "category": "games",
       "name": "2048",
       "description": "Slide and merge tiles to reach 2048.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "2048",
       "alias": [],
       "tags": [
@@ -78,13 +134,21 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "d03031d15df6e7fae996c8c76b1b83391964ff77389f7f1443c6ec78c341edd8",
-          "size": 291
+          "sha256": "7263332f03948fd1520e27bc99ab44cd45ff872a41aa79c25c6a9f9b7b1af743",
+          "size": 559
         },
         {
           "path": "run.py",
@@ -98,7 +162,7 @@
       "category": "games",
       "name": "Hangman",
       "description": "Guess the word before the drawing is finished.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "command": "hangman",
       "alias": [],
       "tags": [
@@ -109,18 +173,26 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "Four word categories and a won/lost record; no more screen clearing between guesses.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": {
+        "1.1.0": "Four word categories and a won/lost record; no more screen clearing between guesses.",
+        "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "4d1382fb458d56dcbcb18d59a3fa9b075fc4412e85d361aa1a5af07cea3156d2",
-          "size": 390
+          "sha256": "7a51ce8a6b094b844603bbd05e461ad122aabf817aa632b23cafba1828f1c8ae",
+          "size": 658
         },
         {
           "path": "run.py",
-          "sha256": "42a8db18cd8e2a2518aaa45853c2bb9d69c323038194b429bf95a7b7c02c2a38",
-          "size": 3479
+          "sha256": "3df03013a56fb230a45dfadc34459cb9ca89f4f54004349bca26519d1dd029ec",
+          "size": 3555
         }
       ]
     },
@@ -129,7 +201,7 @@
       "category": "games",
       "name": "Snake",
       "description": "Classic snake: real-time with arrow keys, or turn by turn where keys are limited.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "snake",
       "alias": [],
       "tags": [
@@ -139,13 +211,21 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "c56dafaa87d69b285de5f1537b9aeb84ca0e11e05a88ab6bd612fddde792212f",
-          "size": 358
+          "sha256": "bebb74b7bd70a2b59e8f5c9f5ee483ad5be88867bc6f1fed5101ac27738a4fd8",
+          "size": 626
         },
         {
           "path": "run.py",
@@ -159,7 +239,7 @@
       "category": "games",
       "name": "Tic-Tac-Toe",
       "description": "Play tic-tac-toe against the computer.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "command": "tictactoe",
       "alias": [
         "ttt"
@@ -172,18 +252,26 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "Easy, medium and unbeatable hard levels; all-time record.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": {
+        "1.1.0": "Easy, medium and unbeatable hard levels; all-time record.",
+        "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "955fda5253ee8718b499993d917144974cee5c53efab4f1776a8bf9660a8fd03",
-          "size": 371
+          "sha256": "23f65e7865d361c26528396f56745b29be8be8f9fc312bb7046c6de92159f6d2",
+          "size": 639
         },
         {
           "path": "run.py",
-          "sha256": "961e5b6f83c4dd024b3c65e17bfbec06788cf6d389d4cbd2c6b603baa1b1dd66",
-          "size": 4130
+          "sha256": "7ab3f6256f5760bd29fa8e4b339409f14d9e4fddc21046fd71edab688718a484",
+          "size": 4206
         }
       ]
     },
@@ -192,7 +280,7 @@
       "category": "games",
       "name": "Trivia",
       "description": "Ten multiple-choice questions, built in or fetched online.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "trivia",
       "alias": [],
       "tags": [
@@ -202,13 +290,24 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release: 45 built-in questions plus the Open Trivia Database.",
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "categories": [
+        "games",
+        "learning"
+      ],
+      "changelog": {
+        "1.0.0": "First release: 45 built-in questions plus the Open Trivia Database.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "44b28f73549280a3a5efa063c762b272ac853286c042744946aaaae54d5ab815",
-          "size": 370
+          "sha256": "4a18bd278fa77bc0c8ecbe0de2102c3638a8e82ee26c07d5743845b69d377a1a",
+          "size": 671
         },
         {
           "path": "run.py",
@@ -222,7 +321,7 @@
       "category": "games",
       "name": "Typing Test",
       "description": "Measure your typing speed and accuracy.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "command": "typingtest",
       "alias": [],
       "tags": [
@@ -233,13 +332,22 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "learning",
+        "games"
+      ],
+      "changelog": {
+        "2.0.0": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "851341d9ec3d7ee412997cf9bc4bcfaefbdcf42c64bc35852f2238df703a7b3f",
-          "size": 410
+          "sha256": "8fd1d03be36562ef8ab64594dc9e8db051d34437023ce917b148db94bf2f79ef",
+          "size": 694
         },
         {
           "path": "run.py",
@@ -253,7 +361,7 @@
       "category": "games",
       "name": "Wordle",
       "description": "Guess the five-letter word in six tries; a new daily word every day.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "wordle",
       "alias": [],
       "tags": [
@@ -264,13 +372,22 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release: daily and random words, on-screen keyboard, streaks.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games",
+        "learning"
+      ],
+      "changelog": {
+        "1.0.0": "First release: daily and random words, on-screen keyboard, streaks.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "3fd32c5966f045bc2ff841ebcd3f12ba32ec33fb336c7174fa71457e776a86ad",
-          "size": 411
+          "sha256": "678ad2c7e5e740dc42e6730975c07db58d59a074d262d4404e7bd49b42e04ecf",
+          "size": 695
         },
         {
           "path": "run.py",
@@ -284,7 +401,7 @@
       "category": "utilities",
       "name": "Calendar",
       "description": "A month view with events and reminders that arrive as notifications.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "calendar",
       "alias": [
         "cal",
@@ -298,18 +415,34 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release: month view, events, reminders, 'calendar today'.",
+      "optional": [
+        {
+          "ref": "utilities/clock",
+          "why": "timers and alarms next to your events"
+        }
+      ],
+      "permissions": [
+        "notifications",
+        "schedule"
+      ],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": {
+        "1.0.0": "First release: month view, events, reminders, 'calendar today'.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "1532d7f90ede45145f3aaf0630463479034fa9ff1ec67004df1891a002eb766f",
-          "size": 453
+          "sha256": "e32e63b0e63ab6c021d979a8dd4266dca626d750e02042d21b38135be9746010",
+          "size": 885
         },
         {
           "path": "run.py",
-          "sha256": "bf1c8d1dbd7dfe90eda4a325473a728ef64e48a83ed8c957ddf1bfa1b6b543b8",
-          "size": 8831
+          "sha256": "be1abbf3db2c588478ccebaf9df3875a3af6e09af08fdb8ad0fe492f06531fb8",
+          "size": 8854
         }
       ]
     },
@@ -318,7 +451,7 @@
       "category": "utilities",
       "name": "Clock",
       "description": "Time, world clocks, timer, stopwatch and alarms in one app.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "clock",
       "alias": [
         "timer",
@@ -334,18 +467,30 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release: world clocks, timer with presets, stopwatch with laps, alarms that ring even when the app is closed.",
+      "optional": [],
+      "permissions": [
+        "notifications",
+        "schedule"
+      ],
+      "categories": [
+        "productivity",
+        "tools"
+      ],
+      "changelog": {
+        "1.0.0": "First release: world clocks, timer with presets, stopwatch with laps, alarms that ring even when the app is closed.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "3bf268fb572473fb4ac1719ffb330ea184418897b79fff06b198b4143507c982",
-          "size": 509
+          "sha256": "34bcb65b6f5dcd43ccb1e5a0973b570e69c02ccbf51b5f52d1aeed864a48d20e",
+          "size": 836
         },
         {
           "path": "run.py",
-          "sha256": "a1ae992465b655da026b822ab19e83169d6b839d20f2cab76d1e82c30fa56f75",
-          "size": 10099
+          "sha256": "67f1d2ec12fa3e80e259f09f52f914406bd65a384e8e99793d6e14d3d2004e7a",
+          "size": 10122
         }
       ]
     },
@@ -354,7 +499,7 @@
       "category": "utilities",
       "name": "Converter",
       "description": "Unit converter and a calculator that remembers its history.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "convert",
       "alias": [
         "units"
@@ -367,18 +512,26 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release: ten unit categories, calculator with history and 'ans'.",
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": {
+        "1.0.0": "First release: ten unit categories, calculator with history and 'ans'.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "84f8d65667822857af03fc1fe0dcf7cbb7830bcdcdf481b91e65238a20ffa2d4",
-          "size": 415
+          "sha256": "54cc3dde84afe786f7aee60fc1bcc6cf5d1a565c3451a2339a06f14a8423d95a",
+          "size": 683
         },
         {
           "path": "run.py",
-          "sha256": "8f649c45a88752f0575c23851670c2ce80bcd9cdf80320a5d457b3cdd63d9019",
-          "size": 11093
+          "sha256": "7e605ff9daf2fdfe860011e4780b9bfe4d2700ba490eaa42abc41f8d7396d603",
+          "size": 11116
         }
       ]
     },
@@ -387,7 +540,7 @@
       "category": "utilities",
       "name": "File Manager",
       "description": "Browse, open, copy, move, rename, delete and search files.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "files",
       "alias": [
         "fm"
@@ -399,13 +552,24 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release.",
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "system",
+        "tools"
+      ],
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": true,
       "files": [
         {
           "path": "data.json",
-          "sha256": "a14a04e2cb397d84993efc7955a889ab5ee8b8b286d654cc3005bce08df13e50",
-          "size": 355
+          "sha256": "73011caeef45100b1ec5a320d7dec813195545691e4473000ce83f1936402fc5",
+          "size": 652
         },
         {
           "path": "run.py",
@@ -419,7 +583,7 @@
       "category": "utilities",
       "name": "Markdown Viewer",
       "description": "Read your notes and markdown files nicely formatted.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "mdview",
       "alias": [
         "md",
@@ -432,15 +596,25 @@
       ],
       "lockdown_safe": true,
       "requires": [
-        "utilities/notes"
+        "utilities/notes>=1.1"
       ],
-      "changelog": "First release (needs the Notes app).",
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": {
+        "1.0.0": "First release (needs the Notes app).",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "7a000df063082adb1002c5947effebece8f4235e2bb07d462eb84830b7de08b8",
-          "size": 415
+          "sha256": "a35d675fbac6bd40307b1e367652ef8636766213bc0065ebaa5d1a9f8d0c5edb",
+          "size": 710
         },
         {
           "path": "run.py",
@@ -454,7 +628,7 @@
       "category": "utilities",
       "name": "Network Tools",
       "description": "Connection check, DNS lookup, port test, TCP ping, web page check.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "nettools",
       "alias": [
         "net"
@@ -467,13 +641,24 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release.",
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "categories": [
+        "network",
+        "system"
+      ],
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "57ce597bf1814e10c290ec9212b7ffab7205c763f519ddb5f1d13e9399f11cbe",
-          "size": 357
+          "sha256": "6e547aabaa3c9d22ad06e1426b76a0bbe1e9aa4d76e6753785d0a412ee82654e",
+          "size": 658
         },
         {
           "path": "run.py",
@@ -487,7 +672,7 @@
       "category": "utilities",
       "name": "Notes",
       "description": "Write and read notes, stored as text files in ~/notes.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "command": "notes",
       "alias": [],
       "tags": [
@@ -497,18 +682,33 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "Search your notes and edit them with the built-in editor; fixed the menu showing without its letters.",
+      "optional": [
+        {
+          "ref": "utilities/mdview",
+          "why": "read your notes nicely formatted"
+        }
+      ],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": {
+        "1.1.0": "Search your notes and edit them with the built-in editor; fixed the menu showing without its letters.",
+        "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "df4113eb1bf6675e64b1dda7bd92aaa909e1aa349f0e9f3542d0573110869510",
-          "size": 404
+          "sha256": "df50ba57eb5e1cfe9c27192b852698e987ba43fa03493689952e22570c076648",
+          "size": 808
         },
         {
           "path": "run.py",
-          "sha256": "df36144266e42974f25cb47364c0d2a79358ca2e72c68119931e7131a76755bf",
-          "size": 3780
+          "sha256": "3a3ef72dbc7d1738ad77d7a06fedd1beb1893b7d8231c039f4416e6bcf38d66e",
+          "size": 3856
         }
       ]
     },
@@ -517,7 +717,7 @@
       "category": "utilities",
       "name": "RSS Reader",
       "description": "Follow news feeds and read headlines, with offline copies.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "rss",
       "alias": [
         "news"
@@ -530,13 +730,23 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release.",
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "categories": [
+        "network"
+      ],
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "2af84d2e653d4b92a4226a3a711a5b839b48788d048886ff55ae26db33753b8e",
-          "size": 341
+          "sha256": "290eeffb9a6e5746ccf45ec3d0c873187dea270f68f60d4b65ebae1c4f250511",
+          "size": 628
         },
         {
           "path": "run.py",
@@ -550,7 +760,7 @@
       "category": "utilities",
       "name": "Snippets",
       "description": "A clipboard and a library of named snippets, stored as plain files.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "snippets",
       "alias": [
         "clip",
@@ -564,13 +774,24 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "productivity",
+        "developer"
+      ],
+      "changelog": {
+        "1.0.0": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "4893446213753031e0d2cf6fb204659f86bb10486d7a2ed490a3d63152e8f888",
-          "size": 441
+          "sha256": "3254e29a21c6409e69f29838c70c190ee0d0277d4404ad068d0e1cb8cf58122a",
+          "size": 748
         },
         {
           "path": "run.py",
@@ -584,7 +805,7 @@
       "category": "utilities",
       "name": "System Monitor",
       "description": "A live dashboard of CPU, memory, disk and network.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "sysmon",
       "alias": [
         "monitor"
@@ -597,13 +818,23 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "First release.",
+      "optional": [],
+      "permissions": [
+        "system"
+      ],
+      "categories": [
+        "system"
+      ],
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "5e3fc223aebea8506889677c2a83cbbfaff740a9ca450ae3eeea9998db55d5f6",
-          "size": 347
+          "sha256": "5b611206f719456ff9de868aad6044ed107c6e5ed97ff74e114027276455a32f",
+          "size": 632
         },
         {
           "path": "run.py",
@@ -617,7 +848,7 @@
       "category": "utilities",
       "name": "To-do List",
       "description": "Keep a simple to-do list saved in your home folder.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "command": "todo",
       "alias": [],
       "tags": [
@@ -627,18 +858,28 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "Edit tasks, 'todo add/list/done/remove' from the shell, fixed the menu showing without its letters.",
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": {
+        "1.1.0": "Edit tasks, 'todo add/list/done/remove' from the shell, fixed the menu showing without its letters.",
+        "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "3f3b67b03805ffa6a264d721796c78cd28051a6a83700d2e4bbee3c222997111",
-          "size": 401
+          "sha256": "0ef2ec24352d33a96f9937559415f268f3941f441d930ca934400298c3b16a1d",
+          "size": 691
         },
         {
           "path": "run.py",
-          "sha256": "45c5627a56a1896b76bc019834e9bab8e710d0fe5521e2fdae078e31ecd18ee0",
-          "size": 3342
+          "sha256": "144e5e797d13f74d9d20afe0164b6e290bec469f06f340a6e6229e659417215b",
+          "size": 3453
         }
       ]
     },
@@ -647,7 +888,7 @@
       "category": "utilities",
       "name": "Weather",
       "description": "Check the current weather for any city (needs internet).",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "command": "weather",
       "alias": [],
       "tags": [
@@ -657,18 +898,29 @@
       ],
       "lockdown_safe": true,
       "requires": [],
-      "changelog": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "categories": [
+        "network",
+        "tools"
+      ],
+      "changelog": {
+        "1.1.0": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
+        "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "5d7169f98f95899c4cf5a6d529a81a1f8f3a7eea21b1448a7464a1375ea4ad2f",
-          "size": 402
+          "sha256": "7053dc87d9e529b31222d449e2197040ef31f784296dc0d0381293f0dd1889cc",
+          "size": 702
         },
         {
           "path": "run.py",
-          "sha256": "490e58f17a2af38181cfe2c23447736ebd015f80dda0993cb059aa57233496a8",
-          "size": 4257
+          "sha256": "b6d0226bfb07478a3eab540bb554dd4c8e76c5b7b6243612419a37202a458b2e",
+          "size": 4323
         }
       ]
     }

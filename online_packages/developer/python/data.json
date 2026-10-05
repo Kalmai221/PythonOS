@@ -1,7 +1,7 @@
 {
   "name": "Python",
   "description": "Run Python files or use an interactive Python prompt.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "scripts": {
     "run": "run.py"
   },
@@ -13,10 +13,16 @@
     "repl",
     "coding"
   ],
-  "changelog": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
+  "changelog": {
+    "2.0.0": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
+    "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+  },
   "lockdown_safe": false,
   "permissions": [
     "exec",
     "files"
+  ],
+  "categories": [
+    "developer"
   ]
 }

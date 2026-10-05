@@ -1,7 +1,7 @@
 {
   "name": "Weather",
   "description": "Check the current weather for any city (needs internet).",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "scripts": {
     "run": "run.py"
   },
@@ -13,8 +13,15 @@
     "temperature"
   ],
   "lockdown_safe": true,
-  "changelog": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
+  "changelog": {
+    "1.1.0": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
+    "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+  },
   "permissions": [
     "network"
+  ],
+  "categories": [
+    "network",
+    "tools"
   ]
 }

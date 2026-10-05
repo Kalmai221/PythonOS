@@ -478,6 +478,18 @@ def reload_all():
     console.print("[bold green]Reload complete![/bold green]")
 
 
+def _market_check(username):
+    """Background: tell the user once a day when app updates are waiting (quiet when there are none)."""
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("marketplace_check", os.path.join("programs", "marketplace.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module.check_updates_quietly(username)
+    except Exception:
+        pass
+
+
 # ----------------------------------------------------------- idle logout
 class IdleWatch(threading.Thread):
     """Logs a user out after the idle_logout_minutes setting passes with nobody typing. It wakes the prompt by
@@ -591,6 +603,8 @@ def start_shell(username):
         sysupdate.check_in_background(username)
     except Exception:
         pass
+
+    threading.Thread(target=_market_check, args=(username,), name="market-check", daemon=True).start()
 
     last_activity = time.time()
     idle = IdleWatch(username)

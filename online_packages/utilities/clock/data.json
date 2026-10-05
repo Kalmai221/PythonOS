@@ -1,7 +1,7 @@
 {
   "name": "Clock",
   "description": "Time, world clocks, timer, stopwatch and alarms in one app.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "run": "run.py"
   },
@@ -19,10 +19,17 @@
     "clock"
   ],
   "lockdown_safe": true,
-  "changelog": "First release: world clocks, timer with presets, stopwatch with laps, alarms that ring even when the app is closed.",
+  "changelog": {
+    "1.0.0": "First release: world clocks, timer with presets, stopwatch with laps, alarms that ring even when the app is closed.",
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+  },
   "featured": true,
   "permissions": [
     "notifications",
     "schedule"
+  ],
+  "categories": [
+    "productivity",
+    "tools"
   ]
 }

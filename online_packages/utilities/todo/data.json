@@ -1,7 +1,7 @@
 {
   "name": "To-do List",
   "description": "Keep a simple to-do list saved in your home folder.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "scripts": {
     "run": "run.py"
   },
@@ -13,8 +13,14 @@
     "list"
   ],
   "lockdown_safe": true,
-  "changelog": "Edit tasks, 'todo add/list/done/remove' from the shell, fixed the menu showing without its letters.",
+  "changelog": {
+    "1.1.0": "Edit tasks, 'todo add/list/done/remove' from the shell, fixed the menu showing without its letters.",
+    "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+  },
   "permissions": [
     "files"
+  ],
+  "categories": [
+    "productivity"
   ]
 }

@@ -1,7 +1,7 @@
 {
   "name": "System Monitor",
   "description": "A live dashboard of CPU, memory, disk and network.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "run": "run.py"
   },
@@ -16,8 +16,14 @@
     "memory"
   ],
   "lockdown_safe": true,
-  "changelog": "First release.",
+  "changelog": {
+    "1.0.0": "First release.",
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+  },
   "permissions": [
+    "system"
+  ],
+  "categories": [
     "system"
   ]
 }

@@ -1,7 +1,7 @@
 {
   "name": "Snippets",
   "description": "A clipboard and a library of named snippets, stored as plain files.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "run": "run.py"
   },
@@ -17,8 +17,15 @@
     "productivity"
   ],
   "lockdown_safe": true,
-  "changelog": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
+  "changelog": {
+    "1.0.0": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+  },
   "permissions": [
     "files"
+  ],
+  "categories": [
+    "productivity",
+    "developer"
   ]
 }

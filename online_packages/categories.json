@@ -1,0 +1,37 @@
+[
+  {
+    "id": "productivity",
+    "title": "Productivity",
+    "blurb": "Get things done: lists, notes, calendar, clock"
+  },
+  {
+    "id": "games",
+    "title": "Games",
+    "blurb": "Something to play"
+  },
+  {
+    "id": "tools",
+    "title": "Tools",
+    "blurb": "Everyday helpers"
+  },
+  {
+    "id": "network",
+    "title": "Network and online",
+    "blurb": "News, weather and network tools"
+  },
+  {
+    "id": "system",
+    "title": "System",
+    "blurb": "Look after this computer"
+  },
+  {
+    "id": "learning",
+    "title": "Learning",
+    "blurb": "Practise and learn"
+  },
+  {
+    "id": "developer",
+    "title": "Developer",
+    "blurb": "For people who write code"
+  }
+]
