@@ -18,7 +18,7 @@ profile_pythonos() {
 	# what the hardware setup uses: PCI/USB listing, ALSA audio tools, Wi-Fi tools and disk tools for
 	# persistent storage. No editor (nano can run shell commands) - PythonOS has its own.
 	apks="$apks python3 py3-rich py3-psutil py3-requests py3-pygments py3-prompt_toolkit tzdata"
-	apks="$apks pciutils hwdata-pci usbutils alsa-utils alsa-ucm-conf iw wpa_supplicant lsblk e2fsprogs kbd-bkeymaps"
+	apks="$apks pciutils hwdata-pci usbutils alsa-utils alsa-ucm-conf iw wpa_supplicant lsblk e2fsprogs kbd-bkeymaps cryptsetup"
 	apkovl="genapkovl-pythonos.sh"
 }
 

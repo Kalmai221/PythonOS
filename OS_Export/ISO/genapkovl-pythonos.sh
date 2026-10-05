@@ -67,6 +67,7 @@ wpa_supplicant
 lsblk
 e2fsprogs
 kbd-bkeymaps
+cryptsetup
 EOF
 
 makefile root:root 0644 "$tmp"/etc/motd <<EOF

@@ -2,7 +2,10 @@
 
 * status()      - is persistent storage active, and where
 * candidates()  - disks and partitions that could be used (nothing mounted, not the boot medium)
-* create(dev)   - format one as PYOS_DATA, copy the current accounts/files/settings onto it
+* create(dev)   - format one as PYOS_DATA (optionally encrypted), copy the current accounts/files/settings onto it
+* health()      - free space, filesystem state, mount count and last mount time of the data disk
+* resize()      - grow the filesystem to fill a disk or partition that was made bigger
+* migrate(dev)  - move the data to another disk
 The boot side lives in OS_Export/ISO/overlay/pythonos-persist (it mounts the labelled partition before PythonOS starts).
 
 Only fixed commands (lsblk, mkfs.ext4, mount, umount) are run, and only on a device that passed validate_device().
@@ -11,9 +14,11 @@ import json
 import os
 import re
 import shutil
+import time
 
 from rich.console import Console
 from rich.markup import escape
+from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
 
@@ -22,12 +27,132 @@ import pyos
 
 console = Console()
 LABEL = "PYOS_DATA"
+CRYPT_LABEL = "PYOS_CRYPT"          # a LUKS container; its inside is an ext4 labelled PYOS_DATA once opened
+MAPPER = "pyosdata"
 MOUNT = "/mnt/pyos-data"
+STATE_FILE = os.path.join(".OSData", "persist.json")
 DEVICE_RE = re.compile(r"^/dev/(sd[a-z]{1,2}\d{0,2}|vd[a-z]{1,2}\d{0,2}|xvd[a-z]{1,2}\d{0,2}|nvme\d{1,2}n\d{1,2}(p\d{1,2})?|mmcblk\d{1,2}(p\d{1,2})?)$")
 
 
 def active():
     return os.environ.get("PYOS_PERSISTENT") == "1"
+
+
+def encrypted():
+    return os.environ.get("PYOS_PERSIST_ENCRYPTED") == "1"
+
+
+def record_boot():
+    """Called at start-up when the data disk is in use: remember when it was last used (shown by `persist status`)."""
+    if not active():
+        return
+    try:
+        try:
+            with open(STATE_FILE, encoding="utf-8") as f:
+                state = json.load(f)
+        except (OSError, ValueError):
+            state = {}
+        state["previous_boot"] = state.get("last_boot")
+        state["last_boot"] = time.time()
+        state["boots"] = int(state.get("boots", 0)) + 1
+        os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state, f)
+    except OSError:
+        pass
+
+
+def mounted_device():
+    """The device the data disk is mounted from, or None."""
+    try:
+        with open("/proc/mounts", encoding="utf-8") as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) >= 2 and parts[1] == MOUNT:
+                    return parts[0]
+    except OSError:
+        pass
+    return None
+
+
+def parse_tune2fs(text):
+    """The interesting lines of `tune2fs -l` as a dict."""
+    wanted = {"Filesystem state": "state", "Last mount time": "last_mount", "Mount count": "mounts", "Filesystem created": "created",
+              "Last checked": "last_check", "Filesystem volume name": "label", "Errors behavior": "errors"}
+    found = {}
+    for line in text.splitlines():
+        key, _, value = line.partition(":")
+        if key.strip() in wanted:
+            found[wanted[key.strip()]] = value.strip()
+    return found
+
+
+def health():
+    """Print how the data disk is doing."""
+    if not active():
+        console.print("[yellow]Persistent storage is not active, so there is nothing to check.[/yellow]")
+        return False
+    usage = shutil.disk_usage(MOUNT)
+    pct = 100 * usage.used / max(1, usage.total)
+    bar_colour = "green" if pct < 75 else "yellow" if pct < 90 else "red"
+    filled = int(20 * pct / 100)
+    dev = mounted_device()
+    table = Table(show_header=False, box=None)
+    table.add_row("Disk", f"{dev or '?'}" + ("  [green]encrypted (LUKS)[/green]" if encrypted() else "  [dim]not encrypted[/dim]"))
+    table.add_row("Space", f"[{bar_colour}]{'#' * filled}[/{bar_colour}][dim]{'-' * (20 - filled)}[/dim] {pct:.0f}% used - "
+                           f"{human(usage.free)} free of {human(usage.total)}")
+    try:
+        st = os.statvfs(MOUNT)
+        if st.f_files:
+            table.add_row("Files", f"{100 * (st.f_files - st.f_ffree) / st.f_files:.1f}% of the file slots used")
+    except (OSError, AttributeError):
+        pass
+    try:
+        with open(STATE_FILE, encoding="utf-8") as f:
+            state = json.load(f)
+    except (OSError, ValueError):
+        state = {}
+    if state.get("previous_boot"):
+        table.add_row("Last used", time.strftime("%Y-%m-%d %H:%M", time.localtime(state["previous_boot"])))
+    if state.get("boots"):
+        table.add_row("Boots with it", str(state["boots"]))
+    if dev:
+        code, out = hardware.run(["tune2fs", "-l", dev])
+        if code == 0:
+            info = parse_tune2fs(out)
+            if info.get("state"):
+                ok = info["state"].lower().startswith("clean")
+                table.add_row("Filesystem", f"[{'green' if ok else 'red'}]{info['state']}[/{'green' if ok else 'red'}]"
+                              + (f"  ({info['mounts']} mounts)" if info.get("mounts") else ""))
+            if info.get("created"):
+                table.add_row("Created", info["created"])
+    console.print(Panel(table, title="[bold]Persistent storage[/bold]", border_style="blue", expand=False))
+    if pct >= 90:
+        console.print("[bold yellow]The data disk is almost full. Delete files, or grow it and run: persist resize[/bold yellow]")
+    return True
+
+
+def resize():
+    """Grow the filesystem to the size of its disk or partition (after the disk was enlarged elsewhere)."""
+    if not active():
+        console.print("[yellow]Persistent storage is not active.[/yellow]")
+        return False
+    dev = mounted_device()
+    if not dev:
+        console.print("[red]Could not find which disk holds the data.[/red]")
+        return False
+    before = shutil.disk_usage(MOUNT).total
+    code, out = hardware.run(["resize2fs", dev], timeout=600)
+    if code != 0:
+        console.print(f"[bold red]Could not resize ({escape(out.strip()[-200:])}).[/bold red]")
+        return False
+    after = shutil.disk_usage(MOUNT).total
+    if after > before:
+        console.print(f"[bold green]Grown from {human(before)} to {human(after)}.[/bold green]")
+    else:
+        console.print("[green]Already fills the whole disk.[/green] [dim](To make it bigger, enlarge the disk or partition first; "
+                      "shrinking is not supported.)[/dim]")
+    return True
 
 
 def lsblk():
@@ -99,7 +224,7 @@ def human(n):
 def existing():
     """A device already labelled PYOS_DATA, or None."""
     for d in lsblk():
-        if d["label"] == LABEL:
+        if d["label"] in (LABEL, CRYPT_LABEL):
             return d
     return None
 
@@ -109,6 +234,7 @@ def status():
     if active():
         console.print(f"[green]Active.[/green] Accounts, files and settings are saved on the {LABEL} disk "
                       f"(mounted at {MOUNT}).")
+        health()
         return
     found = existing()
     if found:
@@ -145,8 +271,42 @@ def _copy_current(dest):
         shutil.copy2(pyos.paths.USER_DB, os.path.join(dest, "users.json"))
 
 
-def create(path=None):
-    """Interactive: choose a device, confirm, format, copy the current data over."""
+def _passphrase():
+    """Ask for a new passphrase twice. Returns it, or None if cancelled."""
+    for _ in range(3):
+        first = Prompt.ask("Passphrase for the data disk (at least 8 characters; you need it at every start)", password=True)
+        if len(first) < 8:
+            console.print("[yellow]Too short.[/yellow]")
+            continue
+        if Prompt.ask("Type it again", password=True) == first:
+            return first
+        console.print("[yellow]They did not match.[/yellow]")
+    return None
+
+
+def _format_plain(device, label):
+    return hardware.run(["mkfs.ext4", "-F", "-q", "-L", label, device], timeout=300)
+
+
+def _format_encrypted(device, passphrase):
+    """LUKS2 container on the device, ext4 labelled PYOS_DATA inside. Returns (ok, message); the container is left closed."""
+    if not hardware.have("cryptsetup"):
+        return False, "cryptsetup is not installed on this system."
+    code, out = hardware.run(["cryptsetup", "luksFormat", "--type", "luks2", "--label", CRYPT_LABEL, "-q", "--key-file=-", device],
+                             timeout=300, text_input=passphrase)
+    if code != 0:
+        return False, f"luksFormat failed ({out.strip()[-150:]})"
+    code, out = hardware.run(["cryptsetup", "open", "--type", "luks2", "--key-file=-", device, MAPPER + "-new"], timeout=60,
+                             text_input=passphrase)
+    if code != 0:
+        return False, f"could not open the new container ({out.strip()[-150:]})"
+    code, out = _format_plain("/dev/mapper/" + MAPPER + "-new", LABEL)
+    hardware.run(["cryptsetup", "close", MAPPER + "-new"])
+    return (code == 0), ("" if code == 0 else f"mkfs failed ({out.strip()[-150:]})")
+
+
+def create(path=None, encrypt=False):
+    """Interactive: choose a device, confirm, format, copy the current data over. encrypt=True makes a LUKS container."""
     reason = hardware.unavailable_reason()
     if reason:
         console.print(f"[yellow]{reason}[/yellow]")
@@ -172,21 +332,107 @@ def create(path=None):
     if Prompt.ask(f"Type the device name ({device['path']}) to confirm, or anything else to cancel", default="").strip() != device["path"]:
         console.print("[yellow]Cancelled. Nothing was changed.[/yellow]")
         return False
-    code, out = hardware.run(["mkfs.ext4", "-F", "-q", "-L", LABEL, device["path"]], timeout=300)
-    if code != 0:
-        console.print(f"[bold red]Could not format the disk (code {code}). {escape(out.strip()[-200:])}[/bold red]")
-        return False
+    passphrase = None
+    if encrypt:
+        passphrase = _passphrase()
+        if not passphrase:
+            console.print("[yellow]Cancelled. Nothing was changed.[/yellow]")
+            return False
+        console.print("[dim]Encrypting... (this can take a little while)[/dim]")
+        ok, message = _format_encrypted(device["path"], passphrase)
+        if not ok:
+            console.print(f"[bold red]Could not set up the encrypted disk: {escape(message)}[/bold red]")
+            return False
+        code, out = hardware.run(["cryptsetup", "open", "--type", "luks2", "--key-file=-", device["path"], MAPPER + "-new"], timeout=60,
+                                 text_input=passphrase)
+        if code != 0:
+            console.print(f"[bold red]Could not open the encrypted disk ({escape(out.strip()[-150:])}).[/bold red]")
+            return False
+        target = "/dev/mapper/" + MAPPER + "-new"
+    else:
+        code, out = _format_plain(device["path"], LABEL)
+        if code != 0:
+            console.print(f"[bold red]Could not format the disk (code {code}). {escape(out.strip()[-200:])}[/bold red]")
+            return False
+        target = device["path"]
     os.makedirs(MOUNT, exist_ok=True)
-    code, out = hardware.run(["mount", "-o", "nosuid,nodev,noexec", device["path"], MOUNT])
+    code, out = hardware.run(["mount", "-o", "nosuid,nodev,noexec", target, MOUNT])
     if code != 0:
         console.print(f"[bold red]Formatted, but could not mount it: {escape(out.strip()[-200:])}[/bold red]")
+        if encrypt:
+            hardware.run(["cryptsetup", "close", MAPPER + "-new"])
         return False
     try:
         _copy_current(MOUNT)
         os.sync()
     finally:
         hardware.run(["umount", MOUNT])
-    console.print(f"[bold green]Done.[/bold green] Your accounts, files and settings were copied to {device['path']}.\n"
+        if encrypt:
+            hardware.run(["cryptsetup", "close", MAPPER + "-new"])
+    console.print(f"[bold green]Done.[/bold green] Your accounts, files and settings were copied to {device['path']}"
+                  + (" (encrypted: you will be asked for the passphrase when the computer starts)" if encrypt else "") + ".\n"
                   "Keep it plugged in, then run [bold]shutdown[/bold] and start the computer again: from now on "
                   "everything is saved there automatically.")
+    return True
+
+
+def migrate(path=None):
+    """Move the data to another disk. The new disk is erased and filled from the running data disk; at the next start the
+    new disk is the one that is used and the old one is relabelled PYOS_OLD (nothing on it is deleted)."""
+    if not active() or encrypted():
+        console.print("[yellow]Migration needs plain persistent storage to be active (not encrypted). "
+                      "For an encrypted disk, create a new one with 'persist create --encrypt' and copy with backup/restore.[/yellow]")
+        return False
+    old = mounted_device()
+    if not old:
+        console.print("[red]Could not find which disk holds the data.[/red]")
+        return False
+    if not path:
+        options = list_candidates()
+        if not options:
+            return False
+        pick = Prompt.ask("Number of the disk to move to (blank to cancel)", default="").strip()
+        if not pick.isdigit() or not 1 <= int(pick) <= len(options):
+            console.print("[yellow]Cancelled.[/yellow]")
+            return False
+        path = options[int(pick) - 1]["path"]
+    device, why = validate_device(path)
+    if not device:
+        console.print(f"[bold red]{escape(why)}[/bold red]")
+        return False
+    used = shutil.disk_usage(MOUNT).used
+    if device["size"] < used * 1.1:
+        console.print(f"[bold red]{device['path']} ({human(device['size'])}) is too small for the {human(used)} of data.[/bold red]")
+        return False
+    console.print(f"[bold red]This erases everything on {device['path']} and copies your {human(used)} of data there.[/bold red]")
+    if Prompt.ask(f"Type the device name ({device['path']}) to confirm, or anything else to cancel", default="").strip() != device["path"]:
+        console.print("[yellow]Cancelled. Nothing was changed.[/yellow]")
+        return False
+    code, out = _format_plain(device["path"], "PYOS_NEW")
+    if code != 0:
+        console.print(f"[bold red]Could not format the new disk ({escape(out.strip()[-200:])}).[/bold red]")
+        return False
+    temp = MOUNT + "-new"
+    os.makedirs(temp, exist_ok=True)
+    code, out = hardware.run(["mount", "-o", "nosuid,nodev,noexec", device["path"], temp])
+    if code != 0:
+        console.print(f"[bold red]Could not mount the new disk ({escape(out.strip()[-200:])}).[/bold red]")
+        return False
+    try:
+        with console.status("Copying your data..."):
+            shutil.copytree(MOUNT, temp, dirs_exist_ok=True, symlinks=False, ignore=shutil.ignore_patterns("lost+found"))
+            os.sync()
+    except OSError as e:
+        console.print(f"[bold red]Copying failed ({escape(str(e))}). The old disk is unchanged.[/bold red]")
+        hardware.run(["umount", temp])
+        return False
+    hardware.run(["umount", temp])
+    code1, _ = hardware.run(["e2label", old, "PYOS_OLD"])
+    code2, _ = hardware.run(["e2label", device["path"], LABEL])
+    if code1 or code2:
+        hardware.run(["e2label", device["path"], "PYOS_NEW"])
+        console.print("[bold red]Copied, but the labels could not be switched; the old disk is still the one in use.[/bold red]")
+        return False
+    console.print(f"[bold green]Done.[/bold green] {device['path']} will be used from the next start; the old disk ({old}) was "
+                  "relabelled PYOS_OLD and its files were left alone. Run [bold]shutdown[/bold] and start again.")
     return True

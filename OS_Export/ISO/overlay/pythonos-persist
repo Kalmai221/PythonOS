@@ -1,7 +1,9 @@
 #!/bin/sh
 # Sourced (not run) by pythonos-session. If a disk or partition labelled PYOS_DATA is plugged in, mount it and
 # point PythonOS's accounts, files and settings at it, so they survive the machine being switched off.
-# Create such a disk from inside PythonOS with:  persist create
+# A disk labelled PYOS_CRYPT is an encrypted (LUKS) one: it asks for the passphrase first (three tries), then the
+# unlocked disk is used the same way.
+# Create such a disk from inside PythonOS with:  persist create   (or: persist create --encrypt)
 #
 # The disk is mounted nosuid,nodev,noexec: nothing on it can ever be run as a program by the system.
 # This script never starts a shell and never fails the boot - without the disk PythonOS simply starts as usual.
@@ -9,18 +11,50 @@
 PYOS_DATA_MNT=/mnt/pyos-data
 PYOS_HOME=/opt/pythonos
 
-pyos_find_data_disk() {
-    findfs LABEL=PYOS_DATA 2>/dev/null || blkid -L PYOS_DATA 2>/dev/null
+pyos_find_label() {
+    findfs LABEL="$1" 2>/dev/null || blkid -L "$1" 2>/dev/null
+}
+
+# Unlock an encrypted data disk. Prints the unlocked device on success.
+pyos_unlock() {
+    crypt="$1"
+    command -v cryptsetup >/dev/null 2>&1 || return 1
+    if [ -b /dev/mapper/pyosdata ]; then
+        echo /dev/mapper/pyosdata
+        return 0
+    fi
+    for _try in 1 2 3; do
+        printf 'PythonOS data disk passphrase: ' >&2
+        stty -echo 2>/dev/null
+        read -r pyos_pass
+        stty echo 2>/dev/null
+        echo >&2
+        if printf '%s' "$pyos_pass" | cryptsetup open --type luks --key-file=- "$crypt" pyosdata 2>/dev/null; then
+            pyos_pass=""
+            echo /dev/mapper/pyosdata
+            return 0
+        fi
+        pyos_pass=""
+        echo "That passphrase did not work." >&2
+    done
+    return 1
 }
 
 pyos_persist() {
     dev=""
+    crypt=""
     # USB disks can take a moment to appear after power-on
     for _try in 1 2 3 4; do
-        dev="$(pyos_find_data_disk)"
-        [ -n "$dev" ] && break
+        dev="$(pyos_find_label PYOS_DATA)"
+        crypt="$(pyos_find_label PYOS_CRYPT)"
+        { [ -n "$dev" ] || [ -n "$crypt" ]; } && break
         sleep 0.5
     done
+    if [ -n "$crypt" ] && [ -b "$crypt" ]; then
+        unlocked="$(pyos_unlock "$crypt")" || return 0
+        dev="$unlocked"
+        export PYOS_PERSIST_ENCRYPTED=1
+    fi
     [ -n "$dev" ] && [ -b "$dev" ] || return 0
 
     mkdir -p "$PYOS_DATA_MNT"

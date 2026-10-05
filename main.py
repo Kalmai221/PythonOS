@@ -82,6 +82,11 @@ try:
         console.print("[bold yellow]Debug Mode Setting is not defined. Defaulting to Disabled.[/bold yellow]")
     if os.environ.get("PYOS_LIVE") == "1":
         core.apply_saved_hardware()        # keyboard layout, time zone, audio and Wi-Fi from last time
+        try:
+            from core import persist
+            persist.record_boot()          # when the data disk was last used (persist status)
+        except Exception:
+            pass
     core.boot_sequence(debug)
 
     just_set_up = False
