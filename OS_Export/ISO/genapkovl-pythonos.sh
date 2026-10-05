@@ -69,8 +69,7 @@ e2fsprogs
 kbd-bkeymaps
 cryptsetup
 kbd
-terminus-font
-fbset
+font-terminus
 bluez
 bluez-openrc
 cups
