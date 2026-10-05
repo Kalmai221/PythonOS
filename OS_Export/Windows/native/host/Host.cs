@@ -226,6 +226,7 @@ namespace PythonOS
             Environment.SetEnvironmentVariable("PYTHONIOENCODING", "utf-8");
             Environment.SetEnvironmentVariable("TERM", "xterm-256color");
             Environment.SetEnvironmentVariable("COLORTERM", "truecolor");
+            Environment.SetEnvironmentVariable("NO_COLOR", null);       // this window shows colour; PythonOS has its own mono theme if you want none
             Environment.SetEnvironmentVariable("PYOS_EXPORT_INFO", Path.Combine(dir, "export.json"));
             pty = new ConPtySession();
             pty.Output += delegate (byte[] bytes, int count) { lock (pendingLock) { pending.Add(bytes); } };

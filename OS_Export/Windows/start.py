@@ -31,7 +31,9 @@ def core_is_older():
 
 def main():
     os.chdir(HERE)
-    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYOS_EXPORT_INFO=os.path.join(HERE, "export.json"))
+    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYOS_EXPORT_INFO=os.path.join(HERE, "export.json"),
+               COLORTERM="truecolor")
+    env.pop("NO_COLOR", None)         # the PythonOS window always shows colour (the mono theme is a PythonOS setting)
     missing = not os.path.isfile(os.path.join(HERE, "main.py"))
     if missing or core_is_older():
         print("Downloading PythonOS (first start only)..." if missing else "Updating PythonOS to the version you just installed...")
