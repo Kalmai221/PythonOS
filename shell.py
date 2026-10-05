@@ -14,7 +14,7 @@ from rich.markup import escape
 import json
 import pyos
 import pyos.fs as fs
-from pyos import jobs, notify, scheduler, settings, stdio, theme
+from pyos import helpview, jobs, notify, scheduler, settings, stdio, theme
 try:
     import readline
 except ImportError:
@@ -244,7 +244,7 @@ def run_stage(argv):
     if name == "exit":
         raise ExitShell
     if name == "help":
-        show_help(available_commands, available_programs, args[0] if args else None)
+        show_help(available_commands, available_programs, args)
         return 0
     if name == "reload":
         reload_all()
@@ -599,37 +599,7 @@ def start_shell(username):
 
 
 # --------------------------------------------------------------------- help
-def _help_table(title, data):
-    table = Table(title=theme.tag("title", title), title_justify="left", header_style="bold",
-                  border_style=theme.style("border"), expand=True)
-    table.add_column("Name", style="bold " + (theme.style("success") or "green"), no_wrap=True)
-    table.add_column("Description", style="white")
-    table.add_column("Aliases", style="dim", no_wrap=True)
-    for name in sorted(data):
-        info = data[name]
-        table.add_row(escape(name), escape(info["description"]), escape(", ".join(info["aliases"])) if info["aliases"] else "")
-    return table
-
-
 def show_help(available_commands, available_programs, topic=None):
-    """Print all commands and programs, or details for one (help <name>)."""
-    if topic:
-        for kind, data in (("command", available_commands), ("program", available_programs)):
-            key = find_entry(data, topic)
-            if key:
-                info = data[key]
-                usage = f"run {key}" if kind == "program" else key
-                aliases = ", ".join(info["aliases"]) or "none"
-                console.print(Panel(
-                    f"{escape(info['description'])}\n\n[bold]Usage:[/bold] {escape(usage)}\n[bold]Aliases:[/bold] {aliases}"
-                    f"\n[dim]More: man {escape(key)}[/dim]",
-                    title=f"{theme.tag('title', key)} [dim]({kind})[/dim]", border_style=theme.style("border"), expand=False))
-                return
-        console.print(f"[bold red]No help entry for '{topic}'.[/bold red]")
-        return
-
-    console.print(_help_table("Commands", available_commands))
-    if available_programs:
-        console.print(_help_table("Programs  (start with: run <name>)", available_programs))
-    console.print("[dim]Built in: help " + escape("[name]") + ", run <program>, reload, exit  |  Tab completes names and paths"
-                  "  |  man <name> for the manual  |  tutorial for a guided tour[/dim]")
+    """help [category | command | search <word> | all] - see pyos/helpview.py."""
+    words = [topic] if isinstance(topic, str) else list(topic or [])
+    helpview.show(console, available_commands, available_programs, words, find_entry)
