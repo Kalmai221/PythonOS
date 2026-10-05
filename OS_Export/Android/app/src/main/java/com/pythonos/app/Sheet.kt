@@ -30,7 +30,7 @@ class SheetColors(val surface: Int, val chip: Int, val accent: Int, val text: In
  * switches, colour swatches, a text-size stepper. It replaces the stock popup menu and alert dialogs. Everything is built from
  * framework views, so there is nothing extra to download or to keep up to date. It slides up unless the system has animations off.
  */
-class Sheet(private val activity: Activity, private val colors: SheetColors) {
+class Sheet(private val activity: Activity, private val ui: SheetColors) {
 
     private val density = activity.resources.displayMetrics.density
     private fun dp(value: Int) = (value * density).toInt()
@@ -59,17 +59,17 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
 
     // ------------------------------------------------------------------ content
     fun title(value: String, subtitle: String? = null) {
-        add(text(value, 20f, colors.text, bold = true), top = 4)
-        if (subtitle != null) add(text(subtitle, 13f, colors.muted), top = 2)
+        add(text(value, 20f, ui.text, bold = true), top = 4)
+        if (subtitle != null) add(text(subtitle, 13f, ui.muted), top = 2)
         add(View(activity), top = 8)
     }
 
     fun section(value: String) {
-        add(text(value.uppercase(), 11f, colors.muted, bold = true), top = 14, bottom = 6)
+        add(text(value.uppercase(), 11f, ui.muted, bold = true), top = 14, bottom = 6)
     }
 
     fun paragraph(value: String) {
-        add(text(value, 14f, colors.text).apply { setLineSpacing(0f, 1.15f) }, bottom = 6)
+        add(text(value, 14f, ui.text).apply { setLineSpacing(0f, 1.15f) }, bottom = 6)
     }
 
     /** A tappable row: a round glyph, a title and an optional line under it. */
@@ -78,14 +78,14 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(12), dp(10), dp(12), dp(10))
-            background = ripple(rounded(colors.chip, 14f))
+            background = ripple(rounded(ui.chip, 14f))
             isClickable = true
             setOnClickListener { dismiss(); onClick() }
         }
         row.addView(glyphBubble(glyph))
         val labels = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-        labels.addView(text(title, 15f, colors.text, bold = true))
-        if (subtitle != null) labels.addView(text(subtitle, 12f, colors.muted))
+        labels.addView(text(title, 15f, ui.text, bold = true))
+        if (subtitle != null) labels.addView(text(subtitle, 12f, ui.muted))
         row.addView(labels, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, 0, 0) })
         add(row, bottom = 6)
     }
@@ -95,17 +95,17 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(12), dp(10), dp(12), dp(10))
-            background = rounded(colors.chip, 14f)
+            background = rounded(ui.chip, 14f)
         }
         row.addView(glyphBubble(glyph))
         val labels = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-        labels.addView(text(title, 15f, colors.text, bold = true))
-        if (subtitle != null) labels.addView(text(subtitle, 12f, colors.muted))
+        labels.addView(text(title, 15f, ui.text, bold = true))
+        if (subtitle != null) labels.addView(text(subtitle, 12f, ui.muted))
         row.addView(labels, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(12), 0, dp(8), 0) })
         val switch = Switch(activity).apply {
             isChecked = checked
-            trackTintList = ColorStateList.valueOf(Color.argb(120, Color.red(colors.accent), Color.green(colors.accent), Color.blue(colors.accent)))
-            thumbTintList = ColorStateList.valueOf(colors.accent)
+            trackTintList = ColorStateList.valueOf(Color.argb(120, Color.red(ui.accent), Color.green(ui.accent), Color.blue(ui.accent)))
+            thumbTintList = ColorStateList.valueOf(ui.accent)
             setOnCheckedChangeListener { _, on -> onChange(on) }
         }
         row.addView(switch)
@@ -128,11 +128,11 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
                 background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
                     setColor(samples[i])
-                    setStroke(dp(if (i == selected) 3 else 1), if (i == selected) colors.accent else Color.argb(90, 255, 255, 255))
+                    setStroke(dp(if (i == selected) 3 else 1), if (i == selected) ui.accent else Color.argb(90, 255, 255, 255))
                 }
             }
             cell.addView(dot, LinearLayout.LayoutParams(dp(44), dp(44)))
-            cell.addView(text(names[i], 12f, if (i == selected) colors.text else colors.muted), LinearLayout.LayoutParams(
+            cell.addView(text(names[i], 12f, if (i == selected) ui.text else ui.muted), LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, 0) })
             line.addView(cell, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
@@ -145,14 +145,14 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(14), dp(6), dp(8), dp(6))
-            background = rounded(colors.chip, 14f)
+            background = rounded(ui.chip, 14f)
         }
-        row.addView(text(label, 15f, colors.text, bold = true), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        val number = text(value(), 15f, colors.text).apply { gravity = Gravity.CENTER; minWidth = dp(40) }
+        row.addView(text(label, 15f, ui.text, bold = true), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        val number = text(value(), 15f, ui.text).apply { gravity = Gravity.CENTER; minWidth = dp(40) }
         fun small(symbol: String, action: () -> Unit) = TextView(activity).apply {
             text = symbol
             gravity = Gravity.CENTER
-            setTextColor(colors.accent)
+            setTextColor(ui.accent)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             background = ripple(rounded(Color.TRANSPARENT, 20f))
@@ -171,12 +171,12 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
         fun button(label: String, main: Boolean, action: () -> Unit) = TextView(activity).apply {
             text = label
             gravity = Gravity.CENTER
-            setTextColor(if (main) Color.WHITE else colors.accent)
+            setTextColor(if (main) Color.WHITE else ui.accent)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             background = ripple(GradientDrawable().apply {
                 cornerRadius = 14f * density
-                if (main) setColor(colors.accent) else { setColor(Color.TRANSPARENT); setStroke(dp(1), Color.argb(90, 255, 255, 255)) }
+                if (main) setColor(ui.accent) else { setColor(Color.TRANSPARENT); setStroke(dp(1), Color.argb(90, 255, 255, 255)) }
             })
             isClickable = true
             setOnClickListener { dismiss(); action() }
@@ -191,11 +191,11 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
     private fun glyphBubble(glyph: String) = TextView(activity).apply {
         text = glyph
         gravity = Gravity.CENTER
-        setTextColor(colors.accent)
+        setTextColor(ui.accent)
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
         background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
-            setColor(Color.argb(40, Color.red(colors.accent), Color.green(colors.accent), Color.blue(colors.accent)))
+            setColor(Color.argb(40, Color.red(ui.accent), Color.green(ui.accent), Color.blue(ui.accent)))
         }
         layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
     }
@@ -212,7 +212,7 @@ class Sheet(private val activity: Activity, private val colors: SheetColors) {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(10), dp(16), dp(24))
             background = GradientDrawable().apply {
-                setColor(colors.surface)
+                setColor(ui.surface)
                 val r = 24f * density
                 cornerRadii = floatArrayOf(r, r, r, r, 0f, 0f, 0f, 0f)
             }
