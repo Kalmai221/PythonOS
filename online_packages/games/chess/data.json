@@ -1,28 +1,43 @@
 {
-  "name": "Chess",
-  "description": "Play chess against the computer: full rules, three difficulty levels.",
-  "version": "2.1.0",
-  "scripts": {
-    "run": "run.py"
-  },
-  "command": "chess",
-  "alias": [],
-  "tags": [
-    "game",
-    "chess",
-    "board",
-    "strategy"
-  ],
-  "changelog": {
-    "2.0.0": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
-    "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
-    "2.1.0": "New: save and resume, undo, hints, standard notation (type Nf3), move list, PGN export, two players on one keyboard and an expert level with a time limit."
-  },
-  "lockdown_safe": true,
-  "permissions": [
-    "files"
-  ],
-  "categories": [
-    "games"
-  ]
+    "name": "Chess",
+    "description": "Play chess against the computer: full rules, three difficulty levels.",
+    "version": "2.2.0",
+    "scripts": {
+        "run": "run.py"
+    },
+    "command": "chess",
+    "alias": [],
+    "tags": [
+        "game",
+        "chess",
+        "board",
+        "strategy"
+    ],
+    "changelog": {
+        "2.0.0": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "2.1.0": "New: save and resume, undo, hints, standard notation (type Nf3), move list, PGN export, two players on one keyboard and an expert level with a time limit.",
+        "2.2.0": "New: a \"difficulty\" option (settings app chess) for the level offered first."
+    },
+    "lockdown_safe": true,
+    "permissions": [
+        "files"
+    ],
+    "categories": [
+        "games"
+    ],
+    "settings": [
+        {
+            "key": "difficulty",
+            "label": "Difficulty offered first",
+            "type": "choice",
+            "choices": [
+                "easy",
+                "medium",
+                "hard",
+                "expert"
+            ],
+            "default": "medium"
+        }
+    ]
 }

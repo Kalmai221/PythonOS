@@ -64,6 +64,20 @@ def permissions_of(meta, pid):
     return list(perms)
 
 
+def check_settings(meta, pid):
+    """Options an app offers (data.json "settings") must all be valid: a bad entry would silently not show up."""
+    sys.path.insert(0, os.path.dirname(ROOT))
+    from pyos import appsettings
+    declared = meta.get("settings") or []
+    if len(appsettings.schema(meta)) != len(declared):
+        sys.exit(f"{pid}: a 'settings' entry is invalid (needs key, type bool|int|choice|text, and choices for a choice)")
+    for entry in declared:
+        try:
+            appsettings.parse(entry, entry.get("default", ""))
+        except ValueError as e:
+            sys.exit(f"{pid}: the default of option '{entry['key']}' is not valid ({e})")
+
+
 def load_categories():
     path = os.path.join(ROOT, "categories.json")
     try:
@@ -89,6 +103,7 @@ def main():
                     meta = json.load(f)
             except ValueError as e:
                 sys.exit(f"{meta_path}: invalid JSON ({e})")
+            check_settings(meta, f"{category}/{name}")
             packages.append({
                 "id": f"{category}/{name}",
                 "category": category,
@@ -107,6 +122,7 @@ def main():
                 "optional": list(meta.get("optional", [])),
                 # what the app may do (see pyos/sandbox.py); the store shows it before installing and the guard enforces it
                 "permissions": permissions_of(meta, f"{category}/{name}"),
+                "settings": [e["key"] for e in (meta.get("settings") or []) if isinstance(e, dict) and "key" in e],
                 # display categories (online_packages/categories.json); falls back to the folder name
                 "categories": list(meta.get("categories") or [category]),
                 # shown in the store before installing and on update: a string, or {version: notes}

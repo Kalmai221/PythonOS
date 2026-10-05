@@ -59,6 +59,7 @@
         "exec",
         "files"
       ],
+      "settings": [],
       "categories": [
         "developer"
       ],
@@ -101,6 +102,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -136,6 +138,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -173,6 +176,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -210,6 +214,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -233,7 +238,7 @@
       "category": "games",
       "name": "Chess",
       "description": "Play chess against the computer: full rules, three difficulty levels.",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "command": "chess",
       "alias": [],
       "tags": [
@@ -248,25 +253,29 @@
       "permissions": [
         "files"
       ],
+      "settings": [
+        "difficulty"
+      ],
       "categories": [
         "games"
       ],
       "changelog": {
         "2.0.0": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
         "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
-        "2.1.0": "New: save and resume, undo, hints, standard notation (type Nf3), move list, PGN export, two players on one keyboard and an expert level with a time limit."
+        "2.1.0": "New: save and resume, undo, hints, standard notation (type Nf3), move list, PGN export, two players on one keyboard and an expert level with a time limit.",
+        "2.2.0": "New: a \"difficulty\" option (settings app chess) for the level offered first."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "58c22e287ec72eb193923634a9f87a1f4cc3e2be7daf088526be51cd89fe2ad7",
-          "size": 884
+          "sha256": "e8b348672a33c0f29715ee6dbd2901b26e555524b8d300db097f61535429ad47",
+          "size": 1383
         },
         {
           "path": "run.py",
-          "sha256": "f223429efdb9b8ba23dc1e72fec6ebb1c4ee8598e36279f7c74161b9eaa5c18a",
-          "size": 24144
+          "sha256": "b85504e53797da34b010de8b8a9e57d9b72b8c2d81908cab085d8d244d859303",
+          "size": 24538
         }
       ]
     },
@@ -289,6 +298,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -324,6 +334,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -359,6 +370,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games",
         "learning"
@@ -397,6 +409,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games",
         "learning"
@@ -433,6 +446,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -468,6 +482,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -506,6 +521,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games",
         "learning"
@@ -543,6 +559,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -583,6 +600,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -618,6 +636,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -655,6 +674,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -692,6 +712,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -727,6 +748,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -762,6 +784,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -799,6 +822,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -834,6 +858,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -872,6 +897,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games",
         "learning"
@@ -908,6 +934,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -946,6 +973,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -986,6 +1014,7 @@
       "permissions": [
         "network"
       ],
+      "settings": [],
       "categories": [
         "games",
         "learning"
@@ -1027,6 +1056,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games",
         "learning"
@@ -1051,7 +1081,7 @@
       "category": "games",
       "name": "Typing Test",
       "description": "Measure your typing speed and accuracy.",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "command": "typingtest",
       "alias": [],
       "tags": [
@@ -1066,6 +1096,9 @@
       "permissions": [
         "files"
       ],
+      "settings": [
+        "default_mode"
+      ],
       "categories": [
         "learning",
         "games"
@@ -1073,19 +1106,20 @@
       "changelog": {
         "2.0.0": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
         "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
-        "2.1.0": "New: timed 15/30/60 second modes, live accuracy while you type, punctuation, code and quote texts, your own text from a file, and a progress graph ('typingtest stats')."
+        "2.1.0": "New: timed 15/30/60 second modes, live accuracy while you type, punctuation, code and quote texts, your own text from a file, and a progress graph ('typingtest stats').",
+        "2.2.0": "New: a \"default_mode\" option (settings app typingtest) for the test the prompt offers first."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "01c441c09add905de6e4ee841fe3571fb43ac38859591d38b0576c2ccce1d5d7",
-          "size": 894
+          "sha256": "fdcd67f183b16c16c623b07288e9765f5426d6074ae6196df57aa3593a401646",
+          "size": 1470
         },
         {
           "path": "run.py",
-          "sha256": "68492130f8d2e62f18a85eb01a5413b02f9af61d3df9c97c9ff05a5ab0f16cf2",
-          "size": 14833
+          "sha256": "f7f6f30248eeaa1d34aab1d1b2924c255099db5dbc4afe850c698b9b626c91fc",
+          "size": 15157
         }
       ]
     },
@@ -1107,6 +1141,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games",
         "learning"
@@ -1146,6 +1181,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "games"
       ],
@@ -1185,6 +1221,7 @@
       "permissions": [
         "system"
       ],
+      "settings": [],
       "categories": [
         "system"
       ],
@@ -1232,6 +1269,7 @@
         "notifications",
         "schedule"
       ],
+      "settings": [],
       "categories": [
         "productivity"
       ],
@@ -1276,6 +1314,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "productivity",
         "tools"
@@ -1321,6 +1360,7 @@
         "notifications",
         "schedule"
       ],
+      "settings": [],
       "categories": [
         "productivity",
         "tools"
@@ -1366,6 +1406,7 @@
         "network",
         "files"
       ],
+      "settings": [],
       "categories": [
         "tools"
       ],
@@ -1408,6 +1449,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "tools"
       ],
@@ -1449,6 +1491,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "system",
         "tools"
@@ -1489,6 +1532,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "system",
         "tools"
@@ -1539,6 +1583,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "tools",
         "developer"
@@ -1581,6 +1626,7 @@
       "permissions": [
         "network"
       ],
+      "settings": [],
       "categories": [
         "developer",
         "network"
@@ -1622,6 +1668,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "developer",
         "tools"
@@ -1663,6 +1710,7 @@
         "network",
         "system"
       ],
+      "settings": [],
       "categories": [
         "network",
         "system"
@@ -1703,6 +1751,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "system",
         "tools"
@@ -1749,6 +1798,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "productivity",
         "developer"
@@ -1792,6 +1842,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "productivity"
       ],
@@ -1838,6 +1889,7 @@
         "notifications",
         "schedule"
       ],
+      "settings": [],
       "categories": [
         "network",
         "system"
@@ -1885,6 +1937,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "productivity"
       ],
@@ -1926,6 +1979,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "tools"
       ],
@@ -1965,6 +2019,7 @@
       "permissions": [
         "network"
       ],
+      "settings": [],
       "categories": [
         "network",
         "system"
@@ -2006,6 +2061,7 @@
       "permissions": [
         "system"
       ],
+      "settings": [],
       "categories": [
         "system"
       ],
@@ -2046,6 +2102,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "tools"
       ],
@@ -2084,6 +2141,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "developer",
         "tools"
@@ -2125,6 +2183,7 @@
       "permissions": [
         "network"
       ],
+      "settings": [],
       "categories": [
         "network"
       ],
@@ -2168,6 +2227,7 @@
       "permissions": [
         "schedule"
       ],
+      "settings": [],
       "categories": [
         "system",
         "productivity"
@@ -2210,6 +2270,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "productivity",
         "developer"
@@ -2255,6 +2316,7 @@
       "permissions": [
         "network"
       ],
+      "settings": [],
       "categories": [
         "network",
         "tools"
@@ -2295,6 +2357,7 @@
       "permissions": [
         "schedule"
       ],
+      "settings": [],
       "categories": [
         "system",
         "productivity"
@@ -2337,6 +2400,7 @@
         "system",
         "notifications"
       ],
+      "settings": [],
       "categories": [
         "system"
       ],
@@ -2381,6 +2445,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "tools"
       ],
@@ -2418,6 +2483,7 @@
       "requires": [],
       "optional": [],
       "permissions": [],
+      "settings": [],
       "categories": [
         "system",
         "tools"
@@ -2456,6 +2522,7 @@
       "permissions": [
         "files"
       ],
+      "settings": [],
       "categories": [
         "productivity"
       ],
@@ -2482,7 +2549,7 @@
       "category": "utilities",
       "name": "Weather",
       "description": "Check the current weather for any city (needs internet).",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "command": "weather",
       "alias": [],
       "tags": [
@@ -2496,6 +2563,10 @@
       "permissions": [
         "network"
       ],
+      "settings": [
+        "units",
+        "city"
+      ],
       "categories": [
         "network",
         "tools"
@@ -2503,19 +2574,20 @@
       "changelog": {
         "1.1.0": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
         "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
-        "1.2.0": "New: hourly forecast, several saved cities, severe-weather warnings, 'weather --short' for a one-line summary; fixed 'feels like' on some forecasts."
+        "1.2.0": "New: hourly forecast, several saved cities, severe-weather warnings, 'weather --short' for a one-line summary; fixed 'feels like' on some forecasts.",
+        "1.3.0": "New: options for units and home city (settings app weather)."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "1aceccb64382bf7cad0e08b5e59017e45faa65bd12a389aef94fca532c22ed92",
-          "size": 867
+          "sha256": "5cb39770a31fcd6f0f36cd2df7bce49b55d1fef0de9489a16286dbbcf801bd45",
+          "size": 1426
         },
         {
           "path": "run.py",
-          "sha256": "e87d3eb8fd7659318d53e321e0b4359840a7a8560469fbbb746df5d2a9611800",
-          "size": 11355
+          "sha256": "ad85d110d6949f8edce334aaacd1958280df12dfd3fe5d0dd9c92858c3ae277b",
+          "size": 11775
         }
       ]
     },
@@ -2540,6 +2612,7 @@
       "permissions": [
         "system"
       ],
+      "settings": [],
       "categories": [
         "network",
         "system"

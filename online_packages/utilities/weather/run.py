@@ -23,7 +23,18 @@ CACHE_MAX_AGE = 30 * 60
 
 
 def load():
-    return (appdata.load(FILE, {}) if appdata else {}) or {}
+    data = (appdata.load(FILE, {}) if appdata else {}) or {}
+    try:
+        from pyos import appsettings                    # options chosen under: settings app weather
+        units = appsettings.get("utilities/weather", "units")
+        city = appsettings.get("utilities/weather", "city")
+        if units in ("metric", "imperial"):
+            data["units"] = units
+        if city:
+            data.setdefault("city", city)
+    except Exception:
+        pass
+    return data
 
 
 def save(data):

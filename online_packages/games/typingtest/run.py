@@ -300,6 +300,15 @@ def read_custom(path):
     return text[:600]
 
 
+def default_mode():
+    """The test the Choose prompt offers first: the 'default_mode' option from settings app games/typingtest (30 if none)."""
+    try:
+        from pyos import appsettings
+        return str(appsettings.get("games/typingtest", "default_mode", "30"))
+    except Exception:
+        return "30"
+
+
 def main(args):
     keys = Keys()
     try:
@@ -314,7 +323,7 @@ def main(args):
             return
         console.print("[bold]Typing test[/bold]  15 / 30 / 60 (timed), words, punct (punctuation), code, quote, file <path>, stats, q")
         while True:
-            choice = Prompt.ask("Choose", default="30", show_choices=False).strip().lower()
+            choice = Prompt.ask("Choose", default=default_mode(), show_choices=False).strip().lower()
             if choice in ("q", "quit"):
                 return
             if choice == "stats":

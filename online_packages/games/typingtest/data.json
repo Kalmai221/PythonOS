@@ -1,29 +1,47 @@
 {
-  "name": "Typing Test",
-  "description": "Measure your typing speed and accuracy.",
-  "version": "2.1.0",
-  "scripts": {
-    "run": "run.py"
-  },
-  "command": "typingtest",
-  "alias": [],
-  "tags": [
-    "game",
-    "typing",
-    "speed",
-    "keyboard"
-  ],
-  "changelog": {
-    "2.0.0": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
-    "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
-    "2.1.0": "New: timed 15/30/60 second modes, live accuracy while you type, punctuation, code and quote texts, your own text from a file, and a progress graph ('typingtest stats')."
-  },
-  "lockdown_safe": true,
-  "permissions": [
-    "files"
-  ],
-  "categories": [
-    "learning",
-    "games"
-  ]
+    "name": "Typing Test",
+    "description": "Measure your typing speed and accuracy.",
+    "version": "2.2.0",
+    "scripts": {
+        "run": "run.py"
+    },
+    "command": "typingtest",
+    "alias": [],
+    "tags": [
+        "game",
+        "typing",
+        "speed",
+        "keyboard"
+    ],
+    "changelog": {
+        "2.0.0": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "2.1.0": "New: timed 15/30/60 second modes, live accuracy while you type, punctuation, code and quote texts, your own text from a file, and a progress graph ('typingtest stats').",
+        "2.2.0": "New: a \"default_mode\" option (settings app typingtest) for the test the prompt offers first."
+    },
+    "lockdown_safe": true,
+    "permissions": [
+        "files"
+    ],
+    "categories": [
+        "learning",
+        "games"
+    ],
+    "settings": [
+        {
+            "key": "default_mode",
+            "label": "Test offered first",
+            "type": "choice",
+            "choices": [
+                "15",
+                "30",
+                "60",
+                "words",
+                "punct",
+                "code",
+                "quote"
+            ],
+            "default": "30"
+        }
+    ]
 }

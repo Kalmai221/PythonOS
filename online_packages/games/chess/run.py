@@ -297,6 +297,16 @@ def best_move(p, max_depth, seconds):
     return best
 
 
+def default_level():
+    """The difficulty offered first: the 'difficulty' option from settings app games/chess (medium if none)."""
+    try:
+        from pyos import appsettings
+        value = str(appsettings.get("games/chess", "difficulty", "medium"))
+        return value if value in ("easy", "medium", "hard", "expert") else "medium"
+    except Exception:
+        return "medium"
+
+
 def computer_move(p, level):
     moves = p.legal_moves()
     if level == 1:
@@ -440,7 +450,7 @@ def new_game():
     mode = Prompt.ask("Play against", choices=["computer", "friend"], default="computer")
     game = {"mode": "two" if mode == "friend" else "cpu", "level": 2, "human_white": True, "played": [], "history": [], "pos": Position()}
     if mode == "computer":
-        game["level"] = {"easy": 1, "medium": 2, "hard": 3, "expert": 4}[Prompt.ask("Difficulty", choices=["easy", "medium", "hard", "expert"], default="medium")]
+        game["level"] = {"easy": 1, "medium": 2, "hard": 3, "expert": 4}[Prompt.ask("Difficulty", choices=["easy", "medium", "hard", "expert"], default=default_level())]
         game["human_white"] = Prompt.ask("Play as", choices=["white", "black"], default="white") == "white"
     return game
 
