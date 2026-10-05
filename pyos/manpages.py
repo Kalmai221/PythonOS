@@ -242,6 +242,12 @@ page("shutdown", "turn off", ["shutdown"],
      see=["restart", "whathappened"])
 page("restart", "restart", ["restart"],
      "Runs the same orderly shutdown, then starts PythonOS again as a fresh program, so updated files are really loaded.", see=["shutdown"])
+page("report", "send a problem report", ["report [what went wrong]"],
+     "Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email "
+     "and IP addresses. You read the whole text first, then choose: a link that opens a filled-in GitHub issue, a file to attach yourself, "
+     "or (if settings report_relay is set) a relay that files the issue. Nothing is ever sent without your choice.",
+     examples=[("report", "answer a question, then see the report"), ("report the editor froze", "give the description up front")],
+     see=["whathappened", "logs", "doctor"])
 page("whathappened", "why the last session ended badly", ["whathappened"],
      "After a power cut, a closed window or a crash, the next boot says so and this command tells you more: when that session started, "
      "the crash report (if any) and the last things in the log before it stopped. Nothing is shown when the last shutdown was clean.",

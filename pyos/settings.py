@@ -24,6 +24,7 @@ SCHEMA = {
     "clear_screens": (True, bool, "Clear the screen when a full-screen program or menu starts, and tidy it after one that printed a lot"),
     "auto_clear_lines": (300, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
+    "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = reports are only a link or a file)"),
     "admin_reauth": (True, bool, "Ask administrators for their password again before risky actions (delete account, change role, wipe)"),
     "use_trash": (True, bool, "rm moves things to the trash (restore with undo or trash restore) instead of deleting them"),
     "trash_days": (30, int, "Empty items from the trash after this many days (0 = keep until emptied)"),
@@ -72,6 +73,8 @@ def _valid(key, value):
     allowed = SCHEMA[key][1]
     if allowed is bool:
         return isinstance(value, bool)
+    if allowed is str:
+        return isinstance(value, str) and len(value) <= 300 and (value == "" or value.startswith("https://"))
     if allowed is int:
         return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 24 * 60
     if key == "theme" and _custom_theme_name(value):
@@ -84,6 +87,13 @@ def parse_value(key, text):
     if key not in SCHEMA:
         raise ValueError(f"unknown setting '{key}' (try: {', '.join(SCHEMA)})")
     allowed = SCHEMA[key][1]
+    if allowed is str:
+        text = str(text).strip()
+        if text.lower() in ("none", "off", "-"):
+            return ""
+        if text and not text.startswith("https://"):
+            raise ValueError(f"{key} must start with https:// (or be 'none')")
+        return text
     text = str(text).strip().lower()
     if allowed is bool:
         if text in ("on", "true", "yes", "1"):
