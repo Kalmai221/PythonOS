@@ -43,6 +43,25 @@ def _api(url, token, accept="application/vnd.github+json", timeout=30):
     return urllib.request.urlopen(request, timeout=timeout)
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _redirect_target(url, token):
+    """The address GitHub redirects an authenticated request to (an artifact download link)."""
+    opener = urllib.request.build_opener(_NoRedirect)
+    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
+                                                   "User-Agent": "PythonOS-plan"})
+    try:
+        response = opener.open(request, timeout=60)
+    except urllib.error.HTTPError as e:
+        if e.code in (301, 302, 303, 307, 308) and e.headers.get("Location"):
+            return e.headers["Location"]
+        raise
+    raise RuntimeError("expected a redirect to the artifact download, got HTTP " + str(response.status))
+
+
 def find_artifact(repo, token):
     """-> lookup(name): the newest unexpired Actions artifact with that name, or None (also when the API cannot be reached)."""
     def lookup(name):
@@ -138,8 +157,11 @@ def fetch_artifacts(platform, item, destination, repo=None, token=None):
     for artifact in item["artifacts"]:
         print(f"Reusing {platform}: artifact {artifact['name']} from run {artifact.get('run_id', '?')}")
         target = os.path.join(destination, f".{artifact['id']}.zip")
-        with _api(f"{API}/repos/{repo}/actions/artifacts/{artifact['id']}/zip", token, accept="application/vnd.github+json", timeout=300) as response, \
-                open(target, "wb") as f:
+        # GitHub answers with a redirect to a signed storage address. That address must be fetched WITHOUT our token (the storage
+        # service rejects it with 401), so the redirect is read by hand instead of being followed with the Authorization header.
+        link = _redirect_target(f"{API}/repos/{repo}/actions/artifacts/{artifact['id']}/zip", token)
+        request = urllib.request.Request(link, headers={"User-Agent": "PythonOS-plan"})
+        with urllib.request.urlopen(request, timeout=300) as response, open(target, "wb") as f:
             while True:
                 chunk = response.read(1 << 20)
                 if not chunk:
