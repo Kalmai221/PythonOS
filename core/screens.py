@@ -11,6 +11,7 @@ import zlib
 from rich import box
 from rich.console import Console
 from rich.live import Live
+from rich.markup import escape
 from rich.panel import Panel
 from rich.text import Text
 from yaspin import yaspin
@@ -63,14 +64,32 @@ def _record_closing():
     return ""
 
 
+def _mark_session(kind):
+    def action():
+        from pyos import session
+        session.end("clean" if kind != "wipe" else "clean")
+        return ""
+    return action
+
+
 # --------------------------------------------------------------------- actions
 def _stop_jobs():
+    """Ask every background job to stop and give them a moment, saying so for the ones that take a while (like a real shutdown)."""
     running = [j for j in jobs.all_jobs() if j.status == "running"]
     for job in running:
         jobs.cancel(job.id)
-    end = time.time() + 2
+    started = time.time()
+    end = started + 3
+    told = set()
     while time.time() < end and any(j.status == "running" for j in running):
+        for job in running:
+            if job.status == "running" and job.id not in told and time.time() - started > 0.4:
+                told.add(job.id)
+                console.print("[dim]" + escape(f"A stop job is running for [{job.id}] {job.command[:50]} (up to 3 s)") + "[/dim]")
         time.sleep(0.05)
+    left = [j for j in running if j.status == "running"]
+    if left:
+        return f"{len(running) - len(left)} stopped, {len(left)} did not answer and were left"
     return f"{len(running)} stopped" if running else ""
 
 
@@ -124,6 +143,8 @@ def shutdown_sequence(kind="shutdown"):
     if wiping:
         steps.append(("Erasing accounts, settings, files and packages", factory_reset, 1.0))
     steps.append(("Flushing the filesystem", _flush, 0.5))
+    if not wiping:
+        steps.append(("Marking the session as closed", _mark_session(kind), 0.2))
     for number, (label, action, seconds) in enumerate(steps, 1):
         _step(label, action, seconds, number, len(steps))
 
@@ -141,6 +162,21 @@ def shutdown_sequence(kind="shutdown"):
     if wiping:
         console.print(f"\n{theme.tag('warning', 'Power on the device for first-time setup.')}")
     sys.exit(0)
+
+
+def relaunch():
+    """Start PythonOS again as a fresh process (so updated files are really loaded). On Linux and macOS the new process replaces this
+    one, so repeated restarts never pile up; elsewhere this process waits for the new one and passes its exit code on."""
+    try:
+        sys.stdout.flush()
+    except (OSError, ValueError):
+        pass
+    if os.name == "posix" and os.environ.get("PYOS_BUNDLED") != "1":
+        try:
+            os.execv(sys.executable, [sys.executable, "main.py"])
+        except OSError:
+            pass
+    sys.exit(subprocess.call([sys.executable, "main.py"]))
 
 
 def _stop_info(detail):
@@ -219,6 +255,11 @@ def crash_screen(error_message):
         pass
     looping = len(recent) >= 4
 
+    try:
+        from pyos import session
+        session.end("crashed", code)
+    except Exception:
+        pass
     _clear()
     if looping:
         console.print(_bsod(code, summary, short, report,
@@ -235,4 +276,4 @@ def crash_screen(error_message):
                               f"Restarting in {remaining}...  [{'#' * done}{'-' * remaining}]"))
             time.sleep(1)
     _clear()
-    sys.exit(subprocess.call([sys.executable, "main.py"]))
+    relaunch()

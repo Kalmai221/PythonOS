@@ -235,9 +235,17 @@ page("print", "print a file", ["print <file>"],
      "Sends a text file or a PDF to the default printer (set one up with hwsetup printer). Plain text is turned into a PDF first, so "
      "it works with printers that only accept PDF. Files up to 5 MB.", examples=[("print ~/notes/todo.txt", "print a note")],
      see=["hwsetup"])
-page("shutdown", "turn off", ["shutdown"], "Closes PythonOS. On the ISO this powers the machine off; in the Android app it closes the app.",
-     see=["restart"])
-page("restart", "restart", ["restart"], "Restarts PythonOS.", see=["shutdown"])
+page("shutdown", "turn off", ["shutdown"],
+     "Closes PythonOS the proper way: it stops background jobs (telling you about any that take a while), signs out, writes the log, "
+     "flushes the files and marks the session as closed. On the ISO this powers the machine off; in the Android app it closes the app. "
+     "If PythonOS is ever stopped any other way (power cut, window closed) the next boot says so - see whathappened.",
+     see=["restart", "whathappened"])
+page("restart", "restart", ["restart"],
+     "Runs the same orderly shutdown, then starts PythonOS again as a fresh program, so updated files are really loaded.", see=["shutdown"])
+page("whathappened", "why the last session ended badly", ["whathappened"],
+     "After a power cut, a closed window or a crash, the next boot says so and this command tells you more: when that session started, "
+     "the crash report (if any) and the last things in the log before it stopped. Nothing is shown when the last shutdown was clean.",
+     see=["logs", "doctor", "bootlog"])
 page("logout", "log out", ["logout"], "Ends your session and returns to the login screen.")
 page("wipe", "reset to factory settings", ["wipe"], "Admins only. Erases all data and accounts. There is no undo.", see=["backup"])
 page("manageusers", "manage accounts", ["manageusers"], "Admins only. Create and delete users, change roles and passwords.", see=["users", "passwd"])

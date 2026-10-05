@@ -24,7 +24,8 @@ def restart_system():
         # Just updated: the core already loaded in memory is the previous version, whose shutdown screen takes no
         # arguments. Skip the animation and relaunch with the new files.
         console.print("[bold yellow]Restarting...[/bold yellow]")
-    sys.exit(subprocess.call([sys.executable, "main.py"]))
+    from core import screens
+    screens.relaunch()
 
 
 def execute():

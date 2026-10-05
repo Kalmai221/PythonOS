@@ -88,6 +88,11 @@ try:
         except Exception:
             pass
     core.boot_sequence(debug)
+    try:
+        from core import whathappened
+        whathappened.show(full=False)              # only says something after a power cut or a crash
+    except Exception:
+        pass
 
     just_set_up = False
     if not first_time_done():

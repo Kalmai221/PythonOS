@@ -211,11 +211,11 @@ def get_system_info():
     """Fetch system information like time and uptime."""
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if os.name == "posix":  # Linux/macOS
-        with open("/proc/uptime", "r") as f:
-            uptime_seconds = float(f.readline().split()[0])  # Read uptime in seconds
-    else:  # Windows
-        uptime_seconds = time.time() - psutil.boot_time()
+    try:
+        with open(os.path.join(".OSData", "boot_time")) as f:
+            uptime_seconds = time.time() - float(f.read().strip())
+    except (OSError, ValueError):
+        uptime_seconds = 0
 
     uptime_str = time.strftime("%H:%M:%S", time.gmtime(uptime_seconds))
 
@@ -236,9 +236,10 @@ def display_home_screen():
     system_version = get_system_version()
     now = datetime.datetime.now()
     try:
-        uptime = time.strftime("%H:%M:%S", time.gmtime(time.time() - psutil.boot_time()))
-    except Exception:
-        uptime = "unknown"
+        with open(os.path.join(".OSData", "boot_time")) as f:               # since PythonOS started, not since the computer did
+            uptime = time.strftime("%H:%M:%S", time.gmtime(time.time() - float(f.read().strip())))
+    except (OSError, ValueError):
+        uptime = "00:00:00"
 
     info = Table.grid(padding=(0, 2))
     info.add_column(style="bold magenta", justify="right")
@@ -287,13 +288,15 @@ def _step_internet(debug, sink):
     packages = get_packages_from_requirements("requirements.txt")
     if os.environ.get("PYOS_BUNDLED") == "1":
         return "ok", "dependencies ship with this build"
+    missing = check_packages_installed(packages) if packages else []
+    if not missing:
+        return "ok", f"{len(packages)} packages present"           # nothing to install: no network needed, no upgrade on every boot
     if check_internet_connection():
         try:
             install_requirements(debug, sink)
-            return "ok", "packages up to date"
+            return "ok", "installed " + ", ".join(missing)
         except Exception as e:
             return "warn", "could not update packages: " + (str(e).splitlines()[0] if str(e) else "")
-    missing = check_packages_installed(packages) if packages else []
     if missing:
         return "fail", "offline and missing: " + ", ".join(missing)
     return "warn", "offline - all required packages are installed"
@@ -327,10 +330,22 @@ def boot_steps(debug):
         set_current_directory_to_files(debug, sink)
         return "ok", ""
 
+    def session_step(debug, sink):
+        from pyos import session
+        import pyos
+        before = session.begin()
+        state = before.get("state")
+        if state == "unexpected":
+            pyos.log.log("Unexpected shutdown detected: the previous session did not end properly", "WARN")
+            return "warn", "last session ended unexpectedly (type whathappened)"
+        if state == "crashed":
+            return "warn", f"last session stopped with {before.get('code') or 'an error'} (type whathappened)"
+        return "ok", "last shutdown was clean" if state == "clean" else "first start"
+
     return [("Reading the configuration", config_step), ("Checking system files", integrity_step),
             ("Starting system services", services_step), ("Checking dependencies", _step_internet),
             ("Loading commands", commands_step), ("Loading programs", programs_step),
-            ("Preparing the file system", files_step)]
+            ("Preparing the file system", files_step), ("Checking the last shutdown", session_step)]
 
 
 MARKS = {"ok": "[bold green][  OK  ][/bold green]", "warn": "[bold yellow][ WARN ][/bold yellow]",
