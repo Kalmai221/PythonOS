@@ -15,6 +15,8 @@ import json
 import pyos
 import pyos.fs as fs
 from pyos import helpview, jobs, notify, scheduler, settings, stdio, theme
+import importlib
+_shutdown_module = importlib.import_module("pyos.shutdown")      # the module: the name pyos.shutdown is the function it defines
 try:
     import readline
 except ImportError:
@@ -636,7 +638,7 @@ def start_shell(username):
     threading.Thread(target=_startup_items, args=(username,), name="startup-items", daemon=True).start()
     from pyos import power
     power_watch = power.Watcher(username, lambda text, level="info": notify.notify(text, title="Battery", level=level, user=username),
-                                pyos.shutdown.shutdown)
+                                pyos.shutdown)
     power_watch.start()
 
     last_activity = time.time()
@@ -686,7 +688,7 @@ def start_shell(username):
             sched.stop()
             raise                                    # the shutdown command: let main.py show the shutdown screen
         except KeyboardInterrupt:
-            if pyos.shutdown.pending():              # a background task asked for shutdown (timeshutdown)
+            if _shutdown_module.pending():              # a background task asked for shutdown (timeshutdown)
                 sched.stop()
                 raise pyos.ShutdownRequested()
             console.print("\n[bold yellow]^C[/bold yellow]")

@@ -85,6 +85,24 @@ def run(root):
         if problems:
             failures.append((line, problems, output[-300:]))
 
+    # The real login path: start_shell sets up the scheduler, the battery watcher, the idle watch and the hints before it shows the prompt.
+    # The prompt gets an end-of-input (like closing the window), so the shell leaves again; a mistake in that set-up crashes right here.
+    import builtins
+    real_input = builtins.input
+
+    def no_input(*args, **kwargs):
+        raise EOFError
+
+    builtins.input = no_input
+    try:
+        shell.start_shell("smoke")
+        print("ok   start_shell (login path)")
+    except BaseException as e:                       # noqa: BLE001 - any failure here is exactly what this test is for
+        print(f"FAIL start_shell (login path)   <- {type(e).__name__}: {e}")
+        failures.append(("start_shell", [f"{type(e).__name__}: {e}"], ""))
+    finally:
+        builtins.input = real_input
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")
