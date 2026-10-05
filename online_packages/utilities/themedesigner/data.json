@@ -1,0 +1,24 @@
+{
+  "name": "Theme Designer",
+  "description": "Design your own colour theme with a live preview and use it with settings.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "themedesigner",
+  "alias": [
+    "themes"
+  ],
+  "tags": [
+    "theme",
+    "colours",
+    "design"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "system",
+    "tools"
+  ],
+  "changelog": "First release."
+}

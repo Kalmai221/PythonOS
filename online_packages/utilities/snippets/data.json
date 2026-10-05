@@ -1,7 +1,7 @@
 {
   "name": "Snippets",
   "description": "A clipboard and a library of named snippets, stored as plain files.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -19,7 +19,8 @@
   "lockdown_safe": true,
   "changelog": {
     "1.0.0": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
-    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+    "1.1.0": "Remembers what you copy, so the new Clipboard History app can show, search and restore it."
   },
   "permissions": [
     "files"

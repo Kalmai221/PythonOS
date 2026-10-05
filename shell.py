@@ -478,6 +478,15 @@ def reload_all():
     console.print("[bold green]Reload complete![/bold green]")
 
 
+def _startup_items(username):
+    """Background: run the user's startup commands (see pyos/startup.py)."""
+    try:
+        from pyos import startup
+        startup.run_all(run_captured, username)
+    except Exception:
+        pass
+
+
 def _market_check(username):
     """Background: tell the user once a day when app updates are waiting (quiet when there are none)."""
     try:
@@ -605,6 +614,7 @@ def start_shell(username):
         pass
 
     threading.Thread(target=_market_check, args=(username,), name="market-check", daemon=True).start()
+    threading.Thread(target=_startup_items, args=(username,), name="startup-items", daemon=True).start()
 
     last_activity = time.time()
     idle = IdleWatch(username)

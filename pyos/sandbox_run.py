@@ -67,6 +67,7 @@ class Guard:
         self.ro_files = {_real(os.path.join(self.cwd, n)) for n in ("current_user.json", "current_directory.txt", "config.json", "VERSION")}
         self.ro_files.add(_real(os.path.join(self.osdata, "settings.json")))
         self.ro_files.add(_real(os.path.join(self.osdata, "user_settings.json")))
+        self.ro_files.add(_real(os.path.join(self.osdata, "jobs.json")))
         self.rw_files = set()
         for perm, name in (("notifications", "notifications.json"), ("schedule", "schedule.json")):
             if perm in self.perms:

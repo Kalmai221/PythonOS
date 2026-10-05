@@ -4,6 +4,7 @@ cat, grep or edit them; the clipboard is ~/.clipboard, which works on every devi
 import os
 import re
 import sys
+import time
 
 from rich.console import Console
 from rich.markup import escape
@@ -13,9 +14,9 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 try:
-    from pyos import fs, stdio
+    from pyos import appdata, fs, stdio
 except ImportError:
-    fs = stdio = None
+    appdata = fs = stdio = None
 
 console = Console()
 
@@ -57,6 +58,16 @@ def read(name):
 def write(name, text):
     with open(os.path.join(snippet_dir(), name), "w", encoding="utf-8") as f:
         f.write(text)
+
+
+def remember(text):
+    """Keep what was copied in the clipboard history (the Clipboard History app shows it): newest first, 50 entries, no repeats."""
+    if not appdata or not text.strip():
+        return
+    history = appdata.load("clip_history", []) or []
+    history = [h for h in history if h.get("text") != text]
+    history.insert(0, {"t": int(time.time()), "text": text[:5000]})
+    appdata.save("clip_history", history[:50])
 
 
 def read_clip():
@@ -152,6 +163,7 @@ def main():
             elif choice == "c":
                 with open(clip_file(), "w", encoding="utf-8") as f:
                     f.write(read(name))
+                remember(read(name))
                 console.print(f"[green]Copied {name} to the clipboard.[/green]")
             elif choice == "e":
                 write(name, read_multiline(f"New text for {name}."))
@@ -172,6 +184,7 @@ def execute(args=None):
                 text = (stdio.read_stdin() if stdio else None) or (sys.stdin.read() if not sys.stdin.isatty() else "")
             with open(clip_file(), "w", encoding="utf-8") as f:
                 f.write(text)
+            remember(text)
             console.print(f"[green]Copied {len(text)} character(s).[/green]")
         elif args[0] == "paste":
             sys.stdout.write(read_clip())

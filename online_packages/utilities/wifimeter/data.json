@@ -1,0 +1,26 @@
+{
+  "name": "Wi-Fi Meter",
+  "description": "A live Wi-Fi signal meter to find the best spot (Linux and the live ISO).",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "wifimeter",
+  "alias": [
+    "wifi"
+  ],
+  "tags": [
+    "wifi",
+    "signal",
+    "network"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "system"
+  ],
+  "categories": [
+    "network",
+    "system"
+  ],
+  "changelog": "First release."
+}

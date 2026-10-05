@@ -1159,6 +1159,45 @@
       ]
     },
     {
+      "id": "utilities/battery",
+      "category": "utilities",
+      "name": "Battery",
+      "description": "Charge, time left, temperature and a drain history where the device reports them.",
+      "version": "1.0.0",
+      "command": "battery",
+      "alias": [
+        "power"
+      ],
+      "tags": [
+        "battery",
+        "power",
+        "laptop"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "system"
+      ],
+      "categories": [
+        "system"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "a571e754948de94ce73c8ac3490282e10871b431d183cb6f3efec2998def29a3",
+          "size": 431
+        },
+        {
+          "path": "run.py",
+          "sha256": "cd5489a0eb75c552f5dd3f7eda7da1d03fed5bbde7e8151225c10a75969c7bf9",
+          "size": 5321
+        }
+      ]
+    },
+    {
       "id": "utilities/calendar",
       "category": "utilities",
       "name": "Calendar",
@@ -1205,6 +1244,48 @@
           "path": "run.py",
           "sha256": "be1abbf3db2c588478ccebaf9df3875a3af6e09af08fdb8ad0fe492f06531fb8",
           "size": 8854
+        }
+      ]
+    },
+    {
+      "id": "utilities/clipboard",
+      "category": "utilities",
+      "name": "Clipboard History",
+      "description": "Everything you copied with Snippets, searchable, with pins and copy-back.",
+      "version": "1.0.0",
+      "command": "clipboard",
+      "alias": [
+        "clips"
+      ],
+      "tags": [
+        "clipboard",
+        "history",
+        "copy"
+      ],
+      "lockdown_safe": true,
+      "requires": [
+        "utilities/snippets>=1.1"
+      ],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "productivity",
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "568871a743c0903cf9771a8cfa793d6f2d80223c4c97365cda63873e9fa60e08",
+          "size": 506
+        },
+        {
+          "path": "run.py",
+          "sha256": "d8dfa8d43c858c0d98a2ac03e86c1e839057fa6de230e136da4b47ae45a4a8ab",
+          "size": 4615
         }
       ]
     },
@@ -1332,6 +1413,48 @@
           "path": "run.py",
           "sha256": "c019bd49385a4382ce1fda8411a773e692d45ecba70236c4b515655ab3094eb2",
           "size": 6530
+        }
+      ]
+    },
+    {
+      "id": "utilities/diskusage",
+      "category": "utilities",
+      "name": "Disk Usage",
+      "description": "An ncdu-style explorer: see what takes up space and delete it.",
+      "version": "1.0.0",
+      "command": "diskusage",
+      "alias": [
+        "du2",
+        "ncdu"
+      ],
+      "tags": [
+        "disk",
+        "space",
+        "files",
+        "cleanup"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "system",
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "ad2220c2a4ec81a0d6f47b6685450c67a0d18ee7fc14e5ab1ba1ea44d963c80b",
+          "size": 450
+        },
+        {
+          "path": "run.py",
+          "sha256": "5be41bbb40bc9ceb16540cf4cfef729c65ab03f344e3d00166994c75e62c9c00",
+          "size": 7017
         }
       ]
     },
@@ -1500,6 +1623,87 @@
           "path": "run.py",
           "sha256": "13b027b5ef3454cfb21f4d15e7d7f6fbda4cbe2d8105469f94b054454d1fe274",
           "size": 6215
+        }
+      ]
+    },
+    {
+      "id": "utilities/lanscan",
+      "category": "utilities",
+      "name": "LAN Scanner",
+      "description": "Find the devices on your own local network (private ranges only).",
+      "version": "1.0.0",
+      "command": "lanscan",
+      "alias": [
+        "lan"
+      ],
+      "tags": [
+        "network",
+        "scanner",
+        "devices"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network",
+        "system"
+      ],
+      "categories": [
+        "network",
+        "system"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "bd41a707bbb337139626b6ba93b5adc1e74817acc3014a31eab7075e0ad176a0",
+          "size": 450
+        },
+        {
+          "path": "run.py",
+          "sha256": "f94574c723397d4e1863c390e90b6a0366935a2157f01e9cd8168c49da94a94e",
+          "size": 5242
+        }
+      ]
+    },
+    {
+      "id": "utilities/logviewer",
+      "category": "utilities",
+      "name": "Log Viewer",
+      "description": "Read the system log with filters, colours, follow mode and export.",
+      "version": "1.0.0",
+      "command": "logviewer",
+      "alias": [
+        "lv"
+      ],
+      "tags": [
+        "logs",
+        "viewer",
+        "filter"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "system",
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "9de86665c1ee50319b54a6943770d8ff65cc67710d667ab8820b2387fe7ac8bc",
+          "size": 428
+        },
+        {
+          "path": "run.py",
+          "sha256": "f3c313645a5c27d913c712488f2b1af689a0b0cd897f05d00343dff5aa8af03c",
+          "size": 7256
         }
       ]
     },
@@ -1722,6 +1926,86 @@
       ]
     },
     {
+      "id": "utilities/portscan",
+      "category": "utilities",
+      "name": "Port Scanner",
+      "description": "See which ports are open on this computer. It refuses any other address.",
+      "version": "1.0.0",
+      "command": "portscan",
+      "alias": [
+        "ports"
+      ],
+      "tags": [
+        "network",
+        "ports",
+        "security"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "categories": [
+        "network",
+        "system"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "1721cbaf87440bb458cf1c9bcf96aac69c1905959239a62daf8a16e161b938ef",
+          "size": 446
+        },
+        {
+          "path": "run.py",
+          "sha256": "0de4afe4f43668c810bce5e4c72e09fad45949316320cd83c6dc4960c27e56a3",
+          "size": 5307
+        }
+      ]
+    },
+    {
+      "id": "utilities/procs",
+      "category": "utilities",
+      "name": "Process Inspector",
+      "description": "See running processes and background jobs, look closer and stop them.",
+      "version": "1.0.0",
+      "command": "procs",
+      "alias": [
+        "ps2"
+      ],
+      "tags": [
+        "process",
+        "jobs",
+        "inspector",
+        "tasks"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "system"
+      ],
+      "categories": [
+        "system"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "8aeb1ccc9a5f98d8898a8dfa488b9acc12f0d7199bae9a748528b2a830b243f1",
+          "size": 440
+        },
+        {
+          "path": "run.py",
+          "sha256": "fdc525ae5f5fe35396a0a3abb9e966c50ce3e2e89a64f0d3966b9fdf1c0a5ea8",
+          "size": 7464
+        }
+      ]
+    },
+    {
       "id": "utilities/qr",
       "category": "utilities",
       "name": "QR Codes",
@@ -1844,11 +2128,52 @@
       ]
     },
     {
+      "id": "utilities/schedui",
+      "category": "utilities",
+      "name": "Scheduler",
+      "description": "A friendly form for running commands later, repeatedly or every day.",
+      "version": "1.0.0",
+      "command": "schedui",
+      "alias": [
+        "planner"
+      ],
+      "tags": [
+        "schedule",
+        "tasks",
+        "automation",
+        "cron"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "schedule"
+      ],
+      "categories": [
+        "system",
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "fc4c289a8c7355bdf1248b2ba44bc47dfc6b87ec070544a0235ec68680b07651",
+          "size": 461
+        },
+        {
+          "path": "run.py",
+          "sha256": "84c5a73f53a8dfe981e9307a20eca6afa38c6eb8a1f122b55499ddbccf5b78d3",
+          "size": 5270
+        }
+      ]
+    },
+    {
       "id": "utilities/snippets",
       "category": "utilities",
       "name": "Snippets",
       "description": "A clipboard and a library of named snippets, stored as plain files.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "command": "snippets",
       "alias": [
         "clip",
@@ -1872,19 +2197,101 @@
       ],
       "changelog": {
         "1.0.0": "First release: clipboard, snippet library, pipes with 'snippets copy'.",
-        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "1.1.0": "Remembers what you copy, so the new Clipboard History app can show, search and restore it."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "3254e29a21c6409e69f29838c70c190ee0d0277d4404ad068d0e1cb8cf58122a",
-          "size": 748
+          "sha256": "11ac3edbbc84cc09200ccf057e9d0a05a1c28e36b46d17284f41aa979a0a8398",
+          "size": 855
         },
         {
           "path": "run.py",
-          "sha256": "964c04885207bb9a728541abe8e4d25e70d145ac1d8614e2d2eb2c16317b558d",
-          "size": 6687
+          "sha256": "06dd83b25eff4c3f7265c30a4cffb468da30b2053bba17a27d4542d13d5d2a3c",
+          "size": 7219
+        }
+      ]
+    },
+    {
+      "id": "utilities/speedtest",
+      "category": "utilities",
+      "name": "Speed Test",
+      "description": "Measure latency, download and upload speed and keep a history.",
+      "version": "1.0.0",
+      "command": "speedtest",
+      "alias": [
+        "speed"
+      ],
+      "tags": [
+        "network",
+        "speed",
+        "internet",
+        "bandwidth"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "categories": [
+        "network",
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "8e879bfe77764685be74750f3ad1d685eb596483e2198a574173da695850638e",
+          "size": 451
+        },
+        {
+          "path": "run.py",
+          "sha256": "c92bdf473c42118e068cb40afb7c6996bd81847a738d142909b3700c621700b2",
+          "size": 5775
+        }
+      ]
+    },
+    {
+      "id": "utilities/startup",
+      "category": "utilities",
+      "name": "Startup Apps",
+      "description": "Choose commands that run by themselves every time you log in.",
+      "version": "1.0.0",
+      "command": "startup",
+      "alias": [
+        "autostart"
+      ],
+      "tags": [
+        "startup",
+        "login",
+        "automation"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "schedule"
+      ],
+      "categories": [
+        "system",
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "c49b3bd6c7ad9756dc0e9bae1a1064a78ed349621675f9efc63440fb71c0a3b7",
+          "size": 446
+        },
+        {
+          "path": "run.py",
+          "sha256": "0412e64dc7796cb40dc172ae11aa4d2f474218d25c7bf171265cc382172a972c",
+          "size": 5391
         }
       ]
     },
@@ -1972,6 +2379,44 @@
       ]
     },
     {
+      "id": "utilities/themedesigner",
+      "category": "utilities",
+      "name": "Theme Designer",
+      "description": "Design your own colour theme with a live preview and use it with settings.",
+      "version": "1.0.0",
+      "command": "themedesigner",
+      "alias": [
+        "themes"
+      ],
+      "tags": [
+        "theme",
+        "colours",
+        "design"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "system",
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "5b7d63c34ad3386c3bc2f7f51f1a6365588fa831e0b7e300384112dcb0329131",
+          "size": 435
+        },
+        {
+          "path": "run.py",
+          "sha256": "17b250a7457218272f3f9cb5f2838a13a704350e7b01b179ce8a36de71904958",
+          "size": 5068
+        }
+      ]
+    },
+    {
       "id": "utilities/todo",
       "category": "utilities",
       "name": "To-do List",
@@ -2049,6 +2494,46 @@
           "path": "run.py",
           "sha256": "b6d0226bfb07478a3eab540bb554dd4c8e76c5b7b6243612419a37202a458b2e",
           "size": 4323
+        }
+      ]
+    },
+    {
+      "id": "utilities/wifimeter",
+      "category": "utilities",
+      "name": "Wi-Fi Meter",
+      "description": "A live Wi-Fi signal meter to find the best spot (Linux and the live ISO).",
+      "version": "1.0.0",
+      "command": "wifimeter",
+      "alias": [
+        "wifi"
+      ],
+      "tags": [
+        "wifi",
+        "signal",
+        "network"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "system"
+      ],
+      "categories": [
+        "network",
+        "system"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "608869ff67085cdb3f89b97a96def0370f7f846430507c74133d47a58a1cef05",
+          "size": 442
+        },
+        {
+          "path": "run.py",
+          "sha256": "ac724988a51d09cd79165e05459400c6fceb415706559c5ef05ef1681f982811",
+          "size": 4563
         }
       ]
     }

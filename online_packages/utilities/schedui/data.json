@@ -1,0 +1,27 @@
+{
+  "name": "Scheduler",
+  "description": "A friendly form for running commands later, repeatedly or every day.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "schedui",
+  "alias": [
+    "planner"
+  ],
+  "tags": [
+    "schedule",
+    "tasks",
+    "automation",
+    "cron"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "schedule"
+  ],
+  "categories": [
+    "system",
+    "productivity"
+  ],
+  "changelog": "First release."
+}

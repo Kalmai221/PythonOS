@@ -1,0 +1,26 @@
+{
+  "name": "Process Inspector",
+  "description": "See running processes and background jobs, look closer and stop them.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "procs",
+  "alias": [
+    "ps2"
+  ],
+  "tags": [
+    "process",
+    "jobs",
+    "inspector",
+    "tasks"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "system"
+  ],
+  "categories": [
+    "system"
+  ],
+  "changelog": "First release."
+}

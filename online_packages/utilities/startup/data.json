@@ -1,0 +1,26 @@
+{
+  "name": "Startup Apps",
+  "description": "Choose commands that run by themselves every time you log in.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "startup",
+  "alias": [
+    "autostart"
+  ],
+  "tags": [
+    "startup",
+    "login",
+    "automation"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "schedule"
+  ],
+  "categories": [
+    "system",
+    "productivity"
+  ],
+  "changelog": "First release."
+}

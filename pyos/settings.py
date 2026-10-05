@@ -1,6 +1,7 @@
 # pyos/settings.py - system settings (theme, prompt, boot speed, ...) stored in .OSData/settings.json
 import json
 import os
+import re
 import threading
 
 SETTINGS_FILE = os.path.join(".OSData", "settings.json")
@@ -58,12 +59,19 @@ def get(key):
     return load()[key]
 
 
+def _custom_theme_name(value):
+    """'custom:name' - one of the user's own themes (made with the Theme Designer app)."""
+    return isinstance(value, str) and value.startswith("custom:") and re.fullmatch(r"[A-Za-z0-9_-]{1,20}", value[7:]) is not None
+
+
 def _valid(key, value):
     allowed = SCHEMA[key][1]
     if allowed is bool:
         return isinstance(value, bool)
     if allowed is int:
         return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 24 * 60
+    if key == "theme" and _custom_theme_name(value):
+        return True
     return value in allowed
 
 
@@ -83,8 +91,10 @@ def parse_value(key, text):
         if not text.isdigit() or int(text) > 24 * 60:
             raise ValueError(f"{key} must be a whole number of minutes (0 to 1440)")
         return int(text)
+    if key == "theme" and _custom_theme_name(text):
+        return text
     if text not in allowed:
-        raise ValueError(f"{key} must be one of: {', '.join(allowed)}")
+        raise ValueError(f"{key} must be one of: {', '.join(allowed)}" + (" (or custom:<name> for a theme you made)" if key == "theme" else ""))
     return text
 
 

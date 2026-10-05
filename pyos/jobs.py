@@ -5,6 +5,8 @@
 # Python cannot kill a running thread, so cancelling is cooperative: it sets a flag that long-running
 # commands (sleep, the scheduler, ...) check with cancelled(). Jobs are meant for non-interactive,
 # finite commands - a job that waits for typed input will simply stay running.
+import json
+import os
 import threading
 import time
 
@@ -57,12 +59,29 @@ def start(command, runner, user=None):
                 job.status = "cancelled"
             else:
                 job.status = "done" if not job.code else "failed"
+            snapshot()
             notify.notify(f"[{job.id}] {job.status}: {job.command}",
                           title="Background job", level="info" if job.status == "done" else "warn", user=job.user)
 
     job.thread = threading.Thread(target=work, name=f"job-{job.id}", daemon=True)
     job.thread.start()
+    snapshot()
     return job
+
+
+def snapshot():
+    """Write the job list to .OSData/jobs.json so other programs (the Process Inspector app) can show it. Never raises."""
+    try:
+        with _lock:
+            rows = [{"id": j.id, "command": j.command, "user": j.user, "status": j.status, "started": j.started,
+                     "elapsed": round(j.elapsed(), 1)} for j in _jobs.values()]
+        os.makedirs(".OSData", exist_ok=True)
+        tmp = os.path.join(".OSData", "jobs.json.tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(rows[-50:], f)
+        os.replace(tmp, os.path.join(".OSData", "jobs.json"))
+    except Exception:
+        pass
 
 
 def current():

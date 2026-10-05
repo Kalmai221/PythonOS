@@ -1,0 +1,27 @@
+{
+  "name": "Speed Test",
+  "description": "Measure latency, download and upload speed and keep a history.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "speedtest",
+  "alias": [
+    "speed"
+  ],
+  "tags": [
+    "network",
+    "speed",
+    "internet",
+    "bandwidth"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "network",
+    "tools"
+  ],
+  "changelog": "First release."
+}

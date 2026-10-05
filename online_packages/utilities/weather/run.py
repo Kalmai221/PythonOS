@@ -104,10 +104,6 @@ def main(city=None):
         show(city, settings)
 
 
-if __name__ == "__main__":
-    main()
-
-
 def execute(args=None):
     try:
         main(" ".join(args) if args else None)

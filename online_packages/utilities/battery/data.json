@@ -1,0 +1,25 @@
+{
+  "name": "Battery",
+  "description": "Charge, time left, temperature and a drain history where the device reports them.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "battery",
+  "alias": [
+    "power"
+  ],
+  "tags": [
+    "battery",
+    "power",
+    "laptop"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "system"
+  ],
+  "categories": [
+    "system"
+  ],
+  "changelog": "First release."
+}

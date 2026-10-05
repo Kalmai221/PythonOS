@@ -1,0 +1,27 @@
+{
+  "name": "LAN Scanner",
+  "description": "Find the devices on your own local network (private ranges only).",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "lanscan",
+  "alias": [
+    "lan"
+  ],
+  "tags": [
+    "network",
+    "scanner",
+    "devices"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "network",
+    "system"
+  ],
+  "categories": [
+    "network",
+    "system"
+  ],
+  "changelog": "First release."
+}

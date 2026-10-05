@@ -1,0 +1,26 @@
+{
+  "name": "Log Viewer",
+  "description": "Read the system log with filters, colours, follow mode and export.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "logviewer",
+  "alias": [
+    "lv"
+  ],
+  "tags": [
+    "logs",
+    "viewer",
+    "filter"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "system",
+    "tools"
+  ],
+  "changelog": "First release."
+}

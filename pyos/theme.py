@@ -1,4 +1,6 @@
 # pyos/theme.py - colour themes. Roles map to rich styles; ansi() gives raw escape codes for the prompt.
+import os
+
 from . import settings
 
 # role -> rich style
@@ -25,14 +27,47 @@ _COLOURS = {"black": 30, "red": 31, "green": 32, "yellow": 33, "blue": 34, "mage
 _ATTRS = {"bold": 1, "dim": 2, "italic": 3, "underline": 4}
 
 
+_custom_cache = {"key": None, "data": {}}
+
+
+def custom_themes():
+    """The current user's own themes ({name: {role: style}}), saved by the Theme Designer in ~/.config/themes.json."""
+    try:
+        from . import appdata
+        path = appdata.path("themes")
+        stamp = (path, os.path.getmtime(path))
+    except Exception:
+        return {}
+    if _custom_cache["key"] != stamp:
+        data = appdata.load("themes", {}) or {}
+        _custom_cache.update(key=stamp, data=data if isinstance(data, dict) else {})
+    return _custom_cache["data"]
+
+
+def roles():
+    """The role -> style table of the chosen theme. A theme called custom:<name> is one of the user's own, filled in with
+    the default theme for any role it does not set."""
+    chosen = settings.get("theme")
+    if chosen.startswith("custom:"):
+        mine = custom_themes().get(chosen[len("custom:"):])
+        if isinstance(mine, dict):
+            merged = dict(THEMES["default"])
+            merged.update({k: v for k, v in mine.items() if k in THEMES["default"] and isinstance(v, str)})
+            return merged
+        return THEMES["default"]
+    return THEMES.get(chosen, THEMES["default"])
+
+
 def name():
     chosen = settings.get("theme")
+    if chosen.startswith("custom:"):
+        return chosen if chosen[len("custom:"):] in custom_themes() else "default"
     return chosen if chosen in THEMES else "default"
 
 
 def style(role):
     """The rich style string for a role in the current theme."""
-    return THEMES[name()].get(role, "")
+    return roles().get(role, "")
 
 
 def tag(role, text):

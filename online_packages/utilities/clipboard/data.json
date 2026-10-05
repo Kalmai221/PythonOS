@@ -1,0 +1,29 @@
+{
+  "name": "Clipboard History",
+  "description": "Everything you copied with Snippets, searchable, with pins and copy-back.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "clipboard",
+  "alias": [
+    "clips"
+  ],
+  "tags": [
+    "clipboard",
+    "history",
+    "copy"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity",
+    "tools"
+  ],
+  "requires": [
+    "utilities/snippets>=1.1"
+  ],
+  "changelog": "First release."
+}

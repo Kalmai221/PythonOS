@@ -1,0 +1,26 @@
+{
+  "name": "Port Scanner",
+  "description": "See which ports are open on this computer. It refuses any other address.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "portscan",
+  "alias": [
+    "ports"
+  ],
+  "tags": [
+    "network",
+    "ports",
+    "security"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "network",
+    "system"
+  ],
+  "changelog": "First release."
+}

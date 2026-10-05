@@ -1,0 +1,28 @@
+{
+  "name": "Disk Usage",
+  "description": "An ncdu-style explorer: see what takes up space and delete it.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "diskusage",
+  "alias": [
+    "du2",
+    "ncdu"
+  ],
+  "tags": [
+    "disk",
+    "space",
+    "files",
+    "cleanup"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "system",
+    "tools"
+  ],
+  "changelog": "First release."
+}
