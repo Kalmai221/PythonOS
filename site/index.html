@@ -4,128 +4,217 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PythonOS - Download</title>
-<meta name="description" content="Download PythonOS for Windows, Android, Linux, as a bootable USB, or in a virtual machine.">
-<style>
-  :root { --bg:#0e1117; --card:#161b24; --text:#e6e9ef; --muted:#9aa4b5; --accent:#7aa2f7; --line:#262d3a; --ok:#7ee0a1; }
-  @media (prefers-color-scheme: light) { :root { --bg:#f6f7fb; --card:#fff; --text:#161b24; --muted:#586174; --accent:#2f5bd8; --line:#dfe3ec; --ok:#17783d; } }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px 64px; }
-  header { padding: 48px 0 16px; }
-  h1 { font-size: 2.2rem; margin: 0 0 .2em; letter-spacing: -.02em; }
-  h1 span { color: var(--accent); }
-  p.lead { color: var(--muted); margin: 0; max-width: 40em; }
-  nav a { color: var(--muted); margin-right: 16px; text-decoration: none; }
-  nav a:hover { color: var(--accent); }
-  .hero { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin: 24px 0; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
-  .hero .text { flex: 1 1 280px; }
-  .hero h2 { margin: 0 0 4px; font-size: 1.3rem; }
-  .btn { display: inline-block; background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; margin: 8px 8px 0 0; }
-  .btn.alt { background: transparent; color: var(--accent); border: 1px solid var(--line); }
-  .meta { color: var(--muted); font-size: .9rem; }
-  #qr { background: #fff; padding: 10px; border-radius: 12px; line-height: 0; }
-  #qr:empty { display: none; }
-  h3 { margin: 32px 0 8px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
-  .card h4 { margin: 0 0 2px; }
-  .card ul { list-style: none; padding: 0; margin: 8px 0 0; }
-  .card li { margin: 6px 0; }
-  .card a { color: var(--accent); word-break: break-word; }
-  .size { color: var(--muted); font-size: .85rem; }
-  .use { color: var(--muted); font-size: .9rem; display: block; }
-  code { background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 1px 6px; border-radius: 6px; font-size: .9em; }
-  footer { color: var(--muted); font-size: .9rem; margin-top: 40px; }
-  .err { color: #e06c75; }
-</style>
+<meta name="description" content="PythonOS is a small operating system you drive with typed commands. Download it for Windows, Android, Linux, a bootable USB or a virtual machine.">
+<meta name="theme-color" content="#0b0e15" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f6fb" media="(prefers-color-scheme: light)">
+<script>try { var t = localStorage.getItem("theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <nav><a href="./">Download</a><a href="status.html">Build status</a><a href="https://github.com/Kalmai221/PythonOS">GitHub</a></nav>
-    <h1>Python<span>OS</span></h1>
-    <p class="lead">A small operating system you drive with typed commands. Runs on a PC, a USB stick, a phone, in a virtual machine, or in a container.</p>
-  </header>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="./"><span class="logo" aria-hidden="true">&gt;_</span>PythonOS</a>
+    <nav aria-label="Main">
+      <a class="opt" href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a class="opt" href="status.html">Build status</a>
+      <a class="opt" href="https://github.com/Kalmai221/PythonOS">GitHub</a>
+      <button class="icon-btn" id="theme" type="button" aria-pressed="false" aria-label="Switch theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
 
-  <section class="hero" id="hero" aria-live="polite">
-    <div class="text"><h2>Loading the latest release…</h2><p class="meta">If this stays empty, open the <a href="https://github.com/Kalmai221/PythonOS/releases/latest">releases page</a>.</p></div>
+<main id="main">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow"><span class="dot" aria-hidden="true"></span><span id="ver">Latest release</span></span>
+        <h1 class="title">A tiny operating system <em>you type to</em>.</h1>
+        <p class="lead">Files, accounts, apps, games and a network, all driven from a prompt. It runs on a PC, a USB stick, a phone, in a virtual machine or in a container.</p>
+        <div class="cta" id="cta" aria-live="polite">
+          <a class="btn primary" href="https://github.com/Kalmai221/PythonOS/releases/latest">Download PythonOS</a>
+          <a class="btn ghost" href="#download">All downloads</a>
+        </div>
+        <p class="meta-line" id="meta"></p>
+      </div>
+      <figure class="term reveal" aria-label="A short session in PythonOS" style="margin:0">
+        <div class="term-bar"><i></i><i></i><i></i><span>pythonos</span></div>
+<pre id="demo" aria-hidden="true"><span class="p">you@pyOS</span>:<span class="c">~</span>$ <span class="caret"></span></pre>
+      </figure>
+    </div>
   </section>
 
-  <h3>All downloads</h3>
-  <div class="grid" id="all"></div>
+  <section class="block" id="features">
+    <div class="wrap">
+      <div class="section-head reveal"><h2>Small, but it feels like a system</h2><p class="muted">Everything is typed, everything can be undone, and everything is explained in the manual.</p></div>
+      <div class="grid">
+        <article class="card reveal"><div class="badge" aria-hidden="true">↩</div><h3>Undo what you delete</h3><p><code>rm</code> sends files to a trash, <code>undo</code> brings the last one back.</p></article>
+        <article class="card reveal"><div class="badge" aria-hidden="true">⌕</div><h3>Find anything</h3><p><code>find</code>, <code>grep -rn</code>, <code>tree</code> and <code>diff</code> with the options you expect.</p></article>
+        <article class="card reveal"><div class="badge" aria-hidden="true">✎</div><h3>Learn by doing</h3><p>A 28-lesson tutorial that checks what you type, and a two-minute quick start.</p></article>
+        <article class="card reveal"><div class="badge" aria-hidden="true">◐</div><h3>Light, dark, your language</h3><p>Themes, and the system's own messages in English, Spanish, French and German.</p></article>
+        <article class="card reveal"><div class="badge" aria-hidden="true">⏻</div><h3>Live USB or installed</h3><p>Boot from a stick without touching the PC, keep your data, or install to a disk.</p></article>
+        <article class="card reveal"><div class="badge" aria-hidden="true">✓</div><h3>Checked downloads</h3><p>Every file has a checksum, signed by the release workflow, and installers verify it for you.</p></article>
+      </div>
+    </div>
+  </section>
 
-  <h3>Check what you downloaded</h3>
-  <p class="meta">Every release lists the SHA-256 of each file in <code>SHA256SUMS</code>, signed by the release workflow. Details are in the release notes.</p>
+  <section class="block" id="download" style="background:var(--bg-2)">
+    <div class="wrap">
+      <div class="section-head reveal"><h2>Download</h2><p class="muted" id="dl-sub">Pick your device. Everything updates itself from inside PythonOS later.</p></div>
+      <div class="tabs" role="tablist" aria-label="Platform" id="tabs"></div>
+      <div id="panels"><div class="files"><div class="skeleton"></div><div class="skeleton"></div></div></div>
+      <p class="note" id="docker">Prefer a container? <code>docker run -it --rm ghcr.io/kalmai221/pythonos</code> <button class="copy" type="button" data-copy="docker run -it --rm ghcr.io/kalmai221/pythonos">Copy</button></p>
+    </div>
+  </section>
 
-  <footer>
-    <p>Docker: <code>docker run -it --rm ghcr.io/kalmai221/pythonos</code> &nbsp;·&nbsp; Updates: inside PythonOS, run <code>updatecheck</code>.</p>
-  </footer>
-</div>
+  <section class="block verify" id="verify">
+    <div class="wrap">
+      <div class="section-head reveal"><h2>Check what you downloaded</h2><p class="muted">Every release lists the SHA-256 of each file in <code>SHA256SUMS</code>, signed by the release workflow.</p></div>
+      <div class="grid">
+        <article class="card reveal"><h3>Windows (PowerShell)</h3><pre>Get-FileHash .\PythonOS-*-web-setup.exe</pre></article>
+        <article class="card reveal"><h3>Linux / macOS</h3><pre>sha256sum -c SHA256SUMS --ignore-missing</pre></article>
+        <article class="card reveal"><h3>Build provenance</h3><pre>gh attestation verify FILE --repo Kalmai221/PythonOS</pre></article>
+      </div>
+    </div>
+  </section>
+</main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<footer>
+  <div class="wrap">
+    <span>PythonOS · <a href="https://github.com/Kalmai221/PythonOS">source</a> · <a href="status.html">build status</a> · <a href="https://github.com/Kalmai221/PythonOS/issues">report a problem</a></span>
+    <span>Update inside PythonOS with <code>updatecheck</code></span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script>
-const REPO = "Kalmai221/PythonOS";
-const GROUPS = [
-  { key: "windows", title: "Windows", match: /(setup\.exe|windows-portable\.zip)$/ },
-  { key: "android", title: "Android", match: /\.apk$/ },
-  { key: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz)$/ },
-  { key: "iso", title: "Bootable USB / DVD", match: /(x86_64\.iso|flash-tool.*\.py)$/ },
-  { key: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/ },
-];
-const USE = [
-  [/setup\.exe$/, "Installer for most Windows users"], [/windows-portable/, "No install: unzip and run"],
-  [/arm64-v8a\.apk$/, "Nearly every phone (smallest)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal: works anywhere, bigger"],
-  [/\.deb$/, "Debian, Ubuntu and friends"], [/linux\.tar\.gz$/, "Any Linux"],
-  [/minimal-x86_64\.iso$/, "Live system only, small"], [/x86_64\.iso$/, "Full live image with installer"], [/flash-tool/, "Writes the ISO to a USB stick safely"],
-  [/\.ova$/, "VirtualBox / VMware"], [/\.qcow2$/, "QEMU / KVM / Proxmox"], [/vm-kit/, "Run scripts"],
-];
-const size = n => n > 1e9 ? (n/1e9).toFixed(1)+" GB" : n > 1e6 ? (n/1e6).toFixed(1)+" MB" : (n/1e3).toFixed(0)+" KB";
-const useOf = name => (USE.find(([re]) => re.test(name)) || [0, ""])[1];
-
-function detect() {
-  const ua = navigator.userAgent || "";
-  if (/Android/i.test(ua)) return "android";
-  if (/Windows/i.test(ua)) return "windows";
-  if (/Linux|X11|CrOS/i.test(ua)) return "linux";
-  if (/Mac/i.test(ua)) return "iso";
-  return "windows";
-}
-
-function pick(assets, platform) {
-  const by = re => assets.find(a => re.test(a.name));
-  if (platform === "android") return by(/arm64-v8a\.apk$/) || by(/android\.apk$/);
-  if (platform === "windows") return by(/setup\.exe$/);
-  if (platform === "linux") return by(/\.deb$/) || by(/linux\.tar\.gz$/);
-  return by(/x86_64\.iso$/);
-}
-
-(async () => {
-  const hero = document.getElementById("hero");
-  try {
-    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`);
-    if (!r.ok) throw new Error(r.status);
-    const rel = await r.json();
-    const assets = rel.assets.filter(a => !/SHA256SUMS|core|manifest/i.test(a.name));
-    const platform = detect();
-    const main = pick(assets, platform);
-    const names = { android: "Android", windows: "Windows", linux: "Linux", iso: "your computer" };
-    hero.innerHTML = `<div class="text"><h2>PythonOS ${rel.tag_name.replace(/^v/, "")} for ${names[platform]}</h2>
-      <p class="meta">Released ${new Date(rel.published_at).toLocaleDateString()}${main ? ` · ${size(main.size)}` : ""}</p>
-      ${main ? `<a class="btn" href="${main.browser_download_url}">Download ${main.name}</a>` : ""}
-      <a class="btn alt" href="${rel.html_url}">Release notes</a></div><div id="qr" title="Scan to download the Android app"></div>`;
-    const apk = pick(assets, "android");
-    if (apk && window.QRCode && platform !== "android") new QRCode(document.getElementById("qr"), { text: apk.browser_download_url, width: 128, height: 128 });
-    const all = document.getElementById("all");
-    for (const g of GROUPS) {
-      const items = assets.filter(a => g.match.test(a.name));
-      if (!items.length) continue;
-      all.insertAdjacentHTML("beforeend", `<div class="card"><h4>${g.title}</h4><ul>${items.map(a =>
-        `<li><a href="${a.browser_download_url}">${a.name}</a> <span class="size">${size(a.size)}</span><span class="use">${useOf(a.name)}</span></li>`).join("")}</ul></div>`);
-    }
-  } catch (e) {
-    hero.innerHTML = `<div class="text"><h2 class="err">Could not load the latest release</h2><p class="meta">Open the <a href="https://github.com/${REPO}/releases/latest">releases page</a> instead.</p></div>`;
+document.addEventListener("DOMContentLoaded", function () {
+  "use strict";
+  var P = window.PyOS || {};
+  var GROUPS = [
+    { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows-portable\.zip)$/, note: "Windows 10 (1809) or newer. The web installer is a tiny download that fetches and checks the rest." },
+    { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. Choose arm64 for nearly every phone; the universal APK works anywhere but is bigger." },
+    { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz)$/, note: "Any Linux with Python 3.9+. Debian and Ubuntu users can install the .deb." },
+    { id: "usb", title: "Bootable USB", match: /(x86_64\.iso|flash-tool.*\.py)$/, note: "Boot a PC from a stick without touching its disk. Write it with the flash tool, which checks the download first." },
+    { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox." }
+  ];
+  var USE = [
+    [/web-setup\.exe$/, "Recommended installer"], [/-setup\.exe$/, "Full installer (offline)"], [/windows-portable/, "Portable: unzip and run"],
+    [/arm64-v8a\.apk$/, "Phones and tablets (smallest)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
+    [/\.deb$/, "Debian, Ubuntu and friends"], [/linux\.tar\.gz$/, "Any Linux"],
+    [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"], [/flash-tool/, "Safely writes the ISO to a USB stick"],
+    [/\.ova$/, "VirtualBox / VMware appliance"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
+  ];
+  function order(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return i; return 99; }
+  function useOf(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return USE[i][1]; return ""; }
+  function detect() {
+    var ua = navigator.userAgent || "";
+    if (/Android/i.test(ua)) return "android";
+    if (/Windows/i.test(ua)) return "windows";
+    if (/Linux|X11|CrOS/i.test(ua)) return "linux";
+    return "usb";
   }
-})();
+  function mainFile(assets, id) {
+    var by = function (re) { return assets.filter(function (a) { return re.test(a.name); })[0]; };
+    if (id === "android") return by(/arm64-v8a\.apk$/) || by(/android\.apk$/);
+    if (id === "windows") return by(/web-setup\.exe$/) || by(/-setup\.exe$/);
+    if (id === "linux") return by(/\.deb$/) || by(/linux\.tar\.gz$/);
+    return by(/(?<!minimal-)x86_64\.iso$/);
+  }
+
+  // typing demo in the terminal card (static text for reduced motion)
+  var lines = [
+    ["rm notes.txt", "<span class='d'>1 item moved to the trash - 'undo' brings it back</span>"],
+    ["undo", "<span class='y'>Restored ~/notes.txt</span>"],
+    ["find -name \"*.md\" -size +1k", "<span class='d'>~/docs/readme.md\n~/docs/ideas.md</span>"],
+    ["pkg install chess", "<span class='y'>Installed Chess 2.2.0</span> <span class='d'>(permissions: files)</span>"]
+  ];
+  var demo = document.getElementById("demo");
+  function prompt() { return "<span class='p'>you@pyOS</span>:<span class='c'>~</span>$ "; }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    demo.innerHTML = lines.map(function (l) { return prompt() + l[0] + "\n" + l[1]; }).join("\n") + "\n" + prompt() + "<span class='caret'></span>";
+  } else {
+    var li = 0, ci = 0, shown = "";
+    (function tick() {
+      if (li >= lines.length) { setTimeout(function () { li = 0; ci = 0; shown = ""; tick(); }, 4500); return; }
+      var cmd = lines[li][0];
+      if (ci <= cmd.length) {
+        demo.innerHTML = shown + prompt() + cmd.slice(0, ci) + "<span class='caret'></span>";
+        ci++; setTimeout(tick, 38 + Math.random() * 40);
+      } else {
+        shown += prompt() + cmd + "\n" + lines[li][1] + "\n";
+        demo.innerHTML = shown + prompt() + "<span class='caret'></span>";
+        li++; ci = 0; setTimeout(tick, 900);
+      }
+    })();
+  }
+
+  document.querySelectorAll("[data-copy]").forEach(function (b) { b.addEventListener("click", function () { P.copy(b.getAttribute("data-copy"), b); }); });
+
+  P.api("releases/latest").then(function (rel) {
+    var assets = rel.assets.filter(function (a) { return !/SHA256SUMS|core|manifest|\.json$/i.test(a.name); });
+    var version = rel.tag_name.replace(/^v/, "");
+    document.getElementById("ver").textContent = "Version " + version;
+    var platform = detect();
+    var main = mainFile(assets, platform);
+    var names = { android: "Android", windows: "Windows", linux: "Linux", usb: "a bootable USB" };
+    var cta = document.getElementById("cta");
+    if (main) {
+      cta.innerHTML = "<a class='btn primary' href='" + main.browser_download_url + "'>Download for " + names[platform] + "</a><a class='btn ghost' href='#download'>All downloads</a>";
+    }
+    document.getElementById("meta").innerHTML = (main ? "<span>" + P.esc(main.name) + " · " + P.size(main.size) + "</span>" : "") +
+      "<span>Released " + P.when(rel.published_at) + "</span><a href='" + rel.html_url + "'>Release notes</a>";
+
+    // downloads: one tab per platform
+    var tabs = document.getElementById("tabs"), panels = document.getElementById("panels");
+    tabs.innerHTML = ""; panels.innerHTML = "";
+    var present = GROUPS.filter(function (g) { return assets.some(function (a) { return g.match.test(a.name); }); });
+    present.forEach(function (g, i) {
+      var items = assets.filter(function (a) { return g.match.test(a.name); }).sort(function (a, b) { return order(a.name) - order(b.name); });
+      var tab = document.createElement("button");
+      tab.className = "tab"; tab.type = "button"; tab.id = "tab-" + g.id; tab.textContent = g.title;
+      tab.setAttribute("role", "tab"); tab.setAttribute("aria-controls", "panel-" + g.id);
+      var panel = document.createElement("div");
+      panel.className = "panel"; panel.id = "panel-" + g.id; panel.setAttribute("role", "tabpanel"); panel.setAttribute("aria-labelledby", tab.id);
+      panel.innerHTML = "<div class='files'>" + items.map(function (a) {
+        return "<div class='file'><span class='name'>" + P.esc(a.name) + "</span><span class='muted'>" + P.esc(useOf(a.name)) + "</span>" +
+               "<div class='row'><span class='size'>" + P.size(a.size) + "</span><a class='btn primary' style='padding:9px 16px' href='" + a.browser_download_url + "'>Download</a></div></div>";
+      }).join("") + "</div><p class='note'>" + g.note + "</p>";
+      tabs.appendChild(tab); panels.appendChild(panel);
+      tab.addEventListener("click", function () { select(g.id); });
+      tab.addEventListener("keydown", function (e) {
+        var k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!k) return;
+        var j = (i + k + present.length) % present.length; select(present[j].id); document.getElementById("tab-" + present[j].id).focus();
+      });
+    });
+    function select(id) {
+      present.forEach(function (g) {
+        var on = g.id === id;
+        document.getElementById("tab-" + g.id).setAttribute("aria-selected", String(on));
+        document.getElementById("tab-" + g.id).tabIndex = on ? 0 : -1;
+        document.getElementById("panel-" + g.id).hidden = !on;
+      });
+    }
+    select(present.some(function (g) { return g.id === platform; }) ? platform : (present[0] && present[0].id));
+
+    var apk = mainFile(assets, "android");
+    if (apk && platform !== "android" && window.QRCode) {
+      var q = document.createElement("div");
+      q.className = "note"; q.style.display = "flex"; q.style.gap = "16px"; q.style.alignItems = "center";
+      q.innerHTML = "<div style='background:#fff;padding:8px;border-radius:12px;line-height:0' id='qr'></div><span>Scan with your phone to download the Android app.</span>";
+      document.getElementById("docker").before(q);
+      try { new QRCode(document.getElementById("qr"), { text: apk.browser_download_url, width: 112, height: 112 }); } catch (e) { q.remove(); }
+    }
+  }).catch(function (e) {
+    document.getElementById("panels").innerHTML = "<p class='note err'>Could not load the latest release (" + P.esc(e.message) + "). Open the <a href='https://github.com/Kalmai221/PythonOS/releases/latest'>releases page</a> instead.</p>";
+    document.getElementById("tabs").hidden = true;
+  });
+});
 </script>
 </body>
 </html>
