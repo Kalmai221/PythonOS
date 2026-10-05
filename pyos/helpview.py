@@ -17,7 +17,7 @@ CATEGORIES = {
                "zip", "unzip", "tar", "du", "stat"]),
     "Text and shell": ("Print, repeat and organise what you type",
                        ["echo", "history", "clear", "man", "tutorial", "sort", "uniq", "cut", "tr", "diff", "xargs", "tee", "less",
-                        "alias", "unalias", "export", "env", "watch", "time", "cowsay", "fortune"]),
+                        "alias", "unalias", "export", "env", "watch", "time", "cowsay", "fortune", "rainbow"]),
     "Jobs and scheduling": ("Run things in the background or later",
                             ["jobs", "fg", "kill", "sleep", "schedule", "notifications", "taskman"]),
     "Accounts and security": ("Who you are and how the system protects itself",

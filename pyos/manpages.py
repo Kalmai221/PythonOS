@@ -117,7 +117,9 @@ page("notifications", "recent notifications", ["notifications [clear | test <mes
 # ------------------------------------------------------------------ system
 page("settings", "themes and options", ["settings", "settings list|get|set|reset|theme|themes"],
      "Run it alone for a menu. Themes: default, ocean, forest, sunset, mono, contrast. Other options: prompt_style (full/short/minimal), "
-     "boot_speed, clock_24h, notifications, update_check, auto_lock_minutes, confirm_delete.",
+     "boot_speed, clock_24h, notifications, update_check, auto_lock_minutes, idle_logout_minutes (log out to the login screen after "
+     "that many idle minutes), auto_clear_lines, confirm_delete. auto_lock_minutes and idle_logout_minutes can be set per person: "
+     "settings set idle_logout_minutes 5 --user bob (you can set your own; administrators can set anyone's).",
      examples=[("settings set theme forest", "change colours"), ("settings set prompt_style short", "shorter prompt"),
                ("settings set auto_lock_minutes 10", "ask for the password after 10 idle minutes")], see=["lock"])
 page("version", "version and package", ["version"],
@@ -131,10 +133,59 @@ page("df", "disk space", ["df"], "How much the PythonOS filesystem uses and how 
 page("sysinfo", "information about this system", ["sysinfo"], "A table of the operating system, processor and memory.")
 page("taskman", "task manager", ["taskman"], "Lists running processes and lets you sort them. Process killing and the machine's other "
      "processes are not available on a locked-down system.", see=["lockdown"])
-page("logs", "system log", ["logs [N]"], "Shows the last N lines (20 by default) of the system log: boots, logins, account changes, crashes.",
-     see=["tail"])
+page("logs", "system log", ["logs [N]", "logs --user U --level L --since T --until T --grep W", "logs --summary", "logs --crashes",
+                            "logs --export FILE [--csv]"],
+     "Shows the last N lines (20 by default) of the system log: boots, logins, account changes, crashes. Filter by user, by "
+     "level (info, warn or error: warn shows warnings and errors), by time (today, yesterday, 2h, 3d, 2026-10-05) or by a word; "
+     "--summary counts lines per level and user and shows recent failed logins; --export saves the matching lines to a file "
+     "(--csv for a spreadsheet). Administrators see everything, other users their own lines and system lines.",
+     [("--user U", "only this user"), ("--level L", "info, warn or error (and worse)"), ("--since T / --until T", "a time range"),
+      ("--grep W", "lines containing W"), ("--summary", "counts and failed logins"), ("--crashes", "saved crash reports (admin)"),
+      ("--export FILE", "write the result to a file")],
+     [("logs --level warn --since yesterday", "yesterday's problems"), ("logs --user bob --export ~/bob.csv --csv", "bob's activity as a CSV")],
+     ["tail", "doctor", "bootlog"])
 page("ping", "test a network address", ["ping"], "Interactive: sets a target and sends test requests.", see=["ipinfo", "hwsetup"])
 page("ipinfo", "public IP information", ["ipinfo"], "Shows your public IP address and where it appears to be.", see=["ping"])
+page("zip", "make a zip archive", ["zip <archive.zip> <file or folder>..."],
+     "Packs files and folders (and everything inside them) into one .zip file. Existing archives are replaced.",
+     examples=[("zip ~/docs.zip ~/docs", "pack a folder"), ("zip all.zip a.txt b.txt", "pack two files")], see=["unzip", "tar", "backup"])
+page("unzip", "unpack a zip archive", ["unzip [-l] [-o] <archive.zip> [-d folder]"],
+     "Unpacks an archive into the current folder (or the folder after -d). It refuses names that would escape the destination, "
+     "very large archives, and files that already exist unless you add -o.",
+     [("-l", "list what is inside without unpacking"), ("-o", "overwrite files that already exist"), ("-d folder", "unpack somewhere else")],
+     [("unzip -l ~/docs.zip", "see the contents"), ("unzip ~/docs.zip -d ~/out", "unpack into ~/out")], ["zip", "tar"])
+page("tar", "make or unpack tar archives", ["tar -c[z]f <archive> <paths>...", "tar -x[z]f <archive> [-C folder] [-o]", "tar -t[z]f <archive>"],
+     "Like the Unix tool: c creates, x extracts, t lists, z uses gzip compression (.tar.gz or .tgz) and f names the archive. "
+     "Links and device files inside an archive are never created, and unsafe names are refused.",
+     [("-C folder", "extract into this folder"), ("-o", "overwrite existing files")],
+     [("tar -czf ~/p.tgz ~/p", "compress a folder"), ("tar -xzf ~/p.tgz -C ~/out", "unpack it"), ("tar -tf ~/p.tgz", "list it")], ["zip", "unzip"])
+page("doctor", "check the installation", ["doctor", "doctor --fix", "doctor --yes"],
+     "Looks at free disk space, system files, the account database, folder permissions, installed packages and stale data, and "
+     "reports OK, WARN or FAIL for each. Where a fix is safe (missing folders, leftover temporary files, settings with bad values) it "
+     "offers to apply it. Administrators only.",
+     [("--fix", "offer every fix without the first question"), ("--yes", "apply every fix without asking")], [("doctor", "run the checks")],
+     ["logs", "updatecheck", "bootlog"])
+page("bootlog", "how the last boot went", ["bootlog", "bootlog list", "bootlog <number>"],
+     "Every start-up runs a list of real steps (configuration, system files, services, dependencies, commands, programs, file "
+     "system). Each one is timed and the last ten boots are kept, so you can see what was slow or what failed.",
+     see=["bootspeed", "settings", "logs"])
+page("bootspeed", "benchmark the start-up", ["bootspeed"],
+     "Shows the average time per boot step from the saved boots, how much of it is the boot animation pause (the boot_speed "
+     "setting) and runs a few quick tests of this machine.", see=["bootlog", "settings"])
+page("cowsay", "a cow says it", ["cowsay <text>", "<command> | cowsay"],
+     "Draws a speech bubble with a cow. It reads piped input when you give it no words, which makes it a nice way to learn pipes.",
+     examples=[("fortune | cowsay", "the cow says a saying"), ("ls | cowsay", "the cow reads your files")], see=["fortune", "rainbow"])
+page("fortune", "a random saying", ["fortune"],
+     "Prints a saying, many of them tips about the shell. Use it to practise pipes and redirects.",
+     examples=[("fortune | cowsay", "pipe it"), ("fortune > ~/today.txt", "save it in a file"), ("fortune >> ~/all.txt", "add to a file")],
+     see=["cowsay", "rainbow", "echo"])
+page("rainbow", "colour text like a rainbow", ["rainbow <text>", "<command> | rainbow"], "Colours every letter of piped text.",
+     examples=[("fortune | rainbow", "a colourful saying")], see=["cowsay", "fortune"])
+page("help", "see what you can do", ["help", "help <category>", "help <command>", "help search <word>", "help all"],
+     "Without words it shows the groups of commands (Files, Jobs and scheduling, ...) with a few examples of each. help <group> lists "
+     "one group, help <command> shows a single command, help search <word> looks through names, descriptions and the manual, and "
+     "help all prints everything (in a pager on a real terminal). On a narrow screen it switches to a compact layout.",
+     examples=[("help files", "the file commands"), ("help search backup", "find what mentions backup")], see=["man", "tutorial"])
 page("hwsetup", "hardware, audio, network, keyboard and time zone setup", ["hwsetup", "hwsetup check|audio|network|keyboard|timezone"],
      "On the live ISO (and any Linux system as root): check devices, drivers and firmware; choose and test the sound output; "
      "connect to a wired or Wi-Fi network and test the internet; pick the keyboard layout and time zone. Your choices (and Wi-Fi "
