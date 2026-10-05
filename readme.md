@@ -84,6 +84,16 @@ python3 run.py
 
 ---
 
+## ✨ Newer features
+
+* **Undo**: `rm` sends things to a trash; `undo` brings the last one back (`trash` lists, restores, empties)
+* **Finding things**: `find -name "*.txt" -size +1M`, `grep -rn word folder`, `tree -L 2`, `diff a b`
+* **Learn**: `tutorial` (28 lessons that check what you type, saves your place), `quickstart` (two minutes), `help <category>`
+* **When things go wrong**: `whathappened` (after a power cut or crash), `doctor`, `report` (a redacted report you read before sending), `diag`
+* **Languages**: `settings set language es|fr|de|en` changes the system's own messages (commands stay in English)
+* **Live USB / installed**: `installos` copies PythonOS to a disk (experimental); `persist` keeps your data; press D at start for diagnostics
+* **Windows**: PythonOS opens in its own window; the web installer checks every download; `updatecheck` can update the app in place
+
 ## 🖥️ Using PyOS
 
 PyOS behaves like a small Unix-style system:

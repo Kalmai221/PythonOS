@@ -61,6 +61,33 @@ release it last changed in (so installs of it are not told to update). Nothing t
 `PYOS_UPDATE_URL` can point the downloader and updater at a different `core-manifest.json`
 (self-hosting, testing).
 
+## What a release contains
+
+The release page (written by `release_notes.py` from `CHANGELOG.md`) lists every file with its size and what it is for. In short:
+
+| Platform | Files |
+|---|---|
+| Windows | `PythonOS-<v>-web-setup.exe` (100 KB; downloads and checks the rest, light/dark, four languages, repair and uninstall), `PythonOS-<v>-setup.exe` (offline Inno Setup installer), `PythonOS-<v>-windows-portable.zip`. `PythonOS.exe` is its own window (WebView2 + xterm.js + ConPTY, `Windows/native/host`); `PythonOS-console.exe` is the plain console it falls back to. |
+| Android | `PythonOS-<v>-android-arm64-v8a.apk` (nearly every phone), `-x86_64.apk`, and the universal `-android.apk` |
+| Linux | `.deb` and `.tar.gz`; also a Docker image, `ghcr.io/kalmai221/pythonos` |
+| ISO | `pythonos-<v>-x86_64.iso` (full: Bluetooth, printing, `installos`, VM guest tools), `-minimal-x86_64.iso`, the VM images (`-vm.ova`, `-vm.qcow2`, `-vm-kit.zip`) and `pythonos-flash-tool-<v>.py` |
+| All | `SHA256SUMS`, `SHA256SUMS.sigstore.json` (keyless signature) and build provenance attestations |
+
+`COMPATIBILITY.md` says what each is tested on. The download page and the build status page (`site/`, published to GitHub Pages by
+`.github/workflows/site.yml`; turn on Settings > Pages > Source: GitHub Actions once) read the same GitHub data.
+
+### Re-running after a failed build
+
+Every export job uploads its files as an Actions artifact named `export-<platform>[-<variant>]-<fingerprint>-<version>`. When a tag is run
+again (for example after fixing the ISO), `plan.py` finds the artifacts of the earlier run whose inputs are unchanged and the release job
+takes them instead of building again; only what failed is rebuilt. Exports unchanged since the previous release are still linked, not rebuilt.
+
+### Other workflows
+
+* `test.yml` - every push and pull request: lockdown audit, catalog index check, `tools/smoke_test.py` (starts PythonOS and runs real commands) on Linux and Windows
+* `security.yml` - weekly `pip-audit` and the lockdown audit; opens an issue when a dependency is vulnerable
+* The release job fails if `pip-audit` finds a vulnerable dependency; set the repository variable `ALLOW_VULNERABLE=true` to publish anyway
+
 ## Building with GitHub Actions
 
 The workflow is [`.github/workflows/build-os.yml`](../.github/workflows/build-os.yml).
