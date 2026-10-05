@@ -15,7 +15,7 @@
   "android": {
     "title": "Android app",
     "api": 1,
-    "assets": ["PythonOS-{v}-android.apk"],
+    "assets": ["PythonOS-{v}-android.apk", "PythonOS-{v}-android-arm64-v8a.apk", "PythonOS-{v}-android-x86_64.apk"],
     "notes": "New terminal screen: type straight into the terminal, always scrolled to the bottom, symbol keys, zoom.",
     "inputs": ["OS_Export/Android", "OS_Export/bootstrap.py"],
     "embeds_core": false
@@ -39,7 +39,7 @@
   "iso": {
     "title": "Bootable ISO",
     "api": 1,
-    "assets": ["pythonos-{v}-x86_64.iso"],
+    "assets": ["pythonos-{v}-x86_64.iso", "pythonos-{v}-minimal-x86_64.iso", "pythonos-{v}-vm.ova", "pythonos-{v}-vm.qcow2", "pythonos-{v}-vm-kit.zip", "pythonos-flash-tool-{v}.py"],
     "notes": "Locked down: boot menu and consoles can no longer reach the Linux system underneath.",
     "inputs": ["OS_Export/ISO", "OS_Export/stage.py"],
     "embeds_core": true

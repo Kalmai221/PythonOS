@@ -122,9 +122,9 @@ def main():
         manifest["exports"] = {}
         for platform, entry in stage.exports().items():
             item = ((plan or {}).get("exports") or {}).get(platform)
-            if item and not item["build"]:
+            if item and not item["build"] and item.get("entry"):         # reused from the previous release
                 manifest["exports"][platform] = item["entry"]
-                continue
+                continue                                              # (reused from an earlier run of this version: built "now")
             digest = (item or {}).get("inputs_sha256")
             if not digest:
                 hashes = hashes or inputs.all_hashes()

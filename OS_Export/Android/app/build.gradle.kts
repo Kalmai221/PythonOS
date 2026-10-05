@@ -15,9 +15,16 @@ android {
         // CI passes these:  gradle assembleRelease -PversionName=1.2.0 -PversionCode=42
         versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
         versionName = (project.findProperty("versionName") as String?) ?: "1.0"
+    }
 
-        ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+    // One APK per processor type plus a universal one. Chaquopy's native libraries make a single APK large; a phone only needs
+    // the arm64-v8a one (about half the size). The universal APK works anywhere. (abiFilters must not be set together with splits.)
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = true
         }
     }
 

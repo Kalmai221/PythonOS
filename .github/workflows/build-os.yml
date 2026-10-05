@@ -1,16 +1,24 @@
 name: Build PythonOS
 
-# Builds the Linux, Windows, Android and ISO packages from OS_Export/.
+# Builds the Linux, Windows, Android, ISO (full and minimal), virtual-machine and Docker packages from OS_Export/.
 #   - Run it by hand from the Actions tab ("Run workflow"): builds everything, publishes nothing.
-#   - Push a tag like v1.2.0 to also publish a GitHub release. For a release, an export whose inputs did not
-#     change since the previous release is NOT rebuilt: the release links to (and re-attaches) the old file.
+#   - Push a tag like v1.2.0 to also publish a GitHub release (with SHA256SUMS, a signature and build attestations).
+#
+# Not rebuilding what has not changed (see OS_Export/plan.py):
+#   1. an export whose inputs did not change since the previous release links to (and re-attaches) the old file;
+#   2. an export that an EARLIER RUN OF THE SAME VERSION already built with the same inputs (for example the run that failed
+#      because the ISO broke) is taken from that run's Actions artifact. After a fix, only what failed is built again.
 on:
   workflow_dispatch:
   push:
     tags: ["v*"]
 
 permissions:
-  contents: write
+  contents: write        # publish the release
+  actions: read          # look for artifacts of earlier runs
+  id-token: write        # keyless signing (sigstore) of the release checksums
+  attestations: write    # build provenance
+  packages: write        # the Docker image
 
 env:
   # v1.2.0 for tags, "dev" for manual runs
@@ -18,13 +26,18 @@ env:
 
 jobs:
   plan:
-    name: Plan (what changed since the last release?)
+    name: Plan (what changed since the last release or the last run?)
     runs-on: ubuntu-24.04
     outputs:
+      version: ${{ steps.plan.outputs.version }}
       android: ${{ steps.plan.outputs.android }}
+      android_fp: ${{ steps.plan.outputs.android_fp }}
       windows: ${{ steps.plan.outputs.windows }}
+      windows_fp: ${{ steps.plan.outputs.windows_fp }}
       linux: ${{ steps.plan.outputs.linux }}
+      linux_fp: ${{ steps.plan.outputs.linux_fp }}
       iso: ${{ steps.plan.outputs.iso }}
+      iso_fp: ${{ steps.plan.outputs.iso_fp }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -32,10 +45,42 @@ jobs:
           python-version: "3.12"
       - id: plan
         run: python OS_Export/plan.py --out plan.json
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - uses: actions/upload-artifact@v7
         with:
           name: pythonos-plan
           path: plan.json
+
+  checks:
+    name: Checks (lockdown audit, dependency vulnerabilities, smoke test)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            boot-requirements.txt
+      - name: Lockdown audit (fails if OS code can spawn commands or run code unreviewed)
+        run: python tools/audit_lockdown.py
+      - name: Catalog index is current
+        run: |
+          python tools/build_index.py
+          git diff --exit-code online_packages/index.json
+      - name: Smoke test (starts the OS and runs real commands)
+        run: |
+          pip install -r requirements.txt
+          python tools/smoke_test.py
+      - name: Known vulnerabilities in the Python dependencies
+        # pip-audit fails when a dependency has a published vulnerability. Set the repository variable ALLOW_VULNERABLE=true to
+        # publish anyway (and fix it soon). The ISO's Alpine packages are always the newest of the 3.19 repository at build time.
+        continue-on-error: ${{ vars.ALLOW_VULNERABLE == 'true' }}
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt -r boot-requirements.txt
 
   linux:
     name: Linux (.tar.gz and .deb)
@@ -48,9 +93,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: bash OS_Export/Linux/build.sh
+      - name: Smoke test (the staged OS, as the package would install it)
+        run: |
+          pip install -r requirements.txt
+          python OS_Export/stage.py "$RUNNER_TEMP/payload" --export linux
+          python tools/smoke_test.py --dir "$RUNNER_TEMP/payload"
       - uses: actions/upload-artifact@v7
         with:
-          name: pythonos-linux
+          name: export-linux-${{ needs.plan.outputs.linux_fp }}-${{ needs.plan.outputs.version }}
           path: |
             dist/linux/*.tar.gz
             dist/linux/*.deb
@@ -76,14 +126,14 @@ jobs:
         run: ./OS_Export/Windows/build.ps1
       - uses: actions/upload-artifact@v7
         with:
-          name: pythonos-windows
+          name: export-windows-${{ needs.plan.outputs.windows_fp }}-${{ needs.plan.outputs.version }}
           path: |
             dist/windows/*.zip
             dist/windows/*.exe
             !dist/windows/PythonOS/**
 
   android:
-    name: Android (APK)
+    name: Android (APKs)
     needs: plan
     if: needs.plan.outputs.android == 'true'
     runs-on: ubuntu-24.04
@@ -98,7 +148,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@v6        # also caches Gradle's downloads between runs
         with:
           gradle-version: "8.9"
       - name: Add the bootstrap script to the app
@@ -135,27 +185,40 @@ jobs:
             echo "ANDROID_KEY_ALIAS=$ALIAS"
             echo "ANDROID_KEY_PASSWORD=$KEY_PASS"
           } >> "$GITHUB_ENV"
-      - name: Build the APK
+      - name: Build the APKs (one per processor type, plus a universal one)
         working-directory: OS_Export/Android
         run: |
           gradle assembleRelease --no-daemon \
             -PversionName="${VERSION#v}" -PversionCode="${{ github.run_number }}"
-      - name: Name the APK
+      - name: Name the APKs
         run: |
           mkdir -p dist/android
-          cp OS_Export/Android/app/build/outputs/apk/release/*.apk "dist/android/PythonOS-${VERSION#v}-android.apk"
+          OUT=OS_Export/Android/app/build/outputs/apk/release
+          ls -la "$OUT"
+          V="${VERSION#v}"
+          cp "$OUT"/*universal*.apk "dist/android/PythonOS-$V-android.apk"
+          cp "$OUT"/*arm64-v8a*.apk "dist/android/PythonOS-$V-android-arm64-v8a.apk"
+          cp "$OUT"/*x86_64*.apk "dist/android/PythonOS-$V-android-x86_64.apk"
+          ls -la dist/android
       - uses: actions/upload-artifact@v7
         with:
-          name: pythonos-android
+          name: export-android-${{ needs.plan.outputs.android_fp }}-${{ needs.plan.outputs.version }}
           path: dist/android/*.apk
 
   iso:
-    name: ISO (bootable live image)
+    name: ISO (${{ matrix.variant }})
     needs: plan
     if: needs.plan.outputs.iso == 'true'
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false          # a finished variant is kept as an artifact and reused if the other one has to be re-run
+      matrix:
+        variant: [full, minimal]
     # A stuck mirror or mkimage step must not hold up the release for hours (default is 6 h)
-    timeout-minutes: 40
+    timeout-minutes: 45
+    env:
+      ISO_VARIANT: ${{ matrix.variant }}
+      ISO_APK_CACHE: ${{ github.workspace }}/.cache/apk
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -163,11 +226,32 @@ jobs:
           python-version: "3.12"
       - name: Lockdown audit (fails if OS code can spawn commands or run code unreviewed)
         run: python tools/audit_lockdown.py
+      - name: Package names exist in Alpine (a misspelt name would fail the build late)
+        run: python OS_Export/ISO/check_packages.py
+      - uses: actions/cache@v4
+        with:
+          path: .cache/apk
+          key: alpine-apk-${{ matrix.variant }}-${{ hashFiles('OS_Export/ISO/in-container.sh', 'OS_Export/ISO/mkimg.pythonos.sh') }}
+          restore-keys: alpine-apk-${{ matrix.variant }}-
       - run: bash OS_Export/ISO/build-iso.sh
+      - name: Virtual machine images, flash tool (full variant only)
+        if: matrix.variant == 'full'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq qemu-utils zip
+          V="${VERSION#v}"
+          bash OS_Export/ISO/vm/make-images.sh "dist/iso/pythonos-$V-x86_64.iso" "$V" dist/iso
+          cp OS_Export/ISO/tools/flash_iso.py "dist/iso/pythonos-flash-tool-$V.py"
+          ls -la dist/iso
+      - name: Boot the ISO in QEMU (informational: software emulation is slow and a miss does not stop the release)
+        if: matrix.variant == 'full'
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y -qq qemu-system-x86
+          python OS_Export/ISO/qemu_boot_check.py "dist/iso/pythonos-${VERSION#v}-x86_64.iso"
       - uses: actions/upload-artifact@v7
         with:
-          name: pythonos-iso
-          path: dist/iso/*.iso
+          name: export-iso-${{ matrix.variant }}-${{ needs.plan.outputs.iso_fp }}-${{ needs.plan.outputs.version }}
+          path: dist/iso/*
 
   core:
     name: Core update package
@@ -195,12 +279,42 @@ jobs:
             dist/core/*.zip
             dist/core/core-manifest.json
 
+  docker:
+    name: Docker image (ghcr.io)
+    needs: [plan, checks]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    continue-on-error: true       # a registry hiccup must not hold back the release
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: |
+          python OS_Export/stage.py dist/docker/payload
+          cp tools/smoke_test.py dist/docker/tools_smoke.py
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build, check and push
+        run: |
+          V="${VERSION#v}"
+          IMAGE="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr 'A-Z' 'a-z')"
+          cp OS_Export/Docker/Dockerfile dist/docker/Dockerfile
+          docker build -t "$IMAGE:$V" -t "$IMAGE:latest" dist/docker
+          docker run --rm "$IMAGE:$V" python /opt/tools_smoke.py --dir /opt/pythonos
+          docker push "$IMAGE:$V"
+          docker push "$IMAGE:latest"
+
   release:
     name: Publish release
     # The core package is what installed copies update from, so it must succeed; an export that had to be
     # built must succeed too (the manifest links to its files). Reused exports are simply skipped jobs.
     if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.core.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-    needs: [plan, linux, windows, android, iso, core]
+    needs: [plan, checks, linux, windows, android, iso, core]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -214,8 +328,29 @@ jobs:
       - name: Re-attach the files of exports that were not rebuilt
         run: |
           python OS_Export/plan.py --fetch-reused artifacts/plan.json artifacts
+          cp artifacts/plan.json plan.json
           rm artifacts/plan.json
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Release notes (from CHANGELOG.md) and checksums
+        run: |
+          python OS_Export/release_notes.py --plan plan.json --files artifacts --out body.md
+          cd artifacts
+          ls -la
+          sha256sum $(ls | grep -v '^SHA256SUMS' | sort) > SHA256SUMS
+          cat SHA256SUMS
+      - name: Build provenance for every file
+        continue-on-error: true      # signing services being down must not lose the release; the checksums above are still published
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: artifacts/*
+      - uses: sigstore/cosign-installer@v3
+        continue-on-error: true
+      - name: Sign the checksums (keyless, with this workflow's identity)
+        continue-on-error: true
+        run: cosign sign-blob --yes --bundle artifacts/SHA256SUMS.sigstore.json artifacts/SHA256SUMS
       - uses: softprops/action-gh-release@v3
         with:
           files: artifacts/*
-          generate_release_notes: true
+          body_path: body.md
+          generate_release_notes: false
