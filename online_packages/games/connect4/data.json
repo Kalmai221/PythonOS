@@ -1,0 +1,23 @@
+{
+  "name": "Connect Four",
+  "description": "Drop discs and line up four; play the computer (three levels) or a friend.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "connect4",
+  "alias": [
+    "c4"
+  ],
+  "tags": [
+    "game",
+    "strategy",
+    "classic"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

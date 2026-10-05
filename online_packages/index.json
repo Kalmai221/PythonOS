@@ -81,6 +81,154 @@
       ]
     },
     {
+      "id": "games/adventure",
+      "category": "games",
+      "name": "Text Adventure",
+      "description": "A small adventure engine with a story, saving, and your own stories as JSON.",
+      "version": "1.0.0",
+      "command": "adventure",
+      "alias": [
+        "story"
+      ],
+      "tags": [
+        "game",
+        "story",
+        "interactive-fiction"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "5460df244df42df443f622b48378cceac1148b879ac18aad6c41a9b7b1afabf8",
+          "size": 443
+        },
+        {
+          "path": "run.py",
+          "sha256": "71344b6dc5ed1bb327a4e88c3ee9c315fb2a22b94f06679637e0a6915eefaf22",
+          "size": 11880
+        }
+      ]
+    },
+    {
+      "id": "games/battleship",
+      "category": "games",
+      "name": "Battleship",
+      "description": "Hide your fleet and sink the enemy's; the computer hunts cleverly.",
+      "version": "1.0.0",
+      "command": "battleship",
+      "alias": [],
+      "tags": [
+        "game",
+        "strategy",
+        "ships"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "90cf11e91584988c7bcfb75b4c73868ce4dbd84942ae5315706f701233bc2f6e",
+          "size": 389
+        },
+        {
+          "path": "run.py",
+          "sha256": "32673d9723d0a38b680c901b1b0fb1ec63e863547cd2b485ddaa6a62db2cca67",
+          "size": 7857
+        }
+      ]
+    },
+    {
+      "id": "games/blackjack",
+      "category": "games",
+      "name": "Blackjack",
+      "description": "Beat the dealer to 21 with play-money chips that carry over.",
+      "version": "1.0.0",
+      "command": "blackjack",
+      "alias": [
+        "21"
+      ],
+      "tags": [
+        "game",
+        "cards",
+        "casino"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "02842c83bc92e9e0fcc3099dd9817579c5bdde37fd608529c588758937bc4882",
+          "size": 391
+        },
+        {
+          "path": "run.py",
+          "sha256": "b4827a9bba24241adb0c1976641cb4773dc971da848a5908e24ef9ac6542500f",
+          "size": 5034
+        }
+      ]
+    },
+    {
+      "id": "games/checkers",
+      "category": "games",
+      "name": "Checkers",
+      "description": "English draughts with forced jumps and kings against the computer.",
+      "version": "1.0.0",
+      "command": "checkers",
+      "alias": [
+        "draughts"
+      ],
+      "tags": [
+        "game",
+        "strategy",
+        "classic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "148e678d74cd56d09c96869ee6792f83e79c2ba0bf12eb305a0da9d7a3fca9c8",
+          "size": 405
+        },
+        {
+          "path": "run.py",
+          "sha256": "18bfe81a4246a3f4c2e964fb9bc546eec65da09bc6c76b60a55dc776a5b12939",
+          "size": 8452
+        }
+      ]
+    },
+    {
       "id": "games/chess",
       "category": "games",
       "name": "Chess",
@@ -120,6 +268,187 @@
       ]
     },
     {
+      "id": "games/connect4",
+      "category": "games",
+      "name": "Connect Four",
+      "description": "Drop discs and line up four; play the computer (three levels) or a friend.",
+      "version": "1.0.0",
+      "command": "connect4",
+      "alias": [
+        "c4"
+      ],
+      "tags": [
+        "game",
+        "strategy",
+        "classic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "03b4f8c047432d0974a76e94ab52f162a243dbaac9dcb12c061431b33b01644e",
+          "size": 411
+        },
+        {
+          "path": "run.py",
+          "sha256": "851e4ae8216f2b21d8566d3088501c1e49787700a41d6b87c24015efa9dde6cd",
+          "size": 7364
+        }
+      ]
+    },
+    {
+      "id": "games/crossword",
+      "category": "games",
+      "name": "Crossword",
+      "description": "A new interlocking crossword each time, with clues and hints.",
+      "version": "1.0.0",
+      "command": "crossword",
+      "alias": [],
+      "tags": [
+        "game",
+        "words",
+        "puzzle"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "acacf377415bbb19634f23d34e5dd6f4576480e9551cfe3681bfd2d6b8719d49",
+          "size": 380
+        },
+        {
+          "path": "run.py",
+          "sha256": "26b3660d325bee0caa232e87c6a06100fb20764558e682891eab54de6ea786da",
+          "size": 10886
+        }
+      ]
+    },
+    {
+      "id": "games/daily",
+      "category": "games",
+      "name": "Daily Puzzle",
+      "description": "One number puzzle a day, the same for everyone, with a streak.",
+      "version": "1.0.0",
+      "command": "daily",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "daily"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games",
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": true,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "78fd4091dc7fe6043c0b0800e5d7eb6464c9723214a29a2c120dcccf9ac6b82f",
+          "size": 416
+        },
+        {
+          "path": "run.py",
+          "sha256": "2dd852a2e6973c3661faaf73c1456942cfd8e8eea25b00a88eed947cc52804a3",
+          "size": 6658
+        }
+      ]
+    },
+    {
+      "id": "games/fallingwords",
+      "category": "games",
+      "name": "Falling Words",
+      "description": "Type the falling words before they land.",
+      "version": "1.0.0",
+      "command": "fallingwords",
+      "alias": [
+        "typegame"
+      ],
+      "tags": [
+        "game",
+        "typing",
+        "arcade"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games",
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "d552e1fd4062fa7885c21de4a8e88c9557466b8d7201fd1663cb7bbef059d11e",
+          "size": 401
+        },
+        {
+          "path": "run.py",
+          "sha256": "a0c6360c06ab8cf7de7852ad0afcc62320be2fe539a44cb877efe0ba7b691d4a",
+          "size": 7059
+        }
+      ]
+    },
+    {
+      "id": "games/flood",
+      "category": "games",
+      "name": "Flood",
+      "description": "Flood the board with one colour from the corner within the move limit.",
+      "version": "1.0.0",
+      "command": "flood",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "colours"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "365768bf8cc39a0c945ed8a63e546f87793a30f77254e90dbff645779f8a4866",
+          "size": 383
+        },
+        {
+          "path": "run.py",
+          "sha256": "ad252397fa3635e7fe8a54abff00a9fa3e405d497dfe422871739f083dc65b16",
+          "size": 3281
+        }
+      ]
+    },
+    {
       "id": "games/game2048",
       "category": "games",
       "name": "2048",
@@ -154,6 +483,42 @@
           "path": "run.py",
           "sha256": "417ff2c2b607802fecce2d065edbb709efffd7f194ddd091c3301c11c437fdb3",
           "size": 3975
+        }
+      ]
+    },
+    {
+      "id": "games/guess",
+      "category": "games",
+      "name": "Number Guess",
+      "description": "Guess the number with higher/lower hints and warm/cold clues.",
+      "version": "1.0.0",
+      "command": "guess",
+      "alias": [],
+      "tags": [
+        "game",
+        "numbers",
+        "hints"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games",
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "026f2cd51a48c0ddacd091c7c7f209894c16d8a19b33128d3bb2653ccb279185",
+          "size": 396
+        },
+        {
+          "path": "run.py",
+          "sha256": "2317f2a7b58032693fd7aff8df911e83f8371eca3bb98b8a032d101c807da13f",
+          "size": 3457
         }
       ]
     },
@@ -197,6 +562,259 @@
       ]
     },
     {
+      "id": "games/hangman2",
+      "category": "games",
+      "name": "Hangman (2 players)",
+      "description": "One player sets a secret word, the other guesses; swap each round.",
+      "version": "1.0.0",
+      "command": "hangman2",
+      "alias": [
+        "hangman2p"
+      ],
+      "tags": [
+        "game",
+        "words",
+        "two-player"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "5ff6159ed3b5f3ed4153e5b136402eec4ab6f9b7ff766e120ddc13406f7ffbac",
+          "size": 417
+        },
+        {
+          "path": "run.py",
+          "sha256": "8a85075b12a2e9483f0d5a1511efb0411b65443c57586bc2863cb18b2a3a030c",
+          "size": 3986
+        }
+      ]
+    },
+    {
+      "id": "games/mastermind",
+      "category": "games",
+      "name": "Mastermind",
+      "description": "Crack the four-colour code; black and white pegs tell you how close you are.",
+      "version": "1.0.0",
+      "command": "mastermind",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "logic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "c93a96ff01c9229e85fff6027de95a3b572668b15b1e39004ff5788bb88a94d2",
+          "size": 397
+        },
+        {
+          "path": "run.py",
+          "sha256": "cafac63d0d612a0834ce46a33bde582d0b21d4e875d381c40bbb41a601093b32",
+          "size": 3784
+        }
+      ]
+    },
+    {
+      "id": "games/memory",
+      "category": "games",
+      "name": "Memory",
+      "description": "Find all the matching pairs in as few turns as you can.",
+      "version": "1.0.0",
+      "command": "memory",
+      "alias": [
+        "pairs"
+      ],
+      "tags": [
+        "game",
+        "memory",
+        "cards"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "f9eb92e09f5a27490bd2289a4e5f8d0f63a4f6943f929490a5a7df2b18a54bee",
+          "size": 383
+        },
+        {
+          "path": "run.py",
+          "sha256": "79e96282eb8b8dc137c761cd2020f672eb33dfb018ff30a04869a5bcc7d1cbd3",
+          "size": 4961
+        }
+      ]
+    },
+    {
+      "id": "games/minesweeper",
+      "category": "games",
+      "name": "Minesweeper",
+      "description": "Clear the board without hitting a mine; the first square is always safe.",
+      "version": "1.0.0",
+      "command": "minesweeper",
+      "alias": [
+        "mines"
+      ],
+      "tags": [
+        "game",
+        "puzzle",
+        "classic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "c328db1c51c28588cab1ebd9a89780f0d01ec6d016d9fc4df017c8c6a12cdae3",
+          "size": 412
+        },
+        {
+          "path": "run.py",
+          "sha256": "9ea4dc23bd1c14afb9e3e4a9c3191f318c97340f43fca8cb60f07c768e2f79f9",
+          "size": 6344
+        }
+      ]
+    },
+    {
+      "id": "games/pokerdice",
+      "category": "games",
+      "name": "Poker Dice",
+      "description": "Roll five dice three times and make the best poker hand.",
+      "version": "1.0.0",
+      "command": "pokerdice",
+      "alias": [],
+      "tags": [
+        "game",
+        "dice",
+        "cards"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "d625b0204c130c3322e41e79b2b8a2a6cdd0c077a291543507e1313f0e97b3c4",
+          "size": 374
+        },
+        {
+          "path": "run.py",
+          "sha256": "c65d5f8b2645e98d8d5359f6c7cd0cf9ea827d74b3634caa7103cb9b5a19c513",
+          "size": 4269
+        }
+      ]
+    },
+    {
+      "id": "games/pong",
+      "category": "games",
+      "name": "Pong",
+      "description": "First to seven against the computer; real time or turn by turn.",
+      "version": "1.0.0",
+      "command": "pong",
+      "alias": [],
+      "tags": [
+        "game",
+        "arcade",
+        "classic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "093cda0751e1bcfa5d89193918f20644e46d6224537ff2f724b76c6462842229",
+          "size": 374
+        },
+        {
+          "path": "run.py",
+          "sha256": "af0f3b858b571b1cb2ac577e5e9a425ab252d6aec6eb24213ad337a042b6368b",
+          "size": 7420
+        }
+      ]
+    },
+    {
+      "id": "games/reversi",
+      "category": "games",
+      "name": "Reversi",
+      "description": "Trap lines of discs to flip them; play the computer at three levels.",
+      "version": "1.0.0",
+      "command": "reversi",
+      "alias": [
+        "othello"
+      ],
+      "tags": [
+        "game",
+        "strategy",
+        "classic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "59f442a94c4b3ff8d50dd30d5476d0a839cda0ae1238204866484b144ccd3c16",
+          "size": 404
+        },
+        {
+          "path": "run.py",
+          "sha256": "9e6c22bf967d331e390fb4fed6e08177e638b66aab4d7bfd7d9fa9c55c04d12f",
+          "size": 7297
+        }
+      ]
+    },
+    {
       "id": "games/snake",
       "category": "games",
       "name": "Snake",
@@ -231,6 +849,77 @@
           "path": "run.py",
           "sha256": "5e681d99414517fc5239f261e68be42c1984fe1dc9739e9b463c804ebecb991f",
           "size": 7066
+        }
+      ]
+    },
+    {
+      "id": "games/sudoku",
+      "category": "games",
+      "name": "Sudoku",
+      "description": "Generated puzzles in three levels, with hints, a checker and a solver.",
+      "version": "1.0.0",
+      "command": "sudoku",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "numbers"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games",
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "4512868382292063e989bb689065204249928924c774620ec0dce72d17917ea3",
+          "size": 401
+        },
+        {
+          "path": "run.py",
+          "sha256": "9d67881861bb839a16beace9b245055f0478c4ca5fb1a8798c3051d34a3dc8d3",
+          "size": 7329
+        }
+      ]
+    },
+    {
+      "id": "games/tetris",
+      "category": "games",
+      "name": "Tetris",
+      "description": "Falling blocks: real time with arrow keys, or turn by turn where keys are limited.",
+      "version": "1.0.0",
+      "command": "tetris",
+      "alias": [],
+      "tags": [
+        "game",
+        "arcade",
+        "blocks"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": true,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "c56c05ed0aefeb15cc0ffc4e687e123e748a0529e299da27b842a72516b61718",
+          "size": 416
+        },
+        {
+          "path": "run.py",
+          "sha256": "33ee5a6e864034a0fb6fb5140e650dad95a21985f0e0ce46b28ea5d4a34948c5",
+          "size": 9868
         }
       ]
     },
@@ -317,6 +1006,44 @@
       ]
     },
     {
+      "id": "games/triviapack",
+      "category": "games",
+      "name": "Trivia Pack",
+      "description": "Ten themed question sets (movies, music, space and more), all offline.",
+      "version": "1.0.0",
+      "command": "triviapack",
+      "alias": [
+        "trivia2"
+      ],
+      "tags": [
+        "game",
+        "quiz",
+        "questions"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games",
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "ff3aea1a3d0937007f02ffef93c713ad20ea995a0ea9ad74b4f6ca88b44a522c",
+          "size": 427
+        },
+        {
+          "path": "run.py",
+          "sha256": "35490c2e139eddd2b3022fcff6cf257575850cdf177c5686e715a84af35bb9c7",
+          "size": 14376
+        }
+      ]
+    },
+    {
       "id": "games/typingtest",
       "category": "games",
       "name": "Typing Test",
@@ -393,6 +1120,41 @@
           "path": "run.py",
           "sha256": "3e318376f720b49d7bedda9861f7a86f7c51220736bc8fb140e45740a2104677",
           "size": 7596
+        }
+      ]
+    },
+    {
+      "id": "games/wordsearch",
+      "category": "games",
+      "name": "Word Search",
+      "description": "Find the hidden words in themed grids.",
+      "version": "1.0.0",
+      "command": "wordsearch",
+      "alias": [],
+      "tags": [
+        "game",
+        "words",
+        "puzzle"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "af78dd09e7cbf4da00482b589ac833515870f467963a92ad8afc79fb69fcc049",
+          "size": 360
+        },
+        {
+          "path": "run.py",
+          "sha256": "45c1b7312fe6565eeda9afbeb5617522a3b7a54ccdd721d02c4b66c32ae39cf5",
+          "size": 6837
         }
       ]
     },

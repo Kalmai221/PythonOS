@@ -1,0 +1,22 @@
+{
+  "name": "Number Guess",
+  "description": "Guess the number with higher/lower hints and warm/cold clues.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "guess",
+  "alias": [],
+  "tags": [
+    "game",
+    "numbers",
+    "hints"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games",
+    "learning"
+  ],
+  "changelog": "First release."
+}

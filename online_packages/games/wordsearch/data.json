@@ -1,0 +1,21 @@
+{
+  "name": "Word Search",
+  "description": "Find the hidden words in themed grids.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "wordsearch",
+  "alias": [],
+  "tags": [
+    "game",
+    "words",
+    "puzzle"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

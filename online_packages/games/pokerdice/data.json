@@ -1,0 +1,21 @@
+{
+  "name": "Poker Dice",
+  "description": "Roll five dice three times and make the best poker hand.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "pokerdice",
+  "alias": [],
+  "tags": [
+    "game",
+    "dice",
+    "cards"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

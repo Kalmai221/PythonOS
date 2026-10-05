@@ -1,0 +1,23 @@
+{
+  "name": "Hangman (2 players)",
+  "description": "One player sets a secret word, the other guesses; swap each round.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "hangman2",
+  "alias": [
+    "hangman2p"
+  ],
+  "tags": [
+    "game",
+    "words",
+    "two-player"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

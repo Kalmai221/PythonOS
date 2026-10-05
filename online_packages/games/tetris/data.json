@@ -1,0 +1,22 @@
+{
+  "name": "Tetris",
+  "description": "Falling blocks: real time with arrow keys, or turn by turn where keys are limited.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "tetris",
+  "alias": [],
+  "tags": [
+    "game",
+    "arcade",
+    "blocks"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release.",
+  "featured": true
+}

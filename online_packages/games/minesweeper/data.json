@@ -1,0 +1,23 @@
+{
+  "name": "Minesweeper",
+  "description": "Clear the board without hitting a mine; the first square is always safe.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "minesweeper",
+  "alias": [
+    "mines"
+  ],
+  "tags": [
+    "game",
+    "puzzle",
+    "classic"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

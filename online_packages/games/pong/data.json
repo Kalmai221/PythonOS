@@ -1,0 +1,21 @@
+{
+  "name": "Pong",
+  "description": "First to seven against the computer; real time or turn by turn.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "pong",
+  "alias": [],
+  "tags": [
+    "game",
+    "arcade",
+    "classic"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

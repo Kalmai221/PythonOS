@@ -1,0 +1,23 @@
+{
+  "name": "Memory",
+  "description": "Find all the matching pairs in as few turns as you can.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "memory",
+  "alias": [
+    "pairs"
+  ],
+  "tags": [
+    "game",
+    "memory",
+    "cards"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

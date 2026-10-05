@@ -1,0 +1,22 @@
+{
+  "name": "Sudoku",
+  "description": "Generated puzzles in three levels, with hints, a checker and a solver.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "sudoku",
+  "alias": [],
+  "tags": [
+    "game",
+    "puzzle",
+    "numbers"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games",
+    "learning"
+  ],
+  "changelog": "First release."
+}

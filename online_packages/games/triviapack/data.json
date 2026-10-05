@@ -1,0 +1,24 @@
+{
+  "name": "Trivia Pack",
+  "description": "Ten themed question sets (movies, music, space and more), all offline.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "triviapack",
+  "alias": [
+    "trivia2"
+  ],
+  "tags": [
+    "game",
+    "quiz",
+    "questions"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games",
+    "learning"
+  ],
+  "changelog": "First release."
+}

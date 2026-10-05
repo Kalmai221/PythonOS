@@ -1,0 +1,21 @@
+{
+  "name": "Crossword",
+  "description": "A new interlocking crossword each time, with clues and hints.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "crossword",
+  "alias": [],
+  "tags": [
+    "game",
+    "words",
+    "puzzle"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

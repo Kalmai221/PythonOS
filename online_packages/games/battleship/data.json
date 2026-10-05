@@ -1,0 +1,21 @@
+{
+  "name": "Battleship",
+  "description": "Hide your fleet and sink the enemy's; the computer hunts cleverly.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "battleship",
+  "alias": [],
+  "tags": [
+    "game",
+    "strategy",
+    "ships"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

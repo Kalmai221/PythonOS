@@ -1,0 +1,23 @@
+{
+  "name": "Daily Puzzle",
+  "description": "One number puzzle a day, the same for everyone, with a streak.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "daily",
+  "alias": [],
+  "tags": [
+    "game",
+    "puzzle",
+    "daily"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games",
+    "learning"
+  ],
+  "changelog": "First release.",
+  "featured": true
+}

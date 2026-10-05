@@ -1,0 +1,25 @@
+{
+  "name": "Text Adventure",
+  "description": "A small adventure engine with a story, saving, and your own stories as JSON.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "adventure",
+  "alias": [
+    "story"
+  ],
+  "tags": [
+    "game",
+    "story",
+    "interactive-fiction"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

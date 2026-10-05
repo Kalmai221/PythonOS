@@ -1,0 +1,23 @@
+{
+  "name": "Checkers",
+  "description": "English draughts with forced jumps and kings against the computer.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "checkers",
+  "alias": [
+    "draughts"
+  ],
+  "tags": [
+    "game",
+    "strategy",
+    "classic"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

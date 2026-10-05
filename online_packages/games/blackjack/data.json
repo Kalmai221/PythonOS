@@ -1,0 +1,23 @@
+{
+  "name": "Blackjack",
+  "description": "Beat the dealer to 21 with play-money chips that carry over.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "blackjack",
+  "alias": [
+    "21"
+  ],
+  "tags": [
+    "game",
+    "cards",
+    "casino"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

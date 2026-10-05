@@ -1,0 +1,21 @@
+{
+  "name": "Mastermind",
+  "description": "Crack the four-colour code; black and white pegs tell you how close you are.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "mastermind",
+  "alias": [],
+  "tags": [
+    "game",
+    "puzzle",
+    "logic"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

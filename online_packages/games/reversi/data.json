@@ -1,0 +1,23 @@
+{
+  "name": "Reversi",
+  "description": "Trap lines of discs to flip them; play the computer at three levels.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "reversi",
+  "alias": [
+    "othello"
+  ],
+  "tags": [
+    "game",
+    "strategy",
+    "classic"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}
