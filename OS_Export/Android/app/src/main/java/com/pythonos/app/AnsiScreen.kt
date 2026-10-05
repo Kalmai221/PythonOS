@@ -234,8 +234,9 @@ class AnsiScreen(private val maxLines: Int = 3000) {
     companion object {
         const val DEFAULT = 0                       // "terminal default" marker (never a real ARGB colour)
         private const val MAX_FRAME_LINES = 1500
-        val DEFAULT_FG: Int = Color.rgb(204, 204, 204)
-        val DEFAULT_BG: Int = Color.rgb(12, 12, 12)
+        // the colour scheme: MainActivity sets these (a palette chosen in Appearance) before the terminal is drawn
+        @Volatile var DEFAULT_FG: Int = Color.rgb(204, 204, 204)
+        @Volatile var DEFAULT_BG: Int = Color.rgb(12, 12, 12)
 
         private val PALETTE = intArrayOf(
             Color.rgb(30, 30, 30), Color.rgb(205, 49, 49), Color.rgb(13, 188, 121), Color.rgb(229, 229, 16),

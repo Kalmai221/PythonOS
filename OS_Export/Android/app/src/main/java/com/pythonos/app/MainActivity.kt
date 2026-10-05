@@ -48,13 +48,30 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
     private val prefs by lazy { getSharedPreferences("terminal", Context.MODE_PRIVATE) }
     private var updateUrl: String? = null
 
-    private val bg = Color.rgb(12, 12, 12)
-    private val bar = Color.rgb(20, 20, 24)
-    private val chipColor = Color.rgb(37, 39, 44)
-    private val accent = Color.rgb(122, 162, 247)
+    private lateinit var sizeLabel: TextView
+
+    // colour scheme (chosen under "Appearance", kept in prefs): terminal background, bar, key chips, accent, terminal text
+    private class Palette(val name: String, val bg: Int, val bar: Int, val chip: Int, val accent: Int, val fg: Int)
+    private val palettes = listOf(
+        Palette("Midnight", Color.rgb(12, 12, 12), Color.rgb(22, 22, 28), Color.rgb(40, 42, 50), Color.rgb(122, 162, 247), Color.rgb(204, 204, 204)),
+        Palette("Slate", Color.rgb(26, 30, 38), Color.rgb(35, 40, 52), Color.rgb(52, 59, 76), Color.rgb(137, 220, 180), Color.rgb(214, 220, 232)),
+        Palette("Ocean", Color.rgb(8, 24, 36), Color.rgb(14, 36, 54), Color.rgb(28, 58, 82), Color.rgb(100, 210, 255), Color.rgb(206, 228, 240)),
+    )
+    private var bg = Color.rgb(12, 12, 12)
+    private var bar = Color.rgb(22, 22, 28)
+    private var chipColor = Color.rgb(40, 42, 50)
+    private var accent = Color.rgb(122, 162, 247)
+
+    private fun applyPalette() {
+        val p = palettes.getOrNull(prefs.getInt("palette", 0)) ?: palettes[0]
+        bg = p.bg; bar = p.bar; chipColor = p.chip; accent = p.accent
+        AnsiScreen.DEFAULT_FG = p.fg
+        AnsiScreen.DEFAULT_BG = p.bg
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applyPalette()
         setContentView(buildUi())
         TerminalBridge.listener = this
         window.statusBarColor = bar
@@ -114,11 +131,17 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         })
-        titles.addView(TextView(this).apply {
+        sizeLabel = TextView(this).apply {
             text = "terminal"
             setTextColor(Color.rgb(140, 145, 155))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-        })
+            compoundDrawablePadding = dp(6)
+            // a small status dot in the accent colour
+            setCompoundDrawablesWithIntrinsicBounds(
+                GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(accent); setSize(dp(8), dp(8)) }, null, null, null)
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        titles.addView(sizeLabel)
         appBar.addView(titles, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         val menuButton = TextView(this).apply {
             text = "⋮"
@@ -139,11 +162,12 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setPadding(dp(16), dp(10), dp(16), dp(10))
-            setBackgroundColor(Color.rgb(36, 52, 88))
+            background = rounded(Color.rgb(36, 52, 88), 14f)
             isClickable = true
             setOnClickListener { showUpdateDialog(null) }
         }
-        root.addView(banner, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        root.addView(banner, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            .apply { setMargins(dp(10), dp(8), dp(10), 0) })
 
         // --- the terminal
         terminal = TerminalView(this)
@@ -185,11 +209,12 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         }
         val keyRow = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
-            setBackgroundColor(bar)
+            background = rounded(bar, 22f)
             isFocusable = false
             addView(keys)
         }
-        root.addView(keyRow, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        root.addView(keyRow, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            .apply { setMargins(dp(8), dp(4), dp(8), dp(8)) })
         return root
     }
 
@@ -205,6 +230,7 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         }
         menu.menu.add(Menu.NONE, 6, 6, "Check for app update")
         menu.menu.add(Menu.NONE, 7, 7, "About")
+        menu.menu.add(Menu.NONE, 8, 8, "Appearance: " + palettes[prefs.getInt("palette", 0).coerceIn(0, palettes.size - 1)].name)
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> paste()
@@ -214,6 +240,11 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
                 5 -> setKeepAwake(!prefs.getBoolean("keep_awake", false))
                 6 -> checkAppUpdate(manual = true)
                 7 -> showAbout()
+                8 -> {
+                    // next colour scheme; the activity is rebuilt so every colour (and the terminal) picks it up
+                    prefs.edit().putInt("palette", (prefs.getInt("palette", 0) + 1) % palettes.size).apply()
+                    recreate()
+                }
             }
             true
         }
@@ -334,6 +365,7 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
 
     // ----------------------------------------------- TerminalView.Listener
     override fun onResize(cols: Int, rows: Int) {
+        runOnUiThread { sizeLabel.text = "terminal  $cols x $rows" }
         callPython("set_size", cols, rows)
         startPython()
     }

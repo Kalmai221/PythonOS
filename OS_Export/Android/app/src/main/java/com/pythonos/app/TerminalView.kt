@@ -66,6 +66,7 @@ class TerminalView(context: Context) : View(context) {
 
     private var cachedFrame: Frame? = null
     private var cacheKey = ""
+    private val glyphWidths = HashMap<Int, Float>()      // measured width of each non-ASCII glyph (cleared when the text size changes)
 
     private var cursorOn = true
     private val blink = object : Runnable {
@@ -103,6 +104,7 @@ class TerminalView(context: Context) : View(context) {
         textSizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, textSizeSp, resources.displayMetrics)
         paint.typeface = tfNormal
         paint.textSize = textSizePx
+        glyphWidths.clear()
         charW = paint.measureText("M")
         val fm = paint.fontMetrics
         val glyphH = fm.descent - fm.ascent
@@ -198,7 +200,7 @@ class TerminalView(context: Context) : View(context) {
         paint.textSize = textSizePx
     }
 
-    private fun gridSafe(c: Char): Boolean = c.code < 0x300 || c.code in 0x2500..0x259F
+    private fun isPlain(c: Char): Boolean = c.code in 0x20..0x7E
 
     private fun sameStyle(a: Cell, b: Cell) =
         a.fg == b.fg && a.bg == b.bg && a.bold == b.bold && a.italic == b.italic &&
@@ -229,23 +231,125 @@ class TerminalView(context: Context) : View(context) {
             paint.isUnderlineText = c.underline
             paint.color = fg
 
-            // draw runs of ordinary characters in one call; anything that might not be one cell wide on its own
+            // Plain ASCII is drawn in runs. Everything else is drawn one cell at a time, so a character taken from a fallback font
+            // can never push the rest of the line out of its columns - that is what made tables and boxes come out crooked.
+            val style = (if (c.bold) 1 else 0) or (if (c.italic) 2 else 0)
             var k = i
             while (k < j) {
-                if (gridSafe(cells[k].ch)) {
+                if (isPlain(cells[k].ch)) {
                     var e = k
                     val sb = StringBuilder()
-                    while (e < j && gridSafe(cells[e].ch)) { sb.append(cells[e].ch); e++ }
+                    while (e < j && isPlain(cells[e].ch)) { sb.append(cells[e].ch); e++ }
                     canvas.drawText(sb.toString(), padX + k * charW, y + baseline, paint)
                     k = e
                 } else {
-                    canvas.drawText(cells[k].ch.toString(), padX + k * charW, y + baseline, paint)
+                    drawCell(canvas, cells[k].ch, padX + k * charW, y, fg, style)
                     k++
                 }
             }
             i = j
         }
         paint.isUnderlineText = false
+    }
+
+    /** One non-ASCII character in exactly one cell: lines, blocks and braille as shapes, anything else squeezed if its glyph is too wide. */
+    private fun drawCell(canvas: Canvas, ch: Char, x: Float, y: Float, color: Int, style: Int) {
+        if (drawShape(canvas, ch, x, y, color)) return
+        val text = ch.toString()
+        val w = glyphWidths.getOrPut(ch.code * 4 + style) { paint.measureText(text) }
+        if (w > charW * 1.05f) {
+            canvas.save()
+            canvas.scale(charW / w, 1f, x, y)
+            canvas.drawText(text, x, y + baseline, paint)
+            canvas.restore()
+        } else {
+            canvas.drawText(text, x, y + baseline, paint)
+        }
+    }
+
+    /**
+     * Box drawing (lines and corners, light, heavy and double), block elements and braille patterns drawn as shapes, so they always fill
+     * their cell and join up with their neighbours whatever font the device has. Returns false for anything else.
+     */
+    private fun drawShape(canvas: Canvas, ch: Char, x: Float, y: Float, color: Int): Boolean {
+        val code = ch.code
+        val w = charW
+        val h = charH
+        fill.color = color
+        if (code == 0x2588) { canvas.drawRect(x, y, x + w, y + h, fill); return true }                       // full block
+        if (code == 0x2580) { canvas.drawRect(x, y, x + w, y + h / 2, fill); return true }                   // upper half
+        if (code == 0x2584) { canvas.drawRect(x, y + h / 2, x + w, y + h, fill); return true }               // lower half
+        if (code == 0x258C) { canvas.drawRect(x, y, x + w / 2, y + h, fill); return true }                   // left half
+        if (code == 0x2590) { canvas.drawRect(x + w / 2, y, x + w, y + h, fill); return true }               // right half
+        if (code in 0x2581..0x2587) {                                                                         // lower eighths
+            val f = (code - 0x2580) / 8f
+            canvas.drawRect(x, y + h * (1f - f), x + w, y + h, fill)
+            return true
+        }
+        if (code in 0x2589..0x258F) {                                                                         // left eighths
+            val f = (0x2590 - code) / 8f
+            canvas.drawRect(x, y, x + w * f, y + h, fill)
+            return true
+        }
+        if (code in 0x2591..0x2593) {                                                                         // shades
+            val alpha = if (code == 0x2591) 64 else if (code == 0x2592) 128 else 192
+            fill.color = (color and 0x00FFFFFF) or (alpha shl 24)
+            canvas.drawRect(x, y, x + w, y + h, fill)
+            fill.color = color
+            return true
+        }
+        if (code in 0x2800..0x28FF) {                                                                         // braille dots (spinners)
+            val mask = code - 0x2800
+            val radius = minOf(w, h) * 0.13f
+            // dot number -> (column, row): 1,2,3 down the left; 4,5,6 down the right; 7 and 8 on the bottom row
+            val dots = arrayOf(intArrayOf(0, 0), intArrayOf(0, 1), intArrayOf(0, 2), intArrayOf(1, 0), intArrayOf(1, 1), intArrayOf(1, 2),
+                intArrayOf(0, 3), intArrayOf(1, 3))
+            for (bit in 0 until 8) {
+                if (mask and (1 shl bit) != 0) {
+                    val cx = x + w * (0.30f + 0.40f * dots[bit][0])
+                    val cy = y + h * (0.14f + 0.24f * dots[bit][1] + 0.06f)
+                    canvas.drawCircle(cx, cy, radius, fill)
+                }
+            }
+            return true
+        }
+        val seg = BOX[ch] ?: return false          // up, down, left, right: 0 none, 1 light, 2 heavy, 3 double
+        val cx = x + w / 2
+        val cy = y + h / 2
+        val light = maxOf(1f, density * 1.1f)
+        val heavy = light * 2.2f
+        val gap = light * 1.1f
+        fun horizontal(x1: Float, x2: Float, weight: Int) {
+            when (weight) {
+                1 -> canvas.drawRect(x1, cy - light / 2, x2, cy + light / 2, fill)
+                2 -> canvas.drawRect(x1, cy - heavy / 2, x2, cy + heavy / 2, fill)
+                3 -> {
+                    canvas.drawRect(x1, cy - gap - light / 2, x2, cy - gap + light / 2, fill)
+                    canvas.drawRect(x1, cy + gap - light / 2, x2, cy + gap + light / 2, fill)
+                }
+            }
+        }
+        fun vertical(y1: Float, y2: Float, weight: Int) {
+            when (weight) {
+                1 -> canvas.drawRect(cx - light / 2, y1, cx + light / 2, y2, fill)
+                2 -> canvas.drawRect(cx - heavy / 2, y1, cx + heavy / 2, y2, fill)
+                3 -> {
+                    canvas.drawRect(cx - gap - light / 2, y1, cx - gap + light / 2, y2, fill)
+                    canvas.drawRect(cx + gap - light / 2, y1, cx + gap + light / 2, y2, fill)
+                }
+            }
+        }
+        var widest = light
+        for (weight in seg) {
+            if (weight == 2) widest = maxOf(widest, heavy)
+            if (weight == 3) widest = maxOf(widest, gap * 2 + light)
+        }
+        val half = widest / 2
+        horizontal(x, cx + half, seg[2])           // left arm
+        horizontal(cx - half, x + w, seg[3])       // right arm
+        vertical(y, cy + half, seg[0])             // up arm
+        vertical(cy - half, y + h, seg[1])         // down arm
+        return true
     }
 
     // -------------------------------------------------------------- scrolling
@@ -581,5 +685,23 @@ class TerminalView(context: Context) : View(context) {
     private companion object {
         /** Set on a key's unicode value when it is a dead accent key rather than a character. */
         const val COMBINING_ACCENT = Int.MIN_VALUE
+
+        /** Box-drawing characters as [up, down, left, right] line weights: 0 none, 1 light, 2 heavy, 3 double. */
+        val BOX: Map<Char, IntArray> = mapOf(
+            '─' to intArrayOf(0, 0, 1, 1), '│' to intArrayOf(1, 1, 0, 0),
+            '┌' to intArrayOf(0, 1, 0, 1), '┐' to intArrayOf(0, 1, 1, 0), '└' to intArrayOf(1, 0, 0, 1), '┘' to intArrayOf(1, 0, 1, 0),
+            '├' to intArrayOf(1, 1, 0, 1), '┤' to intArrayOf(1, 1, 1, 0), '┬' to intArrayOf(0, 1, 1, 1), '┴' to intArrayOf(1, 0, 1, 1),
+            '┼' to intArrayOf(1, 1, 1, 1),
+            '╭' to intArrayOf(0, 1, 0, 1), '╮' to intArrayOf(0, 1, 1, 0), '╰' to intArrayOf(1, 0, 0, 1), '╯' to intArrayOf(1, 0, 1, 0),
+            '━' to intArrayOf(0, 0, 2, 2), '┃' to intArrayOf(2, 2, 0, 0),
+            '┏' to intArrayOf(0, 2, 0, 2), '┓' to intArrayOf(0, 2, 2, 0), '┗' to intArrayOf(2, 0, 0, 2), '┛' to intArrayOf(2, 0, 2, 0),
+            '┣' to intArrayOf(2, 2, 0, 2), '┫' to intArrayOf(2, 2, 2, 0), '┳' to intArrayOf(0, 2, 2, 2), '┻' to intArrayOf(2, 0, 2, 2),
+            '╋' to intArrayOf(2, 2, 2, 2),
+            '┡' to intArrayOf(2, 1, 0, 2), '╇' to intArrayOf(2, 1, 2, 2), '┩' to intArrayOf(2, 1, 2, 0),
+            '═' to intArrayOf(0, 0, 3, 3), '║' to intArrayOf(3, 3, 0, 0),
+            '╔' to intArrayOf(0, 3, 0, 3), '╗' to intArrayOf(0, 3, 3, 0), '╚' to intArrayOf(3, 0, 0, 3), '╝' to intArrayOf(3, 0, 3, 0),
+            '╠' to intArrayOf(3, 3, 0, 3), '╣' to intArrayOf(3, 3, 3, 0), '╦' to intArrayOf(0, 3, 3, 3), '╩' to intArrayOf(3, 0, 3, 3),
+            '╬' to intArrayOf(3, 3, 3, 3),
+        )
     }
 }
