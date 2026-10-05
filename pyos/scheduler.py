@@ -143,7 +143,8 @@ def run_due(runner, user, now=None):
             _save(tasks)
         lines = [l for l in output.strip().splitlines() if l.strip()][:4]
         text = f"{task['command']}" + (" - failed" if status else "") + ("\n" + "\n".join(lines) if lines else "")
-        notify.notify(text, title=f"Scheduled task #{task['id']}", level="warn" if status else "info", user=user)
+        if lines or status:                    # a task that worked and printed nothing needs no notification
+            notify.notify(text, title=f"Scheduled task #{task['id']}", level="warn" if status else "info", user=user)
     return ran
 
 

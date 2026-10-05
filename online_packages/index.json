@@ -233,7 +233,7 @@
       "category": "games",
       "name": "Chess",
       "description": "Play chess against the computer: full rules, three difficulty levels.",
-      "version": "2.0.1",
+      "version": "2.1.0",
       "command": "chess",
       "alias": [],
       "tags": [
@@ -245,25 +245,28 @@
       "lockdown_safe": true,
       "requires": [],
       "optional": [],
-      "permissions": [],
+      "permissions": [
+        "files"
+      ],
       "categories": [
         "games"
       ],
       "changelog": {
         "2.0.0": "Now plain Python: nothing to install any more. Full rules, three difficulty levels, record of your games.",
-        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "2.1.0": "New: save and resume, undo, hints, standard notation (type Nf3), move list, PGN export, two players on one keyboard and an expert level with a time limit."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "af330c45d50174a3f6c325a6b0e14b0833b9c43f524277c985783708e8868dbf",
-          "size": 698
+          "sha256": "58c22e287ec72eb193923634a9f87a1f4cc3e2be7daf088526be51cd89fe2ad7",
+          "size": 884
         },
         {
           "path": "run.py",
-          "sha256": "55a44055b379b34e260248e49991b19731ffa4fb443c2a13a4d1356ad2c9883f",
-          "size": 14130
+          "sha256": "f223429efdb9b8ba23dc1e72fec6ebb1c4ee8598e36279f7c74161b9eaa5c18a",
+          "size": 24144
         }
       ]
     },
@@ -1048,7 +1051,7 @@
       "category": "games",
       "name": "Typing Test",
       "description": "Measure your typing speed and accuracy.",
-      "version": "2.0.1",
+      "version": "2.1.0",
       "command": "typingtest",
       "alias": [],
       "tags": [
@@ -1060,26 +1063,29 @@
       "lockdown_safe": true,
       "requires": [],
       "optional": [],
-      "permissions": [],
+      "permissions": [
+        "files"
+      ],
       "categories": [
         "learning",
         "games"
       ],
       "changelog": {
         "2.0.0": "Now plain Python: nothing to install any more. Words per minute, accuracy marking and your best scores.",
-        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "2.1.0": "New: timed 15/30/60 second modes, live accuracy while you type, punctuation, code and quote texts, your own text from a file, and a progress graph ('typingtest stats')."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "8fd1d03be36562ef8ab64594dc9e8db051d34437023ce917b148db94bf2f79ef",
-          "size": 694
+          "sha256": "01c441c09add905de6e4ee841fe3571fb43ac38859591d38b0576c2ccce1d5d7",
+          "size": 894
         },
         {
           "path": "run.py",
-          "sha256": "fdaf83962d70a28773bdc00c4bf1bf78276bed5469724b1e26fbcfe393ebcea1",
-          "size": 4874
+          "sha256": "68492130f8d2e62f18a85eb01a5413b02f9af61d3df9c97c9ff05a5ab0f16cf2",
+          "size": 14833
         }
       ]
     },
@@ -1342,7 +1348,7 @@
       "category": "utilities",
       "name": "Converter",
       "description": "Unit converter and a calculator that remembers its history.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "command": "convert",
       "alias": [
         "units"
@@ -1356,25 +1362,29 @@
       "lockdown_safe": true,
       "requires": [],
       "optional": [],
-      "permissions": [],
+      "permissions": [
+        "network",
+        "files"
+      ],
       "categories": [
         "tools"
       ],
       "changelog": {
         "1.0.0": "First release: ten unit categories, calculator with history and 'ans'.",
-        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "1.1.0": "New: fuel economy, currencies (live rates, with saved and built-in rates for offline use), number bases, cooking measures (cups to grams) and oven gas marks; favourites; copy the result to the clipboard."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "54cc3dde84afe786f7aee60fc1bcc6cf5d1a565c3451a2339a06f14a8423d95a",
-          "size": 683
+          "sha256": "6db7bd64fd97aced6737d604019b3a1209d9eec3fdbb222d2160a6b18ba24c44",
+          "size": 933
         },
         {
           "path": "run.py",
-          "sha256": "7e605ff9daf2fdfe860011e4780b9bfe4d2700ba490eaa42abc41f8d7396d603",
-          "size": 11116
+          "sha256": "7de3343b94576acbbaff83aca3a16c96b41db754e110f56ee77eb7c7b95fe983",
+          "size": 21181
         }
       ]
     },
@@ -1498,6 +1508,11 @@
           "path": "run.py",
           "sha256": "cb1603be491c9af703622c9b1c24339c15d721aa6e07198cc708559bb6350b0b",
           "size": 11492
+        },
+        {
+          "path": ".config/converter_rates.json",
+          "sha256": "61c8cd0db52fc356db5d052ea953661af72d4c49b8bde25062969607feca9854",
+          "size": 625
         }
       ]
     },
@@ -1758,7 +1773,7 @@
       "category": "utilities",
       "name": "Markdown Viewer",
       "description": "Read your notes and markdown files nicely formatted.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "command": "mdview",
       "alias": [
         "md",
@@ -1782,19 +1797,20 @@
       ],
       "changelog": {
         "1.0.0": "First release (needs the Notes app).",
-        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "1.1.0": "New: a table of contents to jump to a section, search inside a document, and export to plain text or HTML."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "a35d675fbac6bd40307b1e367652ef8636766213bc0065ebaa5d1a9f8d0c5edb",
-          "size": 710
+          "sha256": "3e322594a6f251be906c692bcd3ff0ad03ba8115c3f1db05d2f1af1ac2040a32",
+          "size": 833
         },
         {
           "path": "run.py",
-          "sha256": "dc78245893c88d5528643bc590310c4a34f1a0752412f7d3a83a65b97145f90f",
-          "size": 4578
+          "sha256": "0e78a402851c31c96a4128d971f8b2a1a768075e85585955be0a0472d4800d73",
+          "size": 10955
         }
       ]
     },
@@ -1803,7 +1819,7 @@
       "category": "utilities",
       "name": "Network Tools",
       "description": "Connection check, DNS lookup, port test, TCP ping, web page check.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "command": "nettools",
       "alias": [
         "net"
@@ -1818,7 +1834,9 @@
       "requires": [],
       "optional": [],
       "permissions": [
-        "network"
+        "network",
+        "notifications",
+        "schedule"
       ],
       "categories": [
         "network",
@@ -1826,19 +1844,20 @@
       ],
       "changelog": {
         "1.0.0": "First release.",
-        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "1.1.0": "New: DNS record viewer (A, AAAA, MX, TXT, NS, CNAME), path/hop timing, saved hosts with a watchlist and an uptime monitor that notifies you when a host goes down or comes back."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "6e547aabaa3c9d22ad06e1426b76a0bbe1e9aa4d76e6753785d0a412ee82654e",
-          "size": 658
+          "sha256": "28602e38b640d5a93dcc38eb322526badcbecb930e327ea769ec42b0385fa143",
+          "size": 888
         },
         {
           "path": "run.py",
-          "sha256": "4cf6e0030ba336b2db03a4740fcd7319f47e838d5adfa807b58a708c6c7e649c",
-          "size": 6685
+          "sha256": "8701986ca0ae905ea16c84538991d87085cb88f73c4fb8a01c023057a082429a",
+          "size": 19012
         }
       ]
     },
@@ -2300,7 +2319,7 @@
       "category": "utilities",
       "name": "System Monitor",
       "description": "A live dashboard of CPU, memory, disk and network.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "command": "sysmon",
       "alias": [
         "monitor"
@@ -2315,26 +2334,28 @@
       "requires": [],
       "optional": [],
       "permissions": [
-        "system"
+        "system",
+        "notifications"
       ],
       "categories": [
         "system"
       ],
       "changelog": {
         "1.0.0": "First release.",
-        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "1.1.0": "New: per-core CPU, history sparklines and graphs ('sysmon graph'), temperature and battery, and alerts when a limit is crossed ('sysmon alerts')."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "5b611206f719456ff9de868aad6044ed107c6e5ed97ff74e114027276455a32f",
-          "size": 632
+          "sha256": "0309fb44ec28ccb204a265249b6fd859154926e0221801c158e890a6cf3bbe1f",
+          "size": 815
         },
         {
           "path": "run.py",
-          "sha256": "535e2660ecc06c0ed06f42b1c80bd3f8f200b35cb5cf1c49e7a0a70b1bede1f4",
-          "size": 5229
+          "sha256": "f70265517a5135ecda532ec885513e3d8aa8b7a9c43e0873f7470389133ccdda",
+          "size": 12845
         }
       ]
     },
@@ -2461,7 +2482,7 @@
       "category": "utilities",
       "name": "Weather",
       "description": "Check the current weather for any city (needs internet).",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "command": "weather",
       "alias": [],
       "tags": [
@@ -2481,19 +2502,20 @@
       ],
       "changelog": {
         "1.1.0": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
-        "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "1.2.0": "New: hourly forecast, several saved cities, severe-weather warnings, 'weather --short' for a one-line summary; fixed 'feels like' on some forecasts."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "7053dc87d9e529b31222d449e2197040ef31f784296dc0d0381293f0dd1889cc",
-          "size": 702
+          "sha256": "1aceccb64382bf7cad0e08b5e59017e45faa65bd12a389aef94fca532c22ed92",
+          "size": 867
         },
         {
           "path": "run.py",
-          "sha256": "b6d0226bfb07478a3eab540bb554dd4c8e76c5b7b6243612419a37202a458b2e",
-          "size": 4323
+          "sha256": "e87d3eb8fd7659318d53e321e0b4359840a7a8560469fbbb746df5d2a9611800",
+          "size": 11355
         }
       ]
     },

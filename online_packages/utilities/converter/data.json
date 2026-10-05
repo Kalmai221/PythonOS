@@ -1,7 +1,7 @@
 {
   "name": "Converter",
   "description": "Unit converter and a calculator that remembers its history.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -18,9 +18,13 @@
   "lockdown_safe": true,
   "changelog": {
     "1.0.0": "First release: ten unit categories, calculator with history and 'ans'.",
-    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+    "1.1.0": "New: fuel economy, currencies (live rates, with saved and built-in rates for offline use), number bases, cooking measures (cups to grams) and oven gas marks; favourites; copy the result to the clipboard."
   },
-  "permissions": [],
+  "permissions": [
+    "network",
+    "files"
+  ],
   "categories": [
     "tools"
   ]

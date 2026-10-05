@@ -1,7 +1,7 @@
 {
   "name": "Markdown Viewer",
   "description": "Read your notes and markdown files nicely formatted.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -21,7 +21,8 @@
   ],
   "changelog": {
     "1.0.0": "First release (needs the Notes app).",
-    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+    "1.1.0": "New: a table of contents to jump to a section, search inside a document, and export to plain text or HTML."
   },
   "permissions": [
     "files"

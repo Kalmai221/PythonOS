@@ -1,7 +1,7 @@
 {
   "name": "System Monitor",
   "description": "A live dashboard of CPU, memory, disk and network.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -18,10 +18,12 @@
   "lockdown_safe": true,
   "changelog": {
     "1.0.0": "First release.",
-    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+    "1.1.0": "New: per-core CPU, history sparklines and graphs ('sysmon graph'), temperature and battery, and alerts when a limit is crossed ('sysmon alerts')."
   },
   "permissions": [
-    "system"
+    "system",
+    "notifications"
   ],
   "categories": [
     "system"

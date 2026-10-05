@@ -1,7 +1,7 @@
 {
   "name": "Weather",
   "description": "Check the current weather for any city (needs internet).",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "scripts": {
     "run": "run.py"
   },
@@ -15,7 +15,8 @@
   "lockdown_safe": true,
   "changelog": {
     "1.1.0": "Three-day forecast, Celsius/Fahrenheit, and the last forecast shows when you are offline.",
-    "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+    "1.1.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+    "1.2.0": "New: hourly forecast, several saved cities, severe-weather warnings, 'weather --short' for a one-line summary; fixed 'feels like' on some forecasts."
   },
   "permissions": [
     "network"

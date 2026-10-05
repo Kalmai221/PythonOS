@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""Chess against the computer, written in plain Python (nothing to install). Full rules: castling, en passant,
-promotion, check, checkmate and stalemate. Enter moves like e2e4 (or e7e8q to promote)."""
+"""Chess against the computer (or a friend), written in plain Python (nothing to install). Full rules: castling, en passant, promotion,
+check, checkmate and stalemate. Enter moves like e2e4 (or e7e8q to promote) or in standard notation (Nf3, exd5, O-O, e8=Q).
+Commands: moves (list legal moves), hint, undo, history, save, pgn [file], resign, quit. A game is saved when you leave it, and 'chess resume'
+continues it. Four levels: easy, medium, hard (about a second a move) and expert (up to depth 4, a few seconds a move)."""
 import random
+import sys
 import time
 
 from rich.console import Console
+from rich.markup import escape
 from rich.prompt import Prompt
 from rich.text import Text
 
 try:
-    from pyos import appdata
+    from pyos import appdata, fs
 except ImportError:
-    appdata = None
+    appdata = fs = None
 
 console = Console()
 START = ["rnbqkbnr", "pppppppp", "........", "........", "........", "........", "PPPPPPPP", "RNBQKBNR"]
@@ -245,19 +249,125 @@ def search(p, depth, alpha, beta):
     return best
 
 
+class OutOfTime(Exception):
+    pass
+
+
+def search_timed(p, depth, alpha, beta, deadline):
+    """Like search(), but gives up (raising OutOfTime) when the deadline passes. Captures are tried first."""
+    if time.time() > deadline:
+        raise OutOfTime
+    moves = p.legal_moves()
+    if not moves:
+        return (-100000 - depth if p.white else 100000 + depth) if p.in_check() else 0
+    if depth == 0:
+        return evaluate(p)
+    moves.sort(key=lambda m: -VALUES.get(p.board[m[2]][m[3]].lower(), 0))
+    best = -10 ** 9 if p.white else 10 ** 9
+    for m in moves:
+        child = p.copy()
+        child.apply(m)
+        score = search_timed(child, depth - 1, alpha, beta, deadline)
+        if p.white:
+            best, alpha = max(best, score), max(alpha, score)
+        else:
+            best, beta = min(best, score), min(beta, score)
+        if beta <= alpha:
+            break
+    return best
+
+
+def best_move(p, max_depth, seconds):
+    """Iterative deepening: search depth 1, 2, ... and keep the best move of the last depth that finished in time."""
+    moves = p.legal_moves()
+    if not moves:
+        return None
+    deadline = time.time() + seconds
+    best = random.choice(moves)
+    for depth in range(1, max_depth + 1):
+        try:
+            scored = []
+            for m in sorted(moves, key=lambda m: -VALUES.get(p.board[m[2]][m[3]].lower(), 0)):
+                child = p.copy()
+                child.apply(m)
+                scored.append((search_timed(child, depth - 1, -10 ** 9, 10 ** 9, deadline), random.random(), m))
+            best = (max if p.white else min)(scored)[2]
+        except OutOfTime:
+            break
+    return best
+
+
 def computer_move(p, level):
     moves = p.legal_moves()
     if level == 1:
         captures = [m for m in moves if p.board[m[2]][m[3]] != "."]
         return random.choice(captures or moves)
-    depth = 2 if level == 2 else 3
-    scored = []
-    for m in moves:
-        child = p.copy()
-        child.apply(m)
-        scored.append((search(child, depth - 1, -10 ** 9, 10 ** 9), random.random(), m))
-    pick = max if p.white else min
-    return pick(scored)[2]
+    depth, seconds = {2: (2, 3), 3: (3, 6), 4: (4, 12)}[level]
+    return best_move(p, depth, seconds)
+
+
+# ------------------------------------------------------------- notation
+def san(p, move):
+    """Standard algebraic notation for a legal move in position p (Nf3, exd5, O-O, e8=Q+, Qh5#)."""
+    r, c, rr, cc, promo = move
+    piece = p.board[r][c]
+    kind = piece.upper()
+    if kind == "K" and abs(cc - c) == 2:
+        text = "O-O" if cc > c else "O-O-O"
+    else:
+        capture = p.board[rr][cc] != "." or (kind == "P" and c != cc)
+        if kind == "P":
+            text = (name(r, c)[0] + "x" if capture else "") + name(rr, cc)
+        else:
+            others = [m for m in p.legal_moves() if m != move and p.board[m[0]][m[1]] == piece and (m[2], m[3]) == (rr, cc)]
+            how = ""
+            if others:
+                if all(m[1] != c for m in others):
+                    how = name(r, c)[0]
+                elif all(m[0] != r for m in others):
+                    how = name(r, c)[1]
+                else:
+                    how = name(r, c)
+            text = kind + how + ("x" if capture else "") + name(rr, cc)
+        if promo:
+            text += "=" + promo.upper()
+    after = p.copy()
+    after.apply(move)
+    status = after.status()
+    return text + ("#" if status == "checkmate" else "+" if status == "check" else "")
+
+
+def parse_san(text, p):
+    """A move typed in standard notation -> the legal move it means, or None."""
+    cleaned = text.strip().replace("0-0-0", "O-O-O").replace("0-0", "O-O").rstrip("+#!?")
+    for m in p.legal_moves():
+        if san(p, m).rstrip("+#") == cleaned or san(p, m).rstrip("+#").replace("=", "") == cleaned.replace("=", ""):
+            return m
+    return None
+
+
+def move_list(history):
+    """['1. e4 e5', '2. Nf3 ...'] from a list of SAN strings."""
+    lines = []
+    for i in range(0, len(history), 2):
+        lines.append(f"{i // 2 + 1}. " + " ".join(history[i:i + 2]))
+    return lines
+
+
+def pgn(history, white="You", black="Computer", result="*", date=None):
+    date = date or time.strftime("%Y.%m.%d")
+    head = [f'[Event "PythonOS game"]', '[Site "PythonOS"]', f'[Date "{date}"]', f'[White "{white}"]', f'[Black "{black}"]', f'[Result "{result}"]']
+    body = " ".join(f"{i // 2 + 1}. " + " ".join(history[i:i + 2]) for i in range(0, len(history), 2)) + f" {result}"
+    # wrap the movetext at 80 columns, as PGN readers expect
+    lines, line = [], ""
+    for word in body.split():
+        if len(line) + len(word) + 1 > 80:
+            lines.append(line)
+            line = word
+        else:
+            line = (line + " " + word).strip()
+    lines.append(line)
+    return "\n".join(head) + "\n\n" + "\n".join(lines) + "\n"
 
 
 # ---------------------------------------------------------------- display
@@ -290,59 +400,188 @@ def record(result):
     console.print(f"[dim]Record: {stats['won']} won, {stats['lost']} lost, {stats['drawn']} drawn[/dim]")
 
 
-def play():
-    level = int(Prompt.ask("Difficulty (1 easy, 2 medium, 3 hard)", choices=["1", "2", "3"], default="2"))
-    colour = Prompt.ask("Play as", choices=["white", "black"], default="white")
-    human_white = colour == "white"
-    p, last = Position(), None
-    console.print("[dim]Type moves like e2e4. Commands: moves (list legal moves), resign, quit.[/dim]")
+SAVE = "chess_save"
+
+
+def replay(moves):
+    """Rebuild a position from a list of 'e2e4'-style moves. Returns (position, [san strings], [moves]) or raises ValueError."""
+    p, history, played = Position(), [], []
+    for text in moves:
+        m = parse_move(text, p)
+        if not m:
+            raise ValueError("the saved game is damaged")
+        history.append(san(p, m))
+        p.apply(m)
+        played.append(m)
+    return p, history, played
+
+
+def coords(m):
+    return name(m[0], m[1]) + name(m[2], m[3]) + (m[4] or "")
+
+
+def save_game(game):
+    if appdata:
+        appdata.save(SAVE, {"moves": [coords(m) for m in game["played"]], "mode": game["mode"], "level": game["level"],
+                            "human_white": game["human_white"]})
+
+
+def export_pgn(game, path=None):
+    result = game.get("result", "*")
+    text = pgn(game["history"], "You" if game["human_white"] or game["mode"] == "two" else "Computer",
+               "Computer" if game["human_white"] and game["mode"] != "two" else ("Player 2" if game["mode"] == "two" else "You"), result)
+    path = path or f"~/chess-{time.strftime('%Y%m%d-%H%M%S')}.pgn"
+    with open(fs.resolve(path, write=True) if fs else os.path.expanduser(path), "w", encoding="utf-8") as f:
+        f.write(text)
+    return path
+
+
+def new_game():
+    mode = Prompt.ask("Play against", choices=["computer", "friend"], default="computer")
+    game = {"mode": "two" if mode == "friend" else "cpu", "level": 2, "human_white": True, "played": [], "history": [], "pos": Position()}
+    if mode == "computer":
+        game["level"] = {"easy": 1, "medium": 2, "hard": 3, "expert": 4}[Prompt.ask("Difficulty", choices=["easy", "medium", "hard", "expert"], default="medium")]
+        game["human_white"] = Prompt.ask("Play as", choices=["white", "black"], default="white") == "white"
+    return game
+
+
+def resume_game():
+    data = appdata.load(SAVE, None) if appdata else None
+    if not data:
+        return None
+    try:
+        pos, history, played = replay(data["moves"])
+    except (ValueError, KeyError):
+        return None
+    return {"mode": data["mode"], "level": data["level"], "human_white": data["human_white"], "played": played, "history": history, "pos": pos}
+
+
+def play(game):
+    """Play (or continue) a game. Returns True if it finished, False if the player left it unfinished."""
+    p = game["pos"]
+    two = game["mode"] == "two"
+    console.print("[dim]Type a move (e2e4 or Nf3). moves, hint, undo, history, save, pgn [file], resign, quit.[/dim]")
     while True:
-        show(p, last, flipped=not human_white)
+        game["pos"] = p
+        last = game["played"][-1] if game["played"] else None
+        flipped = not two and not game["human_white"]
+        show(p, last, flipped=flipped)
         state = p.status()
         if state in ("checkmate", "stalemate"):
             if state == "stalemate":
                 console.print("[bold yellow]Stalemate - a draw.[/bold yellow]")
-                return record("drawn")
-            won = p.white != human_white
-            console.print("[bold green]Checkmate - you win![/bold green]" if won else "[bold red]Checkmate - the computer wins.[/bold red]")
-            return record("won" if won else "lost")
-        if p.white == human_white:
+                game["result"] = "1/2-1/2"
+                if not two:
+                    record("drawn")
+            else:
+                white_won = not p.white
+                game["result"] = "1-0" if white_won else "0-1"
+                if two:
+                    console.print(f"[bold green]Checkmate - {'White' if white_won else 'Black'} wins![/bold green]")
+                else:
+                    won = white_won == game["human_white"]
+                    console.print("[bold green]Checkmate - you win![/bold green]" if won else "[bold red]Checkmate - the computer wins.[/bold red]")
+                    record("won" if won else "lost")
+            if appdata:
+                appdata.save(SAVE, None)
+            console.print(f"[dim]Save the game as a PGN file with: pgn[/dim]")
+            return finish_prompt(game)
+        human_turn = two or p.white == game["human_white"]
+        if human_turn:
             if state == "check":
                 console.print("[bold red]Check![/bold red]")
             try:
-                text = Prompt.ask("Your move").strip().lower()
+                text = Prompt.ask(("White" if p.white else "Black") + " to move" if two else "Your move").strip()
             except EOFError:
-                return
-            if text in ("quit", "q"):
-                return
-            if text == "resign":
+                save_game(game)
+                return False
+            low = text.lower()
+            if low in ("quit", "q"):
+                save_game(game)
+                console.print("[dim]Game saved. Continue it with: chess resume[/dim]")
+                return False
+            if low == "resign":
                 console.print("[red]You resigned.[/red]")
-                return record("lost")
-            if text == "moves":
-                console.print(", ".join(name(m[0], m[1]) + name(m[2], m[3]) + (m[4] or "") for m in p.legal_moves()))
+                game["result"] = "0-1" if p.white == game["human_white"] else "1-0"
+                if not two:
+                    record("lost")
+                if appdata:
+                    appdata.save(SAVE, None)
+                return finish_prompt(game)
+            if low == "moves":
+                console.print(", ".join(san(p, m) for m in p.legal_moves()))
                 continue
-            move = parse_move(text, p)
+            if low == "history":
+                console.print("\n".join(move_list(game["history"])) or "[dim]No moves yet.[/dim]")
+                continue
+            if low == "hint":
+                with console.status("Thinking..."):
+                    best = best_move(p, 3, 4)
+                console.print(f"[dim]Hint: {san(p, best)}[/dim]")
+                continue
+            if low == "undo":
+                steps = 1 if two else 2
+                if len(game["played"]) < steps:
+                    console.print("[yellow]Nothing to undo.[/yellow]")
+                    continue
+                for _ in range(steps):
+                    game["played"].pop()
+                    game["history"].pop()
+                p, _h, _pl = replay([coords(m) for m in game["played"]])
+                continue
+            if low == "save":
+                save_game(game)
+                console.print("[green]Saved. Continue later with: chess resume[/green]")
+                continue
+            if low.startswith("pgn"):
+                try:
+                    console.print(f"[green]Saved {escape(export_pgn(game, text[3:].strip() or None))}[/green]")
+                except (OSError, PermissionError) as e:
+                    console.print(f"[red]{escape(str(e))}[/red]")
+                continue
+            move = parse_move(text, p) or parse_san(text, p)
             if not move:
                 console.print("[yellow]That is not a legal move. Type 'moves' to see them.[/yellow]")
                 continue
         else:
             with console.status("Computer is thinking..."):
-                time.sleep(0.2)
-                move = computer_move(p, level)
-            console.print(f"[dim]Computer plays {name(move[0], move[1])}{name(move[2], move[3])}{move[4] or ''}[/dim]")
+                move = computer_move(p, game["level"])
+            console.print(f"[dim]Computer plays {san(p, move)}[/dim]")
+        game["history"].append(san(p, move))
+        game["played"].append(move)
         p.apply(move)
-        last = move
+        if len(game["played"]) % 4 == 0:
+            save_game(game)
 
 
-def execute():
+def finish_prompt(game):
     try:
+        if Prompt.ask("Save a PGN file of this game?", choices=["y", "n"], default="n") == "y":
+            console.print(f"[green]Saved {escape(export_pgn(game))}[/green]")
+    except (OSError, PermissionError, EOFError) as e:
+        console.print(f"[red]{escape(str(e))}[/red]")
+    return True
+
+
+def execute(args=None):
+    try:
+        game = None
+        if args and args[0] == "resume":
+            game = resume_game()
+            if not game:
+                console.print("[yellow]There is no saved game to resume.[/yellow]")
+                return
+        elif resume_game() and Prompt.ask("You have a saved game. Resume it?", choices=["y", "n"], default="y") == "y":
+            game = resume_game()
         while True:
-            play()
-            if Prompt.ask("Play again?", choices=["y", "n"], default="n") == "n":
+            game = game or new_game()
+            finished = play(game)
+            game = None
+            if not finished or Prompt.ask("Play again?", choices=["y", "n"], default="n") == "n":
                 return
     except (KeyboardInterrupt, EOFError):
         console.print()
 
 
 if __name__ == "__main__":
-    execute()
+    execute(sys.argv[1:])
