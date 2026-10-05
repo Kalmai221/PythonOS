@@ -19,7 +19,8 @@ import stage  # noqa: E402
 
 # (file name pattern, export key, group, what it is, who it is for / how to use it). {v} is the version.
 FILES = [
-    ("PythonOS-{v}-setup.exe", "windows", "Windows", "Installer", "Most Windows users. Start menu entry, uninstaller, asks before updating an existing install."),
+    ("PythonOS-{v}-web-setup.exe", "windows", "Windows", "Web installer", "Most Windows users. A tiny download that fetches the rest from GitHub, checks it, and offers Update, Repair or Uninstall. Light and dark, four languages."),
+    ("PythonOS-{v}-setup.exe", "windows", "Windows", "Full installer (offline)", "Works without internet at install time (the PythonOS system itself still downloads on first start). Offers Update or Repair if PythonOS is already there."),
     ("PythonOS-{v}-windows-portable.zip", "windows", "Windows", "Portable zip", "No install: unzip anywhere (a USB stick works) and run PythonOS.exe."),
     ("PythonOS-{v}-android-arm64-v8a.apk", "android", "Android", "Phone APK (arm64)", "Nearly every phone and tablet made since 2016. Smallest download."),
     ("PythonOS-{v}-android-x86_64.apk", "android", "Android", "APK for x86_64", "Chromebooks and Android emulators on PCs."),

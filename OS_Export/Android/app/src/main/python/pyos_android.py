@@ -190,9 +190,19 @@ def app_update():
         st = sysupdate.check_export_update(timeout=6)
         if st and st["state"] in ("update", "incompatible"):
             remote = st["remote"]
+            url = remote["url"]
+            import platform
+            wanted = {"aarch64": "arm64-v8a", "arm64": "arm64-v8a", "x86_64": "x86_64"}.get(platform.machine().lower())
+            for candidate in remote.get("urls") or []:
+                if wanted and candidate.endswith(f"-android-{wanted}.apk"):
+                    url = candidate                     # the smaller APK made for this phone's processor
+            try:
+                sha256 = sysupdate.checksum_of(url) or ""
+            except Exception:
+                sha256 = ""
             return json.dumps({"state": st["state"], "title": st["title"], "local": st["local"]["version"],
                                "remote": remote["version"], "notes": remote.get("notes", ""),
-                               "url": remote["url"], "reason": st.get("reason", "")})
+                               "url": url, "sha256": sha256, "reason": st.get("reason", "")})
     except Exception:
         pass
     return ""

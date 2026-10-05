@@ -75,6 +75,17 @@ Name: "{userdesktop}\PythonOS"; Filename: "{app}\PythonOS.exe"; WorkingDir: "{ap
 [Run]
 Filename: "{app}\PythonOS.exe"; Description: "Start PythonOS now"; Flags: postinstall nowait skipifsilent
 
+[InstallDelete]
+; Repair: remove the OS files (the app downloads a fresh copy on the next start). Accounts, files and settings are never listed here.
+Type: filesandordirs; Name: "{app}\commands"; Check: IsRepair
+Type: filesandordirs; Name: "{app}\core"; Check: IsRepair
+Type: filesandordirs; Name: "{app}\programs"; Check: IsRepair
+Type: filesandordirs; Name: "{app}\pyos"; Check: IsRepair
+Type: files; Name: "{app}\main.py"; Check: IsRepair
+Type: files; Name: "{app}\shell.py"; Check: IsRepair
+Type: files; Name: "{app}\users.py"; Check: IsRepair
+Type: files; Name: "{app}\VERSION"; Check: IsRepair
+
 [UninstallDelete]
 ; Remove generated files but leave a chance to keep user data: only caches are deleted
 Type: filesandordirs; Name: "{app}\python"
@@ -96,22 +107,32 @@ begin
       Result := '';
 end;
 
+var
+  RepairMode: Boolean;
+
+function IsRepair(): Boolean;
+begin
+  Result := RepairMode;
+end;
+
 function InitializeSetup(): Boolean;
 var
   Existing: String;
-  Question: String;
+  Detail: String;
+  Choice: Integer;
 begin
   Result := True;
+  RepairMode := False;
   Existing := InstalledVersion();
   if (Existing = '') or WizardSilent() then
     Exit;
-  if Existing = '{#AppVersion}' then
-    Question := 'PythonOS ' + Existing + ' is already installed on this computer.' + #13#10#13#10 +
-                'Install it again over the top? Your accounts, files and settings are kept.'
-  else
-    Question := 'PythonOS ' + Existing + ' is already installed on this computer.' + #13#10#13#10 +
-                'Update it to version {#AppVersion}? Your accounts, files and settings are kept.';
-  Result := MsgBox(Question, mbConfirmation, MB_YESNO) = IDYES;
+  Detail := 'PythonOS ' + Existing + ' is already installed on this computer. Your accounts, files and settings are kept either way.' + #13#10#13#10 +
+            'Yes: update to version {#AppVersion} (puts the newer program files in place).' + #13#10 +
+            'No: repair (puts the program files back and fetches a fresh copy of the PythonOS system on the next start).' + #13#10 +
+            'Cancel: change nothing.';
+  Choice := MsgBox(Detail, mbConfirmation, MB_YESNOCANCEL);
+  Result := Choice <> IDCANCEL;
+  RepairMode := Choice = IDNO;
 end;
 
 // ------------------------------------------------------------ uninstalling

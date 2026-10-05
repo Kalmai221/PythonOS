@@ -5,9 +5,11 @@ Build the Windows packages: dist\windows\PythonOS-<version>-windows-portable.zip
     $env:VERSION = "1.2.0"; powershell -File OS_Export\Windows\build.ps1
 
 The package bundles its own Python (the official "embeddable" build) with every
-dependency installed, so users do not need Python installed. PythonOS.exe is a small
-PyInstaller-built launcher that starts it. The OS itself is NOT in the package: on first
-start the launcher runs bootstrap.py, which downloads the latest core from GitHub releases.
+dependency installed, so users do not need Python installed. PythonOS.exe is the PythonOS window
+(WebView2 + xterm.js + a pseudo console, see build-native.ps1); PythonOS-console.exe is the plain
+console launcher (PyInstaller) it falls back to. The OS itself is NOT in the package: on first
+start start.py runs bootstrap.py, which downloads the latest core from GitHub releases.
+Also built: PythonOS-<version>-web-setup.exe, a 100 KB installer that downloads and checks all of this.
 #>
 param(
     [string]$PythonVersion = "3.12.8"
@@ -26,6 +28,7 @@ New-Item -ItemType Directory -Path $Out | Out-Null
 # 1. Just the bootstrap script - the OS is downloaded on first run
 New-Item -ItemType Directory -Path $App | Out-Null
 Copy-Item (Join-Path $Repo "OS_Export\bootstrap.py") (Join-Path $App "bootstrap.py")
+Copy-Item (Join-Path $Here "start.py") (Join-Path $App "start.py")
 # Which package this is, so PythonOS can say when a newer one must be installed by hand
 python (Join-Path $Repo "OS_Export\stage.py") --write-export windows (Join-Path $App "export.json")
 
@@ -65,15 +68,26 @@ python (Join-Path $Here "make_art.py") $Art
 $IconArgs = @()
 $IconFile = Join-Path $Art "PythonOS.ico"
 if (Test-Path $IconFile) { $IconArgs = @("--icon", $IconFile) }
-python -m PyInstaller --onefile --console --name PythonOS @IconArgs `
+python -m PyInstaller --onefile --console --name PythonOS-console @IconArgs `
     --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
 if ($LASTEXITCODE -ne 0 -and $IconArgs.Count -gt 0) {
     Write-Host "Icon conversion failed - building the launcher without an icon."
-    python -m PyInstaller --onefile --console --name PythonOS `
+    python -m PyInstaller --onefile --console --name PythonOS-console `
         --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
 }
-if (-not (Test-Path (Join-Path $App "PythonOS.exe"))) { throw "PythonOS.exe was not built" }
+if (-not (Test-Path (Join-Path $App "PythonOS-console.exe"))) { throw "PythonOS-console.exe was not built" }
 Remove-Item $Work -Recurse -Force
+
+# 4b. The PythonOS window and the web installer (C#, built with the compiler that ships with Windows)
+$Native = Join-Path $Out "native"
+$Numeric = if ($Version -match '^(\d+)\.(\d+)\.(\d+)') { "$($Matches[1]).$($Matches[2]).$($Matches[3]).0" } else { "0.0.0.0" }
+& (Join-Path $Here "build-native.ps1") -Out $Native -Version $Numeric -IconFile $IconFile
+if ($LASTEXITCODE -ne 0) { throw "building the native programs failed" }
+Copy-Item (Join-Path $Native "PythonOS.exe"), (Join-Path $Native "Microsoft.Web.WebView2.Core.dll"), `
+    (Join-Path $Native "Microsoft.Web.WebView2.WinForms.dll"), (Join-Path $Native "WebView2Loader.dll") $App
+Copy-Item (Join-Path $Native "web") $App -Recurse
+Copy-Item (Join-Path $Native "PythonOS-Setup.exe") (Join-Path $Out "PythonOS-$Version-web-setup.exe")
+Remove-Item $Native -Recurse -Force
 
 # 5. Portable zip
 $Zip = Join-Path $Out "PythonOS-$Version-windows-portable.zip"

@@ -329,6 +329,8 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         sheet.paragraph("This is a change to the app itself, so PythonOS can't update it for you. PythonOS itself keeps updating on its own.")
         sheet.paragraph("Download the new APK and open it to install. If Android won't install it over this one, uninstall this app first " +
             "(use the backup command beforehand to keep your files).")
+        val sum = info?.optString("sha256").orEmpty()
+        if (sum.isNotEmpty()) sheet.paragraph("The file's SHA-256, to compare after downloading:\n$sum")
         sheet.buttons("Download", { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }, "Later")
         sheet.show()
     }

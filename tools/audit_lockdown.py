@@ -45,7 +45,7 @@ ALLOWED = {
     "users.py": "clears the screen",
     "main.py": "pip install of boot requirements (skipped when bundled)",
     "pyos/system.py": "loads OS commands/programs from the OS's own folders",
-    "core/sysupdate.py": "loads the restart command from the OS's own folder",
+    "core/sysupdate.py": "loads the restart command from the OS's own folder; on the Windows app only, starts the checksum-verified web installer",
     "commands/pkg.py": "loads the OS's own marketplace program",
     "commands/updatecheck.py": "",
 }

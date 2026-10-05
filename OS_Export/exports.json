@@ -23,7 +23,7 @@
   "windows": {
     "title": "Windows app",
     "api": 1,
-    "assets": ["PythonOS-{v}-setup.exe", "PythonOS-{v}-windows-portable.zip"],
+    "assets": ["PythonOS-{v}-web-setup.exe", "PythonOS-{v}-setup.exe", "PythonOS-{v}-windows-portable.zip"],
     "notes": "",
     "inputs": ["OS_Export/Windows", "OS_Export/bootstrap.py", "requirements.txt", "boot-requirements.txt"],
     "embeds_core": false

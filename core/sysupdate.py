@@ -532,6 +532,91 @@ def export_status(manifest):
     return status
 
 
+# ------------------------------------------------------------------ checking and installing a new package
+def release_checksums(file_url, timeout=15):
+    """{file name: sha256} from the SHA256SUMS file that sits next to a release file (empty if there is none)."""
+    base = file_url.rsplit("/", 1)[0]
+    try:
+        response = requests.get(base + "/SHA256SUMS", timeout=timeout)
+        response.raise_for_status()
+    except requests.RequestException:
+        return {}
+    sums = {}
+    for line in response.text.splitlines():
+        parts = line.strip().split(None, 1)
+        if len(parts) == 2 and re.fullmatch(r"[0-9a-fA-F]{64}", parts[0]):
+            sums[parts[1].lstrip("*").strip()] = parts[0].lower()
+    return sums
+
+
+def checksum_of(file_url):
+    """The published SHA-256 of a release file, or None when the release has no checksum list."""
+    return release_checksums(file_url).get(file_url.rsplit("/", 1)[-1])
+
+
+def download_verified(file_url, destination, timeout=60):
+    """Download a release file and check it against the release's SHA256SUMS before anyone runs it. Raises ValueError if the
+    release has no checksum for it or the download does not match; the file is deleted in that case."""
+    want = checksum_of(file_url)
+    if not want:
+        raise ValueError("this release has no checksum for the file, so it cannot be checked")
+    digest = hashlib.sha256()
+    with requests.get(file_url, stream=True, timeout=timeout) as response:
+        response.raise_for_status()
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(1 << 16):
+                f.write(chunk)
+                digest.update(chunk)
+    if digest.hexdigest() != want:
+        try:
+            os.remove(destination)
+        except OSError:
+            pass
+        raise ValueError("the download does not match its checksum (damaged or changed), so it was deleted")
+    return want
+
+
+def installer_url(status):
+    """The small web installer of this release, if the Windows app has one."""
+    for url in (status.get("remote") or {}).get("urls", []):
+        if url.endswith("web-setup.exe"):
+            return url
+    return None
+
+
+def update_in_place(status):
+    """Windows app: download the web installer, check it, and let it replace the app while PythonOS is closed. Returns True if started."""
+    import subprocess
+    import tempfile
+    url = installer_url(status)
+    if os.name != "nt" or not url:
+        return False
+    target = os.path.join(tempfile.gettempdir(), url.rsplit("/", 1)[-1])
+    try:
+        console.print("[cyan]Downloading the installer and checking it...[/cyan]")
+        download_verified(url, target)
+    except (ValueError, requests.RequestException, OSError) as e:
+        console.print(f"[bold red]Not updated: {e}[/bold red]")
+        return False
+    console.print("[green]The installer is genuine.[/green] PythonOS will close, update itself and start again.")
+    subprocess.Popen([target, "/update", "/silent"], close_fds=True,
+                     creationflags=getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0))
+    time.sleep(2)
+    return True
+
+
+def offer_in_place(status):
+    """After the manual-update notice: on the Windows app, offer to do it right now."""
+    if os.name != "nt" or not installer_url(status):
+        return False
+    try:
+        if Confirm.ask("Update the app now?", default=True):
+            return update_in_place(status)
+    except (KeyboardInterrupt, EOFError):
+        pass
+    return False
+
+
 def print_export_notice(status, blocking=False):
     """Explain, in plain words, that this package must be replaced by hand."""
     remote, local = status["remote"], status["local"]
@@ -622,6 +707,7 @@ def update_packaged(current, auto_update):
 
     if export_info and export_info["state"] == "incompatible" and core_newer:
         print_export_notice(export_info, blocking=True)
+        offer_in_place(export_info)
         return False
 
     updated = False
@@ -681,6 +767,7 @@ def update_packaged(current, auto_update):
     # The package around PythonOS is a separate matter: tell the user if it needs replacing by hand
     if export_info and export_info["state"] == "update":
         print_export_notice(export_info)
+        offer_in_place(export_info)
     elif export_info and export_info["state"] == "current" and not core_newer:
         console.print(f"[dim]This {export_info['title']} ({export_info['local']['version']}) is the latest.[/dim]")
     return updated
