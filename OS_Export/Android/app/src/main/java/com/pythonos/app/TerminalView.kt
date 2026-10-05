@@ -36,6 +36,7 @@ class TerminalView(context: Context) : View(context) {
         /** Ctrl+C. */
         fun onInterrupt()
         fun onLongPress()
+    fun onPasteRequested()
         fun onTextSizeChanged(sp: Float)
     }
 
@@ -516,24 +517,42 @@ class TerminalView(context: Context) : View(context) {
             KeyEvent.KEYCODE_DEL -> { backspace(); return true }
             KeyEvent.KEYCODE_FORWARD_DEL -> { deleteForward(); return true }
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> { submit(); return true }
-            KeyEvent.KEYCODE_DPAD_LEFT -> { moveCursor(-1); return true }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> { moveCursor(1); return true }
+            KeyEvent.KEYCODE_DPAD_LEFT -> { if (event.isCtrlPressed || event.isAltPressed) { cursor = wordStart(cursor); changed() } else moveCursor(-1); return true }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> { if (event.isCtrlPressed || event.isAltPressed) { cursor = wordEnd(cursor); changed() } else moveCursor(1); return true }
             KeyEvent.KEYCODE_DPAD_UP -> { recall(-1); return true }
             KeyEvent.KEYCODE_DPAD_DOWN -> { recall(1); return true }
             KeyEvent.KEYCODE_MOVE_HOME -> { cursor = 0; changed(); return true }
             KeyEvent.KEYCODE_MOVE_END -> { cursor = input.length; changed(); return true }
             KeyEvent.KEYCODE_TAB -> { requestCompletion(); return true }
-            KeyEvent.KEYCODE_ESCAPE -> return true
+            KeyEvent.KEYCODE_ESCAPE -> { if (!secret) setInput(""); return true }      // Esc clears the line
+            KeyEvent.KEYCODE_PAGE_UP -> { scrollPage(1); return true }
+            KeyEvent.KEYCODE_PAGE_DOWN -> { scrollPage(-1); return true }
         }
         if (event.isCtrlPressed) {
+            // The usual shell keys, so a Bluetooth keyboard on a tablet or a Chromebook feels right.
             when (keyCode) {
                 KeyEvent.KEYCODE_C -> { interrupt(); return true }
-                KeyEvent.KEYCODE_U -> { setInput(""); return true }
-                KeyEvent.KEYCODE_A -> { cursor = 0; changed(); return true }
-                KeyEvent.KEYCODE_E -> { cursor = input.length; changed(); return true }
+                KeyEvent.KEYCODE_U -> { deleteRange(0, cursor); return true }               // line start .. cursor
+                KeyEvent.KEYCODE_K -> { deleteRange(cursor, input.length); return true }    // cursor .. line end
+                KeyEvent.KEYCODE_W -> { deleteRange(wordStart(cursor), cursor); return true }
+                KeyEvent.KEYCODE_A, KeyEvent.KEYCODE_MOVE_HOME -> { cursor = 0; changed(); return true }
+                KeyEvent.KEYCODE_E, KeyEvent.KEYCODE_MOVE_END -> { cursor = input.length; changed(); return true }
+                KeyEvent.KEYCODE_B -> { moveCursor(-1); return true }
+                KeyEvent.KEYCODE_F -> { moveCursor(1); return true }
+                KeyEvent.KEYCODE_P -> { recall(-1); return true }
+                KeyEvent.KEYCODE_N -> { recall(1); return true }
                 KeyEvent.KEYCODE_L -> { typeText("clear\n"); return true }
+                KeyEvent.KEYCODE_D -> { if (input.isEmpty()) typeText("logout\n") else deleteForward(); return true }
+                KeyEvent.KEYCODE_V -> { listener?.onPasteRequested(); return true }
             }
             return false
+        }
+        if (event.isAltPressed) {
+            when (keyCode) {
+                KeyEvent.KEYCODE_B -> { cursor = wordStart(cursor); changed(); return true }
+                KeyEvent.KEYCODE_F -> { cursor = wordEnd(cursor); changed(); return true }
+                KeyEvent.KEYCODE_D -> { deleteRange(cursor, wordEnd(cursor)); return true }
+            }
         }
         val u = event.unicodeChar
         if (u != 0 && (u and COMBINING_ACCENT) == 0 && !event.isAltPressed) {
@@ -563,6 +582,38 @@ class TerminalView(context: Context) : View(context) {
         }
         historyPos = -1
         changed()
+    }
+
+    private fun deleteRange(from: Int, to: Int) {
+        val a = from.coerceIn(0, input.length)
+        val b = to.coerceIn(a, input.length)
+        input.delete(a, b)
+        cursor = a
+        historyPos = -1
+        changed()
+    }
+
+    /** Where the word before `from` starts (skipping spaces first). */
+    private fun wordStart(from: Int): Int {
+        var i = from.coerceIn(0, input.length)
+        while (i > 0 && input[i - 1] == ' ') i--
+        while (i > 0 && input[i - 1] != ' ') i--
+        return i
+    }
+
+    /** Where the word after `from` ends (skipping spaces first). */
+    private fun wordEnd(from: Int): Int {
+        var i = from.coerceIn(0, input.length)
+        while (i < input.length && input[i] == ' ') i++
+        while (i < input.length && input[i] != ' ') i++
+        return i
+    }
+
+    /** Page Up / Page Down: scroll back through the output by almost a screen. direction 1 = further up. */
+    private fun scrollPage(direction: Int) {
+        scroller.forceFinished(true)
+        offset = (offset + direction * height * 0.85f).coerceIn(0f, maxOffset)
+        invalidate()
     }
 
     private fun backspace() {

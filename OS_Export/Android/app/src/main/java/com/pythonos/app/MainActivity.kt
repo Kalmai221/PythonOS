@@ -1,13 +1,14 @@
 package com.pythonos.app
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -18,13 +19,11 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
-import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
-import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import com.chaquo.python.Python
@@ -143,14 +142,26 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         }
         titles.addView(sizeLabel)
         appBar.addView(titles, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        val menuButton = TextView(this).apply {
-            text = "⋮"
-            gravity = Gravity.CENTER
-            setTextColor(Color.WHITE)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 26f)
+        val menuButton = object : View(this) {
+            private val line = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                strokeCap = Paint.Cap.ROUND
+                strokeWidth = 2.2f * density
+            }
+
+            override fun onDraw(canvas: Canvas) {
+                val cx = width / 2f
+                val cy = height / 2f
+                val half = 9f * density
+                for (i in -1..1) {
+                    val y = cy + i * 6f * density
+                    canvas.drawLine(cx - half, y, cx + half - (if (i == 0) 5f * density else 0f), y, line)   // the middle line is shorter
+                }
+            }
+        }.apply {
             background = withRipple(rounded(Color.TRANSPARENT, 24f))
             isClickable = true
-            contentDescription = "More options"
+            contentDescription = "Menu"
             setOnClickListener { showMenu(this) }
         }
         appBar.addView(menuButton, LinearLayout.LayoutParams(dp(48), dp(48)))
@@ -218,37 +229,27 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         return root
     }
 
-    private fun showMenu(anchor: View) {
-        val menu = PopupMenu(this, anchor)
-        menu.menu.add(Menu.NONE, 1, 1, "Paste")
-        menu.menu.add(Menu.NONE, 2, 2, "Copy screen text")
-        menu.menu.add(Menu.NONE, 3, 3, "Larger text")
-        menu.menu.add(Menu.NONE, 4, 4, "Smaller text")
-        menu.menu.add(Menu.NONE, 5, 5, "Keep screen on").apply {
-            isCheckable = true
-            isChecked = prefs.getBoolean("keep_awake", false)
+    private fun sheetColors() = SheetColors(surface = bar, chip = chipColor, accent = accent, text = Color.rgb(236, 238, 242), muted = Color.rgb(150, 156, 168))
+
+    private fun showMenu(@Suppress("UNUSED_PARAMETER") anchor: View) {
+        val sheet = Sheet(this, sheetColors())
+        sheet.title("PythonOS", sizeLabel.text.toString())
+        sheet.row("P", "Paste", "Type the clipboard into the terminal") { paste() }
+        sheet.row("C", "Copy screen text", "Everything on the screen, as text") { copyScreen() }
+        sheet.row("H", "Help", "List the commands") { terminal.typeText("help\n") }
+        sheet.section("Look")
+        sheet.stepper("Text size", { terminal.textSizeSp.toInt().toString() }, { resizeText(-1f) }, { resizeText(1f) })
+        sheet.swatches(palettes.map { it.name }, palettes.map { it.bg }, prefs.getInt("palette", 0).coerceIn(0, palettes.size - 1)) { index ->
+            // the activity is rebuilt so every colour (and the terminal) picks the scheme up
+            prefs.edit().putInt("palette", index).apply()
+            recreate()
         }
-        menu.menu.add(Menu.NONE, 6, 6, "Check for app update")
-        menu.menu.add(Menu.NONE, 7, 7, "About")
-        menu.menu.add(Menu.NONE, 8, 8, "Appearance: " + palettes[prefs.getInt("palette", 0).coerceIn(0, palettes.size - 1)].name)
-        menu.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                1 -> paste()
-                2 -> copyScreen()
-                3 -> resizeText(1f)
-                4 -> resizeText(-1f)
-                5 -> setKeepAwake(!prefs.getBoolean("keep_awake", false))
-                6 -> checkAppUpdate(manual = true)
-                7 -> showAbout()
-                8 -> {
-                    // next colour scheme; the activity is rebuilt so every colour (and the terminal) picks it up
-                    prefs.edit().putInt("palette", (prefs.getInt("palette", 0) + 1) % palettes.size).apply()
-                    recreate()
-                }
-            }
-            true
-        }
-        menu.show()
+        sheet.toggle("S", "Keep screen on", "Stops the screen from sleeping", prefs.getBoolean("keep_awake", false)) { setKeepAwake(it) }
+        sheet.section("App")
+        sheet.row("U", "Check for app update", "The app is a separate download") { checkAppUpdate(manual = true) }
+        sheet.row("!", "Report a problem", "Prepares a report you read before anything is sent") { terminal.typeText("report\n") }
+        sheet.row("i", "About", null) { showAbout() }
+        sheet.show()
     }
 
     private fun paste() {
@@ -281,12 +282,12 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         } catch (e: Exception) {
             "?"
         }
-        AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
-            .setTitle("PythonOS")
-            .setMessage("App version $version\n\nThe terminal runs PythonOS. PythonOS updates itself; this app is a separate " +
-                "package, so a new version of the app has to be downloaded and installed by hand (see \"Check for app update\").")
-            .setPositiveButton("OK", null)
-            .show()
+        val sheet = Sheet(this, sheetColors())
+        sheet.title("PythonOS", "App version $version")
+        sheet.paragraph("The terminal runs PythonOS. PythonOS updates itself; this app is a separate package, so a new version of the app " +
+            "has to be downloaded and installed by hand (Menu, then Check for app update).")
+        sheet.buttons("OK", {})
+        sheet.show()
     }
 
     // ------------------------------------------------------------ app updates
@@ -309,7 +310,9 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
                     val info = JSONObject(json)
                     updateUrl = info.getString("url")
                     banner.text = "New app version ${info.getString("remote")} available — tap for details"
+                    banner.alpha = 0f
                     banner.visibility = View.VISIBLE
+                    banner.animate().alpha(1f).setDuration(250).start()
                     if (manual) showUpdateDialog(info)
                 }
             }
@@ -320,17 +323,14 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         val url = updateUrl ?: return
         val title = if (info?.optString("state") == "incompatible") "Install the new app" else "App update available"
         val notes = info?.optString("notes").orEmpty()
-        val message = (if (info != null) "${info.optString("title")}: ${info.optString("local")} → ${info.optString("remote")}\n\n" else "") +
-            (if (notes.isNotEmpty()) "$notes\n\n" else "") +
-            "This is a change to the app itself, so PythonOS can't update it for you. PythonOS itself keeps updating on its own.\n\n" +
-            "Download the new APK and open it to install. If Android won't install it over this one, uninstall this app first " +
-            "(use the backup command beforehand to keep your files)."
-        AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton("Download") { _, _ -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-            .setNegativeButton("Later", null)
-            .show()
+        val sheet = Sheet(this, sheetColors())
+        sheet.title(title, if (info != null) "${info.optString("title")}: ${info.optString("local")} → ${info.optString("remote")}" else null)
+        if (notes.isNotEmpty()) sheet.paragraph(notes)
+        sheet.paragraph("This is a change to the app itself, so PythonOS can't update it for you. PythonOS itself keeps updating on its own.")
+        sheet.paragraph("Download the new APK and open it to install. If Android won't install it over this one, uninstall this app first " +
+            "(use the backup command beforehand to keep your files).")
+        sheet.buttons("Download", { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }, "Later")
+        sheet.show()
     }
 
     // ----------------------------------------------------------------- Python
@@ -390,6 +390,10 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
 
     override fun onLongPress() {
         showMenu(terminal)
+    }
+
+    override fun onPasteRequested() {
+        paste()
     }
 
     override fun onTextSizeChanged(sp: Float) {
