@@ -32,21 +32,35 @@ def pause(seconds):
         time.sleep(seconds * scale)
 
 
-def _ok(label, detail=""):
+def _bar(done, total, width=14):
+    filled = int(width * done / max(1, total))
+    return "[cyan]" + "#" * filled + "[/cyan][dim]" + "-" * (width - filled) + "[/dim]"
+
+
+def _ok(label, detail="", number=0, total=0, ms=None):
     suffix = f" [dim]{detail}[/dim]" if detail else ""
-    console.print(f"{theme.tag('success', '[  OK  ]')} {label}{suffix}")
+    timing = f" [dim]{ms:.0f} ms[/dim]" if ms is not None else ""
+    bar = f"{_bar(number, total)} {number * 100 // max(1, total):>3}%  " if total else ""
+    console.print(f"{theme.tag('success', '[  OK  ]')} {bar}{label}{suffix}{timing}")
 
 
-def _step(label, action=None, seconds=0.6):
-    """Show a spinner while a step runs, then an [ OK ] line. The action's return value (text) becomes the detail."""
+def _step(label, action=None, seconds=0.6, number=0, total=0):
+    """Run one real step: a spinner while it works, then an [ OK ] line with a progress bar and how long it took.
+    The action's return value (text) becomes the detail."""
     detail = ""
+    t0 = time.perf_counter()
     if settings.boot_pause() > 0 and sys.stdout.isatty():
         with yaspin(text=label + "...", spinner="dots") as spinner:
             detail = action() if action else ""
             pause(seconds)
     else:
         detail = action() if action else ""
-    _ok(label, detail or "")
+    _ok(label, detail or "", number, total, (time.perf_counter() - t0) * 1000)
+
+
+def _record_closing():
+    log.log("Shutdown: sessions closed")
+    return ""
 
 
 # --------------------------------------------------------------------- actions
@@ -105,13 +119,13 @@ def shutdown_sequence(kind="shutdown"):
     title = "Restarting" if restarting else "Resetting to factory settings" if wiping else "Shutting down"
     console.print(Panel(f"[bold]{title}[/bold]", border_style=theme.style("border"), expand=False))
 
-    _step("Stopping background jobs", _stop_jobs, 0.5)
-    _step("Closing open applications", None, 0.5)
-    _step("Signing out", _close_sessions, 0.4)
+    steps = [("Stopping background jobs", _stop_jobs, 0.5), ("Signing out", _close_sessions, 0.4),
+             ("Writing the system log", _record_closing, 0.2)]
     if wiping:
-        _step("Erasing accounts, settings, files and packages", factory_reset, 1.0)
-    _step("Flushing the filesystem", _flush, 0.5)
-    _step("Releasing the network", None, 0.4)
+        steps.append(("Erasing accounts, settings, files and packages", factory_reset, 1.0))
+    steps.append(("Flushing the filesystem", _flush, 0.5))
+    for number, (label, action, seconds) in enumerate(steps, 1):
+        _step(label, action, seconds, number, len(steps))
 
     if restarting:
         console.print(f"\n{theme.tag('warning', 'Restarting now...')}")
