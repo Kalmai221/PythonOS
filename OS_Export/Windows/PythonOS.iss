@@ -9,6 +9,13 @@
 #ifndef OutputDir
   #define OutputDir "."
 #endif
+; "" for the x64 installer, "-arm64" for Windows on ARM
+#ifndef NameTag
+  #define NameTag ""
+#endif
+#ifndef TargetArch
+  #define TargetArch "x64"
+#endif
 ; The wizard artwork drawn by make_art.py (side panel, header badge, icon)
 #ifndef ArtDir
   #error ArtDir must be defined (the folder produced by make_art.py)
@@ -26,11 +33,16 @@ DefaultDirName={localappdata}\PythonOS
 DefaultGroupName=PythonOS
 PrivilegesRequired=lowest
 OutputDir={#OutputDir}
-OutputBaseFilename=PythonOS-{#AppVersion}-setup
+OutputBaseFilename=PythonOS-{#AppVersion}{#NameTag}-setup
 Compression=lzma2
 SolidCompression=yes
+#if TargetArch == "arm64"
+ArchitecturesAllowed=arm64
+ArchitecturesInstallIn64BitMode=arm64
+#else
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+#endif
 UninstallDisplayName=PythonOS
 UninstallDisplayIcon={app}\PythonOS.exe
 
@@ -75,6 +87,10 @@ Name: "{group}\Uninstall PythonOS"; Filename: "{uninstallexe}"; Tasks: startmenu
 Name: "{userdesktop}\PythonOS"; Filename: "{app}\PythonOS.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
+; Requirements: the PythonOS system itself and the Python libraries it imports. Anything missing is downloaded now (needs internet);
+; PythonOS.exe checks the same things at every start, so a failure here only means it finishes the job on the first start.
+Filename: "{app}\python\python.exe"; Parameters: """{app}\bootstrap.py"" --dest ""{app}"""; WorkingDir: "{app}"; StatusMsg: "Downloading the PythonOS system..."; Flags: runhidden waituntilterminated
+Filename: "{app}\python\python.exe"; Parameters: "-m pip install --quiet --no-warn-script-location -r ""{app}\requirements.txt"" -r ""{app}\boot-requirements.txt"""; WorkingDir: "{app}"; StatusMsg: "Installing the Python libraries PythonOS needs..."; Check: LibrariesMissing; Flags: runhidden waituntilterminated
 Filename: "{app}\PythonOS.exe"; Description: "Start PythonOS now"; Flags: postinstall nowait skipifsilent
 
 [InstallDelete]
@@ -111,6 +127,17 @@ end;
 
 var
   RepairMode: Boolean;
+
+// True when the bundled Python cannot import the libraries PythonOS needs (checked after the system was downloaded)
+function LibrariesMissing(): Boolean;
+var
+  Code: Integer;
+begin
+  if not Exec(ExpandConstant('{app}\python\python.exe'), '-c "import rich, psutil, requests, yaspin, ping3, prompt_toolkit, pygments"',
+              ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, Code) then
+    Code := 1;
+  Result := Code <> 0;
+end;
 
 function IsRepair(): Boolean;
 begin

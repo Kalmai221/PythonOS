@@ -69,6 +69,11 @@ namespace PythonOS.Setup
             en["step.verify"] = "Checking the download";
             en["step.install"] = "Installing";
             en["step.shortcuts"] = "Creating shortcuts";
+            en["step.requirements"] = "Checking requirements";
+            en["req.system"] = "Downloading the PythonOS system...";
+            en["req.libraries"] = "Installing the Python libraries...";
+            en["err.system"] = "The PythonOS system could not be downloaded. Check your internet connection and try again.";
+            en["err.libraries"] = "The Python libraries PythonOS needs could not be installed. Check your internet connection and try again.";
             en["step.remove"] = "Removing PythonOS";
             en["speed"] = "{0} of {1} - {2}/s";
             en["done"] = "PythonOS is installed";
@@ -115,6 +120,11 @@ namespace PythonOS.Setup
             es["step.verify"] = "Comprobando la descarga";
             es["step.install"] = "Instalando";
             es["step.shortcuts"] = "Creando accesos directos";
+            es["step.requirements"] = "Comprobando los requisitos";
+            es["req.system"] = "Descargando el sistema PythonOS...";
+            es["req.libraries"] = "Instalando las bibliotecas de Python...";
+            es["err.system"] = "No se pudo descargar el sistema PythonOS. Comprueba tu conexión a internet e inténtalo de nuevo.";
+            es["err.libraries"] = "No se pudieron instalar las bibliotecas de Python que necesita PythonOS. Comprueba tu conexión a internet e inténtalo de nuevo.";
             es["step.remove"] = "Quitando PythonOS";
             es["speed"] = "{0} de {1} - {2}/s";
             es["done"] = "PythonOS está instalado";
@@ -161,6 +171,11 @@ namespace PythonOS.Setup
             fr["step.verify"] = "Vérification du téléchargement";
             fr["step.install"] = "Installation";
             fr["step.shortcuts"] = "Création des raccourcis";
+            fr["step.requirements"] = "Vérification des prérequis";
+            fr["req.system"] = "Téléchargement du système PythonOS...";
+            fr["req.libraries"] = "Installation des bibliothèques Python...";
+            fr["err.system"] = "Le système PythonOS n'a pas pu être téléchargé. Vérifiez votre connexion internet et réessayez.";
+            fr["err.libraries"] = "Les bibliothèques Python nécessaires à PythonOS n'ont pas pu être installées. Vérifiez votre connexion internet et réessayez.";
             fr["step.remove"] = "Suppression de PythonOS";
             fr["speed"] = "{0} sur {1} - {2}/s";
             fr["done"] = "PythonOS est installé";
@@ -207,6 +222,11 @@ namespace PythonOS.Setup
             de["step.verify"] = "Download wird geprüft";
             de["step.install"] = "Installieren";
             de["step.shortcuts"] = "Verknüpfungen werden erstellt";
+            de["step.requirements"] = "Voraussetzungen werden geprüft";
+            de["req.system"] = "Das PythonOS-System wird heruntergeladen...";
+            de["req.libraries"] = "Die Python-Bibliotheken werden installiert...";
+            de["err.system"] = "Das PythonOS-System konnte nicht heruntergeladen werden. Prüfe deine Internetverbindung und versuche es erneut.";
+            de["err.libraries"] = "Die von PythonOS benötigten Python-Bibliotheken konnten nicht installiert werden. Prüfe deine Internetverbindung und versuche es erneut.";
             de["step.remove"] = "PythonOS wird entfernt";
             de["speed"] = "{0} von {1} - {2}/s";
             de["done"] = "PythonOS ist installiert";

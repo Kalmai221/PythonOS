@@ -12,7 +12,8 @@ The Python-side files (start.py, bootstrap.py) and the embedded Python are put i
 param(
     [string]$Out = "",
     [string]$Version = "0.0.0",
-    [string]$IconFile = ""
+    [string]$IconFile = "",
+    [ValidateSet("x64", "arm64")][string]$Arch = "x64"
 )
 $ErrorActionPreference = "Stop"
 
@@ -49,7 +50,10 @@ Get-Package "addon-fit" "https://registry.npmjs.org/@xterm/addon-fit/-/addon-fit
 Get-Package "addon-canvas" "https://registry.npmjs.org/@xterm/addon-canvas/-/addon-canvas-$CanvasAddon.tgz" "addon-canvas\package\lib\addon-canvas.js"
 
 $Wv = Join-Path $Deps "webview2"
-$Common = @("/nologo", "/optimize+", "/codepage:65001", "/platform:x64", "/r:System.dll", "/r:System.Core.dll", "/r:System.Drawing.dll", "/r:System.Windows.Forms.dll")
+# x64: a 64-bit Intel/AMD process. arm64: the compiler that ships with Windows cannot target ARM64 directly, but an "anycpu" program
+# runs as a native ARM64 process on Windows on ARM, and WebView2Loader.dll below is then the ARM64 one.
+$Platform = if ($Arch -eq "arm64") { "anycpu" } else { "x64" }
+$Common = @("/nologo", "/optimize+", "/codepage:65001", "/platform:$Platform", "/r:System.dll", "/r:System.Core.dll", "/r:System.Drawing.dll", "/r:System.Windows.Forms.dll")
 $IconArgs = @()
 if ($IconFile -and (Test-Path $IconFile)) { $IconArgs = @("/win32icon:$IconFile") }
 $VersionFile = Join-Path $Out "AssemblyInfo.cs"
@@ -67,7 +71,7 @@ Write-Host "Compiling PythonOS.exe ..."
     "/r:$Wv\lib\net462\Microsoft.Web.WebView2.Core.dll" "/r:$Wv\lib\net462\Microsoft.Web.WebView2.WinForms.dll" `
     (Join-Path $Here "native\host\ConPty.cs") (Join-Path $Here "native\host\Host.cs") $VersionFile
 if ($LASTEXITCODE -ne 0) { throw "compiling PythonOS.exe failed" }
-Copy-Item "$Wv\lib\net462\Microsoft.Web.WebView2.Core.dll", "$Wv\lib\net462\Microsoft.Web.WebView2.WinForms.dll", "$Wv\runtimes\win-x64\native\WebView2Loader.dll" $Out
+Copy-Item "$Wv\lib\net462\Microsoft.Web.WebView2.Core.dll", "$Wv\lib\net462\Microsoft.Web.WebView2.WinForms.dll", "$Wv\runtimes\win-$Arch\native\WebView2Loader.dll" $Out
 $Web = Join-Path $Out "web"
 New-Item -ItemType Directory -Force -Path $Web | Out-Null
 Copy-Item (Join-Path $Here "native\host\web\terminal.html") $Web

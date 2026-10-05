@@ -53,6 +53,20 @@ def fetch(url, progress=None):
         return b"".join(chunks)
 
 
+# What a complete PythonOS folder holds. Every launcher checks this before starting and downloads again when something is missing.
+REQUIRED_FILES = ["main.py", "shell.py", "users.py", "VERSION", "requirements.txt", "boot-requirements.txt"]
+REQUIRED_DIRS = ["commands", "core", "programs", "pyos"]
+# the libraries PythonOS imports at start-up (the same list as requirements.txt, by module name)
+REQUIRED_MODULES = "rich psutil requests yaspin ping3 prompt_toolkit pygments"
+
+
+def missing(dest):
+    """Names of the files and folders a complete install has that are not in `dest` (empty list: nothing to download)."""
+    gone = [n for n in REQUIRED_FILES if not os.path.isfile(os.path.join(dest, n))]
+    gone += [n for n in REQUIRED_DIRS if not os.path.isdir(os.path.join(dest, n))]
+    return gone
+
+
 def safe_member(path):
     return bool(path) and not os.path.isabs(path) and ".." not in path.replace("\\", "/").split("/") and not path.startswith("/")
 
@@ -77,7 +91,10 @@ def install(dest, url=None, force=False, log=print):
     if not force and os.path.isfile(os.path.join(dest, "main.py")) and os.path.isfile(version_file):
         with open(version_file, encoding="utf-8") as f:
             installed = f.read().strip()
-        if version_key(installed) >= version_key(latest):
+        gone = missing(dest)
+        if gone:
+            log("Some PythonOS files are missing (" + ", ".join(gone) + "): downloading them again.")
+        elif version_key(installed) >= version_key(latest):
             log(f"PythonOS {installed} is already installed.")
             return True
 

@@ -158,13 +158,13 @@ namespace PythonOS.Setup
 
         private void ShowProgress()
         {
-            string[] keys = new string[] { "check", "find", "download", "verify", "install", "shortcuts" };
+            string[] keys = new string[] { "check", "find", "download", "verify", "install", "requirements", "shortcuts" };
             string[] names = new string[keys.Length];
             for (int i = 0; i < keys.Length; i++) names[i] = Strings.T("step." + keys[i]);
             Reset("progress", Strings.T(o.Mode == "repair" ? "repair" : o.Mode == "update" ? "update" : "install") + " PythonOS", "");
-            steps = new StepList(p); steps.SetBounds(0, 0, 596, 6 * 32 + 4); steps.Set(keys, names); body.Controls.Add(steps);
-            bar = new ModernProgress(p); bar.SetBounds(0, 6 * 32 + 22, 596, 10); body.Controls.Add(bar);
-            detail = Small(""); detail.SetBounds(0, 6 * 32 + 40, 596, 22); body.Controls.Add(detail);
+            steps = new StepList(p); steps.SetBounds(0, 0, 596, 7 * 32 + 4); steps.Set(keys, names); body.Controls.Add(steps);
+            bar = new ModernProgress(p); bar.SetBounds(0, 7 * 32 + 22, 596, 10); body.Controls.Add(bar);
+            detail = Small(""); detail.SetBounds(0, 7 * 32 + 40, 596, 22); body.Controls.Add(detail);
             primary.Visible = false;
             secondary.Text = Strings.T("cancel");
             Run();

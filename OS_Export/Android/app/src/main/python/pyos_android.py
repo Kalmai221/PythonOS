@@ -245,9 +245,9 @@ def main(files_dir):
 
     # The app does not contain the OS itself: the first launch downloads the latest core from
     # GitHub releases (bootstrap.py, shipped with the app). After that PythonOS updates itself.
-    if not os.path.isfile(os.path.join(files_dir, "main.py")):
-        import bootstrap
-        print("Downloading PythonOS (first launch only)...")
+    import bootstrap
+    if bootstrap.missing(files_dir):                  # first launch, or something was deleted: download what is missing
+        print("Downloading PythonOS...")
         if not bootstrap.install(files_dir, log=print):
             print("\nConnect to the internet, then close and reopen the app to try again.")
             Bridge.finished()

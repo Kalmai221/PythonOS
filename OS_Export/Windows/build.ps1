@@ -12,7 +12,8 @@ start start.py runs bootstrap.py, which downloads the latest core from GitHub re
 Also built: PythonOS-<version>-web-setup.exe, a 100 KB installer that downloads and checks all of this.
 #>
 param(
-    [string]$PythonVersion = "3.12.8"
+    [string]$PythonVersion = "3.12.8",
+    [ValidateSet("x64", "arm64")][string]$Arch = "x64"      # arm64: Windows on ARM (Surface Pro X, Copilot+ PCs, ARM VMs)
 )
 $ErrorActionPreference = "Stop"
 
@@ -35,7 +36,8 @@ python (Join-Path $Repo "OS_Export\stage.py") --write-export windows (Join-Path 
 # 2. An embedded Python runtime
 $Runtime = Join-Path $App "python"
 $EmbedZip = Join-Path $Out "python-embed.zip"
-$EmbedUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-embed-amd64.zip"
+$EmbedUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-embed-" + $(if ($Arch -eq "arm64") { "arm64" } else { "amd64" }) + ".zip"
+$Tag = if ($Arch -eq "arm64") { "-arm64" } else { "" }          # file names: ...-windows-arm64-portable.zip, ...-arm64-setup.exe
 Write-Host "Downloading Python $PythonVersion ..."
 Invoke-WebRequest -Uri $EmbedUrl -OutFile $EmbedZip
 Expand-Archive -Path $EmbedZip -DestinationPath $Runtime
@@ -81,16 +83,16 @@ Remove-Item $Work -Recurse -Force
 # 4b. The PythonOS window and the web installer (C#, built with the compiler that ships with Windows)
 $Native = Join-Path $Out "native"
 $Numeric = if ($Version -match '^(\d+)\.(\d+)\.(\d+)') { "$($Matches[1]).$($Matches[2]).$($Matches[3]).0" } else { "0.0.0.0" }
-& (Join-Path $Here "build-native.ps1") -Out $Native -Version $Numeric -IconFile $IconFile
+& (Join-Path $Here "build-native.ps1") -Out $Native -Version $Numeric -IconFile $IconFile -Arch $Arch
 if ($LASTEXITCODE -ne 0) { throw "building the native programs failed" }
 Copy-Item (Join-Path $Native "PythonOS.exe"), (Join-Path $Native "Microsoft.Web.WebView2.Core.dll"), `
     (Join-Path $Native "Microsoft.Web.WebView2.WinForms.dll"), (Join-Path $Native "WebView2Loader.dll") $App
 Copy-Item (Join-Path $Native "web") $App -Recurse
-Copy-Item (Join-Path $Native "PythonOS-Setup.exe") (Join-Path $Out "PythonOS-$Version-web-setup.exe")
+if ($Arch -eq "x64") { Copy-Item (Join-Path $Native "PythonOS-Setup.exe") (Join-Path $Out "PythonOS-$Version-web-setup.exe") }   # one web installer for every architecture
 Remove-Item $Native -Recurse -Force
 
 # 5. Portable zip
-$Zip = Join-Path $Out "PythonOS-$Version-windows-portable.zip"
+$Zip = Join-Path $Out "PythonOS-$Version-windows$Tag-portable.zip"
 Compress-Archive -Path $App -DestinationPath $Zip
 Write-Host "Built $Zip"
 
@@ -101,7 +103,7 @@ if (-not $Iscc) {
     if (Test-Path $Candidate) { $Iscc = $Candidate }
 }
 if ($Iscc) {
-    & $Iscc "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" "/DArtDir=$Art" (Join-Path $Here "PythonOS.iss")
+    & $Iscc "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" "/DArtDir=$Art" "/DNameTag=$Tag" "/DTargetArch=$Arch" (Join-Path $Here "PythonOS.iss")
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
     Write-Host "Built installer"
 } else {

@@ -29,16 +29,34 @@ def core_is_older():
         return False
 
 
+def libraries_ok(env):
+    """True if the bundled Python can import everything PythonOS needs at start-up."""
+    import bootstrap
+    return subprocess.call([PYTHON, "-c", "import " + ", ".join(bootstrap.REQUIRED_MODULES.split())], env=env,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+
+
 def main():
     os.chdir(HERE)
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYOS_EXPORT_INFO=os.path.join(HERE, "export.json"),
                COLORTERM="truecolor")
     env.pop("NO_COLOR", None)         # the PythonOS window always shows colour (the mono theme is a PythonOS setting)
-    missing = not os.path.isfile(os.path.join(HERE, "main.py"))
-    if missing or core_is_older():
-        print("Downloading PythonOS (first start only)..." if missing else "Updating PythonOS to the version you just installed...")
+    sys.path.insert(0, HERE)
+    import bootstrap
+    gone = bootstrap.missing(HERE)
+    if gone or core_is_older():
+        print("Downloading PythonOS..." if gone else "Updating PythonOS to the version you just installed...")
+        if gone:
+            print("Missing: " + ", ".join(gone))
         if subprocess.call([PYTHON, "bootstrap.py", "--dest", HERE], env=env) != 0:
             print("\nCould not download PythonOS. Check your internet connection and start it again.")
+            return 1
+    if not libraries_ok(env):
+        print("Installing the Python libraries PythonOS needs...")
+        packages = [x for pair in (("-r", n) for n in ("requirements.txt", "boot-requirements.txt") if os.path.isfile(os.path.join(HERE, n))) for x in pair]
+        if not packages or subprocess.call([PYTHON, "-m", "pip", "install", "--quiet", "--no-warn-script-location", *packages], env=env) != 0 \
+                or not libraries_ok(env):
+            print("\nCould not install the libraries. Check your internet connection and start it again.")
             return 1
     try:
         return subprocess.call([PYTHON, "main.py", *sys.argv[1:]], env=env)

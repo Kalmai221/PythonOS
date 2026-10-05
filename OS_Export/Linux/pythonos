@@ -19,9 +19,13 @@ fi
 
 mkdir -p "$DATA"
 
-# First run: download the core
-if [ ! -f "$DATA/main.py" ]; then
-    echo "Downloading PythonOS (first run only)..."
+# Download the core on the first run, and again whenever a piece of it is missing
+INCOMPLETE=0
+for needed in main.py shell.py users.py VERSION requirements.txt boot-requirements.txt commands core programs pyos; do
+    [ -e "$DATA/$needed" ] || INCOMPLETE=1
+done
+if [ "$INCOMPLETE" = 1 ]; then
+    echo "Downloading PythonOS..."
     if ! python3 "$HERE/bootstrap.py" --dest "$DATA"; then
         echo "Could not download PythonOS. Check your internet connection and try again." >&2
         exit 1
@@ -29,7 +33,10 @@ if [ ! -f "$DATA/main.py" ]; then
     rm -f "$VENV/.deps_ok"
 fi
 
-# First run: create the virtual environment and install dependencies
+# The libraries must import: when they do not (first run, a deleted or broken environment), set them up again
+if [ ! -x "$VENV/bin/python" ] || ! "$VENV/bin/python" -c "import rich, psutil, requests, yaspin, ping3, prompt_toolkit, pygments" >/dev/null 2>&1; then
+    rm -f "$VENV/.deps_ok"
+fi
 if [ ! -f "$VENV/.deps_ok" ]; then
     echo "Setting up PythonOS (first run only)..."
     python3 -m venv "$VENV" || {

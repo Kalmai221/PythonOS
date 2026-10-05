@@ -285,7 +285,11 @@ namespace PythonOS.Setup
                 Dictionary<string, object> a = (Dictionary<string, object>)item;
                 string name = Convert.ToString(a["name"]);
                 string link = Convert.ToString(a["browser_download_url"]);
-                if (name.EndsWith("-windows-portable.zip", StringComparison.OrdinalIgnoreCase))
+                bool arm = IsArm64();
+                bool exact = name.EndsWith(arm ? "-windows-arm64-portable.zip" : "-windows-portable.zip", StringComparison.OrdinalIgnoreCase);
+                // a Windows-on-ARM PC with a release that has no ARM64 package falls back to the x64 one (Windows runs it emulated)
+                bool fallback = arm && rel.PackageName == null && name.EndsWith("-windows-portable.zip", StringComparison.OrdinalIgnoreCase);
+                if (exact || fallback)
                 {
                     rel.PackageName = name;
                     rel.PackageUrl = link;
@@ -297,6 +301,12 @@ namespace PythonOS.Setup
             if (rel.PackageUrl == null) throw new SetupException(Strings.T("err.file"));
             if (rel.SumsUrl == null) throw new SetupException(Strings.T("err.nosums"));
             return rel;
+        }
+
+        public static bool IsArm64()
+        {
+            string a = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432") ?? Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") ?? "";
+            return a.Equals("ARM64", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>The expected SHA-256 of `fileName` from the release's SHA256SUMS text, or null.</summary>
@@ -482,9 +492,11 @@ namespace PythonOS.Setup
             {
                 foreach (ZipArchiveEntry e in archive.Entries)
                 {
-                    string path = Path.GetFullPath(Path.Combine(dest, e.FullName));
+                    // some zip tools write backslashes; treat them as folder separators
+                    string name = e.FullName.Replace('\\', '/');
+                    string path = Path.GetFullPath(Path.Combine(dest, name));
                     if (!path.StartsWith(root, StringComparison.OrdinalIgnoreCase)) throw new SetupException("unsafe path in the package: " + e.FullName);   // zip slip
-                    if (e.FullName.EndsWith("/")) { Directory.CreateDirectory(path); continue; }
+                    if (name.EndsWith("/")) { Directory.CreateDirectory(path); continue; }
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
                     e.ExtractToFile(path, true);
                 }
@@ -591,6 +603,74 @@ namespace PythonOS.Setup
             Log.Write("uninstalled" + (o.DeleteData ? " (data deleted)" : " (data kept)"));
         }
 
+        // ----------------------------------------------------------------- requirements: the OS files and the Python libraries
+        private static int RunPython(string dir, string arguments, out string output)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo(Path.Combine(dir, "python", "python.exe"), arguments);
+            psi.WorkingDirectory = dir;
+            psi.UseShellExecute = false;
+            psi.CreateNoWindow = true;
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+            psi.EnvironmentVariables["PYTHONUTF8"] = "1";
+            using (Process p = Process.Start(psi))
+            {
+                StringBuilder sb = new StringBuilder();
+                p.OutputDataReceived += delegate (object s, DataReceivedEventArgs e) { if (e.Data != null) sb.AppendLine(e.Data); };
+                p.ErrorDataReceived += delegate (object s, DataReceivedEventArgs e) { if (e.Data != null) sb.AppendLine(e.Data); };
+                p.BeginOutputReadLine();
+                p.BeginErrorReadLine();
+                p.WaitForExit();
+                output = sb.ToString();
+                return p.ExitCode;
+            }
+        }
+
+        private static bool LibrariesImport(string dir)
+        {
+            string output;
+            try { return RunPython(dir, "-c \"import rich, psutil, requests, yaspin, ping3, prompt_toolkit, pygments\"", out output) == 0; }
+            catch (Exception) { return false; }
+        }
+
+        /// <summary>Check that everything PythonOS needs is there and download what is not: the system files (main.py, commands, ...)
+        /// and the Python libraries. Needs the internet only when something is missing.</summary>
+        public static void EnsureRequirements(Options o, Progress progress)
+        {
+            string dir = Path.GetFullPath(o.Directory);
+            string[] files = new string[] { "main.py", "shell.py", "users.py", "VERSION", "requirements.txt", "boot-requirements.txt" };
+            string[] folders = new string[] { "commands", "core", "programs", "pyos" };
+            List<string> gone = new List<string>();
+            foreach (string f in files) if (!File.Exists(Path.Combine(dir, f))) gone.Add(f);
+            foreach (string f in folders) if (!Directory.Exists(Path.Combine(dir, f))) gone.Add(f);
+            if (!File.Exists(Path.Combine(dir, "python", "python.exe"))) throw new SetupException("python\\python.exe is missing from the package");
+
+            progress("requirements", 0.1, "");
+            if (gone.Count > 0)
+            {
+                Log.Write("missing: " + string.Join(", ", gone.ToArray()) + " - downloading the PythonOS system");
+                progress("requirements", 0.2, Strings.T("req.system"));
+                string output;
+                int code = RunPython(dir, "\"" + Path.Combine(dir, "bootstrap.py") + "\" --dest \"" + dir + "\"", out output);
+                Log.Write("bootstrap exit " + code + ": " + output.Trim());
+                if (code != 0) throw new SetupException(Strings.T("err.system"));
+            }
+            progress("requirements", 0.6, "");
+            if (!LibrariesImport(dir))
+            {
+                Log.Write("Python libraries missing - installing them");
+                progress("requirements", 0.7, Strings.T("req.libraries"));
+                string output;
+                string args = "-m pip install --quiet --no-warn-script-location";
+                foreach (string r in new string[] { "requirements.txt", "boot-requirements.txt" })
+                    if (File.Exists(Path.Combine(dir, r))) args += " -r \"" + Path.Combine(dir, r) + "\"";
+                int code = RunPython(dir, args, out output);
+                Log.Write("pip exit " + code + ": " + output.Trim());
+                if (code != 0 || !LibrariesImport(dir)) throw new SetupException(Strings.T("err.libraries"));
+            }
+            progress("requirements", 1.0, "");
+        }
+
         // ----------------------------------------------------------------- one run, start to end
         public static Release InstallOrUpdate(Options o, Progress progress, CancelToken cancel)
         {
@@ -610,6 +690,7 @@ namespace PythonOS.Setup
             Verify(file, rel);
             progress("verify", 1.0, "");
             InstallPackage(file, o, rel, progress);
+            EnsureRequirements(o, progress);
             progress("shortcuts", 0.5, "");
             MakeShortcuts(o);
             progress("shortcuts", 1.0, "");
