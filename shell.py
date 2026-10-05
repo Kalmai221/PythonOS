@@ -474,6 +474,36 @@ def reload_all():
     console.print("[bold green]Reload complete![/bold green]")
 
 
+# ----------------------------------------------------------- idle logout
+class IdleWatch(threading.Thread):
+    """Logs a user out after the idle_logout_minutes setting passes with nobody typing. It wakes the prompt by
+    interrupting the main thread (where the platform allows it) and the shell also checks after the next keypress."""
+
+    def __init__(self, username):
+        super().__init__(name="idle-watch", daemon=True)
+        self.username = username
+        self.fired = False
+        self._stop_event = threading.Event()
+        self._waiting = False
+        self._since = time.time()
+
+    def waiting(self, value):
+        self._waiting = value
+        self._since = time.time()
+
+    def run(self):
+        while not self._stop_event.wait(5.0):
+            limit = settings.get_for("idle_logout_minutes", self.username)
+            if limit and self._waiting and time.time() - self._since > limit * 60:
+                self.fired = True
+                import _thread
+                _thread.interrupt_main()
+                return
+
+    def stop(self):
+        self._stop_event.set()
+
+
 # ----------------------------------------------------------- lock & session
 def lock_session(username):
     """Ask for the password again. Returns True if the right one was entered (3 tries, with the normal lockout)."""
@@ -552,6 +582,9 @@ def start_shell(username):
         pass
 
     last_activity = time.time()
+    idle = IdleWatch(username)
+    idle.start()
+    idled_out = False
     while True:
         role = pyos.userinfo()[1]
         tidy = settings.get("auto_clear_lines")
@@ -559,13 +592,24 @@ def start_shell(username):
             stdio.clear_screen()
             console.print("[dim]Screen tidied (settings auto_clear_lines). Earlier output: 'history', 'logs'.[/dim]")
         show_notifications(username)
+        idle.waiting(True)
         try:
             line = input(make_prompt(username, role)).strip()
         except (KeyboardInterrupt, EOFError):
+            if idle.fired:
+                idled_out = True
+                break
             console.print("\n[bold yellow]Exiting shell...[/bold yellow]")
             break
+        finally:
+            idle.waiting(False)
 
-        limit = settings.get("auto_lock_minutes")
+        idle_limit = settings.get_for("idle_logout_minutes", username)
+        if idle.fired or (idle_limit and time.time() - last_activity > idle_limit * 60):
+            idled_out = True            # the time ran out while the password prompt was still on screen
+            break
+
+        limit = settings.get_for("auto_lock_minutes", username)
         if limit and time.time() - last_activity > limit * 60:
             if not lock_session(username):
                 console.print("[bold red]Logging out.[/bold red]")
@@ -591,11 +635,16 @@ def start_shell(username):
         last_activity = time.time()
 
     sched.stop()
-    pyos.log.log("logout", user=username)
+    idle.stop()
+    pyos.log.log("logout (idle)" if idled_out else "logout", user=username)
     try:
         readline.write_history_file(HISTORY_FILE)
     except Exception:
         pass
+    if idled_out:
+        stdio.clear_screen()
+        console.print("[bold yellow]You were logged out after a period of inactivity.[/bold yellow]")
+        pyos.logout()                    # back to the login screen
 
 
 # --------------------------------------------------------------------- help

@@ -4,6 +4,8 @@ import os
 import threading
 
 SETTINGS_FILE = os.path.join(".OSData", "settings.json")
+USER_FILE = os.path.join(".OSData", "user_settings.json")     # per-user overrides of PER_USER settings
+PER_USER = ("auto_lock_minutes", "idle_logout_minutes")
 _lock = threading.Lock()
 _cache = {"mtime": None, "data": None}
 
@@ -16,6 +18,7 @@ SCHEMA = {
     "notifications": (True, bool, "Show notifications before the prompt"),
     "update_check": (True, bool, "Check for PythonOS updates in the background after login"),
     "auto_lock_minutes": (0, int, "Ask for the password again after this many idle minutes (0 = never)"),
+    "idle_logout_minutes": (0, int, "Log out (back to the login screen) after this many idle minutes (0 = never)"),
     "auto_clear_lines": (0, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
 }
@@ -112,6 +115,49 @@ def reset(key=None):
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(stored, f, indent=2)
         _cache["data"] = None
+
+
+def _read_users():
+    try:
+        with open(USER_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def get_for(key, user):
+    """The value of a setting for one user: their own override if they have one (PER_USER settings), else the system value."""
+    if key in PER_USER and user:
+        mine = _read_users().get(user, {})
+        if key in mine and _valid(key, mine[key]):
+            return mine[key]
+    return get(key)
+
+
+def set_for(key, value, user):
+    """Give one user their own value of a PER_USER setting."""
+    if key not in PER_USER:
+        raise ValueError(f"{key} is a system-wide setting (per-user: {', '.join(PER_USER)})")
+    if not _valid(key, value):
+        raise ValueError(f"invalid value for {key}: {value!r}")
+    with _lock:
+        data = _read_users()
+        data.setdefault(user, {})[key] = value
+        os.makedirs(os.path.dirname(USER_FILE), exist_ok=True)
+        with open(USER_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+
+def reset_for(key, user):
+    with _lock:
+        data = _read_users()
+        if user in data:
+            data[user].pop(key, None)
+            if not data[user]:
+                data.pop(user)
+            with open(USER_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
 
 
 def boot_pause():
