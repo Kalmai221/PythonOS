@@ -66,8 +66,11 @@ def permissions_of(meta, pid):
 
 def check_settings(meta, pid):
     """Options an app offers (data.json "settings") must all be valid: a bad entry would silently not show up."""
-    sys.path.insert(0, os.path.dirname(ROOT))
-    from pyos import appsettings
+    # load the module straight from its file: importing the pyos package would need rich and the other OS dependencies
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("appsettings", os.path.join(os.path.dirname(ROOT), "pyos", "appsettings.py"))
+    appsettings = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(appsettings)
     declared = meta.get("settings") or []
     if len(appsettings.schema(meta)) != len(declared):
         sys.exit(f"{pid}: a 'settings' entry is invalid (needs key, type bool|int|choice|text, and choices for a choice)")
