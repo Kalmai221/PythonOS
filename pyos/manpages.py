@@ -238,9 +238,11 @@ page("share", "send files between devices", ["share send <file>", "share receive
      see=["backup"])
 
 # ------------------------------------------------------------------ packages & updates
-page("pkg", "package manager", ["pkg search <words>", "pkg install <name>", "pkg remove <name>", "pkg update [name]", "pkg list", "pkg info <name>"],
+page("pkg", "package manager", ["pkg search <words>", "pkg install <name>", "pkg remove <name>", "pkg update [name]", "pkg list", "pkg info <name>",
+                  "pkg why <name>", "pkg permissions [name]", "pkg notes <name>", "pkg rollback <name>"],
      "The marketplace from the command line (run marketplace opens the interactive store). Packages are checked against checksums "
-     "before they are installed.", examples=[("pkg search game", "find games"), ("pkg install tictactoe", "install one"), ("pkg update", "update everything")],
+     "before they are installed. why says which app needs a package, permissions shows what each app may do (network, files, notifications, "
+     "schedule, system, exec), notes shows release notes and rollback goes back to the previous version of one app.", examples=[("pkg search game", "find games"), ("pkg install tictactoe", "install one"), ("pkg update", "update everything")],
      see=["packages", "run"])
 page("updatecheck", "update PythonOS", ["updatecheck"],
      "Looks for a newer release and installs it. PythonOS's own files update themselves. If the package around PythonOS (the APK, "
