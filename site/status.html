@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PythonOS - Build status</title>
+<meta name="description" content="Latest release, the state of each platform's build, and download counts.">
+<style>
+  :root { --bg:#0e1117; --card:#161b24; --text:#e6e9ef; --muted:#9aa4b5; --accent:#7aa2f7; --line:#262d3a; --ok:#7ee0a1; --bad:#ff7b72; --warn:#e3b341; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f6f7fb; --card:#fff; --text:#161b24; --muted:#586174; --accent:#2f5bd8; --line:#dfe3ec; --ok:#17783d; --bad:#c62828; --warn:#9a6700; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px 64px; }
+  header { padding: 40px 0 8px; }
+  nav a { color: var(--muted); margin-right: 16px; text-decoration: none; }
+  nav a:hover { color: var(--accent); }
+  h1 { margin: 12px 0 4px; font-size: 2rem; }
+  .meta { color: var(--muted); font-size: .9rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .85rem; }
+  .pill { display: inline-block; padding: 1px 10px; border-radius: 99px; font-size: .85rem; border: 1px solid currentColor; }
+  .success { color: var(--ok); } .failure { color: var(--bad); } .progress { color: var(--warn); } .other { color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <nav><a href="./">Download</a><a href="status.html">Build status</a><a href="https://github.com/Kalmai221/PythonOS">GitHub</a></nav>
+    <h1>Build status</h1>
+    <p class="meta" id="stamp">Loading…</p>
+  </header>
+
+  <div class="card"><h2 style="margin-top:0">Latest release</h2><div id="release">Loading…</div></div>
+  <div class="card"><h2 style="margin-top:0">Latest build, step by step</h2><div id="jobs">Loading…</div></div>
+  <div class="card"><h2 style="margin-top:0">Recent builds</h2><div id="runs">Loading…</div></div>
+  <div class="card"><h2 style="margin-top:0">Downloads (all releases)</h2><div id="downloads">Loading…</div>
+    <p class="meta">Counted by GitHub from the release files. No tracking inside PythonOS.</p></div>
+</div>
+<script>
+const REPO = "Kalmai221/PythonOS";
+const api = p => fetch(`https://api.github.com/repos/${REPO}/${p}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+const pill = (state, conclusion) => {
+  const s = state === "completed" ? (conclusion || "other") : "progress";
+  const label = state === "completed" ? (conclusion || "done") : "running";
+  const cls = s === "success" ? "success" : (s === "failure" || s === "timed_out" || s === "cancelled") ? "failure" : s === "progress" ? "progress" : "other";
+  return `<span class="pill ${cls}">${label}</span>`;
+};
+const size = n => n > 1e9 ? (n/1e9).toFixed(1)+" GB" : n > 1e6 ? (n/1e6).toFixed(1)+" MB" : (n/1e3).toFixed(0)+" KB";
+const when = d => new Date(d).toLocaleString();
+const set = (id, html) => document.getElementById(id).innerHTML = html;
+const fail = (id, e) => set(id, `<span class="failure">Could not load (${e.message}). GitHub may be rate-limiting this address; try again later.</span>`);
+
+(async () => {
+  try {
+    const rel = await api("releases/latest");
+    set("release", `<b><a href="${rel.html_url}">${rel.tag_name}</a></b> · ${when(rel.published_at)} · ${rel.assets.length} files`);
+  } catch (e) { fail("release", e); }
+
+  try {
+    const runs = (await api("actions/workflows/build-os.yml/runs?per_page=8")).workflow_runs;
+    set("runs", `<table><tr><th>Run</th><th>For</th><th>When</th><th>State</th></tr>` + runs.map(r =>
+      `<tr><td><a href="${r.html_url}">#${r.run_number}</a></td><td>${r.head_branch}</td><td>${when(r.created_at)}</td><td>${pill(r.status, r.conclusion)}</td></tr>`).join("") + `</table>`);
+    if (runs[0]) {
+      const jobs = (await api(`actions/runs/${runs[0].id}/jobs?per_page=50`)).jobs;
+      set("jobs", `<p class="meta">Run #${runs[0].run_number} (${runs[0].head_branch})</p><table><tr><th>Platform / step</th><th>State</th></tr>` +
+        jobs.map(j => `<tr><td>${j.name}</td><td>${pill(j.status, j.conclusion)}</td></tr>`).join("") + `</table>`);
+      document.getElementById("stamp").textContent = `Updated ${new Date().toLocaleString()}`;
+    }
+  } catch (e) { fail("runs", e); fail("jobs", e); }
+
+  try {
+    const releases = await api("releases?per_page=30");
+    const rows = [];
+    let total = 0;
+    for (const rel of releases) for (const a of rel.assets) { total += a.download_count; rows.push([rel.tag_name, a.name, a.download_count, a.size]); }
+    rows.sort((x, y) => y[2] - x[2]);
+    set("downloads", `<p><b>${total.toLocaleString()}</b> downloads in total</p><table><tr><th>File</th><th>Release</th><th>Downloads</th><th>Size</th></tr>` +
+      rows.slice(0, 15).map(r => `<tr><td>${r[1]}</td><td>${r[0]}</td><td>${r[2]}</td><td>${size(r[3])}</td></tr>`).join("") + `</table>`);
+  } catch (e) { fail("downloads", e); }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PythonOS - Download</title>
+<meta name="description" content="Download PythonOS for Windows, Android, Linux, as a bootable USB, or in a virtual machine.">
+<style>
+  :root { --bg:#0e1117; --card:#161b24; --text:#e6e9ef; --muted:#9aa4b5; --accent:#7aa2f7; --line:#262d3a; --ok:#7ee0a1; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f6f7fb; --card:#fff; --text:#161b24; --muted:#586174; --accent:#2f5bd8; --line:#dfe3ec; --ok:#17783d; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px 64px; }
+  header { padding: 48px 0 16px; }
+  h1 { font-size: 2.2rem; margin: 0 0 .2em; letter-spacing: -.02em; }
+  h1 span { color: var(--accent); }
+  p.lead { color: var(--muted); margin: 0; max-width: 40em; }
+  nav a { color: var(--muted); margin-right: 16px; text-decoration: none; }
+  nav a:hover { color: var(--accent); }
+  .hero { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin: 24px 0; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .hero .text { flex: 1 1 280px; }
+  .hero h2 { margin: 0 0 4px; font-size: 1.3rem; }
+  .btn { display: inline-block; background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; margin: 8px 8px 0 0; }
+  .btn.alt { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+  .meta { color: var(--muted); font-size: .9rem; }
+  #qr { background: #fff; padding: 10px; border-radius: 12px; line-height: 0; }
+  #qr:empty { display: none; }
+  h3 { margin: 32px 0 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .card h4 { margin: 0 0 2px; }
+  .card ul { list-style: none; padding: 0; margin: 8px 0 0; }
+  .card li { margin: 6px 0; }
+  .card a { color: var(--accent); word-break: break-word; }
+  .size { color: var(--muted); font-size: .85rem; }
+  .use { color: var(--muted); font-size: .9rem; display: block; }
+  code { background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 1px 6px; border-radius: 6px; font-size: .9em; }
+  footer { color: var(--muted); font-size: .9rem; margin-top: 40px; }
+  .err { color: #e06c75; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <nav><a href="./">Download</a><a href="status.html">Build status</a><a href="https://github.com/Kalmai221/PythonOS">GitHub</a></nav>
+    <h1>Python<span>OS</span></h1>
+    <p class="lead">A small operating system you drive with typed commands. Runs on a PC, a USB stick, a phone, in a virtual machine, or in a container.</p>
+  </header>
+
+  <section class="hero" id="hero" aria-live="polite">
+    <div class="text"><h2>Loading the latest release…</h2><p class="meta">If this stays empty, open the <a href="https://github.com/Kalmai221/PythonOS/releases/latest">releases page</a>.</p></div>
+  </section>
+
+  <h3>All downloads</h3>
+  <div class="grid" id="all"></div>
+
+  <h3>Check what you downloaded</h3>
+  <p class="meta">Every release lists the SHA-256 of each file in <code>SHA256SUMS</code>, signed by the release workflow. Details are in the release notes.</p>
+
+  <footer>
+    <p>Docker: <code>docker run -it --rm ghcr.io/kalmai221/pythonos</code> &nbsp;·&nbsp; Updates: inside PythonOS, run <code>updatecheck</code>.</p>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const REPO = "Kalmai221/PythonOS";
+const GROUPS = [
+  { key: "windows", title: "Windows", match: /(setup\.exe|windows-portable\.zip)$/ },
+  { key: "android", title: "Android", match: /\.apk$/ },
+  { key: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz)$/ },
+  { key: "iso", title: "Bootable USB / DVD", match: /(x86_64\.iso|flash-tool.*\.py)$/ },
+  { key: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/ },
+];
+const USE = [
+  [/setup\.exe$/, "Installer for most Windows users"], [/windows-portable/, "No install: unzip and run"],
+  [/arm64-v8a\.apk$/, "Nearly every phone (smallest)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal: works anywhere, bigger"],
+  [/\.deb$/, "Debian, Ubuntu and friends"], [/linux\.tar\.gz$/, "Any Linux"],
+  [/minimal-x86_64\.iso$/, "Live system only, small"], [/x86_64\.iso$/, "Full live image with installer"], [/flash-tool/, "Writes the ISO to a USB stick safely"],
+  [/\.ova$/, "VirtualBox / VMware"], [/\.qcow2$/, "QEMU / KVM / Proxmox"], [/vm-kit/, "Run scripts"],
+];
+const size = n => n > 1e9 ? (n/1e9).toFixed(1)+" GB" : n > 1e6 ? (n/1e6).toFixed(1)+" MB" : (n/1e3).toFixed(0)+" KB";
+const useOf = name => (USE.find(([re]) => re.test(name)) || [0, ""])[1];
+
+function detect() {
+  const ua = navigator.userAgent || "";
+  if (/Android/i.test(ua)) return "android";
+  if (/Windows/i.test(ua)) return "windows";
+  if (/Linux|X11|CrOS/i.test(ua)) return "linux";
+  if (/Mac/i.test(ua)) return "iso";
+  return "windows";
+}
+
+function pick(assets, platform) {
+  const by = re => assets.find(a => re.test(a.name));
+  if (platform === "android") return by(/arm64-v8a\.apk$/) || by(/android\.apk$/);
+  if (platform === "windows") return by(/setup\.exe$/);
+  if (platform === "linux") return by(/\.deb$/) || by(/linux\.tar\.gz$/);
+  return by(/x86_64\.iso$/);
+}
+
+(async () => {
+  const hero = document.getElementById("hero");
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`);
+    if (!r.ok) throw new Error(r.status);
+    const rel = await r.json();
+    const assets = rel.assets.filter(a => !/SHA256SUMS|core|manifest/i.test(a.name));
+    const platform = detect();
+    const main = pick(assets, platform);
+    const names = { android: "Android", windows: "Windows", linux: "Linux", iso: "your computer" };
+    hero.innerHTML = `<div class="text"><h2>PythonOS ${rel.tag_name.replace(/^v/, "")} for ${names[platform]}</h2>
+      <p class="meta">Released ${new Date(rel.published_at).toLocaleDateString()}${main ? ` · ${size(main.size)}` : ""}</p>
+      ${main ? `<a class="btn" href="${main.browser_download_url}">Download ${main.name}</a>` : ""}
+      <a class="btn alt" href="${rel.html_url}">Release notes</a></div><div id="qr" title="Scan to download the Android app"></div>`;
+    const apk = pick(assets, "android");
+    if (apk && window.QRCode && platform !== "android") new QRCode(document.getElementById("qr"), { text: apk.browser_download_url, width: 128, height: 128 });
+    const all = document.getElementById("all");
+    for (const g of GROUPS) {
+      const items = assets.filter(a => g.match.test(a.name));
+      if (!items.length) continue;
+      all.insertAdjacentHTML("beforeend", `<div class="card"><h4>${g.title}</h4><ul>${items.map(a =>
+        `<li><a href="${a.browser_download_url}">${a.name}</a> <span class="size">${size(a.size)}</span><span class="use">${useOf(a.name)}</span></li>`).join("")}</ul></div>`);
+    }
+  } catch (e) {
+    hero.innerHTML = `<div class="text"><h2 class="err">Could not load the latest release</h2><p class="meta">Open the <a href="https://github.com/${REPO}/releases/latest">releases page</a> instead.</p></div>`;
+  }
+})();
+</script>
+</body>
+</html>

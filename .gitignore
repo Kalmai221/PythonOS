@@ -188,3 +188,7 @@ OS_Export/Android/local.properties
 
 # the File Manager marketplace package is a folder called files, which the rule above would hide
 !online_packages/utilities/files/
+
+# the download and status pages (the MkDocs rule above would hide them)
+!/site
+!/site/**
