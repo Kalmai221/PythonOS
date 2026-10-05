@@ -243,6 +243,12 @@ page("shutdown", "turn off", ["shutdown"],
      see=["restart", "whathappened"])
 page("restart", "restart", ["restart"],
      "Runs the same orderly shutdown, then starts PythonOS again as a fresh program, so updated files are really loaded.", see=["shutdown"])
+page("installos", "install PythonOS on a disk", ["installos"],
+     "From the live USB (full image): turns a disk of this computer into a PythonOS computer that boots by itself and keeps everything. "
+     "You choose a whole disk, see exactly what will happen, and must type its name to confirm - the disk is erased. The installed system has "
+     "the same lockdown as the live one (no login or shell on any console, root locked, locked boot menu) and is checked at the end. "
+     "Experimental: it is built on Alpine's setup-disk and has been tried in virtual machines, not on every kind of computer. "
+     "The minimal image has no installer.", see=["persist", "hwsetup", "diag"])
 page("diag", "hardware and boot report", ["diag [--show]"],
      "Writes a report of this computer to a file in your home folder: machine, memory, devices and their drivers, disks, network, firmware "
      "the kernel could not load, recent kernel messages, the battery and how the last boot went. On the live USB you can also press D "

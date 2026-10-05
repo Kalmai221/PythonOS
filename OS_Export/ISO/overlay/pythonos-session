@@ -18,11 +18,41 @@ export PYTHONIOENCODING=utf-8
 stty susp undef quit undef 2>/dev/null
 trap '' TSTP QUIT HUP
 
+# The splash screen: the kernel is quiet, so the first thing anyone sees is this, with a bar that fills as the steps below really
+# complete. PythonOS draws its own boot screen (with the real step list) straight after.
+spaces() {
+    n="$1"; out=""
+    while [ "$n" -gt 0 ]; do out="$out "; n=$((n - 1)); done
+    printf '%s' "$out"
+}
+
+splash() {
+    pct="$1"; label="$2"
+    size="$(stty size 2>/dev/null)"; rows="${size%% *}"; cols="${size##* }"
+    case "$rows" in ''|*[!0-9]*) rows=25 ;; esac
+    case "$cols" in ''|*[!0-9]*) cols=80 ;; esac
+    width=30; filled=$((pct * width / 100)); bar=""; i=0
+    while [ "$i" -lt "$width" ]; do
+        if [ "$i" -lt "$filled" ]; then bar="${bar}#"; else bar="${bar}-"; fi
+        i=$((i + 1))
+    done
+    top=$((rows / 2 - 3)); [ "$top" -lt 1 ] && top=1
+    pad=$(((cols - width - 8) / 2)); [ "$pad" -lt 0 ] && pad=0
+    printf '\033[?25l\033[H\033[2J\033[%d;1H' "$top"
+    spaces "$((cols / 2 - 4))"; printf '\033[1;36mPythonOS\033[0m\n\n'
+    spaces "$pad"; printf '[%s] %3d%%\n' "$bar" "$pct"
+    spaces "$pad"; printf '%s\n' "$label"
+}
+
+splash 10 "Starting"
 cd /opt/pythonos 2>/dev/null || { echo "PythonOS files are missing."; sleep 5; exit 1; }
 
 # Optional persistent storage: a disk labelled PYOS_DATA keeps files, accounts and settings
+splash 40 "Looking for your saved data"
 [ -r /usr/local/bin/pythonos-persist ] && . /usr/local/bin/pythonos-persist
 
+splash 80 "Starting PythonOS"
+printf '\033[?25h'
 clear
 python3 main.py
 code=$?

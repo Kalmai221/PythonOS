@@ -112,12 +112,18 @@ def _persistent_storage():
     from core import persist, hardware
     if persist.active() or hardware.unavailable_reason():
         return
+    device = persist.best_candidate()
+    found = persist.describe(device) if device else None
     console.print(Panel("The live system forgets everything when it is switched off. A USB stick or spare disk can keep your "
-                        "account, files and settings. (You can also do this later with [bold]persist create[/bold].)",
+                        "account, files and settings. (You can also do this later with [bold]persist create[/bold].)"
+                        + (f"\n\n[bold]Found:[/bold] {escape(found)}" if found else
+                           "\n\n[dim]No suitable disk was found. Plug in a USB stick (not the one PythonOS started from) to use this.[/dim]"),
                         border_style=theme.style("border"), expand=False))
+    if not found:
+        return
     if Confirm.ask("Set up persistent storage now?", default=False):
         try:
-            persist.create()
+            persist.create(device["path"] if device else None)
         except (KeyboardInterrupt, EOFError):
             console.print("\n[yellow]Skipped.[/yellow]")
 
@@ -171,7 +177,8 @@ def _choose_language():
 
 def firsttimeuse():
     live = os.environ.get("PYOS_LIVE") == "1"
-    total = 5 if live else 3
+    installed = os.environ.get("PYOS_INSTALLED") == "1"       # an installed PythonOS: hardware setup, but no live-USB storage step
+    total = 5 if live else 4 if installed else 3
     console.clear()
     _choose_language()
     from pyos.i18n import tr
@@ -179,7 +186,7 @@ def firsttimeuse():
     console.print(tr("Let's set things up. It takes a minute, and you can change everything later.") + "\n")
     number = 0
 
-    if live:
+    if live or installed:
         number += 1
         _step(number, total, "Your hardware")
         _hardware_steps()

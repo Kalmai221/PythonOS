@@ -7,6 +7,8 @@
 # "mkimage" tooling inside an Alpine container, so nothing is installed on the host.
 #
 # Kernel: ISO_KERNEL=lts (default, normal PCs) or ISO_KERNEL=virt (much smaller, virtual machines only).
+# Variant: ISO_VARIANT=full (default: Bluetooth, printing, the disk installer and virtual-machine guest tools) or
+# ISO_VARIANT=minimal (the live system only, much smaller). The minimal image's file name has "-minimal" in it.
 #
 # What you get: a live system (runs from RAM) that boots straight into PythonOS and powers
 # off when you shut PythonOS down. Anything you create is lost at power off - it is a live CD.
@@ -17,6 +19,8 @@ REPO="$(cd "$HERE/../.." && pwd)"
 OUT="${OUT:-$REPO/dist/iso}"
 ALPINE="${ALPINE_VERSION:-3.19}"
 VERSION="$(python3 "$REPO/OS_Export/stage.py" --print-version)"
+VARIANT="${ISO_VARIANT:-full}"
+SUFFIX=""; [ "$VARIANT" = "full" ] || SUFFIX="-$VARIANT"
 
 command -v docker >/dev/null 2>&1 || { echo "Docker is required to build the ISO." >&2; exit 1; }
 
@@ -30,14 +34,14 @@ python3 "$REPO/OS_Export/stage.py" "$WORK/payload" --vendor yaspin ping3 --expor
 chmod -R a+rX "$WORK/payload"
 
 docker run --rm \
-    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-lts}" \
+    -e ALPINE_VERSION="$ALPINE" -e ISO_VERSION="$VERSION" -e ISO_KERNEL="${ISO_KERNEL:-lts}" -e ISO_VARIANT="$VARIANT" \
     -v "$WORK/payload:/payload:ro" \
     -v "$HERE:/iso:ro" \
     -v "$OUT:/out" \
     "alpine:$ALPINE" sh /iso/in-container.sh
 
 ISO_FILE="$(ls -t "$OUT"/*.iso | head -n1)"
-FINAL="$OUT/pythonos-$VERSION-x86_64.iso"
+FINAL="$OUT/pythonos-$VERSION$SUFFIX-x86_64.iso"
 [ "$ISO_FILE" = "$FINAL" ] || mv "$ISO_FILE" "$FINAL"
 ls -la "$OUT"
 echo "Built $FINAL"

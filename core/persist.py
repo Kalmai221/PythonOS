@@ -229,6 +229,37 @@ def existing():
     return None
 
 
+def best_candidate(options=None):
+    """The disk most worth offering: a removable one (a USB stick) first, then the biggest. None if nothing is suitable."""
+    options = candidates() if options is None else options
+    if not options:
+        return None
+    return sorted(options, key=lambda d: (not d["removable"], -d["size"]))[0]
+
+
+def describe(device):
+    kind = "USB stick" if device["removable"] else "disk"
+    model = f" ({device['model'].strip()})" if device.get("model") else ""
+    return f"{kind}{model}, {human(device['size'])}, at {device['path']}"
+
+
+def hint():
+    """One line for the login screen when storage is not set up but a disk that could hold it is plugged in; None otherwise."""
+    try:
+        if os.environ.get("PYOS_LIVE") != "1" or active():
+            return None
+        found = existing()
+        if found:
+            return (f"A {LABEL} disk ({found['path']}) is plugged in but was not in use at start-up. "
+                    "Shut down and start again with it plugged in to use it. (persist status)")
+        device = best_candidate()
+        if device:
+            return f"A {describe(device)} can keep your accounts, files and settings: run persist create."
+    except Exception:
+        pass
+    return None
+
+
 def status():
     console.print("[bold]Persistent storage[/bold]")
     if active():

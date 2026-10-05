@@ -81,7 +81,7 @@ try:
         debug = "No"
         console.print("[bold yellow]Debug Mode Setting is not defined. Defaulting to Disabled.[/bold yellow]")
     diagnostics = False
-    if os.environ.get("PYOS_LIVE") == "1":
+    if os.environ.get("PYOS_LIVE") == "1" or os.environ.get("PYOS_INSTALLED") == "1":
         from core import liveboot
         console.print("[dim]Press D now for a diagnostic start (verbose boot and a hardware report)...[/dim]")
         diagnostics = liveboot.key_pressed("d", 1.5)

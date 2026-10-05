@@ -28,7 +28,7 @@ CATEGORIES = {
                              ["ping", "ipinfo", "share", "hwsetup", "persist", "print"]),
     "Updates and apps": ("Keep PythonOS current and add apps",
                          ["updatecheck", "rollback", "whatsnew", "pkg", "backup"]),
-    "Power": ("Turn off, restart or reset", ["shutdown", "restart", "wipe"]),
+    "Power": ("Turn off, restart or reset", ["shutdown", "restart", "wipe", "installos"]),
 }
 
 

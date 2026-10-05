@@ -614,6 +614,14 @@ def start_shell(username):
     except Exception:
         pass
 
+    try:
+        from core import persist as _persist
+        _hint = _persist.hint()
+        if _hint:
+            console.print("[dim]" + escape(_hint) + "[/dim]")
+    except Exception:
+        pass
+
     sched = scheduler.Scheduler(run_captured, username)
     sched.start()
     try:

@@ -40,10 +40,11 @@ CTRL_DIR = "/var/run/wpa_supplicant"
 
 
 # ------------------------------------------------------------------ helpers
-def run(cmd, timeout=15, text_input=None):
-    """Run a command. Returns (returncode, output); 127 = not installed, 124 = timed out."""
+def run(cmd, timeout=15, text_input=None, env=None):
+    """Run a command. Returns (returncode, output); 127 = not installed, 124 = timed out. `env` adds environment variables."""
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, input=text_input)
+        full_env = dict(os.environ, **env) if env else None
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, input=text_input, env=full_env)
     except FileNotFoundError:
         return 127, ""
     except subprocess.TimeoutExpired:

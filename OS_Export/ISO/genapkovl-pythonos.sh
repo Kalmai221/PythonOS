@@ -10,6 +10,7 @@ if [ -z "$HOSTNAME" ]; then
 fi
 
 PAYLOAD="${PYTHONOS_PAYLOAD:-/payload}"
+VARIANT="${PYTHONOS_VARIANT:-full}"
 OVERLAY="${PYTHONOS_OVERLAY:-/home/build/overlay}"
 
 cleanup() {
@@ -70,15 +71,34 @@ kbd-bkeymaps
 cryptsetup
 kbd
 font-terminus
+EOF
+if [ "$VARIANT" = "full" ]; then
+	cat >> "$tmp"/etc/apk/world <<EOF
 bluez
 bluez-openrc
 cups
 cups-client
 cups-openrc
+alpine-conf
+sfdisk
+syslinux
+grub
+grub-efi
+grub-bios
+dosfstools
+efibootmgr
+e2fsprogs-extra
+qemu-guest-agent
+qemu-guest-agent-openrc
+open-vm-tools
+open-vm-tools-openrc
+virtualbox-guest-additions
+virtualbox-guest-additions-openrc
 EOF
+fi
 
 makefile root:root 0644 "$tmp"/etc/motd <<EOF
-PythonOS live system - changes are lost when you power off.
+PythonOS live system ($VARIANT) - changes are lost when you power off.
 EOF
 
 # Hardening. There is no login on this system at all (no getty in inittab), and root may not log in
@@ -106,8 +126,13 @@ rc_add hostname boot
 rc_add bootmisc boot
 rc_add syslog boot
 rc_add networking boot
-rc_add bluetooth default
-rc_add cupsd default
+if [ "$VARIANT" = "full" ]; then
+	rc_add bluetooth default
+	rc_add cupsd default
+	rc_add qemu-guest-agent default
+	rc_add open-vm-tools default
+	rc_add virtualbox-guest-additions default
+fi
 
 rc_add mount-ro shutdown
 rc_add killprocs shutdown

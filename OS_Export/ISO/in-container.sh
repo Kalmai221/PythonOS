@@ -4,6 +4,11 @@ set -eu
 
 ALPINE="${ALPINE_VERSION:-3.19}"
 KERNEL="${ISO_KERNEL:-lts}"
+VARIANT="${ISO_VARIANT:-full}"
+case "$VARIANT" in
+    full|minimal) ;;
+    *) echo "ISO_VARIANT must be 'full' or 'minimal' (got '$VARIANT')" >&2; exit 1 ;;
+esac
 case "$KERNEL" in
     virt|lts) ;;
     *) echo "ISO_KERNEL must be 'virt' or 'lts' (got '$KERNEL')" >&2; exit 1 ;;
@@ -54,7 +59,7 @@ case "$GRUB_HASH" in
 esac
 
 su build -c "cd /home/build/aports/scripts && \
-    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay PYTHONOS_KERNEL=$KERNEL \
+    PYTHONOS_PAYLOAD=/payload PYTHONOS_OVERLAY=/home/build/overlay PYTHONOS_KERNEL=$KERNEL PYTHONOS_VARIANT=$VARIANT \
     PYTHONOS_GRUB_PBKDF2=$GRUB_HASH \
     sh mkimage.sh \
         --tag 'v$ALPINE' \
