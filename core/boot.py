@@ -269,73 +269,99 @@ BANNER = r"""
 """.strip("\n")
 
 
-def _log(spinner, label, status="ok", detail=""):
-    """Print a boot log line above the spinner."""
-    marks = {"ok": "[bold green][  OK  ][/bold green]",
-             "warn": "[bold yellow][ WARN ][/bold yellow]",
-             "fail": "[bold red][FAILED][/bold red]"}
-    suffix = f" [dim]{detail}[/dim]" if detail else ""
-    with console.capture() as cap:
-        console.print(f"{marks[status]} {label}{suffix}")
-    spinner.write(cap.get().rstrip("\n"))
+class _Sink:
+    """Stands in for the old spinner: the boot helpers set .text, which is now only used for debug detail."""
+    text = ""
+
+    def write(self, text):
+        console.print(text)
+
+
+def _progress_bar(done, total, width=14):
+    filled = int(width * done / total)
+    return "[cyan]" + "#" * filled + "[/cyan][dim]" + "-" * (width - filled) + "[/dim]"
+
+
+def _step_internet(debug, sink):
+    """Dependencies: bundled builds ship them; otherwise check the connection and install what is missing."""
+    packages = get_packages_from_requirements("requirements.txt")
+    if os.environ.get("PYOS_BUNDLED") == "1":
+        return "ok", "dependencies ship with this build"
+    if check_internet_connection():
+        try:
+            install_requirements(debug, sink)
+            return "ok", "packages up to date"
+        except Exception as e:
+            return "warn", "could not update packages: " + (str(e).splitlines()[0] if str(e) else "")
+    missing = check_packages_installed(packages) if packages else []
+    if missing:
+        return "fail", "offline and missing: " + ", ".join(missing)
+    return "warn", "offline - all required packages are installed"
+
+
+def boot_steps(debug):
+    """The real boot steps: (label, function(debug, sink) -> (status, detail))."""
+    def config_step(debug, sink):
+        os_name = get_system_version()
+        return "ok", f"PythonOS {os_name}"
+
+    def integrity_step(debug, sink):
+        check_system_integrity(debug, sink)
+        return "ok", ""
+
+    def services_step(debug, sink):
+        check_pyos_files(debug, sink)
+        return "ok", ""
+
+    def commands_step(debug, sink):
+        load_commands(debug, sink)
+        n = len([f for f in os.listdir(COMMANDS_DIR) if f.endswith(".py")]) if os.path.isdir(COMMANDS_DIR) else 0
+        return "ok", f"{n} commands"
+
+    def programs_step(debug, sink):
+        load_programs(debug, sink)
+        n = len([f for f in os.listdir(PROGRAMS_DIR) if f.endswith(".py")]) if os.path.isdir(PROGRAMS_DIR) else 0
+        return "ok", f"{n} programs"
+
+    def files_step(debug, sink):
+        set_current_directory_to_files(debug, sink)
+        return "ok", ""
+
+    return [("Reading the configuration", config_step), ("Checking system files", integrity_step),
+            ("Starting system services", services_step), ("Checking dependencies", _step_internet),
+            ("Loading commands", commands_step), ("Loading programs", programs_step),
+            ("Preparing the file system", files_step)]
+
+
+MARKS = {"ok": "[bold green][  OK  ][/bold green]", "warn": "[bold yellow][ WARN ][/bold yellow]",
+         "fail": "[bold red][FAILED][/bold red]"}
 
 
 def boot_sequence(debug):
+    """Run the real boot steps, one line each with a progress bar and how long the step took. The timings are saved
+    (see the bootlog and bootspeed commands)."""
+    from core import bootlog
     pause = settings.boot_pause()  # the boot_speed setting: normal / fast / instant
-    with yaspin(text="Booting system...", color="cyan") as spinner:
+    steps = boot_steps(debug)
+    sink = _Sink()
+    record = []
+    started = time.perf_counter()
+    for number, (label, action) in enumerate(steps, 1):
+        t0 = time.perf_counter()
+        try:
+            status, detail = action(debug, sink)
+        except Exception as e:  # a step that breaks must still be shown, and must not stop the rest
+            status, detail = "fail", f"{e.__class__.__name__}: {e}"
+        ms = (time.perf_counter() - t0) * 1000
+        record.append({"name": label, "ms": round(ms, 1), "status": status, "detail": detail})
+        extra = f" [dim]{detail}[/dim]" if detail else ""
+        console.print(f"{MARKS[status]} {_progress_bar(number, len(steps))} {number * 100 // len(steps):>3}%  {label}{extra} [dim]{ms:.0f} ms[/dim]")
+        if status == "fail" and label == "Checking dependencies":
+            console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
+            sys.exit(1)
         time.sleep(pause)
-
-        spinner.text = "Initializing hardware components..."
-        time.sleep(pause)
-        _log(spinner, "Initialized hardware components")
-
-        spinner.text = "Loading kernel..."
-        time.sleep(pause)
-        _log(spinner, "Loaded kernel")
-
-        spinner.text = "Verifying file system integrity..."
-        check_system_integrity(debug, spinner)
-        time.sleep(pause)
-        _log(spinner, "Verified file system")
-
-        check_pyos_files(debug, spinner)
-        _log(spinner, "Loaded system services")
-
-        packages = get_packages_from_requirements("requirements.txt")
-        if os.environ.get("PYOS_BUNDLED") == "1":
-            _log(spinner, "Bundled packages", "ok", "dependencies ship with this build")
-            internet = None
-        else:
-            spinner.text = "Checking internet connection..."
-            internet = check_internet_connection()
-        if internet is None:
-            pass
-        elif internet:
-            _log(spinner, "Network online")
-            spinner.text = "Installing required packages..."
-            try:
-                install_requirements(debug, spinner)
-                _log(spinner, "Required packages up to date")
-            except Exception as e:
-                _log(spinner, "Could not update packages", "warn", str(e).splitlines()[0] if str(e) else "")
-        else:
-            _log(spinner, "No internet connection", "warn", "running offline")
-            missing = check_packages_installed(packages) if packages else []
-            if missing:
-                _log(spinner, "Missing packages", "fail", ", ".join(missing))
-                spinner.fail("✗")
-                console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
-                sys.exit(1)
-            _log(spinner, "All required packages are installed")
-
-        spinner.text = "Loading programs and commands..."
-        load_programs(debug, spinner)
-        load_commands(debug, spinner)
-        _log(spinner, "Loaded programs and commands")
-
-        set_current_directory_to_files(debug, spinner)
-        time.sleep(pause)
-        spinner.ok("✔")
+    total_ms = (time.perf_counter() - started) * 1000
+    bootlog.save_boot(record, total_ms, pause * len(steps) * 1000)
 
     console.print("[bold green]System ready![/bold green]")
     time.sleep(min(0.8, pause * 2.3))
