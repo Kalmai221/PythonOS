@@ -1,6 +1,7 @@
 from pathlib import Path
 from urllib.parse import urljoin
 import hashlib
+import io
 import json
 import os
 import re
@@ -163,21 +164,272 @@ def core_url(manifest):
 
 
 def download_core(manifest, destination):
-    """Download the core zip and check it against the manifest's checksum."""
-    digest = hashlib.sha256()
+    """Download the whole core zip and check it against the manifest's checksum. A download that was cut off is
+    continued next time from where it stopped (the partial file is kept as <name>.part)."""
+    destination = Path(destination)
+    part = destination.with_name(destination.name + ".part")
     total = int(manifest.get("size") or 0)
-    with requests.get(core_url(manifest), stream=True, timeout=TIMEOUT) as response:
+    digest = hashlib.sha256()
+    have = 0
+    if part.exists():
+        have = part.stat().st_size
+        if total and have >= total:
+            part.unlink()                      # a leftover that cannot be a prefix of this file
+            have = 0
+        else:
+            with open(part, "rb") as f:
+                for chunk in iter(lambda: f.read(65536), b""):
+                    digest.update(chunk)
+    headers = {"Range": f"bytes={have}-"} if have else {}
+    started = time.time()
+    fetched = 0
+    with requests.get(core_url(manifest), stream=True, timeout=TIMEOUT, headers=headers) as response:
         response.raise_for_status()
+        if have and response.status_code != 206:      # the server ignored the range: start again from the top
+            have, digest = 0, hashlib.sha256()
         with Progress("[progress.description]{task.description}", BarColumn(),
                       "[progress.percentage]{task.percentage:>3.0f}%", console=console, transient=True) as progress:
-            task = progress.add_task("Downloading update...", total=total or None)
-            with open(destination, "wb") as f:
+            task = progress.add_task("Resuming download..." if have else "Downloading update...", total=total or None, completed=have)
+            with open(part, "ab" if have else "wb") as f:
                 for chunk in response.iter_content(65536):
                     f.write(chunk)
                     digest.update(chunk)
+                    fetched += len(chunk)
                     progress.advance(task, len(chunk))
+    _remember_speed(fetched, time.time() - started)
     if digest.hexdigest() != manifest["sha256"]:
+        part.unlink(missing_ok=True)           # corrupt, not merely incomplete: do not resume from it
         raise ValueError("the downloaded update is corrupted (checksum mismatch)")
+    os.replace(part, destination)
+    return fetched
+
+
+# ------------------------------------------------------------------ delta updates
+# Most updates change a handful of files. The core zip's directory is read with small HTTP range requests, the files that
+# differ from the installed ones are fetched one by one (each verified against the manifest), and the rest are copied from
+# the installed copy. Files already fetched are kept (UPDATE_DIR/files), so a dropped connection resumes where it stopped.
+class RangeUnsupported(Exception):
+    pass
+
+
+class RemoteFile(io.RawIOBase):
+    """A read-only, seekable view of a file on a web server, fetched in pieces with Range requests."""
+    CHUNK = 65536
+
+    def __init__(self, url, size):
+        super().__init__()
+        self.url, self.size, self.pos = url, size, 0
+        self.fetched = 0
+        self._cache = (0, b"")
+        self._session = requests.Session()
+
+    def seekable(self):
+        return True
+
+    def readable(self):
+        return True
+
+    def tell(self):
+        return self.pos
+
+    def seek(self, offset, whence=io.SEEK_SET):
+        self.pos = offset if whence == io.SEEK_SET else self.pos + offset if whence == io.SEEK_CUR else self.size + offset
+        self.pos = max(0, min(self.pos, self.size))
+        return self.pos
+
+    def readinto(self, buffer):
+        want = min(len(buffer), self.size - self.pos)
+        if want <= 0:
+            return 0
+        start, data = self._cache
+        if not (start <= self.pos and self.pos + want <= start + len(data)):
+            end = min(self.size, max(self.pos + want, self.pos + self.CHUNK)) - 1
+            # a read that lands near the end (the zip directory) is fetched as one block
+            r = self._session.get(self.url, headers={"Range": f"bytes={self.pos}-{end}"}, timeout=TIMEOUT)
+            if r.status_code != 206:
+                raise RangeUnsupported("the server does not support partial downloads")
+            self._cache = (self.pos, r.content)
+            self.fetched += len(r.content)
+            start, data = self._cache
+        piece = data[self.pos - start:self.pos - start + want]
+        buffer[:len(piece)] = piece
+        self.pos += len(piece)
+        return len(piece)
+
+
+def _speed_state():
+    try:
+        return json.loads((UPDATE_DIR / "speed.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _remember_speed(nbytes, seconds):
+    """Keep a rough download speed (bytes per second) so the next update can estimate its time."""
+    if nbytes < 20_000 or seconds <= 0:
+        return
+    try:
+        UPDATE_DIR.mkdir(parents=True, exist_ok=True)
+        old = _speed_state().get("bps")
+        bps = nbytes / seconds
+        (UPDATE_DIR / "speed.json").write_text(json.dumps({"bps": int(bps if not old else (old + bps) / 2)}), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _human(n):
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+
+
+def _estimate_seconds(nbytes):
+    bps = _speed_state().get("bps") or 400_000
+    seconds = nbytes / bps + 1
+    return "a few seconds" if seconds < 8 else f"about {int(round(seconds / 5) * 5)} seconds" if seconds < 90 else f"about {int(seconds // 60) + 1} minutes"
+
+
+def local_hash(rel):
+    try:
+        return hashlib.sha256(Path(rel).read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
+def plan_update(manifest):
+    """What would the update download? Returns a dict: mode ('delta' or 'full'), changed (list of manifest entries),
+    total (files in the release), bytes (to download), remote (RemoteFile for delta mode)."""
+    files = manifest["files"]
+    changed = [e for e in files if local_hash(e["path"]) != e["sha256"]]
+    full = {"mode": "full", "changed": changed, "total": len(files), "bytes": int(manifest.get("size") or 0), "remote": None}
+    size = int(manifest.get("size") or 0)
+    if not size or os.environ.get("PYOS_NO_DELTA"):
+        return full
+    try:
+        remote = RemoteFile(core_url(manifest), size)
+        with zipfile.ZipFile(remote) as z:
+            sizes = {i.filename: i.compress_size for i in z.infolist()}
+        need = sum(sizes.get(e["path"], e["size"]) + 100 for e in changed) + remote.fetched
+        if need >= size * 0.7:               # not worth the extra requests
+            return full
+        return {"mode": "delta", "changed": changed, "total": len(files), "bytes": need, "remote": RemoteFile(core_url(manifest), size)}
+    except (requests.RequestException, RangeUnsupported, zipfile.BadZipFile, OSError):
+        return full
+
+
+def stage_delta(manifest, plan, stage_dir):
+    """Build the new tree: unchanged files copied from the installed copy, changed ones fetched and verified."""
+    shutil.rmtree(stage_dir, ignore_errors=True)
+    stage_dir.mkdir(parents=True)
+    cache = UPDATE_DIR / "files"
+    cache.mkdir(parents=True, exist_ok=True)
+    changed = {e["path"] for e in plan["changed"]}
+    started, fetched_before = time.time(), 0
+    with zipfile.ZipFile(plan["remote"]) as z, Progress("[progress.description]{task.description}", BarColumn(),
+                                                         "[progress.percentage]{task.percentage:>3.0f}%", console=console,
+                                                         transient=True) as progress:
+        task = progress.add_task("Downloading changed files...", total=max(1, len(changed)))
+        for entry in manifest["files"]:
+            rel = entry["path"]
+            if not safe_member(rel):
+                raise ValueError(f"unsafe path in update: {rel}")
+            target = stage_dir / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if rel in changed:
+                cached = cache / entry["sha256"]
+                data = cached.read_bytes() if cached.exists() else None
+                if data is None or hashlib.sha256(data).hexdigest() != entry["sha256"]:
+                    data = z.read(rel)
+                    if hashlib.sha256(data).hexdigest() != entry["sha256"]:
+                        raise ValueError(f"checksum mismatch for {rel}")
+                    cached.write_bytes(data)           # kept until the whole update is applied: a retry does not refetch it
+                target.write_bytes(data)
+                progress.advance(task)
+            else:
+                shutil.copy2(rel, target)
+    _remember_speed(plan["remote"].fetched, time.time() - started)
+    shutil.rmtree(cache, ignore_errors=True)
+
+
+# -------------------------------------------------------------- what's new / rollback
+LAST_UPDATE = Path(".OSData") / "last_update.json"
+
+
+def record_update(previous, latest, manifest, plan, fetched):
+    try:
+        LAST_UPDATE.parent.mkdir(exist_ok=True)
+        LAST_UPDATE.write_text(json.dumps({
+            "from": str(previous), "to": str(latest), "time": time.time(), "notes": manifest.get("notes", ""),
+            "changed": [e["path"] for e in plan["changed"]] if plan else [], "mode": plan["mode"] if plan else "full",
+            "bytes": fetched, "seen": False, "rollback": False}), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def load_last_update():
+    try:
+        return json.loads(LAST_UPDATE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def show_whats_new(force=False):
+    """Print what the last update changed. Without force it appears once, the first time PythonOS starts after the update."""
+    info = load_last_update()
+    if not info or (info.get("seen") and not force):
+        return False
+    lines = [f"[bold]{'Rolled back' if info.get('rollback') else 'Updated'}[/bold] {info['from']} -> [green]{info['to']}[/green]"]
+    if info.get("notes"):
+        lines += ["", *[f"  {line}" for line in str(info["notes"]).splitlines()]]
+    changed = info.get("changed") or []
+    if changed:
+        shown = ", ".join(changed[:6]) + (f" and {len(changed) - 6} more" if len(changed) > 6 else "")
+        lines += ["", f"[dim]{len(changed)} file(s) changed: {shown}[/dim]"]
+    console.print(Panel("\n".join(lines), title="[bold cyan]What's new[/bold cyan]", border_style="cyan", expand=False))
+    info["seen"] = True
+    try:
+        LAST_UPDATE.write_text(json.dumps(info), encoding="utf-8")
+    except OSError:
+        pass
+    return True
+
+
+def can_rollback():
+    backup = UPDATE_DIR / "backup"
+    info = load_last_update()
+    return backup.is_dir() and any(backup.iterdir()) and bool(info) and not info.get("rollback")
+
+
+def rollback():
+    """Go back to the version before the last update. The version being left is kept, so it can be rolled forward again
+    by updating. Returns True on success."""
+    info = load_last_update()
+    backup = UPDATE_DIR / "backup"
+    if not can_rollback():
+        console.print("[yellow]There is no earlier version to go back to (rollback works once, right after an update).[/yellow]")
+        return False
+    previous = info["from"]
+    if not Confirm.ask(f"Go back to PythonOS {previous} (from {info['to']})? Your files and accounts are not touched.", default=False):
+        console.print("[yellow]Cancelled.[/yellow]")
+        return False
+    staged = UPDATE_DIR / "rollback_stage"
+    shutil.rmtree(staged, ignore_errors=True)
+    shutil.move(str(backup), str(staged))
+    try:
+        apply_core(staged, previous)
+    except Exception as e:
+        console.print(f"[bold red]Rollback failed ({e}). The current version is unchanged.[/bold red]")
+        return False
+    finally:
+        shutil.rmtree(staged, ignore_errors=True)
+    try:
+        LAST_UPDATE.write_text(json.dumps({**info, "from": info["to"], "to": previous, "rollback": True, "seen": True,
+                                           "time": time.time()}), encoding="utf-8")
+    except OSError:
+        pass
+    console.print(f"[bold green]Rolled back to {previous}.[/bold green] Restart PythonOS to use it.")
+    return True
 
 
 def extract_core(zip_path, manifest, stage_dir):
@@ -379,31 +631,46 @@ def update_packaged(current, auto_update):
         table = Table(show_header=False, box=None)
         table.add_row("[bold]Installed[/bold]", str(current))
         table.add_row("[bold]Available[/bold]", f"[green]{latest}[/green]")
-        if manifest.get("size"):
-            table.add_row("[bold]Download[/bold]", f"{int(manifest['size']) / 1024:.0f} KB")
+        with console.status("Working out what has changed..."):
+            plan = plan_update(manifest)
+        if plan["mode"] == "delta":
+            table.add_row("[bold]Download[/bold]", f"{_human(plan['bytes'])}  [dim]({len(plan['changed'])} of {plan['total']} files changed)[/dim]")
+        else:
+            table.add_row("[bold]Download[/bold]", _human(plan["bytes"]) if plan["bytes"] else "unknown size")
+        table.add_row("[bold]Time[/bold]", f"{_estimate_seconds(plan['bytes'])} at your usual speed")
         console.print(table)
         if manifest.get("notes"):
-            console.print(f"[dim]{manifest['notes']}[/dim]")
+            console.print(Panel(str(manifest["notes"]), title="What's in it", border_style="dim", expand=False))
 
         if not (auto_update or Confirm.ask("Install this update?", default=True)):
             console.print("[bold yellow]Update cancelled.[/bold yellow]")
         else:
             zip_path = UPDATE_DIR / manifest["asset"]
             stage_dir = UPDATE_DIR / "stage"
+            fetched = 0
             try:
                 UPDATE_DIR.mkdir(parents=True, exist_ok=True)
-                download_core(manifest, zip_path)
-                extract_core(zip_path, manifest, stage_dir)
+                if plan["mode"] == "delta":
+                    try:
+                        stage_delta(manifest, plan, stage_dir)
+                        fetched = plan["remote"].fetched
+                    except RangeUnsupported:
+                        plan = {**plan, "mode": "full"}
+                if plan["mode"] != "delta":
+                    fetched = download_core(manifest, zip_path)
+                    extract_core(zip_path, manifest, stage_dir)
                 apply_core(stage_dir, latest)
+                record_update(current, latest, manifest, plan, fetched)
                 updated = True
             except (requests.RequestException, OSError, ValueError, zipfile.BadZipFile, KeyError) as e:
                 console.print(f"[bold red]Update failed - nothing was changed:[/bold red] {e}")
             finally:
                 shutil.rmtree(stage_dir, ignore_errors=True)
-                try:
-                    zip_path.unlink()
-                except OSError:
-                    pass
+                if updated:
+                    try:
+                        zip_path.unlink()
+                    except OSError:
+                        pass
             if updated:
                 console.print(f"[bold green]Updated to {latest}![/bold green] Your files and accounts were not touched.")
                 if not auto_update:

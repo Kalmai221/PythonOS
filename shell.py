@@ -563,6 +563,13 @@ def start_shell(username):
     except OSError:
         pass
 
+    # first start after an update: what changed
+    try:
+        from core import sysupdate
+        sysupdate.show_whats_new()
+    except Exception:
+        pass
+
     # a one-time nudge towards the tutorial and the manual
     try:
         flags = pyos.appdata.load("shell", {}, user=username) or {}

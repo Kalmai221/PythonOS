@@ -48,6 +48,25 @@ def requirements_hash(root):
     return sha256(b"\0".join(parts))
 
 
+def changelog_notes(ver):
+    """The CHANGELOG.md section for this version ("## 1.0.2 ..." up to the next "## "), as plain lines; '' if there is none."""
+    try:
+        with open(os.path.join(stage.REPO, "CHANGELOG.md"), encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        return ""
+    out, inside = [], False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            if inside:
+                break
+            inside = line[3:].strip().lstrip("v").split()[0:1] == [ver]
+            continue
+        if inside and line.strip():
+            out.append(line.rstrip().lstrip("-* ").strip() if line.lstrip().startswith(("-", "*")) else line.rstrip())
+    return chr(10).join("- " + l if not l.startswith("- ") else l for l in out)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", default=os.path.join(stage.REPO, "dist", "core"))
@@ -116,7 +135,7 @@ def main():
                 "assets": assets, "url": base + assets[0], "urls": [base + a for a in assets],
                 "notes": entry.get("notes", ""), "inputs_sha256": digest,
             }
-        notes = os.environ.get("RELEASE_NOTES", "").strip()
+        notes = os.environ.get("RELEASE_NOTES", "").strip() or changelog_notes(ver)
         if notes:
             manifest["notes"] = notes
         with open(os.path.join(out, MANIFEST_NAME), "w", encoding="utf-8", newline="\n") as f:
