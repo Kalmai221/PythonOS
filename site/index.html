@@ -114,7 +114,16 @@ document.addEventListener("DOMContentLoaded", function () {
     [/flash-tool/, "Safely writes the ISO to a USB stick"],
     [/\.ova$/, "VirtualBox / VMware appliance"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
   ];
-  var ARCHS = [["x64", "Intel / AMD (x64)"], ["arm64", "ARM (arm64)"]];
+  var ARCHS = {
+    windows: [["x64", "Intel / AMD (x64)"], ["arm64", "ARM64 (Surface Pro X, Copilot+)"]],
+    android: [["arm64", "ARM 64-bit (arm64-v8a)"], ["x64", "Intel / AMD (x86_64)"]],
+    usb: [["x64", "PC (x86_64)"], ["arm64", "ARM 64-bit (aarch64, UEFI)"]]
+  };                                                  // Linux packages and the VM images are the same for every choice, so they show no chooser
+  function archName(id, arch) {
+    var list = ARCHS[id] || [];
+    for (var i = 0; i < list.length; i++) if (list[i][0] === arch) return list[i][1];
+    return arch === "arm64" ? "ARM" : "Intel / AMD";
+  }
   function order(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return i; return 99; }
   function useOf(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return USE[i][1]; return ""; }
 
@@ -192,10 +201,14 @@ document.addEventListener("DOMContentLoaded", function () {
     try { sessionStorage.setItem("arch", arch); } catch (e) {}
     render();
   }
-  function renderArchBar() {
+  // The chooser follows the platform tab: it lists the processors that platform comes in, and is hidden where the choice does not matter
+  function renderArchBar(groupId) {
     var bar = $("archbar");
+    var list = ARCHS[groupId];
+    if (!list) { bar.hidden = true; bar.innerHTML = ""; return; }
+    bar.hidden = false;
     var note = state.detected ? " <span class='muted'>Detected: " + (state.detected === "arm64" ? "ARM" : "Intel / AMD") + (state.arch !== state.detected ? " (you chose " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + ")" : "") + "</span>" : "";
-    bar.innerHTML = "<span class='muted' id='archlabel'>Processor</span><div class='tabs chips' role='group' aria-labelledby='archlabel'>" + ARCHS.map(function (a) {
+    bar.innerHTML = "<span class='muted' id='archlabel'>Processor</span><div class='tabs chips' role='group' aria-labelledby='archlabel'>" + list.map(function (a) {
       return "<button class='tab' type='button' data-arch='" + a[0] + "' aria-pressed='" + (state.arch === a[0]) + "'>" + a[1] + "</button>";
     }).join("") + "</div>" + note;
     bar.querySelectorAll("[data-arch]").forEach(function (b) { b.addEventListener("click", function () { setArch(b.getAttribute("data-arch")); }); });
@@ -204,13 +217,12 @@ document.addEventListener("DOMContentLoaded", function () {
   function render() {
     var assets = state.assets, rel = state.release;
     if (!rel) return;
-    renderArchBar();
     var main = mainFile(assets, state.platform, state.arch);
     var cta = $("cta");
     if (main) {
       cta.innerHTML = "<a class='btn primary' href='" + main.browser_download_url + "'>Download for " + NAMES[state.platform] + "</a><a class='btn ghost' href='#download'>All downloads</a>";
     }
-    $("meta").innerHTML = (main ? "<span>" + P.esc(main.name) + " · " + P.size(main.size) + " · " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + "</span>" : "") +
+    $("meta").innerHTML = (main ? "<span>" + P.esc(main.name) + " · " + P.size(main.size) + (ARCHS[state.platform] ? " · " + archName(state.platform, state.arch) : "") + "</span>" : "") +
       "<span>Released " + P.when(rel.published_at) + "</span><a href='" + rel.html_url + "'>Release notes</a>";
 
     var tabs = $("tabs"), panels = $("panels");
@@ -228,7 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
       panel.innerHTML = (items.length ? "<div class='files'>" + items.map(function (a) {
         return "<div class='file'><span class='name'>" + P.esc(a.name) + "</span><span class='muted'>" + P.esc(useOf(a.name)) + "</span>" +
                "<div class='row'><span class='size'>" + P.size(a.size) + "</span><a class='btn primary' style='padding:9px 16px' href='" + a.browser_download_url + "'>Download</a></div></div>";
-      }).join("") + "</div>" : "<p class='note'>There is no " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + " build of this in the release. Pick the other processor above.</p>") +
+      }).join("") + "</div>" : "<p class='note'>There is no " + archName(g.id, state.arch) + " build of this in the release. Pick the other processor above.</p>") +
         "<p class='note'>" + g.note + (hidden > 0 ? " <span class='muted'>(" + hidden + " file" + (hidden > 1 ? "s" : "") + " for the other processor hidden.)</span>" : "") + "</p>";
       tabs.appendChild(tab); panels.appendChild(panel);
       tab.addEventListener("click", function () { select(g.id); });
@@ -245,6 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
         $("tab-" + g.id).tabIndex = on ? 0 : -1;
         $("panel-" + g.id).hidden = !on;
       });
+      renderArchBar(id);
     }
     select(present.some(function (g) { return g.id === state.tab; }) ? state.tab : (present.some(function (g) { return g.id === state.platform; }) ? state.platform : (present[0] && present[0].id)));
 
