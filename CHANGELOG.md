@@ -3,46 +3,73 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
+Every version is split by who gets the change: **PythonOS** (the core: `updatecheck` installs it by itself, and it is all PythonOS shows when it updates),
+**Exports** (the packages around it: Windows, Android, Linux, the ISO and VM images, Docker; a new download is needed to get these), **Website** and
+**Development** (tests and tools, not user-visible). Versions before 1.0.8 are not split and count as PythonOS.
+
+## 1.0.10
+
+### PythonOS
+
+- `updatecheck` and the "What's new" screen now show only the PythonOS part of a release (what the core update brings), under the title "What's new in PythonOS". A new package for your export is announced separately, with its own notes.
+- `lscpu` works on Apple silicon Macs (it no longer stops when the system does not report a processor speed).
+
+### Development
+
+- The changelog is split into PythonOS, Exports, Website and Development parts for every version (this file's own header explains it); the release page shows the parts under their own headings, the core manifest carries the PythonOS part as its notes and the Exports part as `export_notes`, and `tools/test_changelog.py` checks the format.
+- The macOS test run found the `lscpu` problem above.
+
 ## 1.0.9
 
+### PythonOS
+
 - Recovery tools: an emergency console (read the logs and crash reports, pack them into a zip for a USB stick; no login, no shell) opened from the new boot menu (press M at the start, or `main.py --menu` / `--emergency`) or offered after repeated crashes; safe mode (`--safe`, or `safe on` in the emergency console) that leaves out marketplace apps, startup commands and background checks; crash reports are now also written ready to send, redacted, so `report --pending` works without a network.
-- Virtual machines whose console comes up small (under 1024 wide) switch by themselves to the biggest resolution the screen offers up to 1920x1080 (`display auto off` stops it). New `timesync` command, and `updatecheck` points to it when a secure connection fails (a wrong clock is the usual cause).
-- The VM `.ova` ships a third, empty 8 GB disk for `installos`.
-- Test CI is much wider: the smoke test on Linux, Windows and macOS and on Python 3.9 and 3.14; static checks (undefined names, Python 3.9 compatibility, all three catalog files current, manual and help-group completeness, website links and scripts, shell scripts, the Alpine package names of the ISO); and on Windows the installer is compiled and the PowerShell scripts parsed. (The first run found a real bug: the chess app used `os` without importing it.)
-
 - Shell variables and aliases: `NAME=value` and `export NAME=value`, then `$NAME` / `${NAME}` in any command (`$USER`, `$HOME`, `$HOST`, `$PWD` and `$?` always exist); `alias ll="ls -l"` (kept per person) and `unalias`; `unset`; `source <file>` (also `.`); and `~/.pyosrc` runs at every login. An exact command name now wins over another command's alias, and the old `export` alias of `backup` is gone (use `backup`).
-
-- The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.
-
 - `help` is easier to use: the first screen has numbered groups (`help 3` opens group 3) and an "I want to..." table (see a folder, copy files, check the internet, update...); `help <command>` now shows the usage lines, examples and related commands from the manual; and you can ask in your own words: `help copy a file`, `help how do i check the internet` find the commands, best match first, understanding words like delete, folder, internet, wifi. `help find` explains the find command instead of searching.
-
 - `ping` is simple again: `ping <host>` (also `-c count`, `-p port`, `host:port`) times TCP connections and ends with a summary; no more menu. It needs no special rights and works on every export.
 - New text commands: `sort`, `uniq`, `cut`, `tr`, `tee`, `rev`, `tac`, `nl`, `seq`, `xargs`, `less` (also `more`), `time`, `watch`, `cal`, `basename`, `dirname`, `which`, `du`, `stat`, `env`.
 - New network commands: `tracert` (also `traceroute`: the system's ICMP service on Windows, the kernel's error queue on Linux and the ISO, no special rights), `nslookup` (also `dig`, `host`: A, AAAA, MX, NS, TXT, CNAME, SOA and reverse lookups), `whois`, `curl`, `wget`, `netstat` (also `ss`), `ifconfig` (also `ipconfig`).
 - New system commands: `arch`, `nproc`, `lscpu`, `id` (also `groups`), `who` (also `users`), `pgrep`.
-
 - Seven new apps, all of them run on the live ISO / VMs: Flashcards (spaced repetition), Expenses (monthly summary), Habits (streaks), Pomodoro (focus timer), and the games Sokoban (five levels, checked solvable), Lights Out (always solvable, with hints) and Slide Puzzle (3x3, 4x4, 5x5).
-
 - `updatecheck` on the ISO / VM images and installed systems now also refreshes the system package lists (`apk update`) and offers the waiting upgrades (`apk upgrade`) before the PythonOS update. On the live system the upgrades last until it is switched off (it says so, and the default is no); on an installed system they are kept.
-
 - `installos` shows the real reason when the installer fails (the tool's error output was being dropped), keeps the full output in `/tmp/pythonos-install.log`, and checks before erasing anything that the package repositories can be reached.
-
 - `installos` works in the VM images, which have only a boot disk and a data disk: the data disk can now be chosen as the target (with a clear warning that its saved files and accounts are erased; they are released first so the session keeps working), and when no disk can be used it lists every disk and why, and how to add one.
+- New `timesync` command, and `updatecheck` points to it when a secure connection fails (a wrong clock is the usual cause).
+
+### Exports
+
+- Automatic resolution: virtual machines whose console comes up small (under 1024 wide) switch by themselves to the biggest resolution the screen offers up to 1920x1080 (`display auto off` stops it). Needs the new ISO or VM image.
+- The VM `.ova` ships a third, empty 8 GB disk for `installos`.
+- The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.
+- The start-up script of the ISO and VM images opens the emergency console after three stops within two minutes. Needs the new ISO or VM image.
+
+### Website
 
 - Website: the App Library has a "Works on" filter (Windows, Linux, Android, ISO / VM), shows each app's exports on its card and detail window, the per-export start files of API 2, and the "Live USB" filter now also needs the ISO in the app's exports.
 
-## 1.0.8
-- `display 1280x720` now really changes the resolution on the ISO and VM images: the kernel restarts with that `video=` option (kexec, a few seconds, files kept) and the choice is applied again at every start. If the firmware refuses, nothing changes and it says so.
-- Marketplace API 2: per-export run files (`run_windows`, `run_linux`, `run_android`, `run_iso` in `scripts`), checked by the catalog builder. Apps that need libraries or `exec` may leave the ISO out of their exports (ytaudio and python now say Windows and Linux; wifimeter says Linux and ISO).
+### Development
 
-- Windows installer: the progress text under the bar is no longer cut off; updating keeps `config.json` (your settings) but now brings its version up to date, so the system reports the new version (issues 1 and 5).
+- Test CI is much wider: the smoke test on Linux, Windows and macOS and on Python 3.9 and 3.14; static checks (undefined names, Python 3.9 compatibility, all three catalog files current, manual and help-group completeness, website links and scripts, shell scripts, the Alpine package names of the ISO); and on Windows the installer is compiled and the PowerShell scripts parsed. (The first run found a real bug: the chess app used `os` without importing it.)
+
+## 1.0.8
+
+### PythonOS
+
+- Marketplace API 2: per-export run files (`run_windows`, `run_linux`, `run_android`, `run_iso` in `scripts`), checked by the catalog builder. Apps that need libraries or `exec` may leave the ISO out of their exports (ytaudio and python now say Windows and Linux; wifimeter says Linux and ISO).
 - YouTube Audio now plays the sound itself with pip libraries (`av`, `miniaudio`, installed by the marketplace): no mpv, VLC or ffplay, nothing outside PythonOS (issue 2).
 - Commands and apps can limit themselves to some exports (`"exports"`): `installos`, `persist`, `hwsetup` and the new `display` exist only on the ISO/VM; apps must run on the ISO/VM and list the exports they work on, shown in the store and the App Library (issues 3 and 6).
 - `updatecheck` on the live ISO / VM warns before downloading when there is no data disk to keep the update on (it would be gone after a restart); with the data disk (the VM images ship one) the update is kept (issue 4).
-- Terminal window on Windows: tables and wrapped text no longer break after the window is resized (issue 7).
 - New `display` command: change the console resolution on the ISO/VM; remembered at boot (issue 8).
 - Long output of listing commands (`ls`, `cat`, `man`, `history`...) is shown a screen at a time (settings `auto_page`), since the Linux console cannot scroll back (issue 9).
 - New setting `clear_style`: clear the screen before a command when the last output filled it (default) or before every command (issue 10).
+
+### Exports
+
+- `display 1280x720` now really changes the resolution on the ISO and VM images: the kernel restarts with that `video=` option (kexec, a few seconds, files kept) and the choice is applied again at every start. If the firmware refuses, nothing changes and it says so.
+- Windows installer: the progress text under the bar is no longer cut off; updating keeps `config.json` (your settings) but now brings its version up to date, so the system reports the new version (issues 1 and 5).
+- Terminal window on Windows: tables and wrapped text no longer break after the window is resized (issue 7).
+
+### Website
 
 - Website: a "How do you want to run it?" row of cards (Windows, Android, Linux, USB, virtual machine, Docker, Setup Wizard) that takes you to the right download, a "See it" section with the file manager, task manager and settings, new feature and app cards, a Setup Wizard banner, a Recommended mark on the main file of each platform, a questions section, and better detection notes.
 

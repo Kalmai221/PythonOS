@@ -386,7 +386,7 @@ def show_whats_new(force=False):
     if changed:
         shown = ", ".join(changed[:6]) + (f" and {len(changed) - 6} more" if len(changed) > 6 else "")
         lines += ["", f"[dim]{len(changed)} file(s) changed: {shown}[/dim]"]
-    console.print(Panel("\n".join(lines), title="[bold cyan]What's new[/bold cyan]", border_style="cyan", expand=False))
+    console.print(Panel("\n".join(lines), title="[bold cyan]What's new in PythonOS[/bold cyan]", border_style="cyan", expand=False))
     info["seen"] = True
     try:
         LAST_UPDATE.write_text(json.dumps(info), encoding="utf-8")
@@ -774,7 +774,7 @@ def update_packaged(current, auto_update):
         table.add_row("[bold]Time[/bold]", f"{_estimate_seconds(plan['bytes'])} at your usual speed")
         console.print(table)
         if manifest.get("notes"):
-            console.print(Panel(str(manifest["notes"]), title="What's in it", border_style="dim", expand=False))
+            console.print(Panel(str(manifest["notes"]), title="What's new in PythonOS", border_style="dim", expand=False))
 
         lasts = update_lasts_only_until_restart()
         if lasts and not auto_update:

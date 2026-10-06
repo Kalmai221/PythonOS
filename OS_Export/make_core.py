@@ -48,23 +48,41 @@ def requirements_hash(root):
     return sha256(b"\0".join(parts))
 
 
-def changelog_notes(ver):
-    """The CHANGELOG.md section for this version ("## 1.0.2 ..." up to the next "## "), as plain lines; '' if there is none."""
+PARTS = ("PythonOS", "Exports", "Website", "Development")
+
+
+def changelog_parts(ver):
+    """{part: [bullet text]} for one version of CHANGELOG.md. A section is split into "### PythonOS" (the core: what `updatecheck` installs),
+    "### Exports" (the packages around it: Windows, Android, Linux, the ISO and VM images, Docker), "### Website" and "### Development".
+    A section written before the split (no ### headings) counts as all PythonOS. {} when the version has no section."""
     try:
         with open(os.path.join(stage.REPO, "CHANGELOG.md"), encoding="utf-8") as f:
             text = f.read()
     except OSError:
-        return ""
-    out, inside = [], False
+        return {}
+    parts, inside, part = {}, False, "PythonOS"
     for line in text.splitlines():
         if line.startswith("## "):
             if inside:
                 break
             inside = line[3:].strip().lstrip("v").split()[0:1] == [ver]
+            part = "PythonOS"
             continue
-        if inside and line.strip():
-            out.append(line.rstrip().lstrip("-* ").strip() if line.lstrip().startswith(("-", "*")) else line.rstrip())
-    return chr(10).join("- " + l if not l.startswith("- ") else l for l in out)
+        if not inside:
+            continue
+        if line.startswith("### "):
+            part = line[4:].strip()
+            continue
+        if line.strip():
+            text_line = line.rstrip().lstrip("-* ").strip() if line.lstrip().startswith(("-", "*")) else line.strip()
+            parts.setdefault(part, []).append(text_line)
+    return parts
+
+
+def changelog_notes(ver, part="PythonOS"):
+    """The bullets of one part of the version's CHANGELOG section as plain "- " lines; '' if there are none. The default part is PythonOS,
+    which is what PythonOS shows when it updates itself (updatecheck, what's new)."""
+    return chr(10).join("- " + l for l in changelog_parts(ver).get(part, []))
 
 
 def main():
@@ -135,11 +153,14 @@ def main():
                 "title": entry["title"], "version": ver, "api": entry["api"],
                 "assets": assets, "url": base + assets[0], "urls": [base + a for a in assets],
                 "extra_urls": [base + a for a in extra],            # other processors and formats: attached when they were built
-                "notes": entry.get("notes", ""), "inputs_sha256": digest,
+                "notes": changelog_notes(ver, "Exports") or entry.get("notes", ""), "inputs_sha256": digest,
             }
         notes = os.environ.get("RELEASE_NOTES", "").strip() or changelog_notes(ver)
         if notes:
-            manifest["notes"] = notes
+            manifest["notes"] = notes                      # the PythonOS part: what the core update brings
+        export_notes = changelog_notes(ver, "Exports")
+        if export_notes:
+            manifest["export_notes"] = export_notes        # the package part: shown when a new package is available
         with open(os.path.join(out, MANIFEST_NAME), "w", encoding="utf-8", newline="\n") as f:
             json.dump(manifest, f, indent=2)
             f.write("\n")

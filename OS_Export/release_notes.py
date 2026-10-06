@@ -199,9 +199,20 @@ def file_table(version, sizes, exports):
 
 def build(version, plan, sizes=None):
     exports = (plan or {}).get("exports", {})
-    notes = make_core.changelog_notes(version)
+    parts = make_core.changelog_parts(version)
     out = [f"# PythonOS {version}", ""]
-    out += ["## What's new", "", notes or "See the commit history for this release.", ""]
+    out += ["## What's new", ""]
+    titles = {"PythonOS": "PythonOS updates (installed by `updatecheck`, no new download)",
+              "Exports": "Export updates (the packages: a new download is needed to get these)",
+              "Website": "Website updates", "Development": "Development"}
+    if len(parts) == 1 and "PythonOS" in parts:
+        out += [make_core.changelog_notes(version), ""]
+    elif parts:
+        for part in make_core.PARTS:
+            if parts.get(part):
+                out += [f"### {titles[part]}", "", make_core.changelog_notes(version, part), ""]
+    else:
+        out += ["See the commit history for this release.", ""]
     out += ["## Which file do I download?", "",
             "Pick one line for your device. Everything below also updates itself from inside PythonOS later (run `updatecheck`); "
             "you only download a new package when it says it has to be reinstalled.", ""]

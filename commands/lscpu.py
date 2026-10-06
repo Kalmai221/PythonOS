@@ -15,7 +15,10 @@ def execute(args=None):
     table = Table(show_header=False, box=None)
     table.add_column(style="bold")
     table.add_column()
-    freq = psutil.cpu_freq()
+    try:
+        freq = psutil.cpu_freq()
+    except Exception:                                  # noqa: BLE001 - some systems (Apple silicon) do not report a speed
+        freq = None
     rows = [("Family", archinfo.arch()), ("Description", archinfo.describe()), ("Processor", platform.processor() or "-"),
             ("Cores (logical)", str(os.cpu_count() or 1)), ("Cores (physical)", str(psutil.cpu_count(logical=False) or "-")),
             ("Speed", f"{freq.current:.0f} MHz" if freq else "-"), ("Load now", f"{psutil.cpu_percent(interval=0.3):.0f}%")]
