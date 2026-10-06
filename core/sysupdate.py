@@ -737,6 +737,8 @@ def update_packaged(current, auto_update):
         manifest = fetch_manifest()
     except requests.RequestException as e:
         console.print(f"[bold red]Could not reach the update server:[/bold red] {e}")
+        if "certificate" in str(e).lower() or "ssl" in str(e).lower():
+            console.print("[yellow]A secure connection failed. The most common cause is a wrong clock: run timesync, then try again.[/yellow]")
         return False
     except ValueError as e:
         console.print(f"[bold red]The latest release has no usable update information:[/bold red] {e}")

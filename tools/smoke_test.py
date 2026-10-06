@@ -262,7 +262,10 @@ def run(root):
             raise AssertionError("an unchecked value reached the command line")
         except ValueError:
             pass
-        print("ok   resolution switch (checked video= option)")
+        assert core_video.pick_auto_mode((720, 400), ["640x480", "1024x768", "1280x720", "1920x1080", "2560x1440"]) == "1920x1080"
+        assert core_video.pick_auto_mode((1280, 800), ["1920x1080"]) is None and core_video.pick_auto_mode((720, 400), ["800x600"]) is None
+        assert core_video.is_vm("flags : fpu hypervisor lm", "") and core_video.is_vm("", "innotek GmbH VirtualBox") and not core_video.is_vm("flags: fpu", "Dell Inc.")
+        print("ok   resolution switch (checked video= option, automatic choice)")
     except Exception as e:                           # noqa: BLE001
         print(f"FAIL resolution switch   <- {type(e).__name__}: {e}")
         failures.append(("resolution switch", [f"{type(e).__name__}: {e}"], ""))

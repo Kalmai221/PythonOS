@@ -263,6 +263,12 @@ cmd_page("unset", "forget a variable", ["unset NAME..."], "Removes variables mad
 cmd_page("source", "run the commands of a file", ["source <file>", ". <file>"],
      "Runs a file one command per line (empty lines and lines starting with # are skipped). The file ~/.pyosrc is run like this at every login: put your aliases and variables in it.",
      [("source ~/setup.txt", "")], ["alias", "export"])
+cmd_page("persist", "keep your accounts and files across restarts of the live system", ["persist [status|list|create|resize|migrate]"],
+     "On the live ISO and VM images, sets up a data disk (labelled PYOS_DATA, optionally encrypted) so accounts, files and settings survive power-off, and shows its state. "
+     "The VM images already come with one. persist create [disk] [--encrypt] makes one from a spare disk or partition.", [("persist status", "is a data disk in use?"), ("persist create --encrypt", "")], ["hwsetup", "backup"])
+cmd_page("timesync", "check the clock against the internet", ["timesync"],
+     "Asks a time server what time it is, shows the difference and sets the clock when the system allows it (the live ISO and VM images do). A wrong clock breaks secure "
+     "connections and updates. The live images also do this by themselves a minute after start.", [], ["date", "ping"])
 cmd_page("less", "read long text a screen at a time", ["less [file]", "... | less"], "Shows a file or piped text one screen at a time: Enter shows one more line, a space then Enter the next page, q stops. more is the same.",
      [("less readme.txt", ""), ("man pkg | less", "")], ["cat", "head"])
 page("ipinfo", "public IP information", ["ipinfo"], "Shows your public IP address and where it appears to be.", see=["ping"])

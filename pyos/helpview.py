@@ -23,7 +23,7 @@ CATEGORIES = {
     "Accounts and security": ("Who you are and how the system protects itself",
                               ["whoami", "id", "who", "passwd", "su", "lock", "last", "logout", "manageusers", "logs", "doctor"]),
     "System": ("About this computer and its settings",
-               ["sysinfo", "uname", "hostname", "uptime", "free", "df", "date", "version", "settings", "bootlog", "whathappened", "report", "diag", "quickstart", "arch", "nproc", "lscpu", "pgrep"]),
+               ["sysinfo", "uname", "hostname", "uptime", "free", "df", "date", "version", "settings", "bootlog", "whathappened", "report", "diag", "quickstart", "arch", "nproc", "lscpu", "pgrep", "timesync"]),
     "Network and hardware": ("Connect, share and set up hardware",
                              ["ping", "tracert", "nslookup", "whois", "curl", "wget", "netstat", "ifconfig", "ipinfo", "share", "hwsetup", "display", "persist", "print"]),
     "Updates and apps": ("Keep PythonOS current and add apps",

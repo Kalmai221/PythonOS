@@ -5,6 +5,11 @@ One section per release, newest first. The section for a version is shown to use
 
 ## 1.0.8 (continued)
 
+- Recovery tools: an emergency console (read the logs and crash reports, pack them into a zip for a USB stick; no login, no shell) opened from the new boot menu (press M at the start, or `main.py --menu` / `--emergency`) or offered after repeated crashes; safe mode (`--safe`, or `safe on` in the emergency console) that leaves out marketplace apps, startup commands and background checks; crash reports are now also written ready to send, redacted, so `report --pending` works without a network.
+- Virtual machines whose console comes up small (under 1024 wide) switch by themselves to the biggest resolution the screen offers up to 1920x1080 (`display auto off` stops it). New `timesync` command, and `updatecheck` points to it when a secure connection fails (a wrong clock is the usual cause).
+- The VM `.ova` ships a third, empty 8 GB disk for `installos`.
+- Test CI is much wider: the smoke test on Linux, Windows and macOS and on Python 3.9 and 3.14; static checks (undefined names, Python 3.9 compatibility, all three catalog files current, manual and help-group completeness, website links and scripts, shell scripts, the Alpine package names of the ISO); and on Windows the installer is compiled and the PowerShell scripts parsed. (The first run found a real bug: the chess app used `os` without importing it.)
+
 - Shell variables and aliases: `NAME=value` and `export NAME=value`, then `$NAME` / `${NAME}` in any command (`$USER`, `$HOME`, `$HOST`, `$PWD` and `$?` always exist); `alias ll="ls -l"` (kept per person) and `unalias`; `unset`; `source <file>` (also `.`); and `~/.pyosrc` runs at every login. An exact command name now wins over another command's alias, and the old `export` alias of `backup` is gone (use `backup`).
 
 - The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.

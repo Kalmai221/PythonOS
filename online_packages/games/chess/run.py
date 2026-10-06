@@ -3,6 +3,7 @@
 check, checkmate and stalemate. Enter moves like e2e4 (or e7e8q to promote) or in standard notation (Nf3, exd5, O-O, e8=Q).
 Commands: moves (list legal moves), hint, undo, history, save, pgn [file], resign, quit. A game is saved when you leave it, and 'chess resume'
 continues it. Four levels: easy, medium, hard (about a second a move) and expert (up to depth 4, a few seconds a move)."""
+import os
 import random
 import sys
 import time

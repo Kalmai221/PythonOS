@@ -5,7 +5,8 @@ The graphics drivers of virtual machines (bochs, virtio, vmwgfx, VirtualBox) do 
 kernel's own `video=<width>x<height>` option. So a resolution change is: load the same kernel and initramfs from the boot medium with the
 current command line plus video=WxH, then jump into it (kexec). It takes seconds, not a full reboot, and the data disk is kept.
 
-    python3 core_video.py apply      run by the session script before PythonOS starts: switch once to the saved resolution
+    python3 core_video.py apply      run by the session script before PythonOS starts: switch once to the saved resolution, or, in a virtual
+                                     machine whose console came up small, to a better one (automatic resolution; `display auto off` stops it)
 
 The rules:
   * the only text ever added to the kernel command line is video=<digits>x<digits>, checked here; nothing else is passed through
@@ -120,11 +121,91 @@ def saved_mode():
         return ""
 
 
-def apply():
-    """At boot: switch once to the saved resolution when the kernel is not already using a video= option."""
+def drm_modes():
+    """Resolutions the connected screens report, as 'WxH' strings."""
+    modes = set()
+    for status in glob.glob("/sys/class/drm/card*-*/status"):
+        try:
+            with open(status, encoding="utf-8") as f:
+                if f.read().strip() != "connected":
+                    continue
+            with open(os.path.join(os.path.dirname(status), "modes"), encoding="utf-8") as f:
+                modes.update(l.strip() for l in f if MODE_RE.match(l.strip()))
+        except OSError:
+            continue
+    return sorted(modes)
+
+
+def screen_size():
     try:
+        with open("/sys/class/graphics/fb0/virtual_size", encoding="utf-8") as f:
+            width, height = f.read().strip().split(",")
+        return int(width), int(height)
+    except (OSError, ValueError):
+        return None
+
+
+def is_vm(cpuinfo="", dmi=""):
+    """True inside a virtual machine: the processor says it is virtualised, or the firmware names a known hypervisor."""
+    if re.search(r"\bhypervisor\b", cpuinfo):
+        return True
+    return bool(re.search(r"virtualbox|vmware|qemu|kvm|bochs|xen|hyper-v|parallels|virtual machine", dmi, re.I))
+
+
+def read_vm_hints():
+    texts = []
+    for path in ("/proc/cpuinfo",):
+        try:
+            with open(path, encoding="utf-8", errors="replace") as f:
+                texts.append(f.read(20000))
+        except OSError:
+            texts.append("")
+    dmi = []
+    for name in ("sys_vendor", "product_name", "board_vendor"):
+        try:
+            with open(f"/sys/class/dmi/id/{name}", encoding="utf-8") as f:
+                dmi.append(f.read().strip())
+        except OSError:
+            pass
+    return texts[0], " ".join(dmi)
+
+
+def pick_auto_mode(current, modes):
+    """The resolution to switch to when the console came up small: the biggest the screen offers up to 1920x1080 (at least 1024 wide).
+    None when the console is already at least 1024 wide, or nothing better is offered."""
+    if current and current[0] >= 1024:
+        return None
+    best = None
+    for text in modes:
+        match = MODE_RE.match(text)
+        if not match or not valid(text):
+            continue
+        width, height = int(match.group(1)), int(match.group(2))
+        if 1024 <= width <= 1920 and 600 <= height <= 1080 and (best is None or width * height > best[0] * best[1]):
+            best = (width, height)
+    return f"{best[0]}x{best[1]}" if best else None
+
+
+def auto_enabled():
+    try:
+        with open(PREFS_FILE, encoding="utf-8") as f:
+            return (json.load(f).get("display") or {}).get("auto", True) is not False
+    except (OSError, ValueError, AttributeError):
+        return True
+
+
+def apply():
+    """At boot: switch once to the saved resolution (or, in a virtual machine with a small console, an automatic one) when the kernel is
+    not already using a video= option."""
+    try:
+        if current_mode() or unavailable_reason():
+            return False
         mode = saved_mode()
-        if not valid(mode) or current_mode() or unavailable_reason():
+        if not valid(mode):
+            mode = None
+            if auto_enabled() and is_vm(*read_vm_hints()):
+                mode = pick_auto_mode(screen_size(), drm_modes())
+        if not mode:
             return False
         ok, _ = prepare(mode)
         return jump() if ok else False

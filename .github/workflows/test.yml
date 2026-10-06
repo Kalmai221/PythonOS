@@ -1,7 +1,10 @@
 name: Test
 
-# Runs on every push to main and every pull request: the lockdown audit, the catalog index check and the smoke test
-# (starts PythonOS in a scratch copy and runs real commands) on Linux and Windows.
+# Runs on every push to main and every pull request. Four groups of checks, so a failure says what kind of problem it is:
+#   test      the smoke test (starts PythonOS in a scratch copy and runs real commands, the app and network tests) on Linux, Windows and macOS
+#   python    the same on the oldest Python we claim to support (3.9) and the newest (3.14)
+#   static    code, scripts, docs, catalog, website and the ISO package list: everything that can be checked without running PythonOS
+#   windows   the Windows installer and host are compiled and the PowerShell scripts parsed
 on:
   push:
     branches: [main]
@@ -18,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-latest]
+        os: [ubuntu-24.04, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -29,10 +32,81 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Lockdown audit
         run: python tools/audit_lockdown.py
-      - name: Catalog index is current
-        if: runner.os == 'Linux'
-        run: |
-          python tools/build_index.py
-          git diff --exit-code online_packages/index.json
       - name: Smoke test
         run: python tools/smoke_test.py
+
+  python:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Smoke test
+        run: python tools/smoke_test.py
+
+  static:
+    name: Static checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt flake8 vermin
+      - name: Code has no syntax errors or undefined names
+        run: flake8 --select=E9,F63,F7,F82 --exclude=dist,scratch,.git .
+      - name: Code needs no newer Python than 3.9
+        run: vermin -t=3.9- --no-tips -q commands core pyos programs online_packages tools main.py shell.py users.py core_overlay.py core_video.py
+      - name: Catalog index is current (all three files)
+        run: |
+          python tools/build_index.py
+          git diff --exit-code online_packages/index.json online_packages/index-api1.json online_packages/index-api2.json
+      - name: Manual, help groups and app descriptions are complete
+        run: python tools/check_docs.py
+      - name: Website links, ids and scripts
+        run: python tools/check_site.py
+      - name: Shell scripts parse
+        run: |
+          shopt -s globstar nullglob
+          for f in OS_Export/**/*.sh; do bash -n "$f" || exit 1; done
+          for f in OS_Export/ISO/overlay/pythonos-session OS_Export/ISO/overlay/pythonos-persist OS_Export/ISO/overlay/pythonos-acpi-handler; do sh -n "$f" || exit 1; done
+      - name: ShellCheck (errors only; informational until it has run once)
+        continue-on-error: true
+        run: |
+          shopt -s globstar nullglob
+          shellcheck --severity=error OS_Export/**/*.sh OS_Export/ISO/overlay/pythonos-session OS_Export/ISO/overlay/pythonos-acpi-handler
+      - name: ISO package names exist in Alpine
+        run: python OS_Export/ISO/check_packages.py
+
+  windows:
+    name: Windows installer and host
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: C# installer compiles
+        shell: pwsh
+        run: |
+          $csc = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          & $csc /nologo /target:winexe /out:$env:RUNNER_TEMP\setup-test.exe /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll OS_Export\Windows\native\setup\*.cs
+          if ($LASTEXITCODE -ne 0) { throw "the installer does not compile" }
+      - name: PowerShell scripts parse
+        shell: pwsh
+        run: |
+          $bad = 0
+          Get-ChildItem -Recurse -Filter *.ps1 -Path OS_Export | ForEach-Object {
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errors)
+            if ($errors) { $errors | ForEach-Object { Write-Host "$($_.Extent.File):$($_.Extent.StartLineNumber): $($_.Message)" }; $bad = 1 }
+          }
+          if ($bad) { throw "a PowerShell script does not parse" }
