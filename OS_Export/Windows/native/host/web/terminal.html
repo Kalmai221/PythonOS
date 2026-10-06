@@ -54,7 +54,8 @@
   var term = new Terminal({
     fontFamily: '"Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace',
     fontSize: size, cursorBlink: true, scrollback: 20000, smoothScrollDuration: 90, scrollSensitivity: 1.4, fastScrollSensitivity: 6, scrollOnUserInput: true, allowProposedApi: true, customGlyphs: true, rescaleOverlappingGlyphs: true,
-    theme: query.matches ? dark : light, macOptionIsMeta: false, convertEol: false
+    theme: query.matches ? dark : light, macOptionIsMeta: false, convertEol: false,
+    windowsPty: { backend: "conpty", buildNumber: 22000 }   // the pseudo console lays the lines out itself: without this xterm re-wraps them when the window is resized and tables break
   });
   var fit = new FitAddon.FitAddon();
   term.loadAddon(fit);
