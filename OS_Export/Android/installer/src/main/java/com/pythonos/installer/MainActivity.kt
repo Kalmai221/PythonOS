@@ -66,6 +66,7 @@ class MainActivity : Activity() {
     private var installed: String? = null
     private var latest: Installer.Release? = null
     private var lastProblem: String? = null
+    private var justInstalled = false          // the install just finished: show the success part until the next check or install
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
@@ -223,6 +224,16 @@ class MainActivity : Activity() {
         deviceLine.text = "Android ${android.os.Build.VERSION.RELEASE}, " + (abi ?: "32-bit processor")
         open.visibility = if (installed != null) View.VISIBLE else View.GONE
         uninstall.visibility = if (installed != null) View.VISIBLE else View.GONE
+        if (justInstalled && installed != null) {
+            news.visibility = View.GONE
+            statusTitle.text = "✓  PythonOS $installed was installed successfully"
+            statusTitle.setTextColor(p.good)
+            statusDetail.text = "It is ready to use. Open it now, or find PythonOS in your app list. Type help inside it to get started, and updatecheck to update it later. The downloaded file has been removed to free the space."
+            primary.text = "Open PythonOS"
+            style(primary, true)
+            return
+        }
+        statusTitle.setTextColor(p.text)
         val release = latest
         news.visibility = if (release != null) View.VISIBLE else View.GONE
         other.visibility = if (abi != null) View.VISIBLE else View.GONE
@@ -273,6 +284,7 @@ class MainActivity : Activity() {
 
     private fun check() {
         val abi = Installer.abi() ?: return
+        justInstalled = false
         lastProblem = null
         statusDetail.text = "Looking for the latest version..."
         worker.execute {
@@ -286,6 +298,7 @@ class MainActivity : Activity() {
     }
 
     private fun onPrimary() {
+        if (justInstalled && installed != null) { openApp(); return }
         val release = latest
         val have = installed
         if (release == null || (have != null && Installer.compare(have, release.version) >= 0)) {
@@ -305,6 +318,7 @@ class MainActivity : Activity() {
     }
 
     private fun run(release: Installer.Release) {
+        justInstalled = false
         if (!Installer.canInstall(this)) {
             AlertDialog.Builder(this)
                 .setTitle("Allow installing apps")
@@ -380,9 +394,9 @@ class MainActivity : Activity() {
             Installer.cleanup(this)                       // the downloaded file is only removed once PythonOS is installed
             for (i in stepNames.indices) setStep(i, 2)
             barText.text = "The downloaded file has been removed."
+            justInstalled = true
+            lastProblem = null
             render()
-            statusTitle.text = "PythonOS ${installed ?: ""} is installed"
-            statusDetail.text = "Open it from here or from your app list."
             Toast.makeText(this, "PythonOS is installed.", Toast.LENGTH_LONG).show()
         } else {
             setStep(4, 3)
