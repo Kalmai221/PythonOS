@@ -60,11 +60,11 @@ def main():
         assert "\x1b[" in shown.get(), "the picture must be drawn in colour"
         bad = os.path.join(folder, "bad.png")
         open(bad, "w").write("not an image")
-        view.console = console
         view.fs = None                                                     # the app runs on its own here: no PythonOS sandbox for the temporary file
-        with console.capture() as shown:
+        view.console = Console(force_terminal=True, color_system="truecolor", width=400)       # wide, so a long temporary path cannot wrap the message
+        with view.console.capture() as shown:
             assert view.execute([bad]) is False
-        assert "cannot show it" in shown.get()
+        assert "cannot show it" in " ".join(shown.get().split()), shown.get()
         assert PIL.__version__
     else:
         print("Pillow or rich-pixels is not installed: imgview checks skipped")
