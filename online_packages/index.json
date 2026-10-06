@@ -8,6 +8,16 @@
       "blurb": "Get things done: lists, notes, calendar, clock"
     },
     {
+      "id": "ai",
+      "title": "AI assistants",
+      "blurb": "Chat with an AI model from the terminal"
+    },
+    {
+      "id": "media",
+      "title": "Audio and video",
+      "blurb": "Music, podcasts and players"
+    },
+    {
       "id": "games",
       "title": "Games",
       "blurb": "Something to play"
@@ -41,6 +51,7 @@
   "packages": [
     {
       "api": 1,
+      "pip": [],
       "id": "developer/python",
       "category": "developer",
       "name": "Python",
@@ -85,6 +96,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/adventure",
       "category": "games",
       "name": "Text Adventure",
@@ -126,6 +138,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/battleship",
       "category": "games",
       "name": "Battleship",
@@ -163,6 +176,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/blackjack",
       "category": "games",
       "name": "Blackjack",
@@ -202,6 +216,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/checkers",
       "category": "games",
       "name": "Checkers",
@@ -241,6 +256,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/chess",
       "category": "games",
       "name": "Chess",
@@ -288,6 +304,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/connect4",
       "category": "games",
       "name": "Connect Four",
@@ -327,6 +344,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/crossword",
       "category": "games",
       "name": "Crossword",
@@ -364,6 +382,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/daily",
       "category": "games",
       "name": "Daily Puzzle",
@@ -402,6 +421,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/fallingwords",
       "category": "games",
       "name": "Falling Words",
@@ -442,6 +462,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/flood",
       "category": "games",
       "name": "Flood",
@@ -479,6 +500,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/game2048",
       "category": "games",
       "name": "2048",
@@ -519,6 +541,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/guess",
       "category": "games",
       "name": "Number Guess",
@@ -557,6 +580,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/hangman",
       "category": "games",
       "name": "Hangman",
@@ -598,6 +622,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/hangman2",
       "category": "games",
       "name": "Hangman (2 players)",
@@ -637,6 +662,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/mastermind",
       "category": "games",
       "name": "Mastermind",
@@ -674,6 +700,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/memory",
       "category": "games",
       "name": "Memory",
@@ -713,6 +740,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/minesweeper",
       "category": "games",
       "name": "Minesweeper",
@@ -752,6 +780,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/pokerdice",
       "category": "games",
       "name": "Poker Dice",
@@ -789,6 +818,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/pong",
       "category": "games",
       "name": "Pong",
@@ -826,6 +856,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/reversi",
       "category": "games",
       "name": "Reversi",
@@ -865,6 +896,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/snake",
       "category": "games",
       "name": "Snake",
@@ -905,6 +937,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/sudoku",
       "category": "games",
       "name": "Sudoku",
@@ -943,6 +976,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/tetris",
       "category": "games",
       "name": "Tetris",
@@ -980,6 +1014,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/tictactoe",
       "category": "games",
       "name": "Tic-Tac-Toe",
@@ -1023,6 +1058,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/trivia",
       "category": "games",
       "name": "Trivia",
@@ -1066,6 +1102,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/triviapack",
       "category": "games",
       "name": "Trivia Pack",
@@ -1106,6 +1143,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/typingtest",
       "category": "games",
       "name": "Typing Test",
@@ -1154,6 +1192,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/wordle",
       "category": "games",
       "name": "Wordle",
@@ -1196,6 +1235,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "games/wordsearch",
       "category": "games",
       "name": "Word Search",
@@ -1233,6 +1273,59 @@
     },
     {
       "api": 1,
+      "pip": [],
+      "id": "utilities/assistant",
+      "category": "utilities",
+      "name": "AI Assistant",
+      "description": "Chat with an AI model from the terminal. You choose the service (OpenAI, Anthropic, Gemini, OpenRouter, Ollama or your own address) and give your API key.",
+      "version": "1.0.0",
+      "command": "assistant",
+      "alias": [
+        "ai",
+        "chat"
+      ],
+      "tags": [
+        "ai",
+        "chat",
+        "assistant",
+        "llm",
+        "openai",
+        "claude",
+        "gemini",
+        "ollama"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network",
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "ai",
+        "productivity"
+      ],
+      "changelog": {
+        "1.0.0": "First release: asks which AI service to use and for your key, streams answers, keeps the conversation, saves it, works with OpenAI, Anthropic, Google Gemini, OpenRouter, Ollama and any OpenAI-compatible address."
+      },
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "8d40d06e8bbf7026f82c18acc3ac84882a927396a27335fd3e1cfecadce18998",
+          "size": 870
+        },
+        {
+          "path": "run.py",
+          "sha256": "2c36a8bd3a7b5939c0a5b73e8fac455ddc94709685c4c5e8df3c7d50b8b17bb4",
+          "size": 17643
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
       "id": "utilities/battery",
       "category": "utilities",
       "name": "Battery",
@@ -1274,6 +1367,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/calendar",
       "category": "utilities",
       "name": "Calendar",
@@ -1326,6 +1420,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/clipboard",
       "category": "utilities",
       "name": "Clipboard History",
@@ -1370,6 +1465,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/clock",
       "category": "utilities",
       "name": "Clock",
@@ -1420,6 +1516,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/converter",
       "category": "utilities",
       "name": "Converter",
@@ -1467,6 +1564,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/datecalc",
       "category": "utilities",
       "name": "Date Calculator",
@@ -1507,6 +1605,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/diskusage",
       "category": "utilities",
       "name": "Disk Usage",
@@ -1551,6 +1650,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/files",
       "category": "utilities",
       "name": "File Manager",
@@ -1601,6 +1701,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/hashtool",
       "category": "utilities",
       "name": "Hash and Encoding",
@@ -1645,6 +1746,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/httptest",
       "category": "utilities",
       "name": "HTTP Tester",
@@ -1689,6 +1791,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/jsonfmt",
       "category": "utilities",
       "name": "JSON Formatter",
@@ -1732,6 +1835,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/lanscan",
       "category": "utilities",
       "name": "LAN Scanner",
@@ -1775,6 +1879,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/logviewer",
       "category": "utilities",
       "name": "Log Viewer",
@@ -1817,6 +1922,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/mdedit",
       "category": "utilities",
       "name": "Markdown Editor",
@@ -1865,6 +1971,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/mdview",
       "category": "utilities",
       "name": "Markdown Viewer",
@@ -1913,6 +2020,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/nettools",
       "category": "utilities",
       "name": "Network Tools",
@@ -1962,6 +2070,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/notes",
       "category": "utilities",
       "name": "Notes",
@@ -2009,6 +2118,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/passgen",
       "category": "utilities",
       "name": "Password Generator",
@@ -2049,6 +2159,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/portscan",
       "category": "utilities",
       "name": "Port Scanner",
@@ -2091,6 +2202,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/procs",
       "category": "utilities",
       "name": "Process Inspector",
@@ -2133,6 +2245,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/qr",
       "category": "utilities",
       "name": "QR Codes",
@@ -2175,6 +2288,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/regextest",
       "category": "utilities",
       "name": "Regex Tester",
@@ -2216,6 +2330,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/rss",
       "category": "utilities",
       "name": "RSS Reader",
@@ -2261,6 +2376,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/schedui",
       "category": "utilities",
       "name": "Scheduler",
@@ -2304,6 +2420,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/snippets",
       "category": "utilities",
       "name": "Snippets",
@@ -2352,6 +2469,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/speedtest",
       "category": "utilities",
       "name": "Speed Test",
@@ -2395,6 +2513,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/startup",
       "category": "utilities",
       "name": "Startup Apps",
@@ -2437,6 +2556,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/sysmon",
       "category": "utilities",
       "name": "System Monitor",
@@ -2485,6 +2605,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/texttools",
       "category": "utilities",
       "name": "Text Tools",
@@ -2527,6 +2648,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/themedesigner",
       "category": "utilities",
       "name": "Theme Designer",
@@ -2567,6 +2689,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/todo",
       "category": "utilities",
       "name": "To-do List",
@@ -2609,6 +2732,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/weather",
       "category": "utilities",
       "name": "Weather",
@@ -2657,6 +2781,7 @@
     },
     {
       "api": 1,
+      "pip": [],
       "id": "utilities/wifimeter",
       "category": "utilities",
       "name": "Wi-Fi Meter",

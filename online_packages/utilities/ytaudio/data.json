@@ -1,0 +1,70 @@
+{
+  "name": "YouTube Audio",
+  "description": "Search YouTube and play just the sound from the terminal, with a queue. Needs mpv, VLC or ffplay on the computer.",
+  "version": "1.1.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "ytaudio",
+  "alias": [
+    "yt",
+    "youtube"
+  ],
+  "tags": [
+    "music",
+    "audio",
+    "youtube",
+    "player",
+    "playlist"
+  ],
+  "lockdown_safe": false,
+  "permissions": [
+    "network",
+    "exec",
+    "files"
+  ],
+  "categories": [
+    "media"
+  ],
+  "limits": {
+    "memory_mb": 256
+  },
+  "changelog": {
+    "1.0.0": "First release: search, play a link or a playlist, queue, with mpv, VLC or ffplay.",
+    "1.1.0": "The yt-dlp library is now installed by the marketplace into the app's own folder (marketplace API 2), so nothing is asked the first time you run it."
+  },
+  "settings": [
+    {
+      "key": "player",
+      "label": "Audio player",
+      "type": "choice",
+      "choices": [
+        "auto",
+        "mpv",
+        "vlc",
+        "ffplay"
+      ],
+      "default": "auto"
+    },
+    {
+      "key": "volume",
+      "label": "Volume",
+      "type": "int",
+      "min": 0,
+      "max": 130,
+      "default": 80
+    },
+    {
+      "key": "results",
+      "label": "Search results",
+      "type": "int",
+      "min": 3,
+      "max": 25,
+      "default": 10
+    }
+  ],
+  "api": 2,
+  "pip": [
+    "yt-dlp"
+  ]
+}

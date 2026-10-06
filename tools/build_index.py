@@ -122,10 +122,19 @@ def main():
                 sys.exit(f"{meta_path}: invalid JSON ({e})")
             check_settings(meta, f"{category}/{name}")
             api = marketapi.package_api(meta)
+            try:
+                pip = marketapi.pip_specs(meta)
+            except ValueError as e:
+                sys.exit(f"{category}/{name}: {e}")
+            if pip and api < 2:
+                sys.exit(f"{category}/{name}: a package that needs Python libraries ('pip') must say \"api\": 2")
+            if pip and meta.get("lockdown_safe"):
+                sys.exit(f"{category}/{name}: a lockdown_safe package cannot ask for Python libraries (they run code that was not reviewed here)")
             if str(meta.get("api", api)) != str(api) or not marketapi.OLDEST <= api <= marketapi.CURRENT:
                 sys.exit(f"{category}/{name}: data.json 'api' must be a whole number from {marketapi.OLDEST} to {marketapi.CURRENT} (the marketplace API versions that exist)")
             packages.append({
                 "api": api,
+                "pip": pip,
                 "id": f"{category}/{name}",
                 "category": category,
                 "name": meta.get("name", name),

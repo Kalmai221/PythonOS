@@ -475,6 +475,18 @@ def run(root):
         print(f"FAIL settings app   <- {type(e).__name__}: {e}")
         failures.append(("settings app", [f"{type(e).__name__}: {e}"], ""))
 
+    # app tests: every tools/test_*.py runs on its own and must exit cleanly (they talk to local fakes, never the network)
+    try:
+        import glob
+        import subprocess as _subprocess
+        for script in sorted(glob.glob(os.path.join(REPO, "tools", "test_*.py"))):
+            done = _subprocess.run([sys.executable, script], capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace")
+            assert done.returncode == 0, f"{os.path.basename(script)}: {(done.stdout + done.stderr)[-300:]}"
+        print("ok   app tests")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL app tests   <- {type(e).__name__}: {e}")
+        failures.append(("app tests", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")

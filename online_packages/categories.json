@@ -5,6 +5,16 @@
     "blurb": "Get things done: lists, notes, calendar, clock"
   },
   {
+    "id": "ai",
+    "title": "AI assistants",
+    "blurb": "Chat with an AI model from the terminal"
+  },
+  {
+    "id": "media",
+    "title": "Audio and video",
+    "blurb": "Music, podcasts and players"
+  },
+  {
     "id": "games",
     "title": "Games",
     "blurb": "Something to play"

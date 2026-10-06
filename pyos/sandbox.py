@@ -97,6 +97,9 @@ def launch(script_path, args, folder, meta):
     env = dict(os.environ)
     env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
     from . import marketapi
+    libs = os.path.join(os.path.abspath(folder), ".libs")                # Python libraries the marketplace installed for this app (API 2)
+    if os.path.isdir(libs):
+        env["PYTHONPATH"] = libs + os.pathsep + env["PYTHONPATH"]
     env["PYOS_PACKAGE_API"] = str(marketapi.package_api(meta))      # the marketplace API the app was written for (the app can branch on it)
     runner = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sandbox_run.py")
     try:

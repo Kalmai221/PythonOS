@@ -1,0 +1,38 @@
+{
+  "name": "AI Assistant",
+  "description": "Chat with an AI model from the terminal. You choose the service (OpenAI, Anthropic, Gemini, OpenRouter, Ollama or your own address) and give your API key.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "assistant",
+  "alias": [
+    "ai",
+    "chat"
+  ],
+  "tags": [
+    "ai",
+    "chat",
+    "assistant",
+    "llm",
+    "openai",
+    "claude",
+    "gemini",
+    "ollama"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "network",
+    "files"
+  ],
+  "categories": [
+    "ai",
+    "productivity"
+  ],
+  "limits": {
+    "memory_mb": 128
+  },
+  "changelog": {
+    "1.0.0": "First release: asks which AI service to use and for your key, streams answers, keeps the conversation, saves it, works with OpenAI, Anthropic, Google Gemini, OpenRouter, Ollama and any OpenAI-compatible address."
+  }
+}

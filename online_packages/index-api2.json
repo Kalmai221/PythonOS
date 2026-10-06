@@ -1,6 +1,6 @@
 {
   "format": 2,
-  "api": 1,
+  "api": 2,
   "categories": [
     {
       "id": "productivity",
@@ -2819,6 +2819,62 @@
           "path": "run.py",
           "sha256": "ac724988a51d09cd79165e05459400c6fceb415706559c5ef05ef1681f982811",
           "size": 4563
+        }
+      ]
+    },
+    {
+      "api": 2,
+      "pip": [
+        "yt-dlp"
+      ],
+      "id": "utilities/ytaudio",
+      "category": "utilities",
+      "name": "YouTube Audio",
+      "description": "Search YouTube and play just the sound from the terminal, with a queue. Needs mpv, VLC or ffplay on the computer.",
+      "version": "1.1.0",
+      "command": "ytaudio",
+      "alias": [
+        "yt",
+        "youtube"
+      ],
+      "tags": [
+        "music",
+        "audio",
+        "youtube",
+        "player",
+        "playlist"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network",
+        "exec",
+        "files"
+      ],
+      "settings": [
+        "player",
+        "volume",
+        "results"
+      ],
+      "categories": [
+        "media"
+      ],
+      "changelog": {
+        "1.0.0": "First release: search, play a link or a playlist, queue, with mpv, VLC or ffplay.",
+        "1.1.0": "The yt-dlp library is now installed by the marketplace into the app's own folder (marketplace API 2), so nothing is asked the first time you run it."
+      },
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "6a8a31d9b1f93b04d67c31c93669ee9073dbaeb5d52515b8c7f6b58b7a1fa2c8",
+          "size": 1374
+        },
+        {
+          "path": "run.py",
+          "sha256": "c7bb58f193598ddacbd222d2ceb4a4536e4d8e48993edd6a53b52fc537a9ca39",
+          "size": 13052
         }
       ]
     }

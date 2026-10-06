@@ -1,6 +1,7 @@
 import difflib
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -127,6 +128,53 @@ def load_index():
             console.print("[dim]Check your internet connection. If you maintain the repo, run "
                           "'python tools/build_index.py' and push online_packages/index.json.[/dim]")
             return None, True
+
+
+# ------------------------------------------------------------ Python libraries (marketplace API 2)
+LIBS = ".libs"                                                  # inside the package folder; removed with it, and put on the app's search path
+
+
+def pip_available():
+    """(True, '') when this system can install Python libraries, else (False, why)."""
+    if lockdown.enabled():
+        return False, "this locked-down system does not install Python libraries"
+    try:
+        subprocess.run([sys.executable, "-m", "pip", "--version"], capture_output=True, timeout=30, check=True)
+    except (OSError, subprocess.SubprocessError):
+        return False, "pip is not available on this system (the Android app and the live ISO cannot install Python libraries)"
+    return True, ""
+
+
+def install_pip(specs, target):
+    """Install the libraries into `target` (wheels only: nothing is built or run from a downloaded source package). Raises RuntimeError."""
+    if not specs:
+        return
+    ok, why = pip_available()
+    if not ok:
+        raise RuntimeError(f"it needs Python libraries ({', '.join(specs)}), but {why}")
+    command = [sys.executable, "-m", "pip", "install", "--quiet", "--disable-pip-version-check", "--no-input", "--only-binary", ":all:",
+               "--target", str(target), "--upgrade", *specs]
+    extra = os.environ.get("PYOS_PIP_ARGS")                      # a test or an offline mirror: for example "--no-index --find-links DIR"
+    if extra:
+        import shlex
+        command += shlex.split(extra)
+    try:
+        with console.status(f"Installing Python libraries: {', '.join(specs)}..."):
+            done = subprocess.run(command, capture_output=True, text=True, timeout=900)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("installing the Python libraries took too long")
+    if done.returncode != 0:
+        lines = [l for l in (done.stderr or done.stdout).strip().splitlines() if l.strip()]
+        raise RuntimeError("pip could not install the Python libraries: " + (lines[-1] if lines else "no reason given"))
+
+
+def libs_ready(old_folder, specs):
+    """The old version's .libs folder, when it holds exactly these libraries already (an update does not download them again)."""
+    marker = old_folder / LIBS / ".specs"
+    try:
+        return json.loads(marker.read_text(encoding="utf-8")) == sorted(specs)
+    except (OSError, ValueError):
+        return False
 
 
 def fetch_file(pkg, entry):
@@ -339,6 +387,7 @@ def show_details(pkg, installed):
     lines = [
         escape(pkg.get("description", "")),
         "",
+        *([f"[bold]Libraries:[/bold] {escape(', '.join(pkg['pip']))} [dim](Python libraries from PyPI, kept inside the app)[/dim]"] if pkg.get("pip") else []),
         f"[bold]Version:[/bold]  {pkg['version']}" + (f"  [dim](marketplace API {marketapi.package_api(pkg)})[/dim]" if marketapi.package_api(pkg) > 1 else ""),
         f"[bold]Category:[/bold] {', '.join(category_title(c) for c in pkg.get('categories', [pkg['category']]))}",
         f"[bold]Start with:[/bold] [cyan]run {pkg['command']}[/cyan]" if pkg.get("command") else "[bold]Start with:[/bold] run programs",
@@ -425,6 +474,14 @@ def install_package(pkg, installed, quiet=False, reason="you asked for it", gran
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(data)
                 progress.advance(task)
+        specs = marketapi.pip_specs(pkg)                       # API 2: Python libraries, installed into the package's own .libs folder
+        if specs:
+            if dest.exists() and libs_ready(dest, specs):
+                shutil.copytree(dest / LIBS, tmp / LIBS)
+            else:
+                install_pip(specs, tmp / LIBS)
+                (tmp / LIBS).mkdir(exist_ok=True)
+                (tmp / LIBS / ".specs").write_text(json.dumps(sorted(specs)), encoding="utf-8")
         if dest.exists():
             dest.rename(old)
         tmp.rename(dest)
@@ -529,6 +586,9 @@ def show_install_plan(order, installed):
     for col in ("Package", "Version", "Size", "It will be able to"):
         table.add_column(col)
     for p in order:
+        if p.get("pip"):
+            console.print(f"[bold]{escape(p['name'])}[/bold] also downloads these Python libraries from PyPI (the standard Python library index): "
+                          f"[cyan]{escape(', '.join(p['pip']))}[/cyan]. They are kept inside the app's own folder and removed with it.")
         perms = p.get("permissions")
         what = sandbox.describe(perms) if perms is not None else "[yellow]not stated (an older package)[/yellow]"
         table.add_row(escape(p["name"]) + (" [dim](update)[/dim]" if p["id"] in installed else ""), p["version"], human(size_of(p)), what)
