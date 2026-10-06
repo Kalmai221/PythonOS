@@ -53,7 +53,13 @@ DATA_FILE_SIZE="$(stat -c %s "$WORK/$DATA" 2>/dev/null || stat -f %z "$WORK/$DAT
 SPARE="pythonos-$VERSION-spare.vmdk"
 SPARE_BYTES=$((8 * 1024 * 1024 * 1024))
 truncate -s "$SPARE_BYTES" "$WORK/spare.img"
+# A stream-optimised disk with no data at all has no blocks, and VirtualBox cannot import such a file (VERR_EOF while creating the medium).
+# So the disk carries a short label one megabyte in (never in the first sector, so no partition table or filesystem is suggested).
+printf 'PYTHONOS-SPARE-DISK (empty: installos can use it)
+' | dd of="$WORK/spare.img" bs=1M seek=1 conv=notrunc status=none
 qemu-img convert -f raw -O vmdk -o subformat=streamOptimized "$WORK/spare.img" "$WORK/$SPARE"
+# the converted disk must hold data (an empty one is the VERR_EOF import failure)
+qemu-img map --output=json "$WORK/$SPARE" | grep -q '"data": *true' || { echo "the spare disk image has no data blocks; VirtualBox could not import it" >&2; exit 1; }
 rm -f "$WORK/spare.img"
 SPARE_FILE_SIZE="$(stat -c %s "$WORK/$SPARE" 2>/dev/null || stat -f %z "$WORK/$SPARE")"
 cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
