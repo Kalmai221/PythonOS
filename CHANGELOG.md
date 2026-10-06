@@ -5,6 +5,15 @@ One section per release, newest first. The section for a version is shown to use
 
 ## Unreleased
 
+- Windows installer: the progress text under the bar is no longer cut off; updating keeps `config.json` (your settings) but now brings its version up to date, so the system reports the new version (issues 1 and 5).
+- YouTube Audio now plays the sound itself with pip libraries (`av`, `miniaudio`, installed by the marketplace): no mpv, VLC or ffplay, nothing outside PythonOS (issue 2).
+- Commands and apps can limit themselves to some exports (`"exports"`): `installos`, `persist`, `hwsetup` and the new `display` exist only on the ISO/VM; apps must run on the ISO/VM and list the exports they work on, shown in the store and the App Library (issues 3 and 6).
+- `updatecheck` on the live ISO / VM warns before downloading when there is no data disk to keep the update on (it would be gone after a restart); with the data disk (the VM images ship one) the update is kept (issue 4).
+- Terminal window on Windows: tables and wrapped text no longer break after the window is resized (issue 7).
+- New `display` command: change the console resolution on the ISO/VM; remembered at boot (issue 8).
+- Long output of listing commands (`ls`, `cat`, `man`, `history`...) is shown a screen at a time (settings `auto_page`), since the Linux console cannot scroll back (issue 9).
+- New setting `clear_style`: clear the screen before a command when the last output filled it (default) or before every command (issue 10).
+
 - Website: a "How do you want to run it?" row of cards (Windows, Android, Linux, USB, virtual machine, Docker, Setup Wizard) that takes you to the right download, a "See it" section with the file manager, task manager and settings, new feature and app cards, a Setup Wizard banner, a Recommended mark on the main file of each platform, a questions section, and better detection notes.
 
 ## 1.0.7

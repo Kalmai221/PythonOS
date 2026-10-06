@@ -506,6 +506,20 @@ def keep_across_restarts(files, version):
         pass
 
 
+def update_lasts_only_until_restart():
+    """A warning when an update here would be gone after a restart (the live ISO or a container with nowhere to keep it), else ''."""
+    try:
+        import core_overlay
+        if core_overlay.enabled():
+            return ""
+    except Exception:
+        pass
+    if os.environ.get("PYOS_LIVE") == "1" or os.environ.get("PYOS_VOLATILE") == "1":
+        return ("This system runs from memory and has no data disk to keep an update on: the update would be gone after a restart. "
+                "Set up persistent storage first (persist create; the VM images come with a data disk), or get the newer image.")
+    return ""
+
+
 def offer_restart():
     if Confirm.ask("Restart PythonOS now to use the new version?", default=True):
         import importlib.util
@@ -760,7 +774,10 @@ def update_packaged(current, auto_update):
         if manifest.get("notes"):
             console.print(Panel(str(manifest["notes"]), title="What's in it", border_style="dim", expand=False))
 
-        if not (auto_update or Confirm.ask("Install this update?", default=True)):
+        lasts = update_lasts_only_until_restart()
+        if lasts and not auto_update:
+            console.print(f"[yellow]{lasts}[/yellow]")
+        if not (auto_update or Confirm.ask("Install this update?", default=not lasts)):
             console.print("[bold yellow]Update cancelled.[/bold yellow]")
         else:
             zip_path = UPDATE_DIR / manifest["asset"]
