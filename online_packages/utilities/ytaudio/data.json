@@ -1,7 +1,7 @@
 {
   "name": "YouTube Audio",
   "description": "Search YouTube and play just the sound from the terminal, with a queue. Plays inside PythonOS itself: nothing else to install, no other program.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "scripts": {
     "run": "run.py"
   },
@@ -31,7 +31,8 @@
   "changelog": {
     "1.0.0": "First release: search, play a link or a playlist, queue, with mpv, VLC or ffplay.",
     "1.1.0": "The yt-dlp library is now installed by the marketplace into the app's own folder (marketplace API 2), so nothing is asked the first time you run it.",
-    "1.2.0": "Plays the sound itself (av and miniaudio libraries, installed by the marketplace); it no longer uses or needs mpv, VLC or ffplay."
+    "1.2.0": "Plays the sound itself (av and miniaudio libraries, installed by the marketplace); it no longer uses or needs mpv, VLC or ffplay.",
+    "1.2.1": "Declares where it works: Windows and Linux (the locked-down ISO cannot run apps with libraries; Android has no sound output for apps)."
   },
   "settings": [
     {
@@ -59,7 +60,6 @@
   ],
   "exports": [
     "windows",
-    "linux",
-    "iso"
+    "linux"
   ]
 }

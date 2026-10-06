@@ -53,16 +53,14 @@
       "api": 1,
       "pip": [],
       "exports": [
-        "android",
         "windows",
-        "linux",
-        "iso"
+        "linux"
       ],
       "id": "developer/python",
       "category": "developer",
       "name": "Python",
       "description": "Run Python files or use an interactive Python prompt.",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "command": "python",
       "alias": [],
       "tags": [
@@ -84,14 +82,15 @@
       ],
       "changelog": {
         "2.0.0": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
-        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "2.0.2": "Declares where it works: Windows and Linux (it starts the Python interpreter, which the locked-down ISO and Android do not allow)."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "7b1e62fa5b9ff3fda33b36250038ec51c1151e51930685ddd8a8e18e29238474",
-          "size": 716
+          "sha256": "cca911f04bc201f2205d5a431158fed24ae75517f6424f61294a7df3cb9f72af",
+          "size": 910
         },
         {
           "path": "run.py",
@@ -3161,8 +3160,6 @@
       "api": 1,
       "pip": [],
       "exports": [
-        "android",
-        "windows",
         "linux",
         "iso"
       ],
@@ -3170,7 +3167,7 @@
       "category": "utilities",
       "name": "Wi-Fi Meter",
       "description": "A live Wi-Fi signal meter to find the best spot (Linux and the live ISO).",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "command": "wifimeter",
       "alias": [
         "wifi"
@@ -3191,13 +3188,16 @@
         "network",
         "system"
       ],
-      "changelog": "First release.",
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.0.1": "Declares where it works: Linux, the ISO and VMs (it reads the Linux wireless status)."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "608869ff67085cdb3f89b97a96def0370f7f846430507c74133d47a58a1cef05",
-          "size": 442
+          "sha256": "0076ca18494b0732480418910947cede03b45647bb84ae28f1bf90b43f5627e7",
+          "size": 606
         },
         {
           "path": "run.py",

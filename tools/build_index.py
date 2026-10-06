@@ -144,8 +144,22 @@ def main():
                 exports = export.valid_exports(meta.get("exports"))
             except ValueError as e:
                 sys.exit(f"{category}/{name}: {e}")
-            if exports and "iso" not in exports:
-                sys.exit(f"{category}/{name}: an app must run on the bootable ISO (and the VM images made from it) as well as anything else it lists")
+            perms_declared = meta.get("permissions") or []
+            if exports and "iso" not in exports and not (pip or "exec" in perms_declared):
+                sys.exit(f"{category}/{name}: an app must run on the bootable ISO (and the VM images made from it) as well as anything else it lists. "
+                         "Only an app that needs Python libraries ('pip') or the 'exec' permission may leave it out: the locked-down ISO cannot run those")
+            scripts = meta.get("scripts") or {}
+            for key, target in scripts.items():
+                if key.startswith("run_"):
+                    if api < 2:
+                        sys.exit(f"{category}/{name}: per-export run files ('{key}') need \"api\": 2")
+                    if key[4:] not in export.TITLES:
+                        sys.exit(f"{category}/{name}: '{key}' is not a run file of an export (use run_{', run_'.join(export.TITLES)})")
+                if key == "run" or key.startswith("run_"):
+                    if not os.path.isfile(os.path.join(folder, target)):
+                        sys.exit(f"{category}/{name}: script '{key}' points at {target}, which is not in the package")
+            if "run" not in scripts and any(("run_" + x) not in scripts for x in (exports or list(export.TITLES))):
+                sys.exit(f"{category}/{name}: without a 'run' script there must be a run_<export> script for every export it works on")
             if str(meta.get("api", api)) != str(api) or not marketapi.OLDEST <= api <= marketapi.CURRENT:
                 sys.exit(f"{category}/{name}: data.json 'api' must be a whole number from {marketapi.OLDEST} to {marketapi.CURRENT} (the marketplace API versions that exist)")
             packages.append({

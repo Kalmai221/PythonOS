@@ -3,6 +3,10 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
+## Unreleased
+
+- Marketplace API 2: per-export run files (`run_windows`, `run_linux`, `run_android`, `run_iso` in `scripts`), checked by the catalog builder. Apps that need libraries or `exec` may leave the ISO out of their exports (ytaudio and python now say Windows and Linux; wifimeter says Linux and ISO).
+
 ## 1.0.8
 
 - Windows installer: the progress text under the bar is no longer cut off; updating keeps `config.json` (your settings) but now brings its version up to date, so the system reports the new version (issues 1 and 5).

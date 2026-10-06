@@ -11,7 +11,9 @@ Three things carry a version:
 Versions so far:
   1  the first marketplace: files, permissions, requires, settings
   2  a package may list Python libraries it needs ("pip": ["yt-dlp>=2024.1"]). The marketplace installs them (wheels only, from PyPI) into
-     the package's own .libs folder when the package is installed, shows them before asking, and removes them with the package
+     the package's own .libs folder when the package is installed, shows them before asking, and removes them with the package.
+     A package may also give a run file for one export ("scripts": {"run": "run.py", "run_windows": "run_windows.py", "run_iso": ...}):
+     the one for the export it runs in is used, else "run" (see run_script)
 
 Changing the marketplace (the plan):
   1. a change old systems could not cope with (a new data.json field they must honour, another permission model, a new catalog layout):
@@ -28,6 +30,15 @@ OLDEST = 1                           # the oldest package API it still runs
 
 # ADAPTERS[n](meta) turns the manifest (data.json) of an API n package into one that API n+1 rules understand.
 ADAPTERS = {1: lambda meta: dict(meta, pip=list(meta.get("pip") or []))}      # API 1 packages need no libraries
+
+
+def run_script(meta, platform=None):
+    """The file a package starts with in the export `platform` ("windows", "linux", "android", "iso"; None = unknown, a source checkout):
+    its "run_<platform>" script when it has one (API 2), else its "run" script, else None."""
+    scripts = (meta or {}).get("scripts") or {}
+    if platform and package_api(meta) >= 2 and scripts.get("run_" + platform):
+        return scripts["run_" + platform]
+    return scripts.get("run")
 
 
 def package_api(meta):

@@ -68,7 +68,7 @@ def load_installed_packages(base_path="files"):
                             continue
                         if command_name:
                             description = data.get("description", "No description available.")
-                            run_script = data.get("scripts", {}).get("run")
+                            run_script = pyos.marketapi.run_script(data, pyos.export.current())
                             if run_script:
                                 run_script_path = os.path.join(root, run_script)
                                 installed[command_name] = {

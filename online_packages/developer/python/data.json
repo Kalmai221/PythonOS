@@ -1,7 +1,7 @@
 {
   "name": "Python",
   "description": "Run Python files or use an interactive Python prompt.",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "scripts": {
     "run": "run.py"
   },
@@ -15,7 +15,8 @@
   ],
   "changelog": {
     "2.0.0": "No more IPython: run files or use a plain Python prompt straight away. Also: python <file>, python -c.",
-    "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+    "2.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+    "2.0.2": "Declares where it works: Windows and Linux (it starts the Python interpreter, which the locked-down ISO and Android do not allow)."
   },
   "lockdown_safe": false,
   "permissions": [
@@ -24,5 +25,9 @@
   ],
   "categories": [
     "developer"
+  ],
+  "exports": [
+    "windows",
+    "linux"
   ]
 }
