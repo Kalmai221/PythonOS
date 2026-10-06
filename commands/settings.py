@@ -76,6 +76,12 @@ def change(key, text):
 
 
 def menu():
+    from pyos import editor, settingsui
+    if editor.can_use_fullscreen():                          # the Settings app; a plain numbered menu where there is no full screen
+        stdio.fresh_screen()
+        user, role = pyos.userinfo()
+        settingsui.run(user, role)
+        return True
     keys = list(settings.SCHEMA)
     stdio.fresh_screen()
     while True:

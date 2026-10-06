@@ -450,6 +450,31 @@ def run(root):
         print(f"FAIL file manager   <- {type(e).__name__}: {e}")
         failures.append(("file manager", [f"{type(e).__name__}: {e}"], ""))
 
+    # the Settings app: its pages, changing a setting like `settings set`, and the screen starting and quitting
+    try:
+        from pyos import settingsui
+        names = [title for _gid, title, _fn in settingsui.pages()]
+        assert names[:2] == ["Display", "System"] and names[-3:] == ["Services", "Apps", "About"], names
+        every = {row.key for _gid, _title, fn in settingsui.pages() for row in fn() if row.kind == "setting"}
+        assert every == set(settings.SCHEMA), f"every setting must be on a page: {set(settings.SCHEMA) ^ every}"
+        assert settingsui.next_choice("clock_24h") is False or settings.get("clock_24h") is False
+        assert settingsui.apply_setting("memory_limit_mb", "2048", "smoke", "admin") == 2048 and settings.get("memory_limit_mb") == 2048
+        settings.reset("memory_limit_mb")
+        try:
+            settingsui.apply_setting("clock_24h", "perhaps", "smoke", "admin")
+            raise AssertionError("a bad value must be refused")
+        except ValueError:
+            pass
+        from prompt_toolkit.input import create_pipe_input
+        from prompt_toolkit.output import DummyOutput
+        with create_pipe_input() as pipe:
+            pipe.send_text("\tjj\tq")
+            settingsui.build("smoke", "admin", input=pipe, output=DummyOutput()).run()
+        print("ok   settings app")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL settings app   <- {type(e).__name__}: {e}")
+        failures.append(("settings app", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")
