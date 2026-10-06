@@ -1,5 +1,6 @@
 from rich.console import Console
 
+import core_video
 from core import hardware
 
 console = Console()
@@ -22,9 +23,10 @@ def execute(args=None):
         console.print("Screen: " + (f"{size[0]} x {size[1]}" if size else "unknown"))
         modes = hardware.display_modes()
         console.print("Resolutions it offers: " + (", ".join(modes) if modes else "none reported") + "\nChange it with: display 1280x720   (text size: display font)")
+        note = core_video.unavailable_reason()
+        if note:
+            console.print(f"[dim]{note}[/dim]")
         return True
     if args[0] in ("font", "size", "text"):
         return hardware.display_setup()
-    changed, message = hardware.set_resolution(args[0])
-    console.print(message)
-    return changed
+    return hardware.change_resolution(args[0])

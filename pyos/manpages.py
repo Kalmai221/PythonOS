@@ -249,8 +249,8 @@ page("whatsnew", "what the last update changed", ["whatsnew"],
      see=["updatecheck", "rollback", "version"])
 page("display", "change the screen resolution and text size (live ISO and VMs)",
      ["display", "display list", "display 1280x720", "display font"],
-     "Shows the console resolution and the ones the screen offers, and sets one (display 1280x720); it is remembered and applied at the next boot. "
-     "Some graphics drivers (most virtual machines) only run at the window size: then resize the VM window or its display setting. display font changes the text size.",
+     "Shows the console resolution and the ones the screen offers, and sets one (display 1280x720): the kernel restarts with that video= option (a few seconds, files and accounts kept) and the choice is applied again at every start. "
+     "If the firmware does not allow restarting the kernel, resize the VM window or its display setting instead. display font changes the text size.",
      [], ["hwsetup"]),
 page("hwsetup", "hardware, audio, network, Bluetooth, display and printer setup",
      ["hwsetup", "hwsetup check|audio|network|keyboard|timezone|bluetooth|display|printer"],

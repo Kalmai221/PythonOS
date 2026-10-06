@@ -29,6 +29,8 @@ from rich.panel import Panel
 from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
 
+import core_video
+
 console = Console()
 
 PREFS_FILE = os.path.join(".OSData", "hardware.json")     # saved choices; on the ISO this lives on the data disk
@@ -833,36 +835,44 @@ def display_setup():
     else:
         console.print("[dim]No console fonts are installed here, so the text size cannot be changed.[/dim]")
     modes = display_modes()
-    if modes and have("fbset"):
+    if modes:
         console.print("Resolutions this screen offers: " + ", ".join(modes[:10]) + "   (the display command sets one directly)")
-        want = Prompt.ask("Resolution to try, like 1280x720 (blank to keep it)", default="").strip()
-        if want:
-            console.print(set_resolution(want)[1])
-    elif modes:
-        console.print("[dim]The resolution can only be changed with the fbset tool, which is not installed.[/dim]")
+        reason = core_video.unavailable_reason()
+        if reason:
+            console.print(f"[dim]{reason}[/dim]")
+        else:
+            want = Prompt.ask("Resolution to switch to, like 1280x720 (blank to keep it)", default="").strip()
+            if want:
+                change_resolution(want)
     return True
 
 
-def set_resolution(want, save=True):
-    """Try to change the console resolution. Returns (changed, a message in rich markup)."""
+def change_resolution(want, ask=True):
+    """Switch the console to `want` (like 1280x720): checks it, asks, then restarts the kernel with it (core_video.py). Returns False when it
+    did not happen; when it works the system restarts and this does not return."""
     modes = display_modes()
-    if not have("fbset"):
-        return False, "[yellow]This system cannot change the resolution by itself (the fbset tool is not part of the image). The console follows the screen: in a virtual machine resize its window or change its display setting.[/yellow]"
-    if not re.fullmatch(r"\d{3,5}x\d{3,5}", want or ""):
-        return False, "[yellow]Give a resolution like 1280x720.[/yellow]"
+    if not core_video.valid(want):
+        console.print("[yellow]Give a resolution like 1280x720.[/yellow]")
+        return False
     if modes and want not in modes:
-        return False, "[yellow]The screen does not list that resolution.[/yellow] It offers: " + ", ".join(modes[:10])
-    w, h = want.split("x")
-    before = screen_size()
-    run(["fbset", "-xres", w, "-yres", h, "-vxres", w, "-vyres", h], timeout=10)
-    if screen_size() == (int(w), int(h)):
-        if save:
-            prefs = load_prefs().get("display", {})
-            prefs["mode"] = want
-            save_pref("display", prefs)
-        return True, f"[green]Resolution: {want}.[/green]"
-    return False, ("[yellow]This display only works at its native resolution (the graphics driver ignored the request).[/yellow] "
-                   + (f"Staying at {before[0]}x{before[1]}. In a virtual machine, change the size of its window or its display setting instead." if before else "Not changed."))
+        console.print("[yellow]The screen does not list that resolution.[/yellow] It offers: " + ", ".join(modes[:10]))
+        return False
+    if screen_size() == tuple(int(x) for x in want.split("x")):
+        console.print(f"[green]The screen is already {want}.[/green]")
+        return True
+    ok, message = core_video.prepare(want)
+    if not ok:
+        console.print(f"[yellow]{message}[/yellow] The console follows the screen: in a virtual machine, resize its window or change its display setting.")
+        return False
+    if ask and not Confirm.ask(f"Switch to {want}? PythonOS restarts the display (a few seconds; your files and accounts are kept)", default=True):
+        return False
+    prefs = load_prefs().get("display", {})
+    prefs["mode"] = want
+    save_pref("display", prefs)
+    console.print(f"[green]Switching to {want}...[/green] It is remembered for the next start.")
+    core_video.jump()
+    console.print("[yellow]The switch did not start. The setting is kept, and applies at the next start.[/yellow]")
+    return False
 
 
 # --------------------------------------------------------------------- printer
@@ -972,8 +982,6 @@ def apply_saved():
         display = prefs.get("display") or {}
         if display.get("font"):
             apply_font(display["font"])
-        if display.get("mode") and have("fbset"):
-            set_resolution(display["mode"], save=False)
         for mac in prefs.get("bluetooth", []):
             if have("bluetoothctl") and MAC_RE.match(mac):
                 threading.Thread(target=run, args=(["bluetoothctl", "connect", mac], 30), daemon=True).start()

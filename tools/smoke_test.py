@@ -197,6 +197,22 @@ def run(root):
         print(f"FAIL core overlay   <- {type(e).__name__}: {e}")
         failures.append(("core overlay", [f"{type(e).__name__}: {e}"], ""))
 
+    # the resolution switch (kexec with video=): only a checked WxH ever reaches the kernel command line
+    try:
+        import core_video
+        assert core_video.valid("1280x720") and not core_video.valid("1280x720 init=/bin/sh") and not core_video.valid("99999x1")
+        assert core_video.cmdline_with("quiet video=800x600 loglevel=3", "1920x1080") == "quiet loglevel=3 video=1920x1080"
+        assert core_video.current_mode("a video=Virtual-1:1280x720") == "1280x720" and core_video.current_mode("quiet") is None
+        try:
+            core_video.cmdline_with("quiet", "1280x720 init=/bin/sh")
+            raise AssertionError("an unchecked value reached the command line")
+        except ValueError:
+            pass
+        print("ok   resolution switch (checked video= option)")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL resolution switch   <- {type(e).__name__}: {e}")
+        failures.append(("resolution switch", [f"{type(e).__name__}: {e}"], ""))
+
     # export update strategies: choosing files, commands and the parts that can be tried without root or a real disk
     try:
         import io
