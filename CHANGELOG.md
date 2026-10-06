@@ -11,11 +11,16 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
+- Optional libraries (new `requirements-extra.txt`; PythonOS uses each one when installed and works without it): `date -d "next friday"` and any date you write (python-dateutil); `file` says what a file is and `cat` no longer prints a picture or program as text (filetype; `cat --force` overrides); `web <url>` reads a web page as text with numbered links (beautifulsoup4, with a built-in fallback); `convert` turns JSON into YAML and back (PyYAML); `passwd` tells you honestly how strong a new password is (zxcvbn); better "did you mean" and help search (rapidfuzz); `uptime` in words (humanize).
+- New apps with libraries (marketplace API 2): **Units** (`pint`: `units 5 miles to km`, `units 20 degC to degF`, thousands of units) and **Image Viewer** (`Pillow` and `rich-pixels`: `imgview photo.jpg` draws a picture in colour in the terminal). Neither runs on the live USB.
+- Improved apps: **RSS** reads feeds that are not valid XML (feedparser), **JSON Formatter** reads and writes YAML, **Date Calculator** understands "next friday" and, with dateutil, almost any date, **Password Generator** also spots common passwords and patterns (zxcvbn).
+- The DNS reader no longer raises on a damaged or cut-short answer (property testing found it): `nslookup` says so instead.
 - A better prompt: with a real terminal, `Ctrl+R` searches your history as you type, a grey suggestion from your history appears (Right arrow accepts it), `Tab` shows a menu, and commands are coloured green when they exist and red when nothing could match. It works on Windows too. `history` can search (`history git`), show the last N, or clear (`-c`); `!!`, `!n`, `!-n` and `!word` repeat earlier commands. New settings `fancy_prompt` (off = the plain prompt) and `prompt_keys` (the prompt now uses emacs-style keys by default; `settings set prompt_keys vi` brings vi back).
 - `cat` colours code, JSON, Markdown and other known file types on a terminal (`--plain` turns it off; piped output is never coloured).
 
 ### Exports
 
+- The optional libraries (requirements-extra.txt) come with the Windows installer (installed once, in the background of the first start), the Linux launcher, the Docker image, the bootable USB and virtual machines (as Alpine packages) and, for the ones that are pure Python, the Android app.
 - The Windows web installer now also applies the newest PythonOS files of the release (the core update, checked against the release checksums) on top of the package. A release does not rebuild a package that did not change, so it could hold an older PythonOS than the release is called: 1.0.9 re-attached the 1.0.8 Windows package, and installing or updating from it said it had updated while still running 1.0.8.
 - The VM `.ova` imports in VirtualBox again: the empty third disk added in 1.0.9 had no data blocks at all, which VirtualBox cannot import (VERR_EOF). It now carries a short label, and the build stops if the disk has no data.
 
@@ -25,6 +30,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### Development
 
+- Property tests with hypothesis (`tools/test_properties.py`), tests of every optional-library feature with and without the library (`tools/test_libs.py`), of the library apps (`tools/test_pipapps.py`) and of the prompt (`tools/test_prompt.py`); `requirements-dev.txt` lists the libraries the tests and CI use. New docs page: Libraries.
 - The website is built from `site_src/` by `tools/build_site.py` (the command reference is generated from the manual), and CI checks that `site/` is current and that its links and scripts work. There is now a `CONTRIBUTING.md` and a pull request template.
 
 ## 1.0.9

@@ -1964,7 +1964,7 @@
       "category": "utilities",
       "name": "Date Calculator",
       "description": "Days between dates, add or subtract time, day of the week, ages and countdowns.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "datecalc",
       "alias": [
         "date"
@@ -1983,18 +1983,21 @@
       "categories": [
         "tools"
       ],
-      "changelog": "First release.",
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.1.0": "Understands \"next friday\" and, with python-dateutil installed, almost any date you write."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "c80a548ebd66ba05084627756bec8afe8131bbd963d707ece68f80ece812ddda",
-          "size": 435
+          "sha256": "2f3488fd498d3e22854790d1391b28bdd81fc09a854a4152084ccea999c8dc50",
+          "size": 562
         },
         {
           "path": "run.py",
-          "sha256": "c019bd49385a4382ce1fda8411a773e692d45ecba70236c4b515655ab3094eb2",
-          "size": 6530
+          "sha256": "878486a9d378ed8a81d04f6ae6dc0716c4dadbc5a2ad713a02e0218c03ae4437",
+          "size": 7407
         }
       ]
     },
@@ -2359,6 +2362,57 @@
       ]
     },
     {
+      "api": 2,
+      "pip": [
+        "Pillow",
+        "rich-pixels"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/imgview",
+      "category": "utilities",
+      "name": "Image Viewer",
+      "description": "Show pictures in the terminal in colour: PNG, JPEG, GIF, BMP, WebP.",
+      "version": "1.0.0",
+      "command": "imgview",
+      "alias": [
+        "view"
+      ],
+      "tags": [
+        "image",
+        "picture",
+        "photo",
+        "viewer"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "media"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "e193644cfec648cc769e1970bb706d057547cfe91d42f42c0026573d7c7c2d87",
+          "size": 580
+        },
+        {
+          "path": "run.py",
+          "sha256": "5b47f2ec2993b743b4eb0e33f8f7b248088f7ade1d9e742df29b9abc96acfd5e",
+          "size": 4122
+        }
+      ]
+    },
+    {
       "api": 1,
       "pip": [],
       "exports": [
@@ -2372,7 +2426,7 @@
       "category": "utilities",
       "name": "JSON Formatter",
       "description": "Validate, pretty-print, minify and explore JSON, with the position of any mistake.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "jsonfmt",
       "alias": [
         "json"
@@ -2394,18 +2448,21 @@
         "developer",
         "tools"
       ],
-      "changelog": "First release.",
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.1.0": "Accepts YAML as well as JSON and can print YAML (--yaml), when PyYAML is installed."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "83500ed8a2a029b99c33b7e11645c9d2cd2ccc550398e566aa6d3bcb6a0274c4",
-          "size": 470
+          "sha256": "3786c564ab9519c12ffaf4e784bc7d117e4215cc6f378c08bd574d7f5e6fbad6",
+          "size": 589
         },
         {
           "path": "run.py",
-          "sha256": "13b027b5ef3454cfb21f4d15e7d7f6fbda4cbe2d8105469f94b054454d1fe274",
-          "size": 6215
+          "sha256": "fdade0afdf1f6679b3c70e99b02b75f004e9653c3149e1871722994127dbc309",
+          "size": 7210
         }
       ]
     },
@@ -2748,7 +2805,7 @@
       "category": "utilities",
       "name": "Password Generator",
       "description": "Random passwords and passphrases, and a strength checker. Nothing is saved.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "command": "passgen",
       "alias": [
         "password",
@@ -2767,18 +2824,21 @@
       "categories": [
         "tools"
       ],
-      "changelog": "First release.",
+      "changelog": {
+        "1.0.0": "First release.",
+        "1.1.0": "The strength check also spots common passwords, words and patterns when zxcvbn is installed."
+      },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "17f70726feff8611d17cd502a65866624d5db94bfbe63019c76d5b88cc595c55",
-          "size": 436
+          "sha256": "a5861deee55ab9e38f4b9560c845647afad128390393bace432a92c43e92a4e7",
+          "size": 564
         },
         {
           "path": "run.py",
-          "sha256": "8c72832c952f49839876140d6775072b78cd3f429242b8410db67bfd1ffa79c0",
-          "size": 9181
+          "sha256": "688c1250ccc95e1d61a9670c821de332029a3cb936d1740a10ed4d110abc08ab",
+          "size": 9733
         }
       ]
     },
@@ -3042,7 +3102,7 @@
       "category": "utilities",
       "name": "RSS Reader",
       "description": "Follow news feeds and read headlines, with offline copies.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "command": "rss",
       "alias": [
         "news"
@@ -3065,19 +3125,20 @@
       ],
       "changelog": {
         "1.0.0": "First release.",
-        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+        "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+        "1.1.0": "Reads feeds that are not valid XML too, when the feedparser library is installed."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "290eeffb9a6e5746ccf45ec3d0c873187dea270f68f60d4b65ebae1c4f250511",
-          "size": 628
+          "sha256": "d605b34d581b25d826812873e52795d72d18d1fa892cf499138b4a91123ebb27",
+          "size": 726
         },
         {
           "path": "run.py",
-          "sha256": "a5e7bfb89a677379a2001f85eb716368ed68b30ebc2298c98dfc54e0efd0a35a",
-          "size": 6494
+          "sha256": "b17017f6382f51d2baee120bbb594c455685af1537806fa77a23f898059bb4bf",
+          "size": 7497
         }
       ]
     },
@@ -3490,6 +3551,54 @@
           "path": "run.py",
           "sha256": "144e5e797d13f74d9d20afe0164b6e290bec469f06f340a6e6229e659417215b",
           "size": 3453
+        }
+      ]
+    },
+    {
+      "api": 2,
+      "pip": [
+        "pint"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/units",
+      "category": "utilities",
+      "name": "Units",
+      "description": "Convert between thousands of units and calculate with them: miles to km, degC to degF, km/h to mph, cups to ml.",
+      "version": "1.0.0",
+      "command": "units",
+      "alias": [
+        "unit"
+      ],
+      "tags": [
+        "convert",
+        "units",
+        "measure",
+        "science"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "a1edb6c953e2d6f2caf9b97c4a6eae87af9522301b9742675ae76063501d7c0a",
+          "size": 582
+        },
+        {
+          "path": "run.py",
+          "sha256": "b00e9e68c62b90436ce6df2705c77fd04be931aaea4ad67164e52502794dad6f",
+          "size": 4359
         }
       ]
     },

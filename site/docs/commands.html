@@ -31,7 +31,7 @@
 </header>
 
 <div class="wrap docs">
-<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html" aria-current="page">Command reference</a></li><li><a href="recovery.html">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html">Pull requests</a></li><li><a href="testing.html">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
+<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html" aria-current="page">Command reference</a></li><li><a href="recovery.html">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html">Pull requests</a></li><li><a href="libraries.html">Libraries</a></li><li><a href="testing.html">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
 <main id="main" class="doc">
 <h1>Command reference</h1>
 <p class="lead">Every command in PythonOS, from the manual that ships with it. Inside PythonOS the same text is <code>man &lt;command&gt;</code>, and <code>help</code> lists the groups.</p>
@@ -50,9 +50,9 @@
 <section class="cmd" id="cmd-cat" data-name="cat">
 <h3>cat</h3>
 <p class="summary">show a file</p>
-<pre><code>cat [--plain] &lt;file&gt;...
+<pre><code>cat [--plain] [--force] &lt;file&gt;...
 &lt;command&gt; | cat</code></pre>
-<p>Prints files exactly as they are. On a terminal, code, JSON, Markdown and other known file types are coloured; --plain turns that off, and piped output is never coloured. With no file it prints what was piped into it.</p>
+<p>Prints files exactly as they are. On a terminal, code, JSON, Markdown and other known file types are coloured; --plain turns that off, and piped output is never coloured. A file that is not text (a picture, a program) is not printed unless you add --force; file says what it is. With no file it prints what was piped into it.</p>
 <pre><code><span class="g">$</span> cat notes.txt  <span class="d"># read a file</span>
 <span class="g">$</span> cat a.txt b.txt &gt; both.txt  <span class="d"># join two files</span></code></pre>
 <p class="muted">See also: <a href="#cmd-head"><code>head</code></a>, <a href="#cmd-tail"><code>tail</code></a>, <a href="#cmd-edit"><code>edit</code></a>.</p>
@@ -68,6 +68,16 @@
 <span class="g">$</span> cd /tmp  <span class="d"># go to the shared temporary folder</span>
 <span class="g">$</span> cd  <span class="d"># go home</span></code></pre>
 <p class="muted">See also: <a href="#cmd-pwd"><code>pwd</code></a>, <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-files"><code>files</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-convert" data-name="convert">
+<h3>convert</h3>
+<p class="summary">convert a data file between JSON and YAML</p>
+<pre><code>convert &lt;file&gt; [--to json|yaml] [-o output]</code></pre>
+<p>Reads a JSON or YAML file and writes it in the other format, to the screen or to a file. YAML needs the PyYAML library. yaml is the same command.</p>
+<pre><code><span class="g">$</span> convert settings.json  <span class="d"># show it as YAML</span>
+<span class="g">$</span> convert config.yml -o config.json</code></pre>
+<p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>, <a href="#cmd-edit"><code>edit</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-cp" data-name="cp">
@@ -104,6 +114,15 @@
 <p>PythonOS&#x27;s own editor. On a real terminal it opens full screen: type to edit, Ctrl+S saves, Ctrl+Q quits (twice if there are unsaved changes). On the Android app and in pipes it is a line editor: a adds lines (a single . finishes), p shows them, d deletes, r replaces, s changes text, f finds, u undoes, w saves, q quits, h shows help. A missing file is created when you save.</p>
 <pre><code><span class="g">$</span> edit notes.txt  <span class="d"># open or create a file</span></code></pre>
 <p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>, <a href="#cmd-touch"><code>touch</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-file" data-name="file">
+<h3>file</h3>
+<p class="summary">say what a file is</p>
+<pre><code>file &lt;path&gt;...</code></pre>
+<p>Looks at the first bytes of a file and says what it is: an image, a program, an archive, a kind of text, or binary data. Uses the filetype library when it is installed.</p>
+<pre><code><span class="g">$</span> file photo.jpg  <span class="d"># image/jpeg (jpg)</span></code></pre>
+<p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>, <a href="#cmd-stat"><code>stat</code></a>, <a href="#cmd-ls"><code>ls</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-find" data-name="find">
@@ -1090,6 +1109,17 @@ tracert -m 15 &lt;host&gt;</code></pre>
 <p>Shows every router between this computer and the host, with three timings each (traceroute is the same command). On Windows it uses the system&#x27;s own ICMP service, on Linux and the ISO the kernel&#x27;s error queue, so no special rights are needed; a * means that router did not answer.</p>
 <pre><code><span class="g">$</span> tracert example.com</code></pre>
 <p class="muted">See also: <a href="#cmd-ping"><code>ping</code></a>, <a href="#cmd-nslookup"><code>nslookup</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-web" data-name="web">
+<h3>web</h3>
+<p class="summary">read a web page as text</p>
+<pre><code>web &lt;url&gt;
+web -l &lt;url&gt;</code></pre>
+<p>Fetches a page and shows its title, its text and its links, numbered. -l shows only the links. Pages up to 4 MB; for a file, use wget. Uses beautifulsoup4 when it is installed. browse is the same command.</p>
+<pre><code><span class="g">$</span> web example.com
+<span class="g">$</span> web -l https://news.ycombinator.com  <span class="d"># just the links</span></code></pre>
+<p class="muted">See also: <a href="#cmd-curl"><code>curl</code></a>, <a href="#cmd-wget"><code>wget</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-wget" data-name="wget">

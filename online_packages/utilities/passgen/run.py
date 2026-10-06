@@ -125,6 +125,14 @@ def show_strength(password):
         tips.append("add a symbol, or use a long passphrase instead")
     if tips:
         console.print("[dim]Tips: " + "; ".join(tips) + ".[/dim]")
+    try:                                                   # zxcvbn (when installed) spots common passwords, words, dates and keyboard patterns
+        import zxcvbn
+        result = zxcvbn.zxcvbn(password[:72])
+        feedback = result.get("feedback", {})
+        note = feedback.get("warning") or (feedback.get("suggestions") or [""])[0]
+        console.print(f"[dim]Pattern check: {result['score']} of 4" + (f" - {note}" if note else "") + "[/dim]")
+    except Exception:                                      # noqa: BLE001 - optional
+        pass
 
 
 def main(args):

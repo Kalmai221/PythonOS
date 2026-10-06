@@ -1,7 +1,7 @@
 {
   "name": "Password Generator",
   "description": "Random passwords and passphrases, and a strength checker. Nothing is saved.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -20,5 +20,8 @@
   "categories": [
     "tools"
   ],
-  "changelog": "First release."
+  "changelog": {
+    "1.0.0": "First release.",
+    "1.1.0": "The strength check also spots common passwords, words and patterns when zxcvbn is installed."
+  }
 }

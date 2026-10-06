@@ -31,7 +31,19 @@ def parse_date(text, today=None):
             return datetime.datetime.strptime(text.replace(",", ""), fmt).date()
         except ValueError:
             pass
-    raise ValueError(f"'{text}' is not a date. Try 2026-12-25, 25/12/2026, today, tomorrow or +30.")
+    weekday = re.fullmatch(r"(next|last)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)", text)
+    if weekday:
+        names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        target = names.index(weekday.group(2))
+        if weekday.group(1) == "last":
+            return today - datetime.timedelta(days=(today.weekday() - target) % 7 or 7)
+        return today + datetime.timedelta(days=(target - today.weekday()) % 7 or (7 if weekday.group(1) else 0))
+    try:                                                   # python-dateutil, when installed, understands almost anything people write
+        from dateutil import parser as dateparser
+        return dateparser.parse(text, default=datetime.datetime.combine(today, datetime.time())).date()
+    except (ImportError, ValueError, OverflowError):
+        pass
+    raise ValueError(f"'{text}' is not a date. Try 2026-12-25, 25/12/2026, today, tomorrow, next friday or +30.")
 
 
 def add_months(date, months):

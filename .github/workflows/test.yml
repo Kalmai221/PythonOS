@@ -30,8 +30,8 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
-      - name: "Optional libraries (PythonOS works without them, so a failure here only skips their checks)"
-        run: pip install -r requirements-extra.txt || echo "some optional libraries could not be installed"
+      - name: "Optional libraries and test libraries (a failure here only skips their checks)"
+        run: pip install -r requirements-extra.txt hypothesis pint Pillow rich-pixels || echo "some optional libraries could not be installed"
       - name: Lockdown audit
         run: python tools/audit_lockdown.py
       - name: Smoke test
@@ -52,8 +52,8 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
-      - name: "Optional libraries (PythonOS works without them, so a failure here only skips their checks)"
-        run: pip install -r requirements-extra.txt || echo "some optional libraries could not be installed"
+      - name: "Optional libraries and test libraries (a failure here only skips their checks)"
+        run: pip install -r requirements-extra.txt hypothesis pint Pillow rich-pixels || echo "some optional libraries could not be installed"
       - name: Smoke test
         run: python tools/smoke_test.py
 
@@ -67,7 +67,7 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements.txt
-      - run: pip install -r requirements.txt flake8 vermin pylint ruff bandit
+      - run: pip install -r requirements.txt -r requirements-dev.txt
       - name: Code has no syntax errors or undefined names
         run: flake8 --select=E9,F63,F7,F82 --exclude=dist,scratch,.git .
       - name: Pylint (errors only, see .pylintrc)

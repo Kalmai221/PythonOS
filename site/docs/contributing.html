@@ -31,7 +31,7 @@
 </header>
 
 <div class="wrap docs">
-<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html">Command reference</a></li><li><a href="recovery.html">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html" aria-current="page">Pull requests</a></li><li><a href="testing.html">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
+<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html">Command reference</a></li><li><a href="recovery.html">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html" aria-current="page">Pull requests</a></li><li><a href="libraries.html">Libraries</a></li><li><a href="testing.html">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
 <main id="main" class="doc">
 <h1>Pull requests</h1>
 <p class="lead">Fixes, new commands, new apps, better docs: all welcome. This page is what to do from first clone to merge.</p>
@@ -69,7 +69,7 @@ python main.py                          run PythonOS from the checkout</pre>
 <ul>
   <li><strong>Match the code around yours.</strong> Same naming, same comment density, same style. A change should look like it was always there.</li>
   <li><strong>Python 3.9.</strong> No <code>match</code>, no <code>X | Y</code> in annotations that run at import. CI runs the tests on 3.9 and checks with <code>vermin</code>.</li>
-  <li><strong>No new dependencies</strong> unless there is no other way. The core uses the standard library plus <code>requirements.txt</code>.</li>
+  <li><strong>Few dependencies.</strong> The core needs only <code>requirements.txt</code>. A library that adds something is welcome as an <em>optional</em> one, with a fallback and a test that runs both ways: see <a href="../docs/libraries.html">Libraries</a>.</li>
   <li><strong>Work on every system.</strong> Windows, Linux and Android are all targets. Use <code>os.path</code>, do not assume <code>/</code> or a POSIX shell, and keep optional things (like a library) optional.</li>
   <li><strong>Running programs is reviewed.</strong> The live USB must never give a way out to the system underneath. <code>tools/audit_lockdown.py</code> fails on any new use of <code>subprocess</code>, <code>os.system</code>, <code>eval</code> and the like. If a change really needs one, add the file to <code>ALLOWED</code> in that script with the reason, and expect questions.</li>
   <li><strong>Say it plainly.</strong> Messages to the user are short, specific and say what to do next.</li>
@@ -125,7 +125,7 @@ python tools/build_site.py         the website is current (if you touched it)</p
   <li>When it is approved and green it is merged. Changes to PythonOS itself reach people with the next release. Apps and the website go live straight away.</li>
 </ol>
 <div class="callout"><p>Not sure whether something is wanted? Open an issue and ask. A short question costs less than a rejected pull request.</p></div>
-<nav class="page-nav" aria-label="Pages"><a href="apps-publish.html">&larr; Test and publish an app</a><a href="testing.html">Tests and CI &rarr;</a></nav>
+<nav class="page-nav" aria-label="Pages"><a href="apps-publish.html">&larr; Test and publish an app</a><a href="libraries.html">Libraries &rarr;</a></nav>
 </main>
 </div>
 

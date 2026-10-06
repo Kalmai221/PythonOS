@@ -1,0 +1,35 @@
+{
+  "name": "Units",
+  "description": "Convert between thousands of units and calculate with them: miles to km, degC to degF, km/h to mph, cups to ml.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "units",
+  "alias": [
+    "unit"
+  ],
+  "tags": [
+    "convert",
+    "units",
+    "measure",
+    "science"
+  ],
+  "lockdown_safe": false,
+  "permissions": [],
+  "categories": [
+    "tools"
+  ],
+  "changelog": "First release.",
+  "api": 2,
+  "pip": [
+    "pint"
+  ],
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 256
+  }
+}

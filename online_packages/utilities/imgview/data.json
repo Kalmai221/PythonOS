@@ -1,0 +1,38 @@
+{
+  "name": "Image Viewer",
+  "description": "Show pictures in the terminal in colour: PNG, JPEG, GIF, BMP, WebP.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "imgview",
+  "alias": [
+    "view"
+  ],
+  "tags": [
+    "image",
+    "picture",
+    "photo",
+    "viewer"
+  ],
+  "lockdown_safe": false,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "media"
+  ],
+  "changelog": "First release.",
+  "api": 2,
+  "pip": [
+    "Pillow",
+    "rich-pixels"
+  ],
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 512
+  }
+}

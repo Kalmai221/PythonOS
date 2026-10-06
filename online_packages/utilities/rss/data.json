@@ -1,7 +1,7 @@
 {
   "name": "RSS Reader",
   "description": "Follow news feeds and read headlines, with offline copies.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -18,7 +18,8 @@
   "lockdown_safe": true,
   "changelog": {
     "1.0.0": "First release.",
-    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly."
+    "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
+    "1.1.0": "Reads feeds that are not valid XML too, when the feedparser library is installed."
   },
   "permissions": [
     "network"

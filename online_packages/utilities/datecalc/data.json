@@ -1,7 +1,7 @@
 {
   "name": "Date Calculator",
   "description": "Days between dates, add or subtract time, day of the week, ages and countdowns.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "run": "run.py"
   },
@@ -20,5 +20,8 @@
   "categories": [
     "tools"
   ],
-  "changelog": "First release."
+  "changelog": {
+    "1.0.0": "First release.",
+    "1.1.0": "Understands \"next friday\" and, with python-dateutil installed, almost any date you write."
+  }
 }

@@ -56,7 +56,15 @@ def read_name(data, offset):
 
 
 def parse_response(data, ident=None):
-    """{'rcode', 'answers': [(name, type name, ttl, text)]} from a DNS reply."""
+    """{'rcode', 'answers': [(name, type name, ttl, text)]} from a DNS reply. Raises ValueError for anything that is not a complete, well-formed answer
+    (a short or damaged packet never raises anything else)."""
+    try:
+        return _parse_response(data, ident)
+    except (IndexError, struct.error, UnicodeError) as e:
+        raise ValueError(f"the answer is damaged or cut short ({type(e).__name__})") from e
+
+
+def _parse_response(data, ident=None):
     if len(data) < 12:
         raise ValueError("the answer is too short")
     got, flags, questions, answers = struct.unpack("!HHHH", data[:8])

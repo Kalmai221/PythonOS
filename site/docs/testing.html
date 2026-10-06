@@ -31,7 +31,7 @@
 </header>
 
 <div class="wrap docs">
-<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html">Command reference</a></li><li><a href="recovery.html">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html">Pull requests</a></li><li><a href="testing.html" aria-current="page">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
+<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html">Command reference</a></li><li><a href="recovery.html">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html">Pull requests</a></li><li><a href="libraries.html">Libraries</a></li><li><a href="testing.html" aria-current="page">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
 <main id="main" class="doc">
 <h1>Tests and CI</h1>
 <p class="lead">Every pull request runs the same checks you can run on your own computer. Run them first and CI will be green.</p>
@@ -49,7 +49,7 @@
     <tr><td><code>python OS_Export/ISO/check_packages.py</code></td><td>Every Alpine package the ISO asks for exists (needs a network).</td></tr>
   </tbody>
 </table></div>
-<p>The <code>tools/test_*.py</code> files each cover one area: <code>test_newapps.py</code> (the app logic), <code>test_netcmds.py</code> (DNS packets, argument parsing, no network), <code>test_recovery.py</code> (emergency console, safe mode, boot menu), <code>test_changelog.py</code>, <code>test_marketplace_pip.py</code>, <code>test_assistant.py</code>. Run one alone: <code>python tools/test_netcmds.py</code>.</p>
+<p>The <code>tools/test_*.py</code> files each cover one area: <code>test_newapps.py</code> (the app logic), <code>test_netcmds.py</code> (DNS packets, argument parsing, no network), <code>test_recovery.py</code> (emergency console, safe mode, boot menu), <code>test_changelog.py</code>, <code>test_marketplace_pip.py</code>, <code>test_assistant.py</code>, <code>test_prompt.py</code> (history, recall, colours, a real prompt session driven by piped keys), <code>test_libs.py</code> (every feature that uses an optional library, with the library and without it), <code>test_pipapps.py</code> (the apps that use pip libraries) and <code>test_properties.py</code> (property tests: random input to the DNS reader, the date parser, the pager, <code>cut</code>, <code>seq</code>, <code>tr</code> and more; install <code>hypothesis</code> to run it; see <a href="../docs/libraries.html">Libraries</a>). Run one alone: <code>python tools/test_netcmds.py</code>.</p>
 
 <h2 id="writing">Writing a test</h2>
 <p>For a command, add a line to <code>CHECKS</code> in <code>tools/smoke_test.py</code>: <code>("seq 3 | tac", "3\n2\n1", 0)</code> is the command, text its output must contain, and the exit status. For logic, add a file <code>tools/test_something.py</code> with a <code>main()</code> that asserts and prints one line when it passes. Tests must not need a network unless they say so, and must not touch your real data: the smoke test runs in a scratch copy, and new tests should use a temporary folder.</p>
@@ -75,7 +75,7 @@
   <li>The catalog and website checks fail when a generated file is stale. Run <code>python tools/build_index.py</code> or <code>python tools/build_site.py</code> and commit the result.</li>
   <li><code>pylint</code> reports errors only, with a few message types turned off because they are false alarms (the reasons are in <code>.pylintrc</code>). If you think it is wrong about your code, say so in the pull request.</li>
 </ul>
-<nav class="page-nav" aria-label="Pages"><a href="contributing.html">&larr; Pull requests</a><a href="releases.html">Changelog and releases &rarr;</a></nav>
+<nav class="page-nav" aria-label="Pages"><a href="libraries.html">&larr; Libraries</a><a href="releases.html">Changelog and releases &rarr;</a></nav>
 </main>
 </div>
 

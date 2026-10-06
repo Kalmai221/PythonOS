@@ -1,0 +1,10 @@
+# Libraries for the tests and checks (CI installs these; PythonOS itself never needs them)
+hypothesis      # property tests: random input to the parsers (tools/test_properties.py)
+pint            # tools/test_pipapps.py (the units app)
+Pillow          # tools/test_pipapps.py (the imgview app)
+rich-pixels     # tools/test_pipapps.py (the imgview app)
+flake8
+pylint
+ruff
+bandit
+vermin

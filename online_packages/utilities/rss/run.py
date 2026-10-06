@@ -50,11 +50,34 @@ def tag(el, name):
     return "", None
 
 
+def parse_with_feedparser(xml_bytes):
+    """The feed through the feedparser library (when installed), or None: it copes with feeds that are not quite valid XML."""
+    try:
+        import feedparser
+    except ImportError:
+        return None
+    try:
+        parsed = feedparser.parse(xml_bytes)
+        if not parsed.entries:
+            return None
+        items = [{"title": strip_html(e.get("title", "")), "link": e.get("link", ""), "summary": strip_html(e.get("summary", "")),
+                  "date": (e.get("published") or e.get("updated") or "")[:25]} for e in parsed.entries]
+        return strip_html(parsed.feed.get("title", "")), items
+    except Exception:                                      # noqa: BLE001 - fall back to the built-in reader
+        return None
+
+
 def parse_feed(xml_bytes):
     """Return (title, [{title, link, summary, date}]) for RSS 2.0 or Atom."""
     if b"<!DOCTYPE" in xml_bytes[:2000] and b"<!ENTITY" in xml_bytes[:4000]:
         raise ValueError("feed uses XML entities, which are not allowed")
-    root = ET.fromstring(xml_bytes)
+    try:
+        root = ET.fromstring(xml_bytes)
+    except ET.ParseError:
+        found = parse_with_feedparser(xml_bytes)             # not valid XML: the library may still make sense of it
+        if found is None:
+            raise
+        return found
     channel = root.find("channel") if root.tag.split("}")[-1] == "rss" else root
     title, _ = tag(channel, "title")
     items = []

@@ -20,10 +20,19 @@ console = Console()
 
 
 def parse(text):
-    """Returns (value, None) or (None, message with the position of the first mistake and a hint)."""
+    """Returns (value, None) or (None, message with the position of the first mistake and a hint). Text that is not JSON but is valid YAML
+    is accepted too when PyYAML is installed (JSON is YAML, and so are most config files)."""
     try:
         return json.loads(text), None
     except json.JSONDecodeError as e:
+        if not text.lstrip().startswith(("{", "[")):
+            try:
+                import yaml  # noqa: F401
+                value = yaml.safe_load(text)
+                if isinstance(value, (dict, list)):
+                    return value, None
+            except Exception:                              # noqa: BLE001 - not YAML either: report the JSON mistake
+                pass
         lines = text.splitlines()
         context = lines[e.lineno - 1] if 0 < e.lineno <= len(lines) else ""
         hint = ""
@@ -81,13 +90,16 @@ def tree(value, label="$"):
     return root
 
 
-def render(value, minify=False, sort=False):
+def render(value, minify=False, sort=False, as_yaml=False):
+    if as_yaml:
+        import yaml
+        return yaml.safe_dump(value, allow_unicode=True, sort_keys=sort, default_flow_style=False).rstrip("\n")
     if minify:
         return json.dumps(value, separators=(",", ":"), ensure_ascii=False, sort_keys=sort)
     return json.dumps(value, indent=2, ensure_ascii=False, sort_keys=sort)
 
 
-def process(text, minify=False, sort=False, path=None, show_tree=False, out=None):
+def process(text, minify=False, sort=False, path=None, show_tree=False, out=None, as_yaml=False):
     value, error = parse(text)
     if error:
         console.print(f"[bold red]Not valid JSON:[/bold red] {escape(error)}", highlight=False)
@@ -101,7 +113,13 @@ def process(text, minify=False, sort=False, path=None, show_tree=False, out=None
     if show_tree:
         console.print(tree(value))
         return True
-    text_out = render(value, minify, sort)
+    if as_yaml:
+        try:
+            import yaml  # noqa: F401
+        except ImportError:
+            console.print("[red]--yaml needs the PyYAML library, which is not installed here.[/red]")
+            return False
+    text_out = render(value, minify, sort, as_yaml)
     if out:
         try:
             with open(fs.resolve(out, write=True) if fs else out, "w", encoding="utf-8") as f:
@@ -111,13 +129,13 @@ def process(text, minify=False, sort=False, path=None, show_tree=False, out=None
             console.print(f"[red]{escape(fs.errtext(e) if fs else str(e))}[/red]")
             return False
         return True
-    console.print(Syntax(text_out, "json", word_wrap=True))
-    console.print(f"[green]Valid JSON[/green] [dim]({len(text_out)} characters)[/dim]")
+    console.print(Syntax(text_out, "yaml" if as_yaml else "json", word_wrap=True))
+    console.print(f"[green]Valid[/green] [dim]({len(text_out)} characters)[/dim]")
     return True
 
 
 def main(args):
-    flags = {"--minify": False, "--sort": False, "--tree": False}
+    flags = {"--minify": False, "--sort": False, "--tree": False, "--yaml": False}
     path = out = None
     rest = []
     i = 0
@@ -141,7 +159,7 @@ def main(args):
         except (OSError, PermissionError) as e:
             console.print(f"[red]{escape(rest[0])}: {escape(fs.errtext(e) if fs else str(e))}[/red]")
             return
-        process(text, flags["--minify"], flags["--sort"], path, flags["--tree"], out)
+        process(text, flags["--minify"], flags["--sort"], path, flags["--tree"], out, flags["--yaml"])
         return
     console.print("[dim]Paste JSON, then a line with just a dot (.) to finish; blank to quit.[/dim]")
     while True:
@@ -156,7 +174,7 @@ def main(args):
             lines.append(line)
         if not "".join(lines).strip():
             return
-        process("\n".join(lines), flags["--minify"], flags["--sort"], path, flags["--tree"], out)
+        process("\n".join(lines), flags["--minify"], flags["--sort"], path, flags["--tree"], out, flags["--yaml"])
 
 
 def execute(args=None):

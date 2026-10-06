@@ -1,0 +1,63 @@
+<!--
+title: Libraries
+description: The Python libraries PythonOS uses, which are optional, what each one adds, and the libraries used only for tests.
+nav: docs
+section: docs
+group: Contributing
+order: 15
+-->
+<h1>Libraries</h1>
+<p class="lead">PythonOS needs very little to start. Everything else is optional: when a library is installed PythonOS uses it, and when it is not, the feature still works in a simpler way or says plainly what is missing.</p>
+
+<h2 id="required">Required</h2>
+<p>These are in <code>requirements.txt</code>. PythonOS does not start without them, so the list is kept short: changing it makes Android and the bootable USB need a new package.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Library</th><th>Used for</th></tr></thead>
+  <tbody>
+    <tr><td><code>rich</code></td><td>All the output: tables, panels, colours, progress.</td></tr>
+    <tr><td><code>prompt_toolkit</code></td><td>The prompt (history search, suggestions, completion menu, coloured commands), the editor, the file manager and the settings app.</td></tr>
+    <tr><td><code>psutil</code></td><td>Processes, memory, disks and network information.</td></tr>
+    <tr><td><code>requests</code></td><td>Web requests: updates, the marketplace, <code>curl</code>, <code>wget</code>, <code>web</code>.</td></tr>
+    <tr><td><code>pygments</code></td><td>Syntax colours in <code>cat</code>.</td></tr>
+    <tr><td><code>yaspin</code></td><td>The spinner on the boot and shutdown screens.</td></tr>
+    <tr><td><code>tzdata</code></td><td>Time zones on systems that have none of their own.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="optional">Optional</h2>
+<p>These are in <code>requirements-extra.txt</code>. The Windows installer, the Linux launcher, the Docker image and the bootable USB include them; the Android app includes the ones that are pure Python.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Library</th><th>What it adds</th><th>Without it</th></tr></thead>
+  <tbody>
+    <tr><td><code>python-dateutil</code></td><td><code>date -d</code> understands almost any date you write; <code>datecalc</code> too.</td><td>Today, tomorrow, weekdays, "3 days ago", "+2 weeks" and ISO dates still work.</td></tr>
+    <tr><td><code>humanize</code></td><td>Times in words (<code>uptime</code>).</td><td>The plain clock time.</td></tr>
+    <tr><td><code>zxcvbn</code></td><td>Real advice on a new password in <code>passwd</code> and the <code>passgen</code> app: common passwords, words, dates, keyboard patterns.</td><td>A simple length and variety check.</td></tr>
+    <tr><td><code>filetype</code></td><td><code>file</code> recognises hundreds of formats; <code>cat</code> does not print a picture as text.</td><td>A table of the common formats.</td></tr>
+    <tr><td><code>beautifulsoup4</code></td><td><code>web</code> reads messy pages better.</td><td>A reader built on the standard library.</td></tr>
+    <tr><td><code>pyyaml</code></td><td><code>convert</code> between JSON and YAML; <code>jsonfmt</code> reads and writes YAML.</td><td>JSON only, and a message that says why.</td></tr>
+    <tr><td><code>rapidfuzz</code></td><td>Better "did you mean" and help search with typos.</td><td>The standard library's <code>difflib</code>.</td></tr>
+    <tr><td><code>feedparser</code></td><td>The <code>rss</code> app reads feeds that are not valid XML.</td><td>The built-in feed reader.</td></tr>
+  </tbody>
+</table></div>
+<p>Code asks for an optional library through <code>pyos.optional</code> (<code>optional.get("yaml")</code> returns the module or <code>None</code>). Write the fallback first, then the improvement. <code>tools/test_libs.py</code> tests every one of these features both with the library and without it.</p>
+
+<h2 id="app-libs">Libraries for apps</h2>
+<p>An app that needs a library of its own lists it in <code>data.json</code> (marketplace API 2, see the <a href="{{root}}docs/apps-api.html#pip">Apps API</a>). The marketplace installs it for that app only. Two apps do this today: <strong>Units</strong> (<code>pint</code>: thousands of units) and <strong>Image Viewer</strong> (<code>Pillow</code> and <code>rich-pixels</code>: pictures in the terminal). Apps with libraries do not run on the live USB.</p>
+
+<h2 id="dev">For tests only</h2>
+<p>Listed in <code>requirements-dev.txt</code>. PythonOS never needs them.</p>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td><code>hypothesis</code></td><td>Property tests (<code>tools/test_properties.py</code>): random input to the DNS reader, the date parser, the pager, <code>cut</code>, <code>seq</code>, <code>tr</code> and more, checking they never crash and keep their promises. It found real bugs in the DNS reader.</td></tr>
+    <tr><td><code>pint</code>, <code>Pillow</code>, <code>rich-pixels</code></td><td>So the two library apps can be tested.</td></tr>
+    <tr><td><code>flake8</code>, <code>pylint</code>, <code>ruff</code>, <code>bandit</code>, <code>vermin</code></td><td>The static checks in CI.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="adding">Adding a library</h2>
+<ol>
+  <li>Ask whether it must be required. Almost always the answer is no: make it optional, with a fallback.</li>
+  <li>For an optional library: add it to <code>requirements-extra.txt</code> with a comment saying what it adds, add the Alpine package to the ISO list in <code>OS_Export/ISO/mkimg.pythonos.sh</code> if one exists (CI checks the name), and add it to the Android list only if it is pure Python.</li>
+  <li>Use it through <code>pyos.optional</code>, write the fallback, and add a check to <code>tools/test_libs.py</code> that runs both ways.</li>
+  <li>Say what it does in this table.</li>
+</ol>
