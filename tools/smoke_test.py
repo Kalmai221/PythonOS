@@ -106,6 +106,17 @@ def run(root):
     finally:
         builtins.input = real_input
 
+    # the package sandbox must accept paths given as bytes (psutil lists /proc that way on Linux; this once crashed System Monitor on the ISO)
+    try:
+        from pyos import sandbox_run
+        guard = sandbox_run.Guard(["system"], os.path.join(root, "files"), "smoke/test")
+        guard.check_path(b"/proc", False)
+        guard.check_path(os.fsencode(os.path.join(root, "files")), False)
+        print("ok   sandbox accepts bytes paths")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL sandbox accepts bytes paths   <- {type(e).__name__}: {e}")
+        failures.append(("sandbox bytes paths", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")

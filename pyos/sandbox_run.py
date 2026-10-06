@@ -14,13 +14,15 @@ import sys
 import tempfile
 
 def _real(path):
+    if isinstance(path, bytes):                      # libraries such as psutil pass paths as bytes (os.listdir(b"/proc"))
+        path = os.fsdecode(path)
     return os.path.normcase(os.path.realpath(path))
 
 
 def _inside(path, root):
     try:
         return os.path.commonpath([path, root]) == root
-    except ValueError:
+    except (ValueError, TypeError):
         return False
 
 
