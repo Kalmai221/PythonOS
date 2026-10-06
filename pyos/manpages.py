@@ -28,8 +28,9 @@ page("cd", "change folder", ["cd [path]"],
      examples=[("cd docs", "go into docs"), ("cd ..", "go up one"), ("cd /tmp", "go to the shared temporary folder"), ("cd", "go home")],
      see=["pwd", "ls", "files"])
 page("pwd", "show the current folder", ["pwd"], "Prints where you are, for example /home/alex/docs.", see=["cd"])
-page("cat", "show a file", ["cat <file>...", "<command> | cat"],
-     "Prints files exactly as they are. With no file it prints what was piped into it.",
+page("cat", "show a file", ["cat [--plain] <file>...", "<command> | cat"],
+     "Prints files exactly as they are. On a terminal, code, JSON, Markdown and other known file types are coloured; --plain turns that off, and piped output is never coloured. "
+     "With no file it prints what was piped into it.",
      examples=[("cat notes.txt", "read a file"), ("cat a.txt b.txt > both.txt", "join two files")], see=["head", "tail", "edit"])
 page("head", "show the start of a file", ["head [-n N] [file]"], "Prints the first 10 lines (or N).",
      [("-n N", "how many lines")], [("head -n 3 log.txt", "first three lines"), ("ls | head -n 5", "first five names")], ["tail", "cat"])
@@ -126,7 +127,10 @@ page("clear", "clear the screen", ["clear [-x]"], "Wipes the terminal and its sc
      [("-x", "keep the scrollback")], [("clear", "wipe it all"), ("settings set auto_clear_lines 300", "tidy automatically")], ["settings"])
 page("echo", "print text", ["echo <text>"], "Prints its words.", examples=[("echo hello > hi.txt", "write a file")])
 page("date", "show the date and time", ["date"], "Prints the current day, date and time.", see=["uptime", "schedule"])
-page("history", "show earlier commands", ["history"], "Lists what you typed before; the up arrow recalls them.")
+page("history", "show earlier commands", ["history", "history 20", "history <word>", "history -c"],
+     "Lists what you typed before, searches it for a word, shows the last N, or clears it (-c). At the prompt, Ctrl+R searches as you type, the up arrow steps back, "
+     "the right arrow accepts the grey suggestion, and !! repeats the last command, !n command number n, !-n the n-th from last, !word the last one starting with word.",
+     examples=[("history git", "everything you typed that contains git"), ("!!", "run the last command again"), ("!ls", "run the last command that started with ls")], see=["settings", "alias"])
 page("whoami", "who am I", ["whoami"], "Shows your user name and whether you are an admin or a normal user.", see=["users"])
 
 # ------------------------------------------------------------------ jobs, scheduling, notifications

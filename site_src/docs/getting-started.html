@@ -21,7 +21,7 @@ help copy a file         ask in your own words
 help cp                  one command: usage, examples, related commands
 man cp                   the full manual page
 tutorial                 a guided tour that checks what you type</pre>
-<p>Press <kbd>Tab</kbd> to complete a command or a file name, and the up arrow to bring back an earlier line. <code>history</code> lists them.</p>
+<p>At the prompt, <kbd>Tab</kbd> completes a command or a file name and shows a menu when there is more than one match. <kbd>Ctrl</kbd>+<kbd>R</kbd> searches your history as you type, the up arrow steps back through it, and a grey suggestion from your history can be accepted with the right arrow. Commands are coloured: green when they exist, red when nothing could match. <code>history</code> lists what you typed (<code>history git</code> searches it), and <code>!!</code> repeats the last command. Do not like it? <code>settings set fancy_prompt off</code> gives the plain prompt, and <code>settings set prompt_keys vi</code> uses vi keys.</p>
 
 <h2 id="files">Files and folders</h2>
 <pre class="cmdline">pwd                      where am I

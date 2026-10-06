@@ -120,7 +120,7 @@ def make_prompt(username, role=None):
     path = fs.display(fs.current_dir(), tilde=True)
     sign = "#" if role == "admin" else "$"
     style = settings.get("prompt_style")
-    colour = os.name != "nt" and sys.stdout.isatty()
+    colour = sys.stdout.isatty() and (os.name != "nt" or pyos.prompt.enabled())     # the enhanced prompt shows colour on Windows too
     if style == "minimal":
         return f"{sign} "
     if style == "short":
@@ -132,6 +132,32 @@ def make_prompt(username, role=None):
     # \001 / \002 tell readline the escape codes take up no screen width
     return (f"\001{theme.ansi('prompt_user')}\002{username}@{host}\001\033[0m\002:"
             f"\001{theme.ansi('prompt_path')}\002{path}\001\033[0m\002{sign} ")
+
+
+def _is_known_command(word):
+    """Whether the first word of a command line is something that can run (for colouring it at the prompt)."""
+    return (word in BUILTINS or find_entry(available_commands, word) is not None or find_entry(available_programs, word) is not None
+            or word in pyos.shellvars.aliases())
+
+
+def _is_command_prefix(word):
+    names = BUILTINS + list(available_commands) + list(available_programs) + list(pyos.shellvars.aliases())
+    names += [a for table in (available_commands, available_programs) for entry in table.values() for a in entry["aliases"]]
+    return any(n.startswith(word) for n in names)
+
+
+def recall(line):
+    """Expand a history recall (!!, !n, !-n, !word). Returns (line to run, or None to skip, whether it was a recall)."""
+    if not line.startswith("!") or len(line) < 2 or line[1] == " ":
+        return line, False
+    expanded = pyos.prompt.expand_bang(line, pyos.prompt.history_lines())
+    if expanded is None:
+        console.print(f"[bold red]{escape(line)}: no such command in the history.[/bold red] [dim]history lists what you typed.[/dim]")
+        return None, True
+    console.print(f"[dim]{escape(expanded)}[/dim]")
+    if pyos.prompt.used():
+        pyos.prompt.append_history(expanded)
+    return expanded, True
 
 
 def invoke(module, args=None):
@@ -288,7 +314,7 @@ def run_stage(argv):
             return 1
         finally:
             if main_thread:
-                readline.parse_and_bind("set editing-mode vi")
+                readline.parse_and_bind("set editing-mode " + ("vi" if settings.get("prompt_keys") == "vi" else "emacs"))
             if stdio.overflowed() and stdio.fresh_screen():
                 console.print(f"[dim]{escape(args[0])} finished. Its output is gone from the screen; run it again or see 'history'.[/dim]")
 
@@ -663,7 +689,7 @@ def start_shell(username):
             pass
 
     readline.parse_and_bind("tab: complete")
-    readline.parse_and_bind("set editing-mode vi")
+    readline.parse_and_bind("set editing-mode " + ("vi" if settings.get("prompt_keys") == "vi" else "emacs"))
     setup_readline()
 
     try:
@@ -722,7 +748,7 @@ def start_shell(username):
         show_notifications(username)
         idle.waiting(True)
         try:
-            line = input(make_prompt(username, role)).strip()
+            line = pyos.prompt.read_line(make_prompt(username, role), complete, _is_known_command, _is_command_prefix).strip()
         except (KeyboardInterrupt, EOFError):
             if idle.fired:
                 idled_out = True
@@ -746,6 +772,9 @@ def start_shell(username):
 
         if not line:
             continue
+        line, was_recall = recall(line)
+        if line is None:
+            continue
 
         style = settings.get("clear_style")
         if line.split()[0] not in ("clear", "cls") and (style == "always" or (style == "overflow" and stdio.overflowed())):
@@ -767,7 +796,8 @@ def start_shell(username):
     pyos.tasks.end_session(shell_task)
     pyos.log.log("logout (idle)" if idled_out else "logout", user=username)
     try:
-        readline.write_history_file(HISTORY_FILE)
+        if not pyos.prompt.used():                 # the enhanced prompt already wrote every line to the same file
+            readline.write_history_file(HISTORY_FILE)
     except Exception:
         pass
     if idled_out:

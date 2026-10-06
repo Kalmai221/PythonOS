@@ -50,9 +50,9 @@
 <section class="cmd" id="cmd-cat" data-name="cat">
 <h3>cat</h3>
 <p class="summary">show a file</p>
-<pre><code>cat &lt;file&gt;...
+<pre><code>cat [--plain] &lt;file&gt;...
 &lt;command&gt; | cat</code></pre>
-<p>Prints files exactly as they are. With no file it prints what was piped into it.</p>
+<p>Prints files exactly as they are. On a terminal, code, JSON, Markdown and other known file types are coloured; --plain turns that off, and piped output is never coloured. With no file it prints what was piped into it.</p>
 <pre><code><span class="g">$</span> cat notes.txt  <span class="d"># read a file</span>
 <span class="g">$</span> cat a.txt b.txt &gt; both.txt  <span class="d"># join two files</span></code></pre>
 <p class="muted">See also: <a href="#cmd-head"><code>head</code></a>, <a href="#cmd-tail"><code>tail</code></a>, <a href="#cmd-edit"><code>edit</code></a>.</p>
@@ -446,8 +446,15 @@ export</code></pre>
 <section class="cmd" id="cmd-history" data-name="history">
 <h3>history</h3>
 <p class="summary">show earlier commands</p>
-<pre><code>history</code></pre>
-<p>Lists what you typed before; the up arrow recalls them.</p>
+<pre><code>history
+history 20
+history &lt;word&gt;
+history -c</code></pre>
+<p>Lists what you typed before, searches it for a word, shows the last N, or clears it (-c). At the prompt, Ctrl+R searches as you type, the up arrow steps back, the right arrow accepts the grey suggestion, and !! repeats the last command, !n command number n, !-n the n-th from last, !word the last one starting with word.</p>
+<pre><code><span class="g">$</span> history git  <span class="d"># everything you typed that contains git</span>
+<span class="g">$</span> !!  <span class="d"># run the last command again</span>
+<span class="g">$</span> !ls  <span class="d"># run the last command that started with ls</span></code></pre>
+<p class="muted">See also: <a href="#cmd-settings"><code>settings</code></a>, <a href="#cmd-alias"><code>alias</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-man" data-name="man">
