@@ -252,11 +252,33 @@ def _step(log, text):
     log(text)
 
 
+LOG = "/tmp/pythonos-install.log"
+
+
+def tail(text, lines=8):
+    """The last few non-empty lines of a tool's output, without the progress characters."""
+    kept = [l.strip() for l in (text or "").replace("\r", "\n").splitlines() if l.strip() and not set(l.strip()) <= set("#=-.")]
+    return " | ".join(kept[-lines:])
+
+
 def _must(code_out, what):
     code, out = code_out
     if code != 0:
-        raise InstallError(f"{what} failed: {(out or '').strip()[-300:] or 'exit code ' + str(code)}")
+        try:
+            with open(LOG, "a", encoding="utf-8") as f:
+                f.write(f"--- {what} (exit {code})\n{out or ''}\n")
+        except OSError:
+            pass
+        raise InstallError(f"{what} failed: {tail(out) or 'exit code ' + str(code)}")
     return out
+
+
+def check_repositories():
+    """The installer fetches the base system from Alpine's package repositories: say so before anything is erased when it cannot."""
+    code, out = hardware.run(["apk", "update"], timeout=120, merge=True)
+    if code != 0:
+        raise InstallError("the package repositories cannot be reached, and the installer needs them to fetch the base system. "
+                           f"Connect this computer to the internet first (hwsetup network). Detail: {tail(out, 4) or 'apk update failed'}")
 
 
 def root_partition(device_path):
@@ -287,12 +309,14 @@ def install(device_path, log=print, hostname="pyOS"):
     device, why = validate(device_path)
     if device is None:
         raise InstallError(why)
+    _step(log, "Checking that the base system can be fetched")
+    check_repositories()
     if device.get("is_data"):
         release_data_disk(lambda text: _step(log, text))
 
     _step(log, f"Partitioning and installing the base system on {device_path} (a few minutes)")
     _must(hardware.run(["setup-disk", "-m", "sys", "-s", "0", device_path], timeout=1800, text_input="y\n",
-                       env={"ERASE_DISKS": device_path}), "setup-disk")
+                       env={"ERASE_DISKS": device_path}, merge=True), "setup-disk")
     time.sleep(2)
 
     root = root_partition(device_path)
@@ -303,7 +327,7 @@ def install(device_path, log=print, hostname="pyOS"):
         packages = apk_packages()
         if packages:
             _must(hardware.run(["apk", "add", "--root", TARGET, "--keys-dir", "/etc/apk/keys", "--repositories-file", "/etc/apk/repositories",
-                                "--no-progress"] + packages, timeout=1200), "adding packages")
+                                "--no-progress"] + packages, timeout=1200, merge=True), "adding packages")
         source = SOURCE
         if not os.path.isdir(source):
             raise InstallError("the live system has no /opt/pythonos to copy")
