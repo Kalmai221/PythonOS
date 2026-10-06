@@ -61,6 +61,7 @@ def main():
         bad = os.path.join(folder, "bad.png")
         open(bad, "w").write("not an image")
         view.console = console
+        view.fs = None                                                     # the app runs on its own here: no PythonOS sandbox for the temporary file
         with console.capture() as shown:
             assert view.execute([bad]) is False
         assert "cannot show it" in shown.get()
