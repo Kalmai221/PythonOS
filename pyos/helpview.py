@@ -19,7 +19,7 @@ CATEGORIES = {
                        ["echo", "history", "clear", "man", "tutorial", "sort", "uniq", "cut", "tr", "diff", "xargs", "tee", "less",
                         "alias", "unalias", "export", "env", "watch", "time", "cowsay", "fortune", "rainbow"]),
     "Jobs and scheduling": ("Run things in the background or later",
-                            ["jobs", "fg", "kill", "sleep", "schedule", "notifications", "taskman"]),
+                            ["jobs", "fg", "kill", "sleep", "schedule", "notifications", "taskman", "ps", "service"]),
     "Accounts and security": ("Who you are and how the system protects itself",
                               ["whoami", "passwd", "su", "lock", "last", "logout", "manageusers", "logs", "doctor"]),
     "System": ("About this computer and its settings",

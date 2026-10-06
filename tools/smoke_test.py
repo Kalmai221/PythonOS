@@ -249,6 +249,23 @@ def run(root):
         print(f"FAIL export update strategies   <- {type(e).__name__}: {e}")
         failures.append(("export strategies", [f"{type(e).__name__}: {e}"], ""))
 
+    # the background services: define, list, stop, start, switch off and on
+    try:
+        shell.define_services()
+        pyos.services.start_all("smoke", light_mode=True)
+        steps = [("service", "Task Scheduler", 0), ("service stop scheduler", "stopped", 0), ("service stop scheduler", None, 1),
+                 ("service start scheduler", "started", 0), ("service disable idle-watch", "switched off", 0), ("service status idle-watch", "switched off", 0),
+                 ("service enable idle-watch", "will start", 0), ("service stop nosuch", None, 1)]
+        for line, expect, want in steps:
+            code, text = shell.run_captured(line)
+            assert code == want and (expect is None or expect in text), (line, code, text[-120:])
+        pyos.services.stop_all()
+        assert pyos.services.state("scheduler") == "stopped"
+        print("ok   services")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL services   <- {type(e).__name__}: {e}")
+        failures.append(("services", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")

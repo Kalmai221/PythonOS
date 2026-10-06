@@ -573,6 +573,42 @@ def show_notifications(username):
         console.print(f"[{style}]* {escape(n['title'])}:[/{style}] {message}")
 
 
+class _NoIdle:
+    """Stands in for the idle watch while that service is stopped or switched off."""
+    fired = False
+
+    def waiting(self, value):
+        pass
+
+
+NO_IDLE = _NoIdle()
+
+
+def define_services():
+    """The services a signed-in user has. `service` lists and controls them."""
+    from pyos import power, services
+    services.define("scheduler", "Task Scheduler", lambda user: scheduler.Scheduler(run_captured, user))
+    services.define("idle-watch", "Idle Session Watch", lambda user: IdleWatch(user))
+    services.define("battery-watch", "Battery Monitor",
+                    lambda user: power.Watcher(user, lambda text, level="info": notify.notify(text, title="Battery", level=level, user=user),
+                                               pyos.shutdown), critical=True)
+    services.define("memory-guard", "Memory Guard",
+                    lambda user: pyos.resources.Guard(lambda text, level="info": notify.notify(text, title="Memory", level=level, user=user)))
+
+    def update_check(user):
+        from core import sysupdate
+        thread = sysupdate.check_thread(user)
+        if thread is None:
+            raise RuntimeError("update checks are switched off (setting update_check) or this is a source checkout")
+        return thread
+    services.define("update-check", "Update Check", update_check, oneshot=True)
+    services.define("market-check", "Marketplace Update Check",
+                    lambda user: threading.Thread(target=_market_check, args=(user,), name="market-check", daemon=True),
+                    oneshot=True, skip_in_light_mode=True)
+    services.define("startup-items", "Startup Programs",
+                    lambda user: threading.Thread(target=_startup_items, args=(user,), name="startup-items", daemon=True), oneshot=True)
+
+
 def start_shell(username):
     global available_commands, available_programs
 
@@ -630,39 +666,15 @@ def start_shell(username):
     except Exception:
         pass
 
-    sched = scheduler.Scheduler(run_captured, username)
-    sched.start()
-    try:
-        from core import sysupdate
-        sysupdate.check_in_background(username)
-    except Exception:
-        pass
-
+    # The background services (see pyos/services.py and the service command): defined here, started unless switched off
     from core import liveboot
-    market = None
-    if not liveboot.light_mode():                   # light mode (little memory): skip the optional background work
-        market = threading.Thread(target=_market_check, args=(username,), name="market-check", daemon=True)
-        market.start()
-    startup_thread = threading.Thread(target=_startup_items, args=(username,), name="startup-items", daemon=True)
-    startup_thread.start()
-    from pyos import power
-    power_watch = power.Watcher(username, lambda text, level="info": notify.notify(text, title="Battery", level=level, user=username),
-                                pyos.shutdown)
-    power_watch.start()
-    guard = pyos.resources.Guard(lambda text, level="info": notify.notify(text, title="Memory", level=level, user=username))
-    guard.start()
-
+    define_services()
     last_activity = time.time()
-    idle = IdleWatch(username)
-    idle.start()
     idled_out = False
     shell_task = pyos.tasks.start_session(username)
-    for svc_name, svc_thread, svc_stop in (("scheduler", sched, sched.stop), ("idle-watch", idle, idle.stop),
-                                           ("battery-watch", power_watch, power_watch.stop), ("memory-guard", guard, guard.stop),
-                                           ("market-check", market, None), ("startup-items", startup_thread, None)):
-        if svc_thread is not None:
-            pyos.tasks.service(svc_name, svc_thread, username, svc_stop)
+    pyos.services.start_all(username, light_mode=liveboot.light_mode())
     while True:
+        idle = pyos.services.instance("idle-watch") or NO_IDLE
         role = pyos.userinfo()[1]
         tidy = settings.get("auto_clear_lines")
         if tidy and stdio.lines_on_screen() > tidy:
@@ -709,10 +721,7 @@ def start_shell(username):
             console.print("\n[bold yellow]^C[/bold yellow]")
         last_activity = time.time()
 
-    sched.stop()
-    idle.stop()
-    power_watch.stop()
-    guard.stop()
+    pyos.services.stop_all()
     pyos.tasks.end_session(shell_task)
     pyos.log.log("logout (idle)" if idled_out else "logout", user=username)
     try:

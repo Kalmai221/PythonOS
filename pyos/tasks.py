@@ -159,7 +159,8 @@ def service(name, thread, user=None, stop=None, cmd=None):
 
 
 DESCRIPTIONS = {"scheduler": "Task Scheduler", "idle-watch": "Idle Session Watch", "battery-watch": "Battery Monitor",
-                "memory-guard": "Memory Guard", "market-check": "Marketplace Update Check", "startup-items": "Startup Programs"}
+                "memory-guard": "Memory Guard", "market-check": "Marketplace Update Check", "startup-items": "Startup Programs",
+                "update-check": "Update Check"}
 
 
 def describe(task):

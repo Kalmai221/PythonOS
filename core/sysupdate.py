@@ -666,12 +666,13 @@ def check_export_update(timeout=8):
         return None
 
 
-def check_in_background(user):
-    """After login: look for updates at most once a day and leave notifications (never blocks the prompt)."""
+def check_thread(user):
+    """The thread (not started) that looks for updates at most once a day and leaves notifications; None when there is nothing to check
+    (updates switched off, or a source checkout). It is the update-check service."""
     import threading
     from pyos import notify, settings
     if not settings.get("update_check") or not packaged_version():
-        return
+        return None
 
     def work():
         try:
@@ -705,7 +706,14 @@ def check_in_background(user):
         except Exception:
             pass   # offline or GitHub unavailable - try again next time
 
-    threading.Thread(target=work, name="update-check", daemon=True).start()
+    return threading.Thread(target=work, name="update-check", daemon=True)
+
+
+def check_in_background(user):
+    """After login: look for updates at most once a day and leave notifications (never blocks the prompt)."""
+    thread = check_thread(user)
+    if thread is not None:
+        thread.start()
 
 
 def update_packaged(current, auto_update):

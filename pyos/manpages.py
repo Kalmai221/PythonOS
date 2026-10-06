@@ -166,6 +166,13 @@ page("taskman", "task manager", ["taskman", "top"], "Shows the tasks running ins
      "(scheduler, battery and memory watch...), background jobs and whatever is open (the marketplace, the editor, a game). Each has a "
      "PID, a parent, a state, CPU, memory and its command. Memory is shown against the memory PythonOS owns (see free). Stop a job with "
      "kill <pid>; administrators can also stop a service. The system tasks cannot be stopped.", see=["ps", "jobs", "kill", "free"])
+page("service", "the background services", ["service", "service status <name>", "service start|stop|restart <name>", "service enable|disable <name>"],
+     "Lists what runs in the background while you are signed in (scheduler, idle watch, battery monitor, memory guard, update checks, startup "
+     "programs) and whether each is running. Administrators can start, stop and restart a service, or disable it so it does not start at "
+     "sign-in. The battery monitor, which shuts the system down cleanly when the battery is nearly empty, asks for your password first. "
+     "Services also appear in taskman and ps.", examples=[("service stop scheduler", "scheduled tasks stop running until you start it again"),
+                                                         ("service disable market-check", "no more daily app update checks")],
+     see=["taskman", "ps", "schedule", "settings"])
 page("ps", "list tasks", ["ps [-a] [-l]"], "Lists your tasks (a short list), or with -a every task and with -l the full columns.",
      see=["taskman", "jobs", "kill"])
 page("logs", "system log", ["logs [N]", "logs --user U --level L --since T --until T --grep W", "logs --summary", "logs --crashes",
