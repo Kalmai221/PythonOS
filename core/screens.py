@@ -28,7 +28,7 @@ def _clear():
 
 
 def pause(seconds):
-    """Sleep, scaled by the boot_speed setting (normal = as written, fast = about a quarter, instant = none)."""
+    """Sleep for the given time scaled to the fixed boot pause (none in light mode)."""
     scale = settings.boot_pause() / 0.35
     if scale > 0 and seconds > 0:
         time.sleep(seconds * scale)

@@ -66,7 +66,6 @@ def run(root):
     import shell
 
     os.makedirs(".OSData", exist_ok=True)
-    settings.set("boot_speed", "instant")
     settings.set("notifications", False)
     users.save_users({"smoke": {"password": users.hash_password("Smoke-test-1!"), "role": "admin"}})
     users.save_session("smoke", "admin")

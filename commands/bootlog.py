@@ -22,9 +22,7 @@ def _show(boot, label):
         colour = COLOURS.get(s["status"], "white")
         table.add_row(str(i), s["name"], f"[{colour}]{s['status'].upper()}[/{colour}]", f"{s['ms']:.0f} ms", s.get("detail", ""))
     console.print(table)
-    animation = boot.get("animation_ms", 0)
-    console.print(f"Total [bold]{boot['total_ms'] / 1000:.2f} s[/bold]"
-                  + (f"  [dim](of which {animation / 1000:.2f} s is the boot animation pause; see: settings set boot_speed instant)[/dim]" if animation else ""))
+    console.print(f"Total [bold]{boot['total_ms'] / 1000:.2f} s[/bold]")
 
 
 def execute(args=None):

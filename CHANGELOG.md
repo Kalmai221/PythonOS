@@ -5,6 +5,7 @@ One section per release, newest first. The section for a version is shown to use
 
 ## Unreleased
 
+- The `bootspeed` command and the `boot_speed` setting are gone (boot pauses are a fixed short time; light mode has none). `bootlog` still shows what each start-up step took.
 - More realistic boot and shutdown. Boot is a log with time stamps (seconds since PythonOS started), a header that says what it runs on (version, processor, memory, mode), "Loaded/Checked/Started/Mounted ..." lines for each real step, new real steps (hardware detection, kernel services, file system check) and a "Reached target" line with the start-up time. Shutdown stops the services that are really running, newest first ("Stopped Task Scheduler.", "Stopped Battery Monitor."...), warns when one does not answer, then jobs, sign-out, log and file system, and ends with "Reached target Power-Off."
 
 ## 1.0.6

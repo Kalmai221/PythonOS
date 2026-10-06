@@ -103,9 +103,6 @@ def _look_and_feel():
             chosen = pick
             break
         chosen = pick
-    speed = Prompt.ask("Boot speed (how long the start-up animation takes)", choices=["normal", "fast", "instant"],
-                       default=settings.get("boot_speed"))
-    settings.set("boot_speed", speed)
 
 
 def _persistent_storage():

@@ -15,7 +15,6 @@ SCHEMA = {
     "language": ("auto", ("auto", "en", "es", "fr", "de"), "Language of the system's own messages (auto = follow the computer; commands stay in English)"),
     "theme": ("default", ("default", "ocean", "forest", "sunset", "mono", "contrast"), "Colour theme"),
     "prompt_style": ("full", ("full", "short", "minimal"), "Prompt: full user@host:path$, short path$, or minimal $"),
-    "boot_speed": ("normal", ("normal", "fast", "instant"), "How long the boot animation takes"),
     "clock_24h": (True, bool, "Show times as 24-hour (off = 12-hour)"),
     "notifications": (True, bool, "Show notifications before the prompt"),
     "update_check": (True, bool, "Check for PythonOS updates in the background after login"),
@@ -190,11 +189,14 @@ def reset_for(key, user):
                 json.dump(data, f, indent=2)
 
 
+BOOT_PAUSE = 0.1
+
+
 def boot_pause():
-    """Seconds to pause between boot steps for the chosen boot speed."""
+    """Seconds to pause between boot steps (a fixed, short pause so the log can be read as it goes)."""
     if get("light_mode") or os.environ.get("PYOS_LIGHT") == "1":
         return 0.0                                    # light mode: no animation delays
-    return {"normal": 0.35, "fast": 0.1, "instant": 0.0}[get("boot_speed")]
+    return BOOT_PAUSE
 
 
 def format_time(dt):

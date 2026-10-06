@@ -429,15 +429,15 @@ def _detailed_header():
     live = os.environ.get("PYOS_LIVE") == "1"
     lines = [f"PythonOS {get_system_version()} ({platform.system()} {platform.machine()}) Python {platform.python_version()}",
              f"Machine: {host}, {psutil.cpu_count() or 1} CPU(s); memory: {resources.describe()}",
-             f"Command line: boot_speed={settings.get('boot_speed')} mode={'live' if live else 'installed' if os.environ.get('PYOS_INSTALLED') == '1' else 'normal'}"]
+             f"Command line: mode={'live' if live else 'installed' if os.environ.get('PYOS_INSTALLED') == '1' else 'normal'}"]
     for line in lines:
         console.print(f"{_stamp()} {escape(line)}")
 
 
 def boot_sequence(debug):
-    """Run the real boot steps, one line each, as a boot log with time stamps. The timings are saved (see the bootlog and bootspeed commands)."""
+    """Run the real boot steps, one line each, as a boot log with time stamps. The timings are saved (see the bootlog command)."""
     from core import bootlog
-    pause = settings.boot_pause()  # the boot_speed setting: normal / fast / instant
+    pause = settings.boot_pause()
     steps = boot_steps(debug)
     sink = _Sink()
     record = []

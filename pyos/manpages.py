@@ -145,7 +145,7 @@ page("notifications", "recent notifications", ["notifications [clear | test <mes
 # ------------------------------------------------------------------ system
 page("settings", "themes and options", ["settings", "settings list|get|set|reset|theme|themes", "settings apps", "settings app <app> [get|set|reset]"],
      "Run it alone for a menu. Themes: default, ocean, forest, sunset, mono, contrast. Other options: prompt_style (full/short/minimal), "
-     "boot_speed, clock_24h, notifications, update_check, auto_lock_minutes, idle_logout_minutes (log out to the login screen after "
+     "clock_24h, notifications, update_check, auto_lock_minutes, idle_logout_minutes (log out to the login screen after "
      "that many idle minutes), auto_clear_lines, confirm_delete. auto_lock_minutes and idle_logout_minutes can be set per person: "
      "settings set idle_logout_minutes 5 --user bob (you can set your own; administrators can set anyone's). Installed apps that have "
      "options of their own (a default difficulty, units...) show them here too: settings apps lists them and settings app <app> changes them. "
@@ -203,10 +203,7 @@ page("doctor", "check the installation", ["doctor", "doctor --fix", "doctor --ye
 page("bootlog", "how the last boot went", ["bootlog", "bootlog list", "bootlog <number>"],
      "Every start-up runs a list of real steps (configuration, system files, services, dependencies, commands, programs, file "
      "system). Each one is timed and the last ten boots are kept, so you can see what was slow or what failed.",
-     see=["bootspeed", "settings", "logs"])
-page("bootspeed", "benchmark the start-up", ["bootspeed"],
-     "Shows the average time per boot step from the saved boots, how much of it is the boot animation pause (the boot_speed "
-     "setting) and runs a few quick tests of this machine.", see=["bootlog", "settings"])
+     see=["settings", "logs"])
 page("cowsay", "a cow says it", ["cowsay <text>", "<command> | cowsay"],
      "Draws a speech bubble with a cow. It reads piped input when you give it no words, which makes it a nice way to learn pipes.",
      examples=[("fortune | cowsay", "the cow says a saying"), ("ls | cowsay", "the cow reads your files")], see=["fortune", "rainbow"])
