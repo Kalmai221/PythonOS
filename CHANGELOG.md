@@ -5,6 +5,8 @@ One section per release, newest first. The section for a version is shown to use
 
 ## 1.0.8 (continued)
 
+- `help` is easier to use: the first screen has numbered groups (`help 3` opens group 3) and an "I want to..." table (see a folder, copy files, check the internet, update...); `help <command>` now shows the usage lines, examples and related commands from the manual; and you can ask in your own words: `help copy a file`, `help how do i check the internet` find the commands, best match first, understanding words like delete, folder, internet, wifi. `help find` explains the find command instead of searching.
+
 - `ping` is simple again: `ping <host>` (also `-c count`, `-p port`, `host:port`) times TCP connections and ends with a summary; no more menu. It needs no special rights and works on every export.
 - New text commands: `sort`, `uniq`, `cut`, `tr`, `tee`, `rev`, `tac`, `nl`, `seq`, `xargs`, `less` (also `more`), `time`, `watch`, `cal`, `basename`, `dirname`, `which`, `du`, `stat`, `env`.
 - New network commands: `tracert` (also `traceroute`: the system's ICMP service on Windows, the kernel's error queue on Linux and the ISO, no special rights), `nslookup` (also `dig`, `host`: A, AAAA, MX, NS, TXT, CNAME, SOA and reverse lookups), `whois`, `curl`, `wget`, `netstat` (also `ss`), `ifconfig` (also `ipconfig`).
