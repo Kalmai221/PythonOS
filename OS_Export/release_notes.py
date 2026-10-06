@@ -131,6 +131,12 @@ def build(version, plan, sizes=None):
             "(verify with `cosign verify-blob --bundle SHA256SUMS.sigstore.json --certificate-identity-regexp 'github.com/Kalmai221/PythonOS' "
             "--certificate-oidc-issuer https://token.actions.githubusercontent.com SHA256SUMS`). Build provenance is attached to the files "
             "(`gh attestation verify <file> --repo Kalmai221/PythonOS`).", ""]
+    pin = os.path.join(stage.REPO, "OS_Export", "Android", "signing.sha256")
+    if os.path.isfile(pin):
+        with open(pin, encoding="utf-8") as f:
+            fingerprint = f.read().strip()
+        out += ["Every Android APK of every release is signed with one key, so each installs over the one before it. Its certificate SHA-256 is "
+                f"`{fingerprint}` (check an APK with `apksigner verify --print-certs <apk>`).", ""]
     table = compatibility_table()
     if table:
         out += ["## Compatibility", "", table, ""]

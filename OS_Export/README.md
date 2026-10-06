@@ -146,11 +146,14 @@ writes its files next to itself.
 first launch, and users' files survive app updates. Differences from desktop: pip is not available
 (dependencies ship in the app, `PYOS_BUNDLED=1`), so marketplace packages that install pip
 libraries (Chess, Typing Test, IPython) cannot be set up there; the rest work. `shutdown` closes
-the app. CI signs the APK with a throwaway key by default, which is fine for sideloading, but every
-run's APK has a different signature so a new one cannot be installed over an old one (uninstall
-first). For updatable releases, add these repository secrets: `ANDROID_KEYSTORE_BASE64` (your
-keystore file, base64-encoded), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and optionally
-`ANDROID_KEY_PASSWORD`.
+the app. Android only installs an update over an installed app when both are signed with the same key, so releases are
+signed with one permanent key: run `python tools/android_signing_setup.py` once (it makes the key outside the repository and pins its
+fingerprint in `OS_Export/Android/signing.sha256`), back the key up, then `--upload` stores it as the repository secrets CI reads
+(`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`). CI checks that every APK carries
+the pinned key and refuses to publish a release that does not. Without the secrets (a branch build) the APK is signed with a throwaway
+key: fine for sideloading, but it cannot update or be updated by another build. Losing the key means everyone must uninstall and
+reinstall once, so keep a backup. The in-app update (`updatecheck`, or Menu, Check for app update) downloads the new APK, checks it
+against the release checksums and hands it to Android's installer, which asks you to confirm.
 
 **ISO** - an Alpine Linux live image built with Alpine's `mkimage`. It boots (BIOS or UEFI)
 straight into PythonOS on the first console and powers off when you shut PythonOS down; Alt+F2 is

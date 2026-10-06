@@ -192,3 +192,9 @@ OS_Export/Android/local.properties
 # the download and status pages (the MkDocs rule above would hide them)
 !/site
 !/site/**
+
+# signing keys must never be committed
+*.p12
+*.jks
+*.keystore
+pythonos-release.env

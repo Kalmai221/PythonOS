@@ -180,13 +180,17 @@ jobs:
           SECRET_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           KEYSTORE="$RUNNER_TEMP/release.keystore"
+          if [ -z "$KEYSTORE_B64" ] && [ -f OS_Export/Android/signing.sha256 ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            echo "::error::A release APK must be signed with the permanent key (its fingerprint is pinned in OS_Export/Android/signing.sha256), but the signing secrets are missing. Run: python tools/android_signing_setup.py --upload"
+            exit 1
+          fi
           if [ -n "$KEYSTORE_B64" ]; then
             echo "$KEYSTORE_B64" | base64 -d > "$KEYSTORE"
             STORE_PASS="$KEYSTORE_PASSWORD"
             ALIAS="$SECRET_KEY_ALIAS"
             KEY_PASS="${SECRET_KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
           else
-            echo "No signing secrets set - generating a throwaway key."
+            echo "::warning::No signing secrets set - generating a throwaway key. This APK cannot be installed over (or be updated by) an APK from another run. See tools/android_signing_setup.py"
             STORE_PASS=android
             ALIAS=pythonos
             KEY_PASS=android
@@ -204,6 +208,28 @@ jobs:
         run: |
           gradle assembleRelease --no-daemon \
             -PversionName="${VERSION#v}" -PversionCode="${{ github.run_number }}"
+      - name: Check the APK signatures
+        run: |
+          # Android only installs an update over an installed app when both carry the same key. Every APK of one build must share a key, and a
+          # release must use the permanent key whose fingerprint is pinned in the repository.
+          APKSIGNER="$(ls "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools/*/apksigner | sort -V | tail -n1)"
+          PIN=""
+          [ -f OS_Export/Android/signing.sha256 ] && PIN="$(tr -d ' \r\n' < OS_Export/Android/signing.sha256)"
+          FIRST=""
+          for apk in $(find OS_Export/Android/app/build/outputs/apk -name "*release*.apk"); do
+            SUM="$("$APKSIGNER" verify --print-certs "$apk" | sed -n 's/.*certificate SHA-256 digest: *//p' | head -n1)"
+            echo "$apk is signed with $SUM"
+            if [ -n "$FIRST" ] && [ "$SUM" != "$FIRST" ]; then echo "::error::the APKs of this build are not all signed with one key"; exit 1; fi
+            FIRST="$SUM"
+          done
+          [ -n "$FIRST" ] || { echo "::error::no signed APK was found"; exit 1; }
+          if [ -n "$PIN" ] && [ "$FIRST" != "$PIN" ]; then
+            if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+              echo "::error::the APKs are signed with $FIRST, not the pinned release key $PIN, so users could not update to them"
+              exit 1
+            fi
+            echo "::warning::these APKs are not signed with the pinned release key ($PIN): fine for testing, not for a release"
+          fi
       - name: Name the APKs
         run: |
           mkdir -p dist/android

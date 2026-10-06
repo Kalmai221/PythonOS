@@ -36,9 +36,9 @@ android {
         }
     }
 
-    // Release builds use your own keystore when these environment variables are set
-    // (see OS_Export/README.md); otherwise they are signed with the debug key so the
-    // APK can still be installed by sideloading.
+    // Release builds are signed with the permanent key CI reads from these environment variables (see tools/android_signing_setup.py:
+    // Android only installs an update over an installed app when both carry the same key). Without them (a local build) they are signed
+    // with the debug key, so the APK can still be installed by sideloading, but it cannot update or be updated by a release.
     signingConfigs {
         create("release") {
             val keystore = System.getenv("ANDROID_KEYSTORE_FILE")
