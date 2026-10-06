@@ -295,11 +295,17 @@ page("tar", "make or unpack tar archives", ["tar -c[z]f <archive> <paths>...", "
      "Links and device files inside an archive are never created, and unsafe names are refused.",
      [("-C folder", "extract into this folder"), ("-o", "overwrite existing files")],
      [("tar -czf ~/p.tgz ~/p", "compress a folder"), ("tar -xzf ~/p.tgz -C ~/out", "unpack it"), ("tar -tf ~/p.tgz", "list it")], ["zip", "unzip"])
-page("doctor", "check the installation", ["doctor", "doctor --fix", "doctor --yes"],
-     "Looks at free disk space, system files, the account database, folder permissions, installed packages and stale data, and "
-     "reports OK, WARN or FAIL for each. Where a fix is safe (missing folders, leftover temporary files, settings with bad values) it "
-     "offers to apply it. Administrators only.",
-     [("--fix", "offer every fix without the first question"), ("--yes", "apply every fix without asking")], [("doctor", "run the checks")],
+page("doctor", "check the installation", ["doctor", "doctor --fix", "doctor --online", "doctor --problems", "doctor --only <checks>", "doctor --json"],
+     "Runs about twenty checks (Python and the clock, disk and memory, system files, commands, folders, accounts, permissions, packages, "
+     "optional libraries, settings, aliases, the schedule, storage and crash reports) and reports OK, WARN or FAIL for each, with what to do "
+     "when it cannot fix the problem itself. It gives a health score out of 100, tells you what is new or fixed since the last run, and where a "
+     "fix is safe it offers to apply it, then checks again to show the result. --online also checks the internet and whether a newer PythonOS "
+     "exists. Administrators only.",
+     [("--fix", "offer every fix without the first question"), ("--yes", "apply every fix without asking"),
+      ("--online", "also check the network and the latest release"), ("--problems", "show only what needs attention"),
+      ("--only a,b", "run just those checks (doctor --list names them)"), ("--json", "machine-readable output, for scripts"),
+      ("--timings", "show how long each check took")],
+     [("doctor", "run the checks"), ("doctor --online --problems", "only what is wrong, including the network"), ("doctor --only commands,aliases", "two checks")],
      ["logs", "updatecheck", "bootlog"])
 page("bootlog", "how the last boot went", ["bootlog", "bootlog list", "bootlog <number>"],
      "Every start-up runs a list of real steps (configuration, system files, services, dependencies, commands, programs, file "

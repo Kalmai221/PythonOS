@@ -11,6 +11,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
+- `doctor` is much more thorough: it also checks Python and the clock, memory, every command file, optional libraries, aliases that point at nothing, the schedule, storage and old crash reports. It gives a health score out of 100, says what is new or fixed since the last run, tells you what to do when it cannot fix something itself, and checks again after applying fixes. New options: `--online` (internet and newer releases), `--problems`, `--only`, `--json`, `--timings`, `--list`.
 - `tracert` has a third way to send its probes that needs no rights (an unprivileged ICMP socket, which Android and Linux let programs use), and when the system refuses them all it lists why and what still works (`ping`, `nslookup`). `ifconfig`, `lscpu` and `netstat` no longer fail on Android, which hides the interface list, the processor load and the connection list from apps: they show what they can and say what is hidden.
 
 ### Apps

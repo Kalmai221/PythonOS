@@ -723,10 +723,15 @@ top</code></pre>
 <p class="summary">check the installation</p>
 <pre><code>doctor
 doctor --fix
-doctor --yes</code></pre>
-<p>Looks at free disk space, system files, the account database, folder permissions, installed packages and stale data, and reports OK, WARN or FAIL for each. Where a fix is safe (missing folders, leftover temporary files, settings with bad values) it offers to apply it. Administrators only.</p>
-<div class="table-wrap"><table><tbody><tr><td><code>--fix</code></td><td>offer every fix without the first question</td></tr><tr><td><code>--yes</code></td><td>apply every fix without asking</td></tr></tbody></table></div>
-<pre><code><span class="g">$</span> doctor  <span class="d"># run the checks</span></code></pre>
+doctor --online
+doctor --problems
+doctor --only &lt;checks&gt;
+doctor --json</code></pre>
+<p>Runs about twenty checks (Python and the clock, disk and memory, system files, commands, folders, accounts, permissions, packages, optional libraries, settings, aliases, the schedule, storage and crash reports) and reports OK, WARN or FAIL for each, with what to do when it cannot fix the problem itself. It gives a health score out of 100, tells you what is new or fixed since the last run, and where a fix is safe it offers to apply it, then checks again to show the result. --online also checks the internet and whether a newer PythonOS exists. Administrators only.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>--fix</code></td><td>offer every fix without the first question</td></tr><tr><td><code>--yes</code></td><td>apply every fix without asking</td></tr><tr><td><code>--online</code></td><td>also check the network and the latest release</td></tr><tr><td><code>--problems</code></td><td>show only what needs attention</td></tr><tr><td><code>--only a,b</code></td><td>run just those checks (doctor --list names them)</td></tr><tr><td><code>--json</code></td><td>machine-readable output, for scripts</td></tr><tr><td><code>--timings</code></td><td>show how long each check took</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> doctor  <span class="d"># run the checks</span>
+<span class="g">$</span> doctor --online --problems  <span class="d"># only what is wrong, including the network</span>
+<span class="g">$</span> doctor --only commands,aliases  <span class="d"># two checks</span></code></pre>
 <p class="muted">See also: <a href="#cmd-logs"><code>logs</code></a>, <a href="#cmd-updatecheck"><code>updatecheck</code></a>, <a href="#cmd-bootlog"><code>bootlog</code></a>.</p>
 </section>
 
