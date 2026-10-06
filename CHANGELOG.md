@@ -3,7 +3,7 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
-## Unreleased
+## 1.0.7
 
 - Marketplace API 2: a package may list Python libraries it needs (`"pip": ["yt-dlp"]` in its data.json, with `"api": 2`). The marketplace shows them before asking, installs them (wheels only, plain requirements only, from PyPI) into the app's own `.libs` folder, keeps them when the app updates unchanged, and removes them with the app. Not on locked-down systems, the Android app or the live ISO (no pip there). Older systems keep reading the API 1 catalog and never see these packages.
 - New apps: AI Assistant (`assistant`, also `ai`): chat with OpenAI, Anthropic, Google Gemini, OpenRouter, Ollama or any OpenAI-compatible address. It asks which service, for your API key (hidden, kept only in your own folder, or not at all) and the model: pick from the list the service gives, or type its name; answers stream in. YouTube Audio (`ytaudio`): search YouTube, play a link or playlist, queue, with mpv, VLC or ffplay (uses API 2 to install yt-dlp).
