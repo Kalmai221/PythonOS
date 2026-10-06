@@ -37,6 +37,34 @@ code, kbd { font-family: var(--mono); font-size: .9em; background: var(--surface
 .muted { color: var(--muted); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
+/* ---- paths, showcase, apps, banner, faq (added with the setup wizard) */
+.block.tight { padding-block: clamp(28px, 5vw, 56px); }
+.trust { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 18px 0 0; padding: 0; color: var(--muted); font-size: .9rem; }
+.trust li::before { content: "\2713"; color: var(--ok); font-weight: 700; margin-right: 7px; }
+.paths { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.path { display: flex; flex-direction: column; gap: 4px; padding: 18px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
+  color: var(--text); text-decoration: none; transition: transform .2s, border-color .2s, background .2s; }
+.path:hover { transform: translateY(-3px); border-color: var(--accent); }
+.path .ico { font-size: 1.6rem; line-height: 1; margin-bottom: 6px; }
+.path b { font-size: 1.02rem; } .path span:last-child { color: var(--muted); font-size: .9rem; }
+[hidden] { display: none !important; }
+@media (min-width: 900px) { .path.wizard { grid-column: span 2; } }
+.path.wizard { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), color-mix(in srgb, var(--accent-2) 14%, var(--surface))); border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.shots .tabs.chips { display: inline-flex; }
+.tab[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.shot { min-height: 16em; font-size: 13px; overflow-x: auto; white-space: pre; }
+.banner { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: space-between; margin: 0 0 18px; padding: 18px 20px; border-radius: var(--radius);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), color-mix(in srgb, var(--accent-2) 12%, var(--surface))); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); }
+.banner div { max-width: 40em; }
+.pill { align-self: flex-start; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); background: linear-gradient(135deg, var(--accent), var(--accent-2)); padding: 3px 9px; border-radius: 99px; }
+.faq { display: grid; gap: 10px; max-width: 46em; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 18px; }
+.faq summary { cursor: pointer; font-weight: 650; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-size: 1.3rem; line-height: 1; color: var(--accent); transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq p { color: var(--muted); padding: 0 0 16px; }
+
 /* header */
 header.bar { position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(1.4) blur(14px); background: color-mix(in srgb, var(--bg) 78%, transparent); border-bottom: 1px solid var(--line); }
 header.bar .wrap { display: flex; align-items: center; gap: 18px; height: 64px; }

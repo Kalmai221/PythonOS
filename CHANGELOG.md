@@ -3,6 +3,10 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
+## Unreleased
+
+- Website: a "How do you want to run it?" row of cards (Windows, Android, Linux, USB, virtual machine, Docker, Setup Wizard) that takes you to the right download, a "See it" section with the file manager, task manager and settings, new feature and app cards, a Setup Wizard banner, a Recommended mark on the main file of each platform, a questions section, and better detection notes.
+
 ## 1.0.7
 
 - Marketplace API 2: a package may list Python libraries it needs (`"pip": ["yt-dlp"]` in its data.json, with `"api": 2`). The marketplace shows them before asking, installs them (wheels only, plain requirements only, from PyPI) into the app's own `.libs` folder, keeps them when the app updates unchanged, and removes them with the app. Not on locked-down systems, the Android app or the live ISO (no pip there). Older systems keep reading the API 1 catalog and never see these packages.
