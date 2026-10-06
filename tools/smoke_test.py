@@ -213,6 +213,27 @@ def run(root):
         print(f"FAIL resolution switch   <- {type(e).__name__}: {e}")
         failures.append(("resolution switch", [f"{type(e).__name__}: {e}"], ""))
 
+    # installos: the data disk may be chosen (with a warning); the boot medium never; skipped disks say why
+    try:
+        from core import installer
+
+        def _dev(name, kind, size, parent=None, fs="", label="", mounts=()):
+            return {"name": name, "path": "/dev/" + name, "type": kind, "size": size, "fstype": fs, "label": label, "mounts": list(mounts),
+                    "removable": False, "model": "", "parent": parent}
+        boot = _dev("sda", "disk", 262 * 1024 ** 2)
+        boot1 = _dev("sda1", "part", 262 * 1024 ** 2, boot, "iso9660", "", ["/media/sda1"])
+        data = _dev("sdb", "disk", 2 * 1024 ** 3)
+        data1 = _dev("sdb1", "part", 2 * 1024 ** 3 - 1024 ** 2, data, "ext4", "PYOS_DATA", ["/mnt/pyos-data"])
+        spare = _dev("sdc", "disk", 8 * 1024 ** 3)
+        assert [(d["path"], d["is_data"]) for d in installer.disks([boot, boot1, data, data1])] == [("/dev/sdb", True)]
+        assert [d["path"] for d in installer.disks([boot, boot1, data, data1, spare])] == ["/dev/sdc", "/dev/sdb"]
+        assert installer.validate("/dev/sda", [boot, boot1])[0] is None
+        assert installer.skipped([boot, boot1, data, data1])[0][2] == "the disk PythonOS started from"
+        print("ok   installos disk choice")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL installos disk choice   <- {type(e).__name__}: {e}")
+        failures.append(("installos disk choice", [f"{type(e).__name__}: {e}"], ""))
+
     # export update strategies: choosing files, commands and the parts that can be tried without root or a real disk
     try:
         import io

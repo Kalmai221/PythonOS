@@ -23,8 +23,11 @@ def execute(args=None):
                         border_style="red", expand=False))
     options = installer.disks()
     if not options:
-        console.print("[yellow]No disk can be used.[/yellow] It must be a whole disk of at least 2 GB with nothing mounted, and not the "
+        console.print("[yellow]No disk can be used.[/yellow] It must be a whole disk of at least 2 GB that is not in use, and not the "
                       "USB stick PythonOS started from.")
+        for path, size, why in installer.skipped():
+            console.print(f"  {escape(path)}  {persist.human(size)}  [dim]{escape(why)}[/dim]")
+        console.print("In a virtual machine, add a second virtual hard disk (8 GB is plenty) in its settings, start it again and run installos again.")
         return False
     table = Table(title="Disks", header_style="bold blue")
     for col in ("#", "Device", "Size", "Model", "Currently holds"):
@@ -33,7 +36,9 @@ def execute(args=None):
     for i, d in enumerate(options, 1):
         holds = ", ".join(sorted({c["label"] or c["fstype"] for c in devices if c["parent"] and c["parent"]["path"] == d["path"]
                                   and (c["label"] or c["fstype"])})) or "nothing recognisable"
-        table.add_row(str(i), d["path"], persist.human(d["size"]), escape(d["model"] or ("USB/removable" if d["removable"] else "")), escape(holds))
+        if d.get("is_data"):
+            holds = "[bold red]your PythonOS data disk (saved files and accounts)[/bold red]"
+        table.add_row(str(i), d["path"], persist.human(d["size"]), escape(d["model"] or ("USB/removable" if d["removable"] else "")), holds if d.get("is_data") else escape(holds))
     console.print(table)
     try:
         pick = Prompt.ask("Number of the disk to erase and use (blank to cancel)", default="").strip()
@@ -44,6 +49,9 @@ def execute(args=None):
         console.print(f"\nWhat will happen to [bold]{device['path']}[/bold] ({persist.human(device['size'])}):")
         for number, text in enumerate(installer.plan(device), 1):
             console.print(f"  {number}. {escape(text)}")
+        if device.get("is_data"):
+            console.print("[bold red]This is the disk your saved files, accounts and settings are on. They are erased too.[/bold red] "
+                          "Back up what you need first (backup).")
         typed = Prompt.ask(f"\nType the disk name [bold]{device['path']}[/bold] to erase it and install, or anything else to cancel", default="")
         if typed.strip() != device["path"]:
             console.print("[bold green]Cancelled. Nothing was changed.[/bold green]")

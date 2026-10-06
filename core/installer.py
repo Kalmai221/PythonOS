@@ -99,17 +99,66 @@ def available():
     return hardware.unavailable_reason()
 
 
-def disks(devices=None):
-    """Whole disks PythonOS could be installed on: big enough, nothing mounted, not the medium PythonOS booted from."""
+DATA_MOUNT = "/mnt/pyos-data"
+
+
+def _family(devices, dev):
+    """The device, its partitions and what sits on them (an unlocked encrypted disk), and its parent."""
+    paths = {dev["path"]}
+    grew = True
+    while grew:
+        grew = False
+        for d in devices:
+            if d["path"] not in paths and d["parent"] and d["parent"]["path"] in paths:
+                paths.add(d["path"])
+                grew = True
+    related = [d for d in devices if d["path"] in paths]
+    if dev["parent"]:
+        related.append(dev["parent"])
+    return related
+
+
+def is_data_disk(devices, dev):
+    """True when the only thing in use on this disk is the PythonOS data disk (PYOS_DATA / PYOS_CRYPT): its files and accounts live there."""
+    related = _family(devices, dev)
+    mounts = {m for d in related for m in d["mounts"]}
+    return bool(mounts) and mounts <= {DATA_MOUNT} and not any(d["fstype"] in ("iso9660", "squashfs") for d in related)
+
+
+def disks(devices=None, with_data=True):
+    """Whole disks PythonOS could be installed on: big enough, nothing in use, not the medium PythonOS booted from. The data disk counts too
+    (with_data): installing there erases what it holds, which the person is told first. Each disk is {..., "is_data": bool}."""
     devices = devices if devices is not None else persist.lsblk()
     found = []
     for d in devices:
         if d["type"] != "disk" or not persist.DEVICE_RE.match(d["path"]) or d["size"] < MIN_SIZE:
             continue
-        if persist._family_mounted(devices, d):
+        data = is_data_disk(devices, d)
+        if persist._family_mounted(devices, d) and not (with_data and data):
             continue
-        found.append(d)
-    return sorted(found, key=lambda d: (d["removable"], d["size"]))
+        found.append(dict(d, is_data=data))
+    return sorted(found, key=lambda d: (d["is_data"], d["removable"], d["size"]))
+
+
+def skipped(devices=None):
+    """[(path, size, why)] for every whole disk that cannot be used, so the person can see why."""
+    devices = devices if devices is not None else persist.lsblk()
+    usable = {d["path"] for d in disks(devices)}
+    out = []
+    for d in devices:
+        if d["type"] != "disk" or not persist.DEVICE_RE.match(d["path"]) or d["path"] in usable:
+            continue
+        related = _family(devices, d)
+        if any(r["fstype"] in ("iso9660", "squashfs") for r in related):
+            why = "the disk PythonOS started from"
+        elif d["size"] < MIN_SIZE:
+            why = f"too small ({persist.human(d['size'])}; it needs at least 2 GB)"
+        elif any(r["mounts"] for r in related):
+            why = "in use (mounted)"
+        else:
+            why = "not usable"
+        out.append((d["path"], d["size"], why))
+    return out
 
 
 def validate(path, devices=None):
@@ -117,7 +166,38 @@ def validate(path, devices=None):
     for d in disks(devices):
         if d["path"] == path:
             return d, ""
-    return None, f"{path} is not a disk that can be used (it must be a whole disk of at least 2 GB with nothing mounted, and not the USB stick PythonOS started from)."
+    return None, f"{path} is not a disk that can be used (it must be a whole disk of at least 2 GB that is not in use, and not the USB stick PythonOS started from)."
+
+
+def release_data_disk(log=print):
+    """Stop using the data disk so it can be erased: what PythonOS keeps on it (files, accounts, settings) is copied back into memory first,
+    so the running system keeps working until the person restarts. Raises InstallError when it cannot be released."""
+    log("Releasing the data disk (its files and accounts are erased by the installation)")
+    hardware.run(["sync"])
+    for name in ("files", ".OSData"):
+        link = os.path.join(SOURCE, name)
+        if os.path.islink(link):
+            real = os.path.realpath(link)
+            os.unlink(link)
+            shutil.copytree(real, link, symlinks=True)
+    for link, service in (("/var/lib/bluetooth", "bluetooth"), ("/etc/cups", "cupsd")):
+        if os.path.islink(link):
+            hardware.run(["rc-service", service, "stop"], timeout=30)
+            os.unlink(link)
+            os.makedirs(link, exist_ok=True)
+    users = os.environ.get("PYOS_USERS_FILE", "")
+    if users.startswith(DATA_MOUNT):
+        fallback = os.path.join(SOURCE, "users.json")
+        if os.path.exists(users):
+            shutil.copy2(users, fallback)
+        os.environ["PYOS_USERS_FILE"] = fallback
+    for key in ("PYOS_PERSISTENT", "PYOS_CORE_OVERLAY", "PYOS_PERSIST_ENCRYPTED"):
+        os.environ.pop(key, None)
+    code, out = hardware.run(["umount", DATA_MOUNT], timeout=60)
+    if code != 0:
+        raise InstallError(f"could not release the data disk: {(out or '').strip()[-200:] or 'it is busy'}")
+    if os.path.exists("/dev/mapper/pyosdata"):
+        hardware.run(["cryptsetup", "close", "pyosdata"], timeout=30)
 
 
 def firmware():
@@ -207,6 +287,8 @@ def install(device_path, log=print, hostname="pyOS"):
     device, why = validate(device_path)
     if device is None:
         raise InstallError(why)
+    if device.get("is_data"):
+        release_data_disk(lambda text: _step(log, text))
 
     _step(log, f"Partitioning and installing the base system on {device_path} (a few minutes)")
     _must(hardware.run(["setup-disk", "-m", "sys", "-s", "0", device_path], timeout=1800, text_input="y\n",
