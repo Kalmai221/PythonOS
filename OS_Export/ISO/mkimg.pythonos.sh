@@ -24,7 +24,7 @@ profile_pythonos() {
 	# what the hardware setup uses: PCI/USB listing, ALSA audio tools, Wi-Fi tools and disk tools for
 	# persistent storage. No editor (nano can run shell commands) - PythonOS has its own.
 	apks="$apks python3 py3-rich py3-psutil py3-requests py3-pygments py3-prompt_toolkit tzdata"
-	apks="$apks pciutils hwdata-pci usbutils alsa-utils alsa-ucm-conf iw wpa_supplicant lsblk e2fsprogs kbd-bkeymaps cryptsetup kbd font-terminus fbset"
+	apks="$apks pciutils hwdata-pci usbutils alsa-utils alsa-ucm-conf iw wpa_supplicant lsblk e2fsprogs kbd-bkeymaps cryptsetup kbd font-terminus"
 
 	# Two images are built from this profile (PYTHONOS_VARIANT):
 	#   full    (default) everything: Bluetooth, printing, the "installos" installer (needs a boot loader, disk tools and Alpine's

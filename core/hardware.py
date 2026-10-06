@@ -847,7 +847,7 @@ def set_resolution(want, save=True):
     """Try to change the console resolution. Returns (changed, a message in rich markup)."""
     modes = display_modes()
     if not have("fbset"):
-        return False, "[yellow]The resolution can only be changed with the fbset tool, which is not installed here.[/yellow]"
+        return False, "[yellow]This system cannot change the resolution by itself (the fbset tool is not part of the image). The console follows the screen: in a virtual machine resize its window or change its display setting.[/yellow]"
     if not re.fullmatch(r"\d{3,5}x\d{3,5}", want or ""):
         return False, "[yellow]Give a resolution like 1280x720.[/yellow]"
     if modes and want not in modes:
