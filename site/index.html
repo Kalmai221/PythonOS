@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e15" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f5f6fb" media="(prefers-color-scheme: light)">
 <script>try { var t = localStorage.getItem("theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 <script src="app.js?v=3" defer></script>
 </head>
 <body>
@@ -18,7 +18,7 @@
     <a class="brand" href="./"><span class="logo" aria-hidden="true">&gt;_</span>PythonOS</a>
     <nav aria-label="Main">
       <a class="opt" href="#features">Features</a>
-      <a class="opt" href="#apps">Apps</a>
+      <a href="apps.html">Apps</a>
       <a href="#download">Download</a>
       <a class="opt" href="#faq">FAQ</a>
       <a class="opt" href="status.html">Build status</a>
@@ -113,13 +113,14 @@
         <article class="card reveal"><div class="badge" aria-hidden="true">&#x1F4C8;</div><h3>System Monitor</h3><p>A live dashboard of PythonOS itself: its CPU, memory, tasks and storage.</p><p><code>pkg install sysmon</code></p></article>
         <article class="card reveal"><div class="badge" aria-hidden="true">&#x265F;</div><h3>Chess, Tetris and more</h3><p>Games, utilities and system tools: more than sixty apps, all checked and sandboxed.</p><p><code>market</code></p></article>
       </div>
+      <p style="margin-top:22px"><a class="btn primary" href="apps.html">Browse all apps</a></p>
     </div>
   </section>
 
   <section class="block" id="download" style="background:var(--bg-2)">
     <div class="wrap">
       <div class="section-head reveal"><h2>Download</h2><p class="muted" id="dl-sub">Pick your device. Everything updates itself from inside PythonOS later.</p></div>
-      <div class="banner reveal" id="wizard-banner" hidden>
+      <div class="wizard-banner reveal" id="wizard-banner" hidden>
         <div><b>Not sure which file you need?</b><br><span class="muted">The Setup Wizard looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker) and gets the right file for you. Windows and Linux, no Python needed.</span></div>
         <a class="btn primary" id="wizard-download" href="#">Get the Setup Wizard</a>
       </div>
@@ -383,7 +384,7 @@ document.addEventListener("DOMContentLoaded", function () {
       panel.className = "panel"; panel.id = "panel-" + g.id; panel.setAttribute("role", "tabpanel"); panel.setAttribute("aria-labelledby", tab.id);
       var top = mainFile(assets, g.id, state.arch);
       panel.innerHTML = (items.length ? "<div class='files'>" + items.map(function (a) {
-        return "<div class='file'>" + (top && top.name === a.name ? "<span class='pill'>Recommended</span>" : "") + "<span class='name'>" + P.esc(a.name) + "</span><span class='muted'>" + P.esc(useOf(a.name)) + "</span>" +
+        return "<div class='file'>" + (top && top.name === a.name ? "<span class='rec'>Recommended</span>" : "") + "<span class='name'>" + P.esc(a.name) + "</span><span class='muted'>" + P.esc(useOf(a.name)) + "</span>" +
                "<div class='row'><span class='size'>" + P.size(a.size) + "</span><a class='btn primary' style='padding:9px 16px' href='" + a.browser_download_url + "'>Download</a></div></div>";
       }).join("") + "</div>" : "<p class='note'>There is no " + archName(g.id, state.arch) + " build of this in the release. Pick the other processor above.</p>") +
         "<p class='note'>" + g.note + (hidden > 0 ? " <span class='muted'>(" + hidden + " file" + (hidden > 1 ? "s" : "") + " for the other processor hidden.)</span>" : "") + "</p>";

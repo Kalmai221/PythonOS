@@ -5,7 +5,7 @@ name: Website
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/site.yml"]
+    paths: ["site/**", "online_packages/index*.json", "online_packages/categories.json", ".github/workflows/site.yml"]
   release:
     types: [published]
   workflow_dispatch:
@@ -28,6 +28,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/configure-pages@v5
+      - name: Put the app catalog next to the pages (the App Library reads it; one request, same address)
+        run: |
+          mkdir -p site/data
+          cp online_packages/index-api2.json site/data/catalog.json
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
