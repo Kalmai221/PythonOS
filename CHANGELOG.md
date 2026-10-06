@@ -7,12 +7,30 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 **Exports** (the packages around it: Windows, Android, Linux, the ISO and VM images, Docker; a new download is needed to get these), **Website** and
 **Development** (tests and tools, not user-visible). Versions before 1.0.8 are not split and count as PythonOS.
 
-## 1.0.9
+## 1.0.10
 
 ### PythonOS
 
 - A better prompt: with a real terminal, `Ctrl+R` searches your history as you type, a grey suggestion from your history appears (Right arrow accepts it), `Tab` shows a menu, and commands are coloured green when they exist and red when nothing could match. It works on Windows too. `history` can search (`history git`), show the last N, or clear (`-c`); `!!`, `!n`, `!-n` and `!word` repeat earlier commands. New settings `fancy_prompt` (off = the plain prompt) and `prompt_keys` (the prompt now uses emacs-style keys by default; `settings set prompt_keys vi` brings vi back).
 - `cat` colours code, JSON, Markdown and other known file types on a terminal (`--plain` turns it off; piped output is never coloured).
+
+### Exports
+
+- The Windows web installer now also applies the newest PythonOS files of the release (the core update, checked against the release checksums) on top of the package. A release does not rebuild a package that did not change, so it could hold an older PythonOS than the release is called: 1.0.9 re-attached the 1.0.8 Windows package, and installing or updating from it said it had updated while still running 1.0.8.
+- The VM `.ova` imports in VirtualBox again: the empty third disk added in 1.0.9 had no data blocks at all, which VirtualBox cannot import (VERR_EOF). It now carries a short label, and the build stops if the disk has no data.
+
+### Website
+
+- The website is redone: plain typography, light and dark, and a download page that picks the right file for your computer. New documentation: getting started, a command reference generated from the manual, where PythonOS runs, recovery tools, the **Apps API** (package format, permissions, limits, settings, libraries, API versions, exports and run files), how to test and publish an app, **pull requests**, tests and CI, and releases.
+
+### Development
+
+- The website is built from `site_src/` by `tools/build_site.py` (the command reference is generated from the manual), and CI checks that `site/` is current and that its links and scripts work. There is now a `CONTRIBUTING.md` and a pull request template.
+
+## 1.0.9
+
+### PythonOS
+
 - Recovery tools: an emergency console (read the logs and crash reports, pack them into a zip for a USB stick; no login, no shell) opened from the new boot menu (press M at the start, or `main.py --menu` / `--emergency`) or offered after repeated crashes; safe mode (`--safe`, or `safe on` in the emergency console) that leaves out marketplace apps, startup commands and background checks; crash reports are now also written ready to send, redacted, so `report --pending` works without a network.
 - Shell variables and aliases: `NAME=value` and `export NAME=value`, then `$NAME` / `${NAME}` in any command (`$USER`, `$HOME`, `$HOST`, `$PWD` and `$?` always exist); `alias ll="ls -l"` (kept per person) and `unalias`; `unset`; `source <file>` (also `.`); and `~/.pyosrc` runs at every login. An exact command name now wins over another command's alias, and the old `export` alias of `backup` is gone (use `backup`).
 - `help` is easier to use: the first screen has numbered groups (`help 3` opens group 3) and an "I want to..." table (see a folder, copy files, check the internet, update...); `help <command>` now shows the usage lines, examples and related commands from the manual; and you can ask in your own words: `help copy a file`, `help how do i check the internet` find the commands, best match first, understanding words like delete, folder, internet, wifi. `help find` explains the find command instead of searching.
@@ -30,21 +48,18 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### Exports
 
-- The Windows web installer now also applies the newest PythonOS files of the release (the core update, checked against the release checksums) on top of the package. A release does not rebuild a package that did not change, so it could hold an older PythonOS than the release is called: 1.0.9 re-attached the 1.0.8 Windows package, and installing or updating from it said it had updated while still running 1.0.8.
 - Automatic resolution: virtual machines whose console comes up small (under 1024 wide) switch by themselves to the biggest resolution the screen offers up to 1920x1080 (`display auto off` stops it). Needs the new ISO or VM image.
-- The VM `.ova` ships a third, empty 8 GB disk for `installos`. (It carries a short label so it has data blocks: an all-empty disk could not be imported by VirtualBox.)
+- The VM `.ova` ships a third, empty 8 GB disk for `installos`.
 - The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.
 - The start-up script of the ISO and VM images opens the emergency console after three stops within two minutes. Needs the new ISO or VM image.
 
 ### Website
 
-- The website is redone: plain typography, light and dark, and a download page that picks the right file for your computer. New documentation: getting started, a command reference generated from the manual, where PythonOS runs, recovery tools, the **Apps API** (package format, permissions, limits, settings, libraries, API versions, exports and run files), how to test and publish an app, **pull requests**, tests and CI, and releases.
 - Website: the App Library has a "Works on" filter (Windows, Linux, Android, ISO / VM), shows each app's exports on its card and detail window, the per-export start files of API 2, and the "Live USB" filter now also needs the ISO in the app's exports.
 
 ### Development
 
 - Test CI is much wider: the smoke test on Linux, Windows and macOS and on Python 3.9 and 3.14; static checks (undefined names, Python 3.9 compatibility, all three catalog files current, manual and help-group completeness, website links and scripts, shell scripts, the Alpine package names of the ISO); and on Windows the installer is compiled and the PowerShell scripts parsed. (The first run found a real bug: the chess app used `os` without importing it.)
-- The website is built from `site_src/` by `tools/build_site.py` (the command reference is generated from the manual), and CI checks that `site/` is current and that its links and scripts work. There is now a `CONTRIBUTING.md` and a pull request template.
 - The changelog is split into PythonOS, Exports, Website and Development parts for every version (this file's own header explains it); the release page shows the parts under their own headings, the core manifest carries the PythonOS part as its notes and the Exports part as `export_notes`, and `tools/test_changelog.py` checks the format.
 - The macOS test run found the `lscpu` problem (fixed before release).
 
