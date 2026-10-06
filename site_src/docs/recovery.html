@@ -1,0 +1,60 @@
+<!--
+title: When something goes wrong
+description: The boot menu, safe mode, the emergency console, crash reports and diagnostics in PythonOS.
+nav: docs
+section: docs
+group: Using PythonOS
+order: 40
+-->
+<h1>When something goes wrong</h1>
+<p class="lead">PythonOS has a few tools for the case where it will not start, will not log in, or keeps stopping. None of them needs a password, and none of them gives a way out to the system underneath.</p>
+
+<h2 id="menu">The boot menu</h2>
+<p>On the bootable USB and the virtual machines, press <kbd>M</kbd> while the start-up message is on screen. On any other export, start PythonOS with <code>--menu</code>.</p>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td>1</td><td>Start normally</td></tr>
+    <tr><td>2</td><td>Safe mode</td></tr>
+    <tr><td>3</td><td>Diagnostic start: verbose, and saves a hardware report</td></tr>
+    <tr><td>4</td><td>Emergency console</td></tr>
+    <tr><td>5, 6</td><td>Restart, power off</td></tr>
+  </tbody>
+</table></div>
+<p>Pressing <kbd>D</kbd> at the same moment goes straight to the diagnostic start.</p>
+
+<h2 id="safe">Safe mode</h2>
+<p>Safe mode starts only the system itself. Apps from the marketplace, the startup commands of each user and the background checks are left out, and the long animations are skipped. Use it when something you added stops PythonOS from starting.</p>
+<pre class="cmdline">python3 main.py --safe       start once in safe mode
+safe on                      (in the emergency console) safe mode at every start until you say safe off</pre>
+
+<h2 id="emergency">The emergency console</h2>
+<p>A small, read-only console that needs no login. Open it from the boot menu, with <code>--emergency</code>, or let it open by itself: after repeated crashes in a short time PythonOS offers it, and on the bootable USB the start-up script opens it after three stops in two minutes.</p>
+<p>It can read the system log, the crash reports, the boot log and a hardware report, and pack them into one zip for you to send. It cannot run programs and cannot read your files, accounts or saved passwords.</p>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td><code>status</code></td><td>What happened last time, and the state of the system</td></tr>
+    <tr><td><code>logs [n]</code></td><td>The last n lines of the system log</td></tr>
+    <tr><td><code>crashes</code>, <code>crash &lt;n&gt;</code></td><td>List the crash reports, show one</td></tr>
+    <tr><td><code>bootlog</code></td><td>How the last starts went, step by step</td></tr>
+    <tr><td><code>diag</code></td><td>A hardware and driver report</td></tr>
+    <tr><td><code>savelogs</code></td><td>Pack the logs and the report into a zip. If a USB stick is plugged in it offers to copy it there.</td></tr>
+    <tr><td><code>safe on|off</code></td><td>Safe mode for the next start</td></tr>
+    <tr><td><code>reset</code></td><td>Clear the crash counter</td></tr>
+    <tr><td><code>restart</code>, <code>shutdown</code></td><td>Do what they say</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="reports">Crash reports</h2>
+<p>When PythonOS crashes it writes the full trace to a crash report, and also writes a ready-to-send problem report with names, home folders, email and IP addresses removed. Nothing is sent. After you log in:</p>
+<pre class="cmdline">whathappened             what the last session was doing when it stopped
+report --pending         read the waiting report, then open it as a GitHub issue or save it as a file
+report                   write a report about something else</pre>
+<p>You always see the whole text before anything leaves your computer, and it works without a network.</p>
+
+<h2 id="tools">Other tools</h2>
+<ul>
+  <li><code>doctor</code> checks the installation (disk, files, accounts, packages) and offers fixes.</li>
+  <li><code>logs</code>, <code>logs --crashes</code> and <code>bootlog</code> show what PythonOS wrote down.</li>
+  <li><code>rollback</code> goes back to the version before the last update.</li>
+  <li><code>diag</code> makes a hardware report you can attach to an issue.</li>
+</ul>

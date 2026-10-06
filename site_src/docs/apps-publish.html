@@ -1,0 +1,51 @@
+<!--
+title: Test and publish an app
+description: How to run a PythonOS app while you write it, check it, and send it in as a pull request.
+nav: docs
+section: docs
+group: Building apps
+order: 20
+-->
+<h1>Test and publish an app</h1>
+<p class="lead">From an empty folder to a merged app. The format itself is in the <a href="{{root}}docs/apps-api.html">Apps API</a>.</p>
+
+<h2 id="setup">1. Set up</h2>
+<pre class="cmdline">git clone https://github.com/Kalmai221/PythonOS
+cd PythonOS
+python -m pip install -r requirements.txt</pre>
+<p>You need Python 3.9 or newer. Make a branch for your app: <code>git switch -c app-hello</code>.</p>
+
+<h2 id="write">2. Write it</h2>
+<p>Create <code>online_packages/&lt;category&gt;/&lt;name&gt;/</code> with a <code>data.json</code> and a run script. Copy a small existing app as a start: <code>online_packages/games/flood</code> (no permissions), <code>online_packages/utilities/todo</code> (stores data), <code>online_packages/utilities/pomodoro</code> (a timer). Rules that keep apps consistent:</p>
+<ul>
+  <li>Use only the standard library and the libraries PythonOS already ships (<code>rich</code>, <code>requests</code>, <code>psutil</code>), unless you really need another. A new library means API 2 and an app that cannot run on the live USB.</li>
+  <li>Draw with plain ASCII where you can. Not every terminal and font has box and block characters.</li>
+  <li>Put the logic in functions so it can be tested, and keep <code>execute(args)</code> thin.</li>
+  <li>Ask for the fewest permissions that work, and handle <code>PermissionError</code> with a clear message.</li>
+  <li>Handle Ctrl+C and end of input (<code>KeyboardInterrupt</code>, <code>EOFError</code>) without a traceback.</li>
+</ul>
+
+<h2 id="run">3. Run it</h2>
+<p>The quickest way is to run the script directly. Apps import <code>pyos</code> with a fallback, so they work outside PythonOS:</p>
+<pre class="cmdline">python online_packages/games/hello/run.py Ada</pre>
+<p>To try it the way a user would, with the permission guard on, start PythonOS from the repository (<code>python main.py</code>), and install the folder: copy it to <code>files/installed_&lt;category&gt;/&lt;name&gt;/</code> and type <code>reload</code>. Then <code>hello Ada</code> runs it through the sandbox.</p>
+
+<h2 id="check">4. Check it</h2>
+<pre class="cmdline">python tools/build_index.py          validates data.json and rebuilds the catalog
+python tools/audit_lockdown.py       if the app is lockdown_safe
+python tools/check_docs.py           every app needs a description and its exports
+python tools/smoke_test.py           everything, including the app tests</pre>
+<p><code>build_index.py</code> rewrites <code>online_packages/index.json</code>, <code>index-api1.json</code> and <code>index-api2.json</code>. Commit those with your app: the checks fail if they are out of date.</p>
+<p>Write a test for the logic. The other apps' tests are in <code>tools/test_newapps.py</code>, <code>tools/test_assistant.py</code> and <code>tools/test_marketplace_pip.py</code>: a file named <code>tools/test_*.py</code> is run by the smoke test automatically. A good test loads <code>run.py</code> by path, calls the pure functions, and asserts the results.</p>
+
+<h2 id="pr">5. Open the pull request</h2>
+<ul>
+  <li>One app (or one change to an app) per pull request.</li>
+  <li>If you changed an existing app, raise its <code>version</code> and add a line to its <code>changelog</code>. Without that, users do not get the update.</li>
+  <li>Add a line under <code>### PythonOS</code> in the Unreleased or newest section of <code>CHANGELOG.md</code>.</li>
+  <li>Say in the description what the app does, what it asks for and why, and which systems you tried it on. A screenshot or pasted terminal output helps.</li>
+</ul>
+<p>GitHub runs the checks on your pull request (<a href="{{root}}docs/testing.html">what they are</a>). A maintainer reviews the code, the permissions it asks for, and whether it should be <code>lockdown_safe</code>. More in <a href="{{root}}docs/contributing.html">Pull requests</a>.</p>
+
+<h2 id="after">After it is merged</h2>
+<p>PythonOS reads the catalog from the <code>main</code> branch, so the app appears in the store, and in the <a href="{{root}}apps.html">App Library</a>, as soon as the pull request is merged. There is no separate upload. Apps do not wait for a PythonOS release.</p>

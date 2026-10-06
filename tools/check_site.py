@@ -42,7 +42,7 @@ class Page(html.parser.HTMLParser):
 
 def main():
     problems = []
-    pages = sorted(n for n in os.listdir(SITE) if n.endswith(".html"))
+    pages = sorted(os.path.relpath(os.path.join(b, n), SITE).replace(os.sep, "/") for b, _d, files in os.walk(SITE) for n in files if n.endswith(".html"))
     if not pages:
         problems.append("the site folder has no pages")
     parsed = {}
@@ -63,7 +63,10 @@ def main():
                 if fragment and fragment not in parser.ids:
                     problems.append(f"{name}: #{fragment} is not an id on the page")
                 continue
-            relative = target.lstrip("./") or "index.html"
+            here = os.path.dirname(name)
+            relative = os.path.normpath(os.path.join(here, target)).replace(os.sep, "/") if target else "index.html"
+            if relative in (".", ""):
+                relative = "index.html"
             if relative.endswith("/"):
                 relative += "index.html"
             if relative in GENERATED:
@@ -73,7 +76,7 @@ def main():
             elif fragment and relative in parsed and fragment not in parsed[relative].ids:
                 problems.append(f"{name}: {link}: #{fragment} is not an id on {relative}")
     node = shutil.which("node")
-    for name in sorted(os.listdir(SITE)):
+    for name in sorted(n for n in os.listdir(SITE) if n.endswith(".js")):
         if name.endswith(".js"):
             if node:
                 result = subprocess.run([node, "--check", os.path.join(SITE, name)], capture_output=True, text=True)

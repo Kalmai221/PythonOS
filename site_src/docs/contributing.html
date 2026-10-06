@@ -1,0 +1,100 @@
+<!--
+title: Pull requests
+description: How to contribute to PythonOS: setting up, the repository layout, the rules, what to run before a pull request, and what happens after.
+nav: docs
+section: docs
+group: Contributing
+order: 10
+-->
+<h1>Pull requests</h1>
+<p class="lead">Fixes, new commands, new apps, better docs: all welcome. This page is what to do from first clone to merge.</p>
+
+<h2 id="before">Before you start</h2>
+<ul>
+  <li>For a bug, <a href="https://github.com/Kalmai221/PythonOS/issues">search the issues</a> first. For a change that is more than a few lines or changes how something works, open an issue and describe it before you write the code.</li>
+  <li>Small pull requests are reviewed quickly. One change per pull request.</li>
+</ul>
+
+<h2 id="setup">Set up</h2>
+<pre class="cmdline">git clone https://github.com/Kalmai221/PythonOS
+cd PythonOS
+git switch -c fix-ping-timeout
+python -m pip install -r requirements.txt
+python main.py                          run PythonOS from the checkout</pre>
+<p>Python 3.9 or newer. PythonOS keeps its data (<code>files/</code>, <code>.OSData/</code>, <code>users.json</code>) in the folder you run it from; git ignores all of it. Fork the repository on GitHub if you cannot push to it.</p>
+
+<h2 id="layout">The repository</h2>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td><code>commands/</code></td><td>One file per command. Each has a <code>config</code> dict and an <code>execute(args)</code> function.</td></tr>
+    <tr><td><code>programs/</code></td><td>Built-in programs started with <code>run</code> (the marketplace itself, for one).</td></tr>
+    <tr><td><code>core/</code></td><td>Boot, shutdown, updates, hardware, recovery.</td></tr>
+    <tr><td><code>pyos/</code></td><td>Libraries: file system, settings, shell variables, sandbox, manual pages, help.</td></tr>
+    <tr><td><code>online_packages/</code></td><td>The marketplace apps and their catalog. See the <a href="{{root}}docs/apps-api.html">Apps API</a>.</td></tr>
+    <tr><td><code>OS_Export/</code></td><td>Everything that builds the packages: Windows, Android, Linux, ISO, VM images, Docker, the Setup Wizard.</td></tr>
+    <tr><td><code>site_src/</code>, <code>site/</code></td><td>The website. <code>site_src</code> is what you edit; <code>site</code> is generated from it (see below).</td></tr>
+    <tr><td><code>tools/</code></td><td>Tests and checks.</td></tr>
+    <tr><td><code>shell.py</code>, <code>main.py</code>, <code>users.py</code></td><td>The shell, the start-up and the accounts.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="rules">Rules</h2>
+<ul>
+  <li><strong>Match the code around yours.</strong> Same naming, same comment density, same style. A change should look like it was always there.</li>
+  <li><strong>Python 3.9.</strong> No <code>match</code>, no <code>X | Y</code> in annotations that run at import. CI runs the tests on 3.9 and checks with <code>vermin</code>.</li>
+  <li><strong>No new dependencies</strong> unless there is no other way. The core uses the standard library plus <code>requirements.txt</code>.</li>
+  <li><strong>Work on every system.</strong> Windows, Linux and Android are all targets. Use <code>os.path</code>, do not assume <code>/</code> or a POSIX shell, and keep optional things (like a library) optional.</li>
+  <li><strong>Running programs is reviewed.</strong> The live USB must never give a way out to the system underneath. <code>tools/audit_lockdown.py</code> fails on any new use of <code>subprocess</code>, <code>os.system</code>, <code>eval</code> and the like. If a change really needs one, add the file to <code>ALLOWED</code> in that script with the reason, and expect questions.</li>
+  <li><strong>Say it plainly.</strong> Messages to the user are short, specific and say what to do next.</li>
+  <li><strong>Line endings:</strong> the repository stores LF. Do not commit a file with its line endings rewritten.</li>
+</ul>
+
+<h2 id="new-command">Adding a command</h2>
+<p>A file in <code>commands/</code>:</p>
+<pre><code>from rich.console import Console
+
+console = Console()
+config = {"name": "hello", "description": "Say hello (hello [name])."}
+
+def execute(args=None):
+    console.print(f"Hello, {' '.join(args or []) or 'world'}!")
+    return True</code></pre>
+<p>Then, all of these are required (the checks fail without them):</p>
+<ul>
+  <li>A manual page in <code>pyos/manpages.py</code> (<code>cmd_page(...)</code>, next to the others).</li>
+  <li>A place in the help groups: add the name to <code>CATEGORIES</code> in <code>pyos/helpview.py</code>.</li>
+  <li>A line or two in <code>tools/smoke_test.py</code> (<code>CHECKS</code>): the command, text the output must contain, and the exit status.</li>
+  <li>A <code>CHANGELOG.md</code> line.</li>
+</ul>
+<p>A command that only makes sense on some systems says so with <code>"exports": ["iso"]</code> in <code>config</code>. A command that reads files or piped input should use <code>pyos/textcmd.py</code>, which gives it the same errors and flags as the others. Return <code>False</code> (or a failing status) when it fails.</p>
+
+<h2 id="site">Changing the website or these docs</h2>
+<p>Edit the pages in <code>site_src/</code>, then run:</p>
+<pre class="cmdline">python tools/build_site.py</pre>
+<p>That writes <code>site/</code>. Commit both: CI runs <code>build_site.py --check</code> and fails if <code>site/</code> is not what the sources produce. The command reference is generated from the manual, so to change it, change <code>pyos/manpages.py</code>.</p>
+
+<h2 id="before-pr">Before you open the pull request</h2>
+<pre class="cmdline">python tools/smoke_test.py         starts PythonOS and runs real commands; runs the tools/test_*.py files too
+python tools/audit_lockdown.py     nothing new can run programs
+python tools/check_docs.py         every command has a manual page and a help group
+python tools/build_index.py        the catalog is current (commit the index files if it changed)
+python tools/build_site.py         the website is current (if you touched it)</pre>
+<p>All of them must pass. CI runs more, including <code>pylint</code>, <code>ruff</code> and a Python 3.9 run: <a href="{{root}}docs/testing.html">Tests and CI</a>.</p>
+
+<h2 id="description">The pull request</h2>
+<p>A good description answers four questions. The pull request template asks them for you.</p>
+<ul>
+  <li><strong>What</strong> changed, in a sentence.</li>
+  <li><strong>Why</strong>: the problem, or the issue it closes (<code>Closes #12</code>).</li>
+  <li><strong>How you checked</strong>: what you ran, and on which system.</li>
+  <li><strong>What a user will see</strong>: new text, new commands, a changed default.</li>
+</ul>
+<p>Commit messages say what the commit does, in the present tense (<code>ping: time TCP connections</code>). Add a line under the right heading of the newest section of <code>CHANGELOG.md</code>: <code>### PythonOS</code> for the core, <code>### Exports</code> for packages, <code>### Website</code>, <code>### Development</code> for tests and tools. See <a href="{{root}}docs/releases.html">Changelog and releases</a>.</p>
+
+<h2 id="after">After you open it</h2>
+<ol>
+  <li>GitHub runs the checks. Fix anything red; open the log of the failed step. A failure on only one system (Windows, macOS, Python 3.9) is a real problem on that system, not noise.</li>
+  <li>A maintainer reviews. Expect questions about permissions, other systems and how it can break. Push more commits to the same branch to answer; there is no need to squash or reopen.</li>
+  <li>When it is approved and green it is merged. Changes to PythonOS itself reach people with the next release. Apps and the website go live straight away.</li>
+</ol>
+<div class="callout"><p>Not sure whether something is wanted? Open an issue and ask. A short question costs less than a rejected pull request.</p></div>

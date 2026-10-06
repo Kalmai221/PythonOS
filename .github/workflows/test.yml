@@ -84,6 +84,8 @@ jobs:
           git diff --exit-code online_packages/index.json online_packages/index-api1.json online_packages/index-api2.json
       - name: Manual, help groups and app descriptions are complete
         run: python tools/check_docs.py
+      - name: "Website is current (site/ is what site_src/ and the manual produce)"
+        run: python tools/build_site.py --check
       - name: Website links, ids and scripts
         run: python tools/check_site.py
       - name: Shell scripts parse

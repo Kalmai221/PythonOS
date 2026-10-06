@@ -1,0 +1,44 @@
+<!--
+title: Where it runs
+description: The ways PythonOS is packaged (Windows, Android, Linux, bootable USB, virtual machines, Docker): what each is, where your data lives and how each updates.
+nav: docs
+section: docs
+group: Using PythonOS
+order: 20
+-->
+<h1>Where it runs</h1>
+<p class="lead">PythonOS is packaged in several ways. These are called <em>exports</em>. The system inside is the same; the package around it is not.</p>
+
+<h2 id="two-kinds">Two kinds of update</h2>
+<p>PythonOS is made of two layers, and they update differently.</p>
+<ul>
+  <li><strong>The core</strong> is PythonOS itself: the shell, the commands, the apps' runtime. <code>updatecheck</code> downloads a new core and swaps it in, on every export.</li>
+  <li><strong>The package</strong> is what is around the core: the Windows launcher and Python, the Android app, the kernel and boot setup of the ISO, the Docker image. A new package is needed only when a release changes it. PythonOS says so and shows where to get it, and offers to install it itself where the system allows.</li>
+</ul>
+<p>Release notes follow the same split. Each release lists <em>PythonOS updates</em> (what <code>updatecheck</code> brings) separately from <em>export updates</em> (what needs a new download).</p>
+
+<h2 id="table">The exports</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Export</th><th>What it is</th><th>Your data</th></tr></thead>
+  <tbody>
+    <tr><td>Windows</td><td>An installer (and a portable zip) with its own Python and a terminal window. Windows 10 1809 or newer, Intel/AMD or ARM.</td><td>In the install folder, kept across updates.</td></tr>
+    <tr><td>Android</td><td>An app with a built-in terminal. A 1 MB installer app picks the right one for your processor. Android 7 or newer.</td><td>The app's private storage.</td></tr>
+    <tr><td>Linux</td><td>.deb, .rpm, Arch package or tarball. Any processor; needs Python 3.9 or newer.</td><td>The install folder.</td></tr>
+    <tr><td>Bootable USB</td><td>An ISO for a PC (x86_64) or an ARM computer with UEFI. A complete system that starts from the stick and leaves the disk alone.</td><td>Forgotten at power off unless a data disk is attached.</td></tr>
+    <tr><td>Virtual machine</td><td>The same system as the ISO, as an .ova (VirtualBox, VMware) or .qcow2 (QEMU, KVM, Proxmox).</td><td>The .ova has a data disk. For the .qcow2 attach the data disk image.</td></tr>
+    <tr><td>Docker</td><td>A container image for amd64 and arm64.</td><td>A volume mounted at <code>/data</code>.</td></tr>
+  </tbody>
+</table></div>
+<p>There is no macOS build. On a Mac, use Docker or a virtual machine.</p>
+
+<h2 id="data">Data disks on the USB and virtual machines</h2>
+<p>The live system runs from memory, so nothing is saved by default. A disk or partition labelled <code>PYOS_DATA</code> changes that: PythonOS finds it at start and keeps your accounts, files and settings there. Updates are kept there too, so an update made with <code>updatecheck</code> is still there after the next start.</p>
+<pre class="cmdline">persist status           is a data disk in use?
+persist create           make one from a spare disk (add --encrypt to encrypt it)</pre>
+<p>Without a data disk, <code>updatecheck</code> warns you that the update would be gone after a restart. For a lasting system, <code>installos</code> installs PythonOS on a disk of the computer. It erases that disk, so it asks you to type the disk's name first.</p>
+
+<h2 id="live">What the live USB does not do</h2>
+<p>The live system is locked down: there is no login on the Linux underneath, no shell, and nothing PythonOS runs can start your own programs. Because of that, apps that need to start programs or install Python libraries do not run there. The <a href="{{root}}apps.html">App Library</a> shows which apps run on the live USB.</p>
+
+<h2 id="commands-by-export">Commands that depend on the export</h2>
+<p>A few commands exist only where they make sense. <code>installos</code>, <code>persist</code>, <code>hwsetup</code> and <code>display</code> are for the bootable USB and the virtual machines. Typing one elsewhere tells you where it works.</p>

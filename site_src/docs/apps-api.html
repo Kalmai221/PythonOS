@@ -1,0 +1,157 @@
+<!--
+title: Apps API
+description: The PythonOS app package format: data.json, the run script, permissions, limits, settings, notifications, libraries, API versions and per-export run files.
+nav: docs
+section: docs
+group: Building apps
+order: 10
+-->
+<h1>Apps API</h1>
+<p class="lead">An app is a folder with a <code>data.json</code> that describes it and a Python script that runs it. This page is the reference. <a href="{{root}}docs/apps-publish.html">Test and publish an app</a> covers the workflow.</p>
+
+<h2 id="shape">What an app is</h2>
+<p>Apps live in the repository under <code>online_packages/&lt;category&gt;/&lt;name&gt;/</code>. The folder holds at least two files. The catalog the store reads (<code>online_packages/index-api*.json</code>) is generated from these folders by <code>tools/build_index.py</code>, with a SHA-256 checksum for every file. PythonOS checks each file against its checksum before it installs it.</p>
+<pre>online_packages/utilities/habits/
+  data.json        what the app is, what it needs, what it may do
+  run.py           the program</pre>
+
+<h2 id="minimal">A minimal app</h2>
+<p><code>data.json</code>:</p>
+<pre><code>{
+  "name": "Hello",
+  "description": "Says hello.",
+  "version": "1.0.0",
+  "command": "hello",
+  "scripts": { "run": "run.py" },
+  "permissions": [],
+  "categories": ["tools"],
+  "lockdown_safe": true,
+  "changelog": "First release."
+}</code></pre>
+<p><code>run.py</code>:</p>
+<pre><code>import sys
+
+def execute(args=None):
+    name = " ".join(args or []) or "world"
+    print(f"Hello, {name}!")
+    return True
+
+if __name__ == "__main__":
+    sys.exit(0 if execute(sys.argv[1:]) is not False else 1)</code></pre>
+<p>After it is installed, <code>hello Ada</code> (or <code>run hello Ada</code>) prints <code>Hello, Ada!</code>. The script is started as <code>__main__</code> with the arguments after the command. It succeeds when it exits with 0. Keeping the logic in an <code>execute(args)</code> function, as above, lets you test it without starting a process.</p>
+
+<h2 id="datajson">data.json reference</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Field</th><th>Required</th><th>What it is</th></tr></thead>
+  <tbody>
+    <tr><td><code>name</code></td><td>yes</td><td>The name people see.</td></tr>
+    <tr><td><code>description</code></td><td>yes</td><td>One sentence. It is the line in the store and the App Library.</td></tr>
+    <tr><td><code>version</code></td><td>yes</td><td>Dotted numbers, like <code>1.2.0</code>. Raise it whenever any file changes: this is how PythonOS knows an update exists.</td></tr>
+    <tr><td><code>command</code></td><td>yes</td><td>The word that starts the app. Pick one that is not already a command.</td></tr>
+    <tr><td><code>alias</code></td><td></td><td>Other words that start it (a list).</td></tr>
+    <tr><td><code>scripts</code></td><td>yes</td><td><code>{"run": "run.py"}</code>. Optional: <code>installer</code> and <code>uninstaller</code> (run once, never on the live USB), and <code>run_&lt;export&gt;</code> files (see below).</td></tr>
+    <tr><td><code>permissions</code></td><td>yes</td><td>What the app may do: a list of <code>network</code>, <code>files</code>, <code>notifications</code>, <code>schedule</code>, <code>system</code>, <code>exec</code>. Use <code>[]</code> for an app that needs nothing. <a href="#permissions">Details.</a></td></tr>
+    <tr><td><code>categories</code></td><td>yes</td><td>One or more of <code>productivity</code>, <code>ai</code>, <code>media</code>, <code>games</code>, <code>tools</code>, <code>network</code>, <code>system</code>, <code>learning</code>, <code>developer</code> (see <code>online_packages/categories.json</code>).</td></tr>
+    <tr><td><code>lockdown_safe</code></td><td></td><td><code>true</code> if the app cannot reach the system underneath PythonOS. Only such apps run on the live USB. <a href="#lockdown">The rules.</a></td></tr>
+    <tr><td><code>tags</code></td><td></td><td>Words for search.</td></tr>
+    <tr><td><code>changelog</code></td><td></td><td>A string, or an object <code>{"1.1.0": "what changed"}</code>. Shown before an update.</td></tr>
+    <tr><td><code>requires</code></td><td></td><td>Other packages this one needs, by id or command, with optional versions: <code>["utilities/notes&gt;=1.1"]</code>. They are installed together, after asking.</td></tr>
+    <tr><td><code>optional</code></td><td></td><td>Packages that make it better. Offered, not installed automatically. Strings, or <code>{"ref": "...", "why": "..."}</code>.</td></tr>
+    <tr><td><code>settings</code></td><td></td><td>Options the app offers. <a href="#settings">Details.</a></td></tr>
+    <tr><td><code>limits</code></td><td></td><td><code>{"memory_mb": 64, "cpu_seconds": 30}</code>. <a href="#limits">Details.</a></td></tr>
+    <tr><td><code>api</code></td><td></td><td>The marketplace API the app is written for: <code>1</code> (default) or <code>2</code>. <a href="#versions">Details.</a></td></tr>
+    <tr><td><code>pip</code></td><td></td><td>API 2 only: Python libraries the app needs. <a href="#pip">Details.</a></td></tr>
+    <tr><td><code>exports</code></td><td></td><td>Which systems the app runs on. <a href="#exports">Details.</a></td></tr>
+    <tr><td><code>featured</code></td><td></td><td><code>true</code> to list it first. Maintainers set this.</td></tr>
+  </tbody>
+</table></div>
+<p><code>python tools/build_index.py</code> validates all of this and stops with a message that names the app and the field when something is wrong.</p>
+
+<h2 id="permissions">Permissions</h2>
+<p>An app declares what it needs. PythonOS shows that before installing, records what the user allowed, and enforces it while the app runs: the app is started through a guard that refuses the matching calls.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Permission</th><th>Lets the app</th></tr></thead>
+  <tbody>
+    <tr><td><code>network</code></td><td>Connect to the internet and the local network.</td></tr>
+    <tr><td><code>files</code></td><td>Read and change the user's files and folders, with the same rules as the shell (a user cannot enter another user's home, and only administrators write outside their home and <code>tmp</code>).</td></tr>
+    <tr><td><code>notifications</code></td><td>Show notifications.</td></tr>
+    <tr><td><code>schedule</code></td><td>Schedule tasks to run later (alarms, reminders).</td></tr>
+    <tr><td><code>system</code></td><td>Read information about the computer (processes, memory, disk).</td></tr>
+    <tr><td><code>exec</code></td><td>Start other programs and run code on the computer.</td></tr>
+  </tbody>
+</table></div>
+<p>Without <code>files</code>, an app can still use its own folder, <code>files/tmp</code> and the system temp folder. Without <code>network</code>, opening a connection raises <code>PermissionError</code>; without <code>exec</code>, so do <code>subprocess</code> and <code>os.system</code>. Ask for as little as you need: people read this list.</p>
+<div class="callout warn"><p>The guard stops an honest app doing more than it declared, and catches mistakes. It is not a barrier against deliberately hostile code. That is what review and the live-USB audit are for.</p></div>
+
+<h2 id="lockdown">lockdown_safe</h2>
+<p>The live USB runs PythonOS as root with no way out to the system underneath. It only runs catalog apps marked <code>lockdown_safe</code> whose files still match their checksums. To be marked:</p>
+<ul>
+  <li>It may not ask for the <code>exec</code> permission or for Python libraries (<code>pip</code>).</li>
+  <li>Its code may not start processes (<code>subprocess</code>, <code>os.system</code>, <code>os.popen</code>, <code>os.exec*</code>, <code>pty</code>), evaluate code (<code>eval</code>, <code>exec</code>, <code>compile</code>, <code>__import__</code>), or import <code>ctypes</code>, <code>code</code>, <code>pdb</code>, <code>cmd</code> or <code>telnetlib</code>.</li>
+</ul>
+<p><code>python tools/audit_lockdown.py</code> checks every <code>lockdown_safe</code> app and fails the build if one breaks these rules.</p>
+
+<h2 id="storage">Where an app keeps things</h2>
+<ul>
+  <li><strong>Per-user data:</strong> a small JSON file in the user's home, <code>~/.config/&lt;name&gt;.json</code>, through <code>pyos.appdata</code>: <code>appdata.load(name, default)</code> and <code>appdata.save(name, data)</code>. It is visible, easy to back up (<code>backup</code>) and private to each user.</li>
+  <li><strong>Your own files:</strong> a folder you create inside the user's home (needs <code>files</code>). Existing apps write hidden files such as <code>~/.todo.json</code>.</li>
+  <li><strong>Settings:</strong> see below. The app never builds a settings screen.</li>
+</ul>
+<p>An app that may also be run outside PythonOS should import <code>pyos</code> with a fallback:</p>
+<pre><code>try:
+    from pyos import appdata
+except ImportError:          # run on its own, outside PythonOS
+    appdata = None</code></pre>
+
+<h2 id="settings">Settings</h2>
+<p>List the options in <code>data.json</code>. They appear under <code>settings app &lt;name&gt;</code> and in the Settings app. The app reads them with <code>appsettings.get(package_id, key, default)</code>.</p>
+<pre><code>"settings": [
+  {"key": "units", "label": "Units", "type": "choice", "choices": ["metric", "imperial"], "default": "metric"},
+  {"key": "hints", "label": "Show hints", "type": "bool", "default": true},
+  {"key": "seconds", "label": "Round length", "type": "int", "min": 10, "max": 300, "default": 60},
+  {"key": "city", "label": "Home city", "type": "text", "default": ""}
+]</code></pre>
+<p>Types are <code>bool</code>, <code>int</code> (optional <code>min</code> and <code>max</code>), <code>choice</code> (needs <code>choices</code>) and <code>text</code>. The default of every option is checked when the catalog is built.</p>
+
+<h2 id="notify">Notifications</h2>
+<p>With the <code>notifications</code> permission: <code>from pyos import notify</code>, then <code>notify.notify("Time is up", title="Timer", level="info")</code>. The message is shown before the user's next prompt. <code>level</code> is <code>info</code> or <code>warn</code>.</p>
+
+<h2 id="limits">Limits</h2>
+<p>Every app runs as a process of its own and is held to a memory and processor-time limit. The most specific wins: what the user set (<code>limits set</code>), then what the app declares, then the system default (a quarter of PythonOS's memory, setting <code>app_memory_percent</code>). <code>0</code> means no limit. An app over its memory limit is stopped with a message that says so.</p>
+<pre><code>"limits": {"memory_mb": 64, "cpu_seconds": 30}</code></pre>
+
+<h2 id="versions">API versions</h2>
+<p>The marketplace is versioned, so it can change without breaking systems that are already out there. An app says which API it is written for with <code>"api": N</code> (1 if missing). Each system asks for the catalog of its own version and refuses, with a clear message, an app that needs a newer one.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>API</th><th>Adds</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>The first marketplace: files, permissions, <code>requires</code>, settings.</td></tr>
+    <tr><td>2</td><td><code>pip</code> libraries, and <code>run_&lt;export&gt;</code> run files.</td></tr>
+  </tbody>
+</table></div>
+<p><strong>Stay on API 1</strong> if the app needs no Python libraries, runs everywhere and rarely changes. Use API 2 only when you really need a library. Inside a running app, the environment variable <code>PYOS_PACKAGE_API</code> holds the API the app was written for.</p>
+
+<h2 id="pip">Python libraries (API 2)</h2>
+<pre><code>"api": 2,
+"pip": ["yt-dlp", "miniaudio>=1.60"]</code></pre>
+<p>The marketplace installs the libraries when the app is installed, into the app's own <code>.libs</code> folder, and removes them with the app. The user sees them before agreeing. Rules:</p>
+<ul>
+  <li>Plain requirements only: a name with optional version limits (<code>requests&gt;=2.31</code>). No addresses, paths or options.</li>
+  <li>Wheels only: nothing is built or run at install time. At most 20 libraries.</li>
+  <li>Not on the live USB and the virtual machine images, which cannot run apps with libraries. List the exports the app does work on (next section).</li>
+</ul>
+
+<h2 id="exports">Which systems an app runs on</h2>
+<p>By default an app is assumed to run everywhere. If it does not, say so with <code>exports</code>, a list of <code>windows</code>, <code>linux</code>, <code>android</code>, <code>iso</code> (the bootable USB and the virtual machines):</p>
+<pre><code>"exports": ["windows", "linux"]</code></pre>
+<p>The catalog, <code>pkg info</code> and the App Library show it, and an app that does not fit the system is not offered there. <strong>The bootable USB is the baseline: an app must run on it</strong>, and <code>build_index.py</code> refuses an app that lists exports without <code>iso</code>. The one exception is an app that needs libraries (<code>pip</code>) or the <code>exec</code> permission, because the live USB cannot run those.</p>
+
+<h3 id="run-files">Run files for one export (API 2)</h3>
+<p>When a part of the app differs per system, give it a start file of its own:</p>
+<pre><code>"api": 2,
+"scripts": {
+  "run": "run.py",
+  "run_windows": "run_windows.py",
+  "run_iso": "run_iso.py"
+}</code></pre>
+<p>PythonOS starts <code>run_&lt;export&gt;</code> for the export it is running in and <code>run</code> everywhere else. Without a <code>run</code> script there must be a <code>run_&lt;export&gt;</code> for every export the app lists. Each file must exist in the package; the catalog builder checks. The usual way is one <code>run.py</code> that imports the shared code, and thin run files that import platform-specific modules.</p>

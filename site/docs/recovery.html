@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PythonOS - When something goes wrong</title>
+<meta name="description" content="The boot menu, safe mode, the emergency console, crash reports and diagnostics in PythonOS.">
+<meta name="theme-color" content="#faf9f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131312" media="(prefers-color-scheme: dark)">
+<script>try { var t = localStorage.getItem("theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
+<link rel="stylesheet" href="../style.css?v=7">
+<script src="../app.js?v=4" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="../index.html"><span class="logo" aria-hidden="true">&gt;_</span>PythonOS</a>
+    <nav aria-label="Main">
+      <a href="../download.html">Download</a>
+      <a href="../docs/index.html" aria-current="page">Documentation</a>
+      <a href="../apps.html">Apps</a>
+      <a href="../status.html">Build status</a>
+      <a class="opt" href="https://github.com/Kalmai221/PythonOS">GitHub</a>
+      <button class="icon-btn" id="theme" type="button" aria-pressed="false" aria-label="Switch theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap docs">
+<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html">Command reference</a></li><li><a href="recovery.html" aria-current="page">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html">Pull requests</a></li><li><a href="testing.html">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
+<main id="main" class="doc">
+<h1>When something goes wrong</h1>
+<p class="lead">PythonOS has a few tools for the case where it will not start, will not log in, or keeps stopping. None of them needs a password, and none of them gives a way out to the system underneath.</p>
+
+<h2 id="menu">The boot menu</h2>
+<p>On the bootable USB and the virtual machines, press <kbd>M</kbd> while the start-up message is on screen. On any other export, start PythonOS with <code>--menu</code>.</p>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td>1</td><td>Start normally</td></tr>
+    <tr><td>2</td><td>Safe mode</td></tr>
+    <tr><td>3</td><td>Diagnostic start: verbose, and saves a hardware report</td></tr>
+    <tr><td>4</td><td>Emergency console</td></tr>
+    <tr><td>5, 6</td><td>Restart, power off</td></tr>
+  </tbody>
+</table></div>
+<p>Pressing <kbd>D</kbd> at the same moment goes straight to the diagnostic start.</p>
+
+<h2 id="safe">Safe mode</h2>
+<p>Safe mode starts only the system itself. Apps from the marketplace, the startup commands of each user and the background checks are left out, and the long animations are skipped. Use it when something you added stops PythonOS from starting.</p>
+<pre class="cmdline">python3 main.py --safe       start once in safe mode
+safe on                      (in the emergency console) safe mode at every start until you say safe off</pre>
+
+<h2 id="emergency">The emergency console</h2>
+<p>A small, read-only console that needs no login. Open it from the boot menu, with <code>--emergency</code>, or let it open by itself: after repeated crashes in a short time PythonOS offers it, and on the bootable USB the start-up script opens it after three stops in two minutes.</p>
+<p>It can read the system log, the crash reports, the boot log and a hardware report, and pack them into one zip for you to send. It cannot run programs and cannot read your files, accounts or saved passwords.</p>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td><code>status</code></td><td>What happened last time, and the state of the system</td></tr>
+    <tr><td><code>logs [n]</code></td><td>The last n lines of the system log</td></tr>
+    <tr><td><code>crashes</code>, <code>crash &lt;n&gt;</code></td><td>List the crash reports, show one</td></tr>
+    <tr><td><code>bootlog</code></td><td>How the last starts went, step by step</td></tr>
+    <tr><td><code>diag</code></td><td>A hardware and driver report</td></tr>
+    <tr><td><code>savelogs</code></td><td>Pack the logs and the report into a zip. If a USB stick is plugged in it offers to copy it there.</td></tr>
+    <tr><td><code>safe on|off</code></td><td>Safe mode for the next start</td></tr>
+    <tr><td><code>reset</code></td><td>Clear the crash counter</td></tr>
+    <tr><td><code>restart</code>, <code>shutdown</code></td><td>Do what they say</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="reports">Crash reports</h2>
+<p>When PythonOS crashes it writes the full trace to a crash report, and also writes a ready-to-send problem report with names, home folders, email and IP addresses removed. Nothing is sent. After you log in:</p>
+<pre class="cmdline">whathappened             what the last session was doing when it stopped
+report --pending         read the waiting report, then open it as a GitHub issue or save it as a file
+report                   write a report about something else</pre>
+<p>You always see the whole text before anything leaves your computer, and it works without a network.</p>
+
+<h2 id="tools">Other tools</h2>
+<ul>
+  <li><code>doctor</code> checks the installation (disk, files, accounts, packages) and offers fixes.</li>
+  <li><code>logs</code>, <code>logs --crashes</code> and <code>bootlog</code> show what PythonOS wrote down.</li>
+  <li><code>rollback</code> goes back to the version before the last update.</li>
+  <li><code>diag</code> makes a hardware report you can attach to an issue.</li>
+</ul>
+<nav class="page-nav" aria-label="Pages"><a href="commands.html">&larr; Command reference</a><a href="apps-api.html">Apps API &rarr;</a></nav>
+</main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>PythonOS is open source. <a href="https://github.com/Kalmai221/PythonOS">Source</a> · <a href="https://github.com/Kalmai221/PythonOS/issues">Report a problem</a> · <a href="../docs/contributing.html">Contribute</a></span>
+    <span>Update from inside PythonOS with <code>updatecheck</code></span>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!--
+title: Build status
+description: The latest PythonOS build step by step, whether each part passed, the other checks, recent builds and download counts.
+nav: status
+scripts: status.js
+-->
+<main id="main" class="wrap" style="padding-block: 36px 0">
+  <div class="st-head">
+    <div><h1 class="title">Build status</h1>
+    <p class="muted" id="stamp">Loading…</p></div>
+    <button class="btn ghost" id="refresh" type="button">Refresh</button>
+  </div>
+
+  <div class="banner" id="banner" role="status" aria-live="polite">
+    <span class="orb" aria-hidden="true"></span>
+    <div style="flex:1;min-width:0"><h2 id="b-title">Checking the latest build…</h2><p id="b-sub"></p>
+      <div class="meter" id="meter" hidden><span id="meter-fill"></span></div><p class="muted" id="b-note"></p></div>
+  </div>
+
+  <div class="health" id="health" aria-label="Other checks"></div>
+
+  <h2 class="st-h">The latest build, step by step</h2>
+  <div class="stages" id="stages" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+
+  <section style="margin-top:40px">
+    <div class="st-line"><h2 class="st-h" style="margin:0">Recent builds</h2>
+      <div class="tabs" role="group" aria-label="Which builds"><button class="tab" type="button" data-show="all" aria-pressed="true">All</button><button class="tab" type="button" data-show="tags" aria-pressed="false">Releases</button></div></div>
+    <div class="table-wrap" style="margin-top:12px"><table class="list" id="runs"><caption class="sr">Recent builds</caption></table></div>
+  </section>
+
+  <section style="margin-top:40px">
+    <h2 class="st-h">Latest release</h2>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section style="margin-top:36px">
+    <h2 class="st-h" style="margin-bottom:6px">Downloads</h2>
+    <p class="muted" style="margin-bottom:16px">Counted by GitHub from the release files. Nothing is tracked inside PythonOS.</p>
+    <div class="bars" id="downloads"></div>
+  </section>
+</main>

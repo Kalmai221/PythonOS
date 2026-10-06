@@ -1,0 +1,53 @@
+<!--
+title: Download
+description: Download PythonOS for Windows, Android, Linux, a bootable USB or a virtual machine. The page picks the right file for your computer.
+nav: download
+scripts: download.js
+-->
+<main id="main">
+<div class="wrap" style="padding-top:36px;max-width:820px">
+  <h1>Download PythonOS</h1>
+  <p class="lead muted">Version <span id="ver">loading</span></p>
+
+  <div class="picker" id="rec" aria-live="polite"><p class="muted">Looking up the latest release...</p></div>
+
+  <h2>All downloads</h2>
+  <div class="tabs" id="tabs" role="group" aria-label="System"></div>
+  <div class="picker" style="margin-top:12px">
+    <div class="row" id="archbar" hidden></div>
+    <ul class="files" id="files"></ul>
+    <p class="muted" id="note"></p>
+  </div>
+  <p id="wizard" class="callout" hidden>The <a id="wizard-link" href="#">Setup Wizard</a> (Windows and Linux) installs PythonOS, writes a bootable USB stick, or sets up a virtual machine for you. It needs no Python.</p>
+
+  <h2>Which one do I want?</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>You have</th><th>Download</th></tr></thead>
+    <tbody>
+      <tr><td>A Windows PC</td><td>The web installer. It is small and fetches the right package for your processor.</td></tr>
+      <tr><td>An Android phone or tablet</td><td>The installer app (about 1 MB). It finds out which processor you have and downloads the right PythonOS app.</td></tr>
+      <tr><td>Linux</td><td>The package for your distribution (.deb, .rpm, Arch), or the tarball for any other.</td></tr>
+      <tr><td>A PC to try it on</td><td>The bootable ISO, written to a USB stick. Your disk is not touched. Add a data disk to keep your files.</td></tr>
+      <tr><td>VirtualBox or VMware</td><td>The .ova. It comes with a data disk and an empty disk for the installer.</td></tr>
+      <tr><td>QEMU, KVM or Proxmox</td><td>The .qcow2, plus the data disk next to it.</td></tr>
+      <tr><td>A Mac</td><td>There is no Mac version. Use Docker or a virtual machine.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">More about each: <a href="{{root}}docs/exports.html">what the packages are and how they update</a>.</p>
+
+  <h2>Check what you downloaded</h2>
+  <p>Every release lists the SHA-256 of each file in <code>SHA256SUMS</code>.</p>
+  <pre><span class="d"># Windows (PowerShell)</span>
+Get-FileHash .\PythonOS-*-web-setup.exe
+
+<span class="d"># Linux</span>
+sha256sum -c SHA256SUMS --ignore-missing
+
+<span class="d"># Build provenance (GitHub CLI)</span>
+gh attestation verify FILE --repo Kalmai221/PythonOS</pre>
+
+  <h2>Docker</h2>
+  <pre class="cmdline">docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos</pre>
+  <p class="muted">For amd64 and arm64. The volume keeps your accounts, files, settings and updates; without it everything is forgotten when the container stops.</p>
+</div>
+</main>

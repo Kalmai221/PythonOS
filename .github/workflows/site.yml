@@ -1,11 +1,12 @@
 name: Website
 
-# Publishes site/ (the download page and the build status page) to GitHub Pages.
+# Publishes site/ (the download page, the documentation, the App Library and the build status page) to GitHub Pages.
+# site/ is generated from site_src/ and the manual (tools/build_site.py); it is rebuilt here too, so a stale commit is never published.
 # One-time setup: repository Settings > Pages > Source: "GitHub Actions".
 on:
   push:
     branches: [main]
-    paths: ["site/**", "online_packages/index*.json", "online_packages/categories.json", ".github/workflows/site.yml"]
+    paths: ["site/**", "site_src/**", "tools/build_site.py", "pyos/manpages.py", "pyos/helpview.py", "commands/**", "online_packages/index*.json", "online_packages/categories.json", ".github/workflows/site.yml"]
   release:
     types: [published]
   workflow_dispatch:
@@ -27,6 +28,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Build the pages from site_src/ and the manual
+        run: python tools/build_site.py
       - uses: actions/configure-pages@v5
       - name: Put the app catalog next to the pages (the App Library reads it; one request, same address)
         run: |

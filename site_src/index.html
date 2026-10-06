@@ -1,0 +1,58 @@
+<!--
+title: A terminal operating system written in Python
+description: PythonOS is a small operating system you use by typing commands: shell, accounts, files, editor, app store and task manager. For Windows, Android, Linux, bootable USB, virtual machines and Docker.
+nav:
+scripts: home.js
+-->
+<main id="main">
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <h1>A terminal operating system, written in Python.</h1>
+      <p class="lead">PythonOS has a shell, user accounts, a file system, an editor, an app store and its own task manager. You use it by typing, in a terminal window, on a phone, or as a bootable USB stick.</p>
+      <div class="actions">
+        <a class="btn primary" href="{{root}}download.html">Download</a>
+        <a class="btn" href="{{root}}docs/getting-started.html">Get started</a>
+        <a class="btn ghost" href="{{root}}apps.html">Browse the apps</a>
+      </div>
+      <p class="facts">Free and open source. Runs on Windows, Android, Linux, a bootable USB, virtual machines and Docker. It updates itself.</p>
+    </div>
+    <pre class="terminal" id="demo" aria-label="Example session" tabindex="0"><span class="p">you@pyOS</span>:<span class="c">~</span>$ <span class="caret"></span></pre>
+  </section>
+
+  <section class="section">
+    <h2>What is in it</h2>
+    <div class="two-col">
+      <ul class="list-plain">
+        <li><b>A real shell</b>Pipes, redirects, <code>&amp;&amp;</code>, <code>||</code>, background jobs, variables, aliases and tab completion. About 120 commands, all documented with <code>man</code>.</li>
+        <li><b>Accounts and permissions</b>Users with roles, passwords, lock and idle logout. Deleted files go to a trash you can <code>undo</code>.</li>
+        <li><b>Its own tools</b>A text editor, a full-screen file manager (<code>fm</code>), a task manager that shows only PythonOS, and a settings app.</li>
+      </ul>
+      <ul class="list-plain">
+        <li><b>An app store</b>Over seventy apps and games. Each app says what it may do before you install it, and is held to that while it runs.</li>
+        <li><b>Contained</b>The live USB never gives access to the Linux underneath: no shell, no login, only PythonOS. A read-only emergency console helps when something breaks.</li>
+        <li><b>Updates itself</b>Run <code>updatecheck</code>. The core updates in place; a new package for your system is announced when one is needed.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Where it runs</h2>
+    <div class="paths">
+      <a href="{{root}}download.html"><b>Windows</b><span>An installer and a portable version. Intel/AMD and ARM.</span></a>
+      <a href="{{root}}download.html"><b>Android</b><span>A phone or tablet app, with a 1 MB installer that picks the right one.</span></a>
+      <a href="{{root}}download.html"><b>Linux</b><span>.deb, .rpm, Arch package or a tarball, for any processor.</span></a>
+      <a href="{{root}}download.html"><b>Bootable USB</b><span>Start a PC from a stick without touching its disk. Installing is optional.</span></a>
+      <a href="{{root}}download.html"><b>Virtual machine</b><span>An .ova for VirtualBox and VMware, a .qcow2 for QEMU.</span></a>
+      <a href="{{root}}docs/exports.html"><b>Docker</b><span>A container image for amd64 and arm64.</span></a>
+    </div>
+    <p class="muted" style="margin-top:12px">Not sure which one? The <a href="{{root}}download.html">download page</a> picks one for your computer. <a href="{{root}}docs/exports.html">What each one is, and how it updates.</a></p>
+  </section>
+
+  <section class="section">
+    <h2>Build for it</h2>
+    <p>Apps are small Python programs described by one JSON file. The documentation covers the package format, what an app may do, how to test it, and how to send it in as a pull request.</p>
+    <p><a href="{{root}}docs/apps-api.html">Apps API</a> · <a href="{{root}}docs/contributing.html">Contributing</a> · <a href="{{root}}docs/index.html">All documentation</a></p>
+  </section>
+</div>
+</main>

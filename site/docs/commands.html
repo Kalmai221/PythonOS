@@ -1,0 +1,1347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PythonOS - Command reference</title>
+<meta name="description" content="Every PythonOS command with usage, options and examples.">
+<meta name="theme-color" content="#faf9f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131312" media="(prefers-color-scheme: dark)">
+<script>try { var t = localStorage.getItem("theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
+<link rel="stylesheet" href="../style.css?v=7">
+<script src="../app.js?v=4" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="../index.html"><span class="logo" aria-hidden="true">&gt;_</span>PythonOS</a>
+    <nav aria-label="Main">
+      <a href="../download.html">Download</a>
+      <a href="../docs/index.html" aria-current="page">Documentation</a>
+      <a href="../apps.html">Apps</a>
+      <a href="../status.html">Build status</a>
+      <a class="opt" href="https://github.com/Kalmai221/PythonOS">GitHub</a>
+      <button class="icon-btn" id="theme" type="button" aria-pressed="false" aria-label="Switch theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap docs">
+<nav class="docs-nav" aria-label="Documentation"><h4>Using PythonOS</h4><ul><li><a href="index.html">Documentation</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="exports.html">Where it runs</a></li><li><a href="commands.html" aria-current="page">Command reference</a></li><li><a href="recovery.html">When something goes wrong</a></li></ul><h4>Building apps</h4><ul><li><a href="apps-api.html">Apps API</a></li><li><a href="apps-publish.html">Test and publish an app</a></li></ul><h4>Contributing</h4><ul><li><a href="contributing.html">Pull requests</a></li><li><a href="testing.html">Tests and CI</a></li><li><a href="releases.html">Changelog and releases</a></li></ul></nav>
+<main id="main" class="doc">
+<h1>Command reference</h1>
+<p class="lead">Every command in PythonOS, from the manual that ships with it. Inside PythonOS the same text is <code>man &lt;command&gt;</code>, and <code>help</code> lists the groups.</p>
+<p><label class="sr" for="cmd-filter">Filter the commands</label><input id="cmd-filter" type="search" placeholder="Filter by name or description" autocomplete="off" style="width:100%;max-width:26em;font:inherit;padding:8px 10px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--text)"></p>
+<p class="muted">Groups: <a href="#group-files">Files</a>, <a href="#group-text-and-shell">Text and shell</a>, <a href="#group-jobs-and-scheduling">Jobs and scheduling</a>, <a href="#group-accounts-and-security">Accounts and security</a>, <a href="#group-system">System</a>, <a href="#group-network-and-hardware">Network and hardware</a>, <a href="#group-updates-and-apps">Updates and apps</a>, <a href="#group-power">Power</a>, <a href="#topics">Topics</a>.</p>
+<h2 id="group-files">Files</h2><p class="muted">Look at and change files and folders</p>
+<section class="cmd" id="cmd-basename" data-name="basename">
+<h3>basename</h3>
+<p class="summary">the last part of a path</p>
+<pre><code>basename &lt;path&gt; [suffix]</code></pre>
+<p>Prints the file name of a path, optionally without a suffix.</p>
+<pre><code><span class="g">$</span> basename ~/notes/a.txt .txt  <span class="d"># a</span></code></pre>
+<p class="muted">See also: <a href="#cmd-dirname"><code>dirname</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-cat" data-name="cat">
+<h3>cat</h3>
+<p class="summary">show a file</p>
+<pre><code>cat &lt;file&gt;...
+&lt;command&gt; | cat</code></pre>
+<p>Prints files exactly as they are. With no file it prints what was piped into it.</p>
+<pre><code><span class="g">$</span> cat notes.txt  <span class="d"># read a file</span>
+<span class="g">$</span> cat a.txt b.txt &gt; both.txt  <span class="d"># join two files</span></code></pre>
+<p class="muted">See also: <a href="#cmd-head"><code>head</code></a>, <a href="#cmd-tail"><code>tail</code></a>, <a href="#cmd-edit"><code>edit</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-cd" data-name="cd">
+<h3>cd</h3>
+<p class="summary">change folder</p>
+<pre><code>cd [path]</code></pre>
+<p>Moves to another folder. With no path it goes to your home folder (~). A path starting with / is from the top of the filesystem; ~ means your home; .. means the folder above.</p>
+<pre><code><span class="g">$</span> cd docs  <span class="d"># go into docs</span>
+<span class="g">$</span> cd ..  <span class="d"># go up one</span>
+<span class="g">$</span> cd /tmp  <span class="d"># go to the shared temporary folder</span>
+<span class="g">$</span> cd  <span class="d"># go home</span></code></pre>
+<p class="muted">See also: <a href="#cmd-pwd"><code>pwd</code></a>, <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-files"><code>files</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-cp" data-name="cp">
+<h3>cp</h3>
+<p class="summary">copy a file or folder</p>
+<pre><code>cp &lt;source&gt; &lt;destination&gt;</code></pre>
+<p>Copies a file, or a whole folder.</p>
+<pre><code><span class="g">$</span> cp a.txt b.txt  <span class="d"># copy to a new name</span>
+<span class="g">$</span> cp -r not needed  <span class="d"># folders are copied automatically</span></code></pre>
+<p class="muted">See also: <a href="#cmd-mv"><code>mv</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-dirname" data-name="dirname">
+<h3>dirname</h3>
+<p class="summary">the folder part of a path</p>
+<pre><code>dirname &lt;path&gt;</code></pre>
+<p>Prints the folder a path is in.</p>
+<p class="muted">See also: <a href="#cmd-basename"><code>basename</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-du" data-name="du">
+<h3>du</h3>
+<p class="summary">how much space folders use</p>
+<pre><code>du [-s] [-h] [path]</code></pre>
+<p>Shows the size of a folder and of every folder inside it. -s only the total, -h in K, M, G.</p>
+<pre><code><span class="g">$</span> du -sh ~</code></pre>
+<p class="muted">See also: <a href="#cmd-df"><code>df</code></a>, <a href="#cmd-stat"><code>stat</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-edit" data-name="edit">
+<h3>edit</h3>
+<p class="summary">edit a text file</p>
+<pre><code>edit &lt;file&gt;</code></pre>
+<p>PythonOS&#x27;s own editor. On a real terminal it opens full screen: type to edit, Ctrl+S saves, Ctrl+Q quits (twice if there are unsaved changes). On the Android app and in pipes it is a line editor: a adds lines (a single . finishes), p shows them, d deletes, r replaces, s changes text, f finds, u undoes, w saves, q quits, h shows help. A missing file is created when you save.</p>
+<pre><code><span class="g">$</span> edit notes.txt  <span class="d"># open or create a file</span></code></pre>
+<p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>, <a href="#cmd-touch"><code>touch</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-find" data-name="find">
+<h3>find</h3>
+<p class="summary">find files</p>
+<pre><code>find [folder] [pattern] [-name p] [-iname p] [-type f|d] [-size +10k] [-mtime -7] [-maxdepth N] [-l]</code></pre>
+<p>Searches a folder and everything inside it. A plain word matches any name containing it; * and ? are wildcards. Tests can be combined: all of them must match. It only shows what you are allowed to see.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-type f|d</code></td><td>files or folders only</td></tr><tr><td><code>-size +10k</code></td><td>bigger than 10 KB (use - for smaller; k, M, G)</td></tr><tr><td><code>-mtime -7</code></td><td>changed in the last 7 days (+30 = older than 30 days)</td></tr><tr><td><code>-maxdepth N</code></td><td>do not go deeper than N levels</td></tr><tr><td><code>-l</code></td><td>show size and date</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> find *.txt  <span class="d"># every .txt file from here down</span>
+<span class="g">$</span> find ~ -type f -size +1M  <span class="d"># big files in your home</span>
+<span class="g">$</span> find /var/log -mtime -1  <span class="d"># logs changed today</span></code></pre>
+<p class="muted">See also: <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-grep"><code>grep</code></a>, <a href="#cmd-tree"><code>tree</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-fm" data-name="fm">
+<h3>fm</h3>
+<p class="summary">the file manager</p>
+<pre><code>fm [folder]</code></pre>
+<p>A full-screen file manager: two panes, the folder on the left and a preview of what is under the cursor on the right. Enter opens a folder or edits a file, Space marks several, c / x / p copy, cut and paste (a name that is already there gets (2) added: nothing is overwritten), d moves to the trash (u brings it back, D deletes for good), r renames, n and N make a file or folder, / filters by name, s sorts, . shows hidden files, i shows details, ? lists every key. It follows the shell&#x27;s rules: you cannot leave the filesystem, enter other homes, or change anything outside your home and /tmp unless you are an administrator. Without a full-screen terminal (the Android app) it lists the folder.</p>
+<pre><code><span class="g">$</span> fm  <span class="d"># open the file manager in the current folder</span>
+<span class="g">$</span> fm ~/docs  <span class="d"># start in a folder</span></code></pre>
+<p class="muted">See also: <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-cp"><code>cp</code></a>, <a href="#cmd-mv"><code>mv</code></a>, <a href="#cmd-rm"><code>rm</code></a>, <a href="#cmd-trash"><code>trash</code></a>, <a href="#cmd-edit"><code>edit</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-grep" data-name="grep">
+<h3>grep</h3>
+<p class="summary">search for text</p>
+<pre><code>grep [-inrvwclF] [-A n] [-B n] [-C n] &lt;pattern&gt; [file or folder...]</code></pre>
+<p>Prints the lines that match a pattern (a regular expression). It succeeds only if something matched, so it works with &amp;&amp; and ||. With a folder and -r it searches every text file inside (hidden files and huge or binary files are skipped).</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-i</code></td><td>ignore upper/lower case</td></tr><tr><td><code>-n</code></td><td>show line numbers</td></tr><tr><td><code>-r</code></td><td>search folders</td></tr><tr><td><code>-v</code></td><td>lines that do NOT match</td></tr><tr><td><code>-w</code></td><td>whole words only</td></tr><tr><td><code>-c</code></td><td>only count matches</td></tr><tr><td><code>-l</code></td><td>only list file names</td></tr><tr><td><code>-F</code></td><td>plain text, not a pattern</td></tr><tr><td><code>-A/-B/-C n</code></td><td>show n lines after / before / around each match</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> grep todo notes.txt  <span class="d"># lines with todo</span>
+<span class="g">$</span> grep -rn error /var/log  <span class="d"># search a whole folder</span>
+<span class="g">$</span> cat log.txt | grep -i error  <span class="d"># search piped text</span>
+<span class="g">$</span> grep -C 2 crash log.txt  <span class="d"># matches with context</span>
+<span class="g">$</span> grep x file &amp;&amp; echo found  <span class="d"># act on the result</span></code></pre>
+<p class="muted">See also: <a href="#cmd-find"><code>find</code></a>, <a href="#cmd-diff"><code>diff</code></a>, <a href="#cmd-shell"><code>shell</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-head" data-name="head">
+<h3>head</h3>
+<p class="summary">show the start of a file</p>
+<pre><code>head [-n N] [file]</code></pre>
+<p>Prints the first 10 lines (or N).</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-n N</code></td><td>how many lines</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> head -n 3 log.txt  <span class="d"># first three lines</span>
+<span class="g">$</span> ls | head -n 5  <span class="d"># first five names</span></code></pre>
+<p class="muted">See also: <a href="#cmd-tail"><code>tail</code></a>, <a href="#cmd-cat"><code>cat</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-less" data-name="less">
+<h3>less</h3>
+<p class="summary">read long text a screen at a time</p>
+<pre><code>less [file]
+... | less</code></pre>
+<p>Shows a file or piped text one screen at a time: Enter shows one more line, a space then Enter the next page, q stops. more is the same.</p>
+<pre><code><span class="g">$</span> less readme.txt
+<span class="g">$</span> man pkg | less</code></pre>
+<p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>, <a href="#cmd-head"><code>head</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-ls" data-name="ls">
+<h3>ls</h3>
+<p class="summary">list files and folders</p>
+<pre><code>ls [-a] [-l] [path]</code></pre>
+<p>Shows what is in a folder (the current one by default). Folders are blue and end in /.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-a</code></td><td>include hidden files (names starting with a dot)</td></tr><tr><td><code>-l</code></td><td>long format with size and modified time</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> ls  <span class="d"># what is here</span>
+<span class="g">$</span> ls -l ~/docs  <span class="d"># details for a folder</span>
+<span class="g">$</span> ls | grep txt  <span class="d"># only names containing txt</span></code></pre>
+<p class="muted">See also: <a href="#cmd-cd"><code>cd</code></a>, <a href="#cmd-tree"><code>tree</code></a>, <a href="#cmd-pwd"><code>pwd</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-mkdir" data-name="mkdir">
+<h3>mkdir</h3>
+<p class="summary">make a folder</p>
+<pre><code>mkdir [-p] &lt;name&gt;...</code></pre>
+<p>Creates folders.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-p</code></td><td>no error if it already exists</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> mkdir projects  <span class="d"># new folder</span></code></pre>
+<p class="muted">See also: <a href="#cmd-rm"><code>rm</code></a>, <a href="#cmd-cd"><code>cd</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-mv" data-name="mv">
+<h3>mv</h3>
+<p class="summary">move or rename</p>
+<pre><code>mv &lt;source&gt; &lt;destination&gt;</code></pre>
+<p>Moves a file or folder, or renames it.</p>
+<pre><code><span class="g">$</span> mv draft.txt final.txt  <span class="d"># rename</span>
+<span class="g">$</span> mv a.txt docs  <span class="d"># move into docs</span></code></pre>
+<p class="muted">See also: <a href="#cmd-cp"><code>cp</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-pwd" data-name="pwd">
+<h3>pwd</h3>
+<p class="summary">show the current folder</p>
+<pre><code>pwd</code></pre>
+<p>Prints where you are, for example /home/alex/docs.</p>
+<p class="muted">See also: <a href="#cmd-cd"><code>cd</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-rm" data-name="rm">
+<h3>rm</h3>
+<p class="summary">remove files and folders</p>
+<pre><code>rm [-f] [-P] &lt;path&gt;...</code></pre>
+<p>Moves files and folders to the trash, so a slip can be fixed: undo brings the last one back and trash lists everything. Folders (and everything inside) ask first, unless you use -f or turn off the confirm_delete setting. The trash empties itself after 30 days (settings trash_days); turn it off with settings set use_trash false.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-f</code></td><td>do not ask, and ignore missing files</td></tr><tr><td><code>-P</code></td><td>delete for good, skipping the trash</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> rm old.txt  <span class="d"># remove a file (it goes to the trash)</span>
+<span class="g">$</span> rm -f temp  <span class="d"># remove a folder without asking</span>
+<span class="g">$</span> undo  <span class="d"># bring the last one back</span></code></pre>
+<p class="muted">See also: <a href="#cmd-trash"><code>trash</code></a>, <a href="#cmd-undo"><code>undo</code></a>, <a href="#cmd-backup"><code>backup</code></a>, <a href="#cmd-settings"><code>settings</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-stat" data-name="stat">
+<h3>stat</h3>
+<p class="summary">details of a file or folder</p>
+<pre><code>stat &lt;path&gt;...</code></pre>
+<p>Shows the type, size and dates of files and folders.</p>
+<p class="muted">See also: <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-du"><code>du</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tail" data-name="tail">
+<h3>tail</h3>
+<p class="summary">show the end of a file</p>
+<pre><code>tail [-n N] [file]</code></pre>
+<p>Prints the last 10 lines (or N).</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-n N</code></td><td>how many lines</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> tail -n 20 /var/log/system.log  <span class="d"># recent log entries</span></code></pre>
+<p class="muted">See also: <a href="#cmd-head"><code>head</code></a>, <a href="#cmd-logs"><code>logs</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tar" data-name="tar">
+<h3>tar</h3>
+<p class="summary">make or unpack tar archives</p>
+<pre><code>tar -c[z]f &lt;archive&gt; &lt;paths&gt;...
+tar -x[z]f &lt;archive&gt; [-C folder] [-o]
+tar -t[z]f &lt;archive&gt;</code></pre>
+<p>Like the Unix tool: c creates, x extracts, t lists, z uses gzip compression (.tar.gz or .tgz) and f names the archive. Links and device files inside an archive are never created, and unsafe names are refused.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-C folder</code></td><td>extract into this folder</td></tr><tr><td><code>-o</code></td><td>overwrite existing files</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> tar -czf ~/p.tgz ~/p  <span class="d"># compress a folder</span>
+<span class="g">$</span> tar -xzf ~/p.tgz -C ~/out  <span class="d"># unpack it</span>
+<span class="g">$</span> tar -tf ~/p.tgz  <span class="d"># list it</span></code></pre>
+<p class="muted">See also: <a href="#cmd-zip"><code>zip</code></a>, <a href="#cmd-unzip"><code>unzip</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tee" data-name="tee">
+<h3>tee</h3>
+<p class="summary">show text and save it too</p>
+<pre><code>tee [-a] &lt;file&gt;</code></pre>
+<p>Passes piped text on to the screen and writes it to a file as well (-a adds to the file).</p>
+<pre><code><span class="g">$</span> ls | tee list.txt</code></pre>
+<p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-touch" data-name="touch">
+<h3>touch</h3>
+<p class="summary">create an empty file</p>
+<pre><code>touch &lt;file&gt;...</code></pre>
+<p>Creates the file if it does not exist, otherwise updates its time.</p>
+<pre><code><span class="g">$</span> touch todo.txt  <span class="d"># start a new file</span></code></pre>
+<p class="muted">See also: <a href="#cmd-edit"><code>edit</code></a>, <a href="#cmd-mkdir"><code>mkdir</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-trash" data-name="trash">
+<h3>trash</h3>
+<p class="summary">the trash</p>
+<pre><code>trash [list [--all]]
+trash restore &lt;number|name&gt; [path]
+trash delete &lt;number|name&gt;
+trash empty [--all]</code></pre>
+<p>Everything rm removed waits here. list shows it newest first; restore puts an item back where it was (or at a path you give) and never overwrites; delete and empty remove for good. You see your own items; admins can add --all.</p>
+<pre><code><span class="g">$</span> trash  <span class="d"># what is in the trash</span>
+<span class="g">$</span> trash restore 2  <span class="d"># bring back item 2</span>
+<span class="g">$</span> trash restore notes.txt ~/docs  <span class="d"># restore to another folder</span></code></pre>
+<p class="muted">See also: <a href="#cmd-rm"><code>rm</code></a>, <a href="#cmd-undo"><code>undo</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tree" data-name="tree">
+<h3>tree</h3>
+<p class="summary">show folders as a tree</p>
+<pre><code>tree [-a] [-d] [-s] [-L depth] [path]</code></pre>
+<p>Draws the folder and everything inside it, folders first, with a count at the end.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-a</code></td><td>include hidden files</td></tr><tr><td><code>-d</code></td><td>folders only</td></tr><tr><td><code>-s</code></td><td>show file sizes</td></tr><tr><td><code>-L n</code></td><td>only n levels deep</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> tree -L 2 ~  <span class="d"># two levels of your home</span></code></pre>
+<p class="muted">See also: <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-find"><code>find</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-undo" data-name="undo">
+<h3>undo</h3>
+<p class="summary">bring back the last removed thing</p>
+<pre><code>undo [N]</code></pre>
+<p>Restores what rm removed most recently (or the last N things) to where it was. If something is already there it stops instead of overwriting.</p>
+<pre><code><span class="g">$</span> rm notes.txt  <span class="d"># oops</span>
+<span class="g">$</span> undo  <span class="d"># and it is back</span></code></pre>
+<p class="muted">See also: <a href="#cmd-rm"><code>rm</code></a>, <a href="#cmd-trash"><code>trash</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-unzip" data-name="unzip">
+<h3>unzip</h3>
+<p class="summary">unpack a zip archive</p>
+<pre><code>unzip [-l] [-o] &lt;archive.zip&gt; [-d folder]</code></pre>
+<p>Unpacks an archive into the current folder (or the folder after -d). It refuses names that would escape the destination, very large archives, and files that already exist unless you add -o.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-l</code></td><td>list what is inside without unpacking</td></tr><tr><td><code>-o</code></td><td>overwrite files that already exist</td></tr><tr><td><code>-d folder</code></td><td>unpack somewhere else</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> unzip -l ~/docs.zip  <span class="d"># see the contents</span>
+<span class="g">$</span> unzip ~/docs.zip -d ~/out  <span class="d"># unpack into ~/out</span></code></pre>
+<p class="muted">See also: <a href="#cmd-zip"><code>zip</code></a>, <a href="#cmd-tar"><code>tar</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-wc" data-name="wc">
+<h3>wc</h3>
+<p class="summary">count lines, words and characters</p>
+<pre><code>wc [file]</code></pre>
+<p>Prints three numbers: lines, words, characters.</p>
+<pre><code><span class="g">$</span> wc notes.txt  <span class="d"># size of a file</span>
+<span class="g">$</span> ls | wc  <span class="d"># how many names ls printed</span></code></pre>
+</section>
+
+<section class="cmd" id="cmd-which" data-name="which">
+<h3>which</h3>
+<p class="summary">what is this name?</p>
+<pre><code>which &lt;name&gt;...</code></pre>
+<p>Says whether a name is a built-in, a command or an app, and how to start it.</p>
+<pre><code><span class="g">$</span> which ls</code></pre>
+<p class="muted">See also: <a href="#cmd-help"><code>help</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-zip" data-name="zip">
+<h3>zip</h3>
+<p class="summary">make a zip archive</p>
+<pre><code>zip &lt;archive.zip&gt; &lt;file or folder&gt;...</code></pre>
+<p>Packs files and folders (and everything inside them) into one .zip file. Existing archives are replaced.</p>
+<pre><code><span class="g">$</span> zip ~/docs.zip ~/docs  <span class="d"># pack a folder</span>
+<span class="g">$</span> zip all.zip a.txt b.txt  <span class="d"># pack two files</span></code></pre>
+<p class="muted">See also: <a href="#cmd-unzip"><code>unzip</code></a>, <a href="#cmd-tar"><code>tar</code></a>, <a href="#cmd-backup"><code>backup</code></a>.</p>
+</section>
+
+<h2 id="group-text-and-shell">Text and shell</h2><p class="muted">Print, repeat and organise what you type</p>
+<section class="cmd" id="cmd-alias" data-name="alias">
+<h3>alias</h3>
+<p class="summary">give a command a short name</p>
+<pre><code>alias
+alias name=&quot;command and arguments&quot;</code></pre>
+<p>Makes a short name for a command with its arguments. The alias is kept for you (in ~/.pyos_aliases) and works at the start of a command. alias alone lists them.</p>
+<pre><code><span class="g">$</span> alias ll=&quot;ls -l&quot;  <span class="d"># ll now means ls -l</span>
+<span class="g">$</span> alias gs=&quot;updatecheck&quot;</code></pre>
+<p class="muted">See also: <a href="#cmd-unalias"><code>unalias</code></a>, <a href="#cmd-export"><code>export</code></a>, <a href="#cmd-source"><code>source</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-cal" data-name="cal">
+<h3>cal</h3>
+<p class="summary">show a calendar</p>
+<pre><code>cal
+cal &lt;month&gt; &lt;year&gt;
+cal &lt;year&gt;</code></pre>
+<p>Shows this month, a chosen month, or a whole year.</p>
+<pre><code><span class="g">$</span> cal 12 2026</code></pre>
+<p class="muted">See also: <a href="#cmd-date"><code>date</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-clear" data-name="clear">
+<h3>clear</h3>
+<p class="summary">clear the screen</p>
+<pre><code>clear [-x]</code></pre>
+<p>Wipes the terminal and its scrollback so old output stops piling up. Use -x to keep the scrollback. The screen is also cleared before a command when the last one filled it (settings clear_style: off, overflow or always), and tidies itself before a prompt once 300 lines have printed (settings auto_clear_lines, 0 = never), and a full-screen program or menu starts on a clean screen (settings clear_screens).</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-x</code></td><td>keep the scrollback</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> clear  <span class="d"># wipe it all</span>
+<span class="g">$</span> settings set auto_clear_lines 300  <span class="d"># tidy automatically</span></code></pre>
+<p class="muted">See also: <a href="#cmd-settings"><code>settings</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-cowsay" data-name="cowsay">
+<h3>cowsay</h3>
+<p class="summary">a cow says it</p>
+<pre><code>cowsay &lt;text&gt;
+&lt;command&gt; | cowsay</code></pre>
+<p>Draws a speech bubble with a cow. It reads piped input when you give it no words, which makes it a nice way to learn pipes.</p>
+<pre><code><span class="g">$</span> fortune | cowsay  <span class="d"># the cow says a saying</span>
+<span class="g">$</span> ls | cowsay  <span class="d"># the cow reads your files</span></code></pre>
+<p class="muted">See also: <a href="#cmd-fortune"><code>fortune</code></a>, <a href="#cmd-rainbow"><code>rainbow</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-cut" data-name="cut">
+<h3>cut</h3>
+<p class="summary">keep parts of each line</p>
+<pre><code>cut -d, -f1,3 [file]
+cut -c1-5 [file]</code></pre>
+<p>Keeps chosen fields (split at the -d character) or character positions of every line. Ranges like 2-4 and 3- work.</p>
+<pre><code><span class="g">$</span> cat data.csv | cut -d, -f2  <span class="d"># the second column</span></code></pre>
+<p class="muted">See also: <a href="#cmd-sort"><code>sort</code></a>, <a href="#cmd-tr"><code>tr</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-diff" data-name="diff">
+<h3>diff</h3>
+<p class="summary">compare two files</p>
+<pre><code>diff [-u] [-q] &lt;file1&gt; &lt;file2&gt;</code></pre>
+<p>Shows what changed between two text files: &lt; is a line only in the first, &gt; only in the second. It succeeds only when the files are identical, so it works with &amp;&amp; and ||.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-u</code></td><td>unified format with context</td></tr><tr><td><code>-q</code></td><td>only say whether they differ</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> diff old.txt new.txt  <span class="d"># what changed</span>
+<span class="g">$</span> diff -q a b &amp;&amp; echo same  <span class="d"># act on the result</span></code></pre>
+<p class="muted">See also: <a href="#cmd-grep"><code>grep</code></a>, <a href="#cmd-cat"><code>cat</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-echo" data-name="echo">
+<h3>echo</h3>
+<p class="summary">print text</p>
+<pre><code>echo &lt;text&gt;</code></pre>
+<p>Prints its words.</p>
+<pre><code><span class="g">$</span> echo hello &gt; hi.txt  <span class="d"># write a file</span></code></pre>
+</section>
+
+<section class="cmd" id="cmd-env" data-name="env">
+<h3>env</h3>
+<p class="summary">who and where you are</p>
+<pre><code>env</code></pre>
+<p>Shows the user, role, home folder, host, current folder and the PythonOS settings of this session.</p>
+<p class="muted">See also: <a href="#cmd-whoami"><code>whoami</code></a>, <a href="#cmd-pwd"><code>pwd</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-export" data-name="export">
+<h3>export</h3>
+<p class="summary">set a variable</p>
+<pre><code>export NAME=value
+export</code></pre>
+<p>Sets a variable you can use in later commands as $NAME or ${NAME}, and lists it in env. $USER, $HOME, $HOST, $PWD and $? always exist. NAME=value on its own does the same without listing it. Variables last for the session; put the lines in ~/.pyosrc to have them at every login.</p>
+<pre><code><span class="g">$</span> export GREETING=hello
+<span class="g">$</span> echo $GREETING world  <span class="d"># hello world</span></code></pre>
+<p class="muted">See also: <a href="#cmd-unset"><code>unset</code></a>, <a href="#cmd-env"><code>env</code></a>, <a href="#cmd-source"><code>source</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-fortune" data-name="fortune">
+<h3>fortune</h3>
+<p class="summary">a random saying</p>
+<pre><code>fortune</code></pre>
+<p>Prints a saying, many of them tips about the shell. Use it to practise pipes and redirects.</p>
+<pre><code><span class="g">$</span> fortune | cowsay  <span class="d"># pipe it</span>
+<span class="g">$</span> fortune &gt; ~/today.txt  <span class="d"># save it in a file</span>
+<span class="g">$</span> fortune &gt;&gt; ~/all.txt  <span class="d"># add to a file</span></code></pre>
+<p class="muted">See also: <a href="#cmd-cowsay"><code>cowsay</code></a>, <a href="#cmd-rainbow"><code>rainbow</code></a>, <a href="#cmd-echo"><code>echo</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-history" data-name="history">
+<h3>history</h3>
+<p class="summary">show earlier commands</p>
+<pre><code>history</code></pre>
+<p>Lists what you typed before; the up arrow recalls them.</p>
+</section>
+
+<section class="cmd" id="cmd-man" data-name="man">
+<h3>man</h3>
+<p class="summary">read the manual</p>
+<pre><code>man &lt;name&gt;
+man -k &lt;word&gt;
+man</code></pre>
+<p>Shows the manual page of a command or topic. man -k searches all pages for a word. Topics: shell, files, users, packages, updates, lockdown.</p>
+<pre><code><span class="g">$</span> man ls  <span class="d"># about ls</span>
+<span class="g">$</span> man -k backup  <span class="d"># which pages mention backup</span></code></pre>
+<p class="muted">See also: <a href="#cmd-help"><code>help</code></a>, <a href="#cmd-tutorial"><code>tutorial</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-nl" data-name="nl">
+<h3>nl</h3>
+<p class="summary">number the lines</p>
+<pre><code>nl [file]</code></pre>
+<p>Puts a line number in front of every line.</p>
+<p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-rainbow" data-name="rainbow">
+<h3>rainbow</h3>
+<p class="summary">colour text like a rainbow</p>
+<pre><code>rainbow &lt;text&gt;
+&lt;command&gt; | rainbow</code></pre>
+<p>Colours every letter of piped text.</p>
+<pre><code><span class="g">$</span> fortune | rainbow  <span class="d"># a colourful saying</span></code></pre>
+<p class="muted">See also: <a href="#cmd-cowsay"><code>cowsay</code></a>, <a href="#cmd-fortune"><code>fortune</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-rev" data-name="rev">
+<h3>rev</h3>
+<p class="summary">reverse every line</p>
+<pre><code>rev [file]</code></pre>
+<p>Writes each line back to front.</p>
+<p class="muted">See also: <a href="#cmd-tac"><code>tac</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-seq" data-name="seq">
+<h3>seq</h3>
+<p class="summary">print a run of numbers</p>
+<pre><code>seq &lt;last&gt;
+seq &lt;first&gt; &lt;last&gt;
+seq &lt;first&gt; &lt;step&gt; &lt;last&gt;</code></pre>
+<p>Prints whole numbers, one per line (at most 100000).</p>
+<pre><code><span class="g">$</span> seq 2 2 10  <span class="d"># 2 4 6 8 10</span></code></pre>
+<p class="muted">See also: <a href="#cmd-xargs"><code>xargs</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-sort" data-name="sort">
+<h3>sort</h3>
+<p class="summary">sort lines</p>
+<pre><code>sort [-r] [-n] [-u] [-f] [file]</code></pre>
+<p>Sorts the lines of a file or of piped text. -r reverses, -n sorts by the number at the start of each line, -u drops repeats, -f ignores case.</p>
+<pre><code><span class="g">$</span> cat names.txt | sort -u</code></pre>
+<p class="muted">See also: <a href="#cmd-uniq"><code>uniq</code></a>, <a href="#cmd-cut"><code>cut</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-source" data-name="source">
+<h3>source</h3>
+<p class="summary">run the commands of a file</p>
+<pre><code>source &lt;file&gt;
+. &lt;file&gt;</code></pre>
+<p>Runs a file one command per line (empty lines and lines starting with # are skipped). The file ~/.pyosrc is run like this at every login: put your aliases and variables in it.</p>
+<pre><code><span class="g">$</span> source ~/setup.txt</code></pre>
+<p class="muted">See also: <a href="#cmd-alias"><code>alias</code></a>, <a href="#cmd-export"><code>export</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tac" data-name="tac">
+<h3>tac</h3>
+<p class="summary">show the lines last to first</p>
+<pre><code>tac [file]</code></pre>
+<p>Writes the lines in reverse order.</p>
+<p class="muted">See also: <a href="#cmd-rev"><code>rev</code></a>, <a href="#cmd-sort"><code>sort</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-time" data-name="time">
+<h3>time</h3>
+<p class="summary">how long did a command take</p>
+<pre><code>time &lt;command&gt; [arguments]</code></pre>
+<p>Runs the command and then says how long it took.</p>
+<pre><code><span class="g">$</span> time find .txt</code></pre>
+<p class="muted">See also: <a href="#cmd-watch"><code>watch</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tr" data-name="tr">
+<h3>tr</h3>
+<p class="summary">change or delete characters</p>
+<pre><code>tr set1 set2
+tr -d set</code></pre>
+<p>Replaces each character of set1 with the one at the same place in set2, or deletes them with -d. Ranges like a-z work. Text comes from a pipe.</p>
+<pre><code><span class="g">$</span> cat a.txt | tr a-z A-Z</code></pre>
+<p class="muted">See also: <a href="#cmd-cut"><code>cut</code></a>, <a href="#cmd-rev"><code>rev</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tutorial" data-name="tutorial">
+<h3>tutorial</h3>
+<p class="summary">learn PythonOS step by step</p>
+<pre><code>tutorial
+tutorial list
+tutorial &lt;number&gt;
+tutorial reset</code></pre>
+<p>A guided tour of about thirty short lessons in six groups (basics, files, finding things, pipes, safety nets, everyday tools): you try real commands and it checks them. It remembers where you stopped and offers to carry on; tutorial list shows every lesson, tutorial 12 jumps to one (and sets up what it needs). It uses a practice folder in your home that it offers to remove at the end.</p>
+<pre><code><span class="g">$</span> tutorial  <span class="d"># start or carry on</span>
+<span class="g">$</span> tutorial list  <span class="d"># see every lesson</span>
+<span class="g">$</span> tutorial 15  <span class="d"># jump to lesson 15</span></code></pre>
+<p class="muted">See also: <a href="#cmd-man"><code>man</code></a>, <a href="#cmd-help"><code>help</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-unalias" data-name="unalias">
+<h3>unalias</h3>
+<p class="summary">remove an alias</p>
+<pre><code>unalias &lt;name&gt;...
+unalias -a</code></pre>
+<p>Removes one alias, or every alias with -a.</p>
+<p class="muted">See also: <a href="#cmd-alias"><code>alias</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-uniq" data-name="uniq">
+<h3>uniq</h3>
+<p class="summary">collapse repeated lines</p>
+<pre><code>uniq [-c] [-d] [-u] [file]</code></pre>
+<p>Joins lines that repeat one after another (sort first to find every repeat). -c counts, -d shows only repeated lines, -u only single ones.</p>
+<pre><code><span class="g">$</span> sort words.txt | uniq -c</code></pre>
+<p class="muted">See also: <a href="#cmd-sort"><code>sort</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-unset" data-name="unset">
+<h3>unset</h3>
+<p class="summary">forget a variable</p>
+<pre><code>unset NAME...</code></pre>
+<p>Removes variables made with export or NAME=value.</p>
+<p class="muted">See also: <a href="#cmd-export"><code>export</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-watch" data-name="watch">
+<h3>watch</h3>
+<p class="summary">run a command again and again</p>
+<pre><code>watch [-n seconds] &lt;command&gt;</code></pre>
+<p>Clears the screen and runs the command every few seconds (2 by default) until Ctrl+C.</p>
+<pre><code><span class="g">$</span> watch -n 5 free</code></pre>
+<p class="muted">See also: <a href="#cmd-time"><code>time</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-xargs" data-name="xargs">
+<h3>xargs</h3>
+<p class="summary">run a command with piped words</p>
+<pre><code>xargs [-n N] &lt;command&gt; [arguments]</code></pre>
+<p>Takes the words of the piped text and runs the command with them as arguments (N at a time with -n).</p>
+<pre><code><span class="g">$</span> find .txt | xargs wc</code></pre>
+<p class="muted">See also: <a href="#cmd-find"><code>find</code></a>, <a href="#cmd-seq"><code>seq</code></a>.</p>
+</section>
+
+<h2 id="group-jobs-and-scheduling">Jobs and scheduling</h2><p class="muted">Run things in the background or later</p>
+<section class="cmd" id="cmd-fg" data-name="fg">
+<h3>fg</h3>
+<p class="summary">show a background job&#x27;s output</p>
+<pre><code>fg [job number]</code></pre>
+<p>Waits for the job to finish if needed, then prints what it printed.</p>
+<p class="muted">See also: <a href="#cmd-jobs"><code>jobs</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-jobs" data-name="jobs">
+<h3>jobs</h3>
+<p class="summary">list background jobs</p>
+<pre><code>jobs [clear]</code></pre>
+<p>A command that ends with &amp; runs in the background. This lists them with their state (running, done, failed, cancelled).</p>
+<div class="table-wrap"><table><tbody><tr><td><code>clear</code></td><td>forget finished jobs</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> sleep 30 &amp;  <span class="d"># start one</span>
+<span class="g">$</span> jobs  <span class="d"># see it</span></code></pre>
+<p class="muted">See also: <a href="#cmd-fg"><code>fg</code></a>, <a href="#cmd-kill"><code>kill</code></a>, <a href="#cmd-sleep"><code>sleep</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-kill" data-name="kill">
+<h3>kill</h3>
+<p class="summary">stop a background job</p>
+<pre><code>kill &lt;job number&gt;</code></pre>
+<p>Asks the job to stop. Jobs stop when they next check (for example while sleeping); a command that never checks finishes first. You can only stop your own jobs.</p>
+<p class="muted">See also: <a href="#cmd-jobs"><code>jobs</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-notifications" data-name="notifications">
+<h3>notifications</h3>
+<p class="summary">recent notifications</p>
+<pre><code>notifications [clear | test &lt;message&gt;]</code></pre>
+<p>Notices from background jobs, scheduled tasks and updates appear above your next prompt and are kept here. Turn them off with settings set notifications off.</p>
+<p class="muted">See also: <a href="#cmd-schedule"><code>schedule</code></a>, <a href="#cmd-settings"><code>settings</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-ps" data-name="ps">
+<h3>ps</h3>
+<p class="summary">list tasks</p>
+<pre><code>ps [-a] [-l]</code></pre>
+<p>Lists your tasks (a short list), or with -a every task and with -l the full columns.</p>
+<p class="muted">See also: <a href="#cmd-taskman"><code>taskman</code></a>, <a href="#cmd-jobs"><code>jobs</code></a>, <a href="#cmd-kill"><code>kill</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-schedule" data-name="schedule">
+<h3>schedule</h3>
+<p class="summary">run commands later</p>
+<pre><code>schedule add &lt;in|at|every|daily&gt; &lt;when&gt; &lt;command&gt;
+schedule list
+schedule remove &lt;id&gt;
+schedule run &lt;id&gt;</code></pre>
+<p>Tasks run while you are logged in and report back with a notification. Times: 90s, 5m, 2h, 1d; clock times as HH:MM.</p>
+<pre><code><span class="g">$</span> schedule add in 10m backup create  <span class="d"># once, in ten minutes</span>
+<span class="g">$</span> schedule add daily 08:00 date  <span class="d"># every morning</span>
+<span class="g">$</span> schedule add every 1h ls  <span class="d"># every hour</span></code></pre>
+<p class="muted">See also: <a href="#cmd-notifications"><code>notifications</code></a>, <a href="#cmd-jobs"><code>jobs</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-service" data-name="service">
+<h3>service</h3>
+<p class="summary">the background services</p>
+<pre><code>service
+service status &lt;name&gt;
+service start|stop|restart &lt;name&gt;
+service enable|disable &lt;name&gt;</code></pre>
+<p>Lists what runs in the background while you are signed in (scheduler, idle watch, battery monitor, memory guard, update checks, startup programs) and whether each is running. Administrators can start, stop and restart a service, or disable it so it does not start at sign-in. The battery monitor, which shuts the system down cleanly when the battery is nearly empty, asks for your password first. Services also appear in taskman and ps.</p>
+<pre><code><span class="g">$</span> service stop scheduler  <span class="d"># scheduled tasks stop running until you start it again</span>
+<span class="g">$</span> service disable market-check  <span class="d"># no more daily app update checks</span></code></pre>
+<p class="muted">See also: <a href="#cmd-taskman"><code>taskman</code></a>, <a href="#cmd-ps"><code>ps</code></a>, <a href="#cmd-schedule"><code>schedule</code></a>, <a href="#cmd-settings"><code>settings</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-sleep" data-name="sleep">
+<h3>sleep</h3>
+<p class="summary">wait</p>
+<pre><code>sleep &lt;seconds&gt;</code></pre>
+<p>Pauses. Useful with &amp;&amp; and &amp; : sleep 5 &amp;&amp; echo ready.</p>
+<p class="muted">See also: <a href="#cmd-jobs"><code>jobs</code></a>, <a href="#cmd-schedule"><code>schedule</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-taskman" data-name="taskman">
+<h3>taskman</h3>
+<p class="summary">task manager</p>
+<pre><code>taskman
+top</code></pre>
+<p>Shows the tasks running inside PythonOS: init and the kernel, your shell, services (scheduler, battery and memory watch...), background jobs and whatever is open (the marketplace, the editor, a game). Each has a PID, a parent, a state, CPU, memory and its command. Memory is shown against the memory PythonOS owns (see free). Stop a job with kill &lt;pid&gt;; administrators can also stop a service. The system tasks cannot be stopped.</p>
+<p class="muted">See also: <a href="#cmd-ps"><code>ps</code></a>, <a href="#cmd-jobs"><code>jobs</code></a>, <a href="#cmd-kill"><code>kill</code></a>, <a href="#cmd-free"><code>free</code></a>.</p>
+</section>
+
+<h2 id="group-accounts-and-security">Accounts and security</h2><p class="muted">Who you are and how the system protects itself</p>
+<section class="cmd" id="cmd-doctor" data-name="doctor">
+<h3>doctor</h3>
+<p class="summary">check the installation</p>
+<pre><code>doctor
+doctor --fix
+doctor --yes</code></pre>
+<p>Looks at free disk space, system files, the account database, folder permissions, installed packages and stale data, and reports OK, WARN or FAIL for each. Where a fix is safe (missing folders, leftover temporary files, settings with bad values) it offers to apply it. Administrators only.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>--fix</code></td><td>offer every fix without the first question</td></tr><tr><td><code>--yes</code></td><td>apply every fix without asking</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> doctor  <span class="d"># run the checks</span></code></pre>
+<p class="muted">See also: <a href="#cmd-logs"><code>logs</code></a>, <a href="#cmd-updatecheck"><code>updatecheck</code></a>, <a href="#cmd-bootlog"><code>bootlog</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-id" data-name="id">
+<h3>id</h3>
+<p class="summary">who you are</p>
+<pre><code>id</code></pre>
+<p>Shows your user name and role (admin or user). groups is the same command.</p>
+<p class="muted">See also: <a href="#cmd-whoami"><code>whoami</code></a>, <a href="#cmd-who"><code>who</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-last" data-name="last">
+<h3>last</h3>
+<p class="summary">recent logins</p>
+<pre><code>last [N] [-f]</code></pre>
+<p>Shows logins, failed attempts, locks and password changes from the system log. Admins see everyone; others only their own.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-f</code></td><td>only failed login attempts</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> last 5  <span class="d"># the five most recent events</span>
+<span class="g">$</span> last -f  <span class="d"># who got the password wrong</span></code></pre>
+<p class="muted">See also: <a href="#cmd-logs"><code>logs</code></a>, <a href="#cmd-users"><code>users</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-lock" data-name="lock">
+<h3>lock</h3>
+<p class="summary">lock the session</p>
+<pre><code>lock</code></pre>
+<p>Hides everything until your password is entered again (three tries, then you are logged out). PythonOS can also lock itself after you have been idle for a while: settings set auto_lock_minutes 10.</p>
+<p class="muted">See also: <a href="#cmd-settings"><code>settings</code></a>, <a href="#cmd-passwd"><code>passwd</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-logout" data-name="logout">
+<h3>logout</h3>
+<p class="summary">log out</p>
+<pre><code>logout</code></pre>
+<p>Ends your session and returns to the login screen.</p>
+</section>
+
+<section class="cmd" id="cmd-logs" data-name="logs">
+<h3>logs</h3>
+<p class="summary">system log</p>
+<pre><code>logs [N]
+logs --user U --level L --since T --until T --grep W
+logs --summary
+logs --crashes
+logs --admin
+logs --export FILE [--csv]</code></pre>
+<p>Shows the last N lines (20 by default) of the system log: boots, logins, account changes, crashes. Filter by user, by level (info, warn or error: warn shows warnings and errors), by time (today, yesterday, 2h, 3d, 2026-10-05) or by a word; --summary counts lines per level and user and shows recent failed logins; --export saves the matching lines to a file (--csv for a spreadsheet); --admin shows only what administrators did (account, password, role, setting, update and app changes). Before the riskiest ones - deleting an account, changing a role or someone&#x27;s password, switching user, wiping - an administrator is asked for their password again (turn off with settings set admin_reauth false). Administrators see everything, other users their own lines and system lines.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>--user U</code></td><td>only this user</td></tr><tr><td><code>--level L</code></td><td>info, warn or error (and worse)</td></tr><tr><td><code>--since T / --until T</code></td><td>a time range</td></tr><tr><td><code>--grep W</code></td><td>lines containing W</td></tr><tr><td><code>--summary</code></td><td>counts and failed logins</td></tr><tr><td><code>--crashes</code></td><td>saved crash reports (admin)</td></tr><tr><td><code>--export FILE</code></td><td>write the result to a file</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> logs --level warn --since yesterday  <span class="d"># yesterday&#x27;s problems</span>
+<span class="g">$</span> logs --user bob --export ~/bob.csv --csv  <span class="d"># bob&#x27;s activity as a CSV</span></code></pre>
+<p class="muted">See also: <a href="#cmd-tail"><code>tail</code></a>, <a href="#cmd-doctor"><code>doctor</code></a>, <a href="#cmd-bootlog"><code>bootlog</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-manageusers" data-name="manageusers">
+<h3>manageusers</h3>
+<p class="summary">manage accounts</p>
+<pre><code>manageusers</code></pre>
+<p>Admins only. Create and delete users, change roles and passwords.</p>
+<p class="muted">See also: <a href="#cmd-users"><code>users</code></a>, <a href="#cmd-passwd"><code>passwd</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-passwd" data-name="passwd">
+<h3>passwd</h3>
+<p class="summary">change a password</p>
+<pre><code>passwd
+passwd &lt;user&gt;</code></pre>
+<p>Changes your password (you must type the current one first). Passwords need at least 6 characters, must differ from the user name and cannot be one repeated character. Admins can change anyone&#x27;s password with passwd &lt;user&gt;.</p>
+<pre><code><span class="g">$</span> passwd  <span class="d"># change mine</span>
+<span class="g">$</span> passwd sam  <span class="d"># admins: reset sam&#x27;s password</span></code></pre>
+<p class="muted">See also: <a href="#cmd-users"><code>users</code></a>, <a href="#cmd-lock"><code>lock</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-su" data-name="su">
+<h3>su</h3>
+<p class="summary">work as another user</p>
+<pre><code>su &lt;user&gt;</code></pre>
+<p>Starts a shell as another user. Admins do not need a password; everyone else must enter the other user&#x27;s. Type exit to come back.</p>
+<pre><code><span class="g">$</span> su sam  <span class="d"># become sam for a while</span></code></pre>
+<p class="muted">See also: <a href="#cmd-users"><code>users</code></a>, <a href="#cmd-whoami"><code>whoami</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-who" data-name="who">
+<h3>who</h3>
+<p class="summary">who is logged in</p>
+<pre><code>who</code></pre>
+<p>Lists the people who are logged in. users is the same command.</p>
+<p class="muted">See also: <a href="#cmd-id"><code>id</code></a>, <a href="#cmd-last"><code>last</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-whoami" data-name="whoami">
+<h3>whoami</h3>
+<p class="summary">who am I</p>
+<pre><code>whoami</code></pre>
+<p>Shows your user name and whether you are an admin or a normal user.</p>
+<p class="muted">See also: <a href="#cmd-users"><code>users</code></a>.</p>
+</section>
+
+<h2 id="group-system">System</h2><p class="muted">About this computer and its settings</p>
+<section class="cmd" id="cmd-arch" data-name="arch">
+<h3>arch</h3>
+<p class="summary">the processor family</p>
+<pre><code>arch</code></pre>
+<p>Prints x86_64, arm64 and so on for this computer.</p>
+<p class="muted">See also: <a href="#cmd-lscpu"><code>lscpu</code></a>, <a href="#cmd-uname"><code>uname</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-bootlog" data-name="bootlog">
+<h3>bootlog</h3>
+<p class="summary">how the last boot went</p>
+<pre><code>bootlog
+bootlog list
+bootlog &lt;number&gt;</code></pre>
+<p>Every start-up runs a list of real steps (configuration, system files, services, dependencies, commands, programs, file system). Each one is timed and the last ten boots are kept, so you can see what was slow or what failed.</p>
+<p class="muted">See also: <a href="#cmd-settings"><code>settings</code></a>, <a href="#cmd-logs"><code>logs</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-date" data-name="date">
+<h3>date</h3>
+<p class="summary">show the date and time</p>
+<pre><code>date</code></pre>
+<p>Prints the current day, date and time.</p>
+<p class="muted">See also: <a href="#cmd-uptime"><code>uptime</code></a>, <a href="#cmd-schedule"><code>schedule</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-df" data-name="df">
+<h3>df</h3>
+<p class="summary">disk space</p>
+<pre><code>df</code></pre>
+<p>How much the PythonOS filesystem uses and how much room the disk has.</p>
+<p class="muted">See also: <a href="#cmd-free"><code>free</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-diag" data-name="diag">
+<h3>diag</h3>
+<p class="summary">hardware and boot report</p>
+<pre><code>diag [--show]</code></pre>
+<p>Writes a report of this computer to a file in your home folder: machine, memory, devices and their drivers, disks, network, firmware the kernel could not load, recent kernel messages, the battery and how the last boot went. On the live USB you can also press D during the start for a verbose boot plus this report. Attach the file to a problem report (report) when asking for help.</p>
+<pre><code><span class="g">$</span> diag  <span class="d"># save the report</span>
+<span class="g">$</span> diag --show  <span class="d"># save it and print it</span></code></pre>
+<p class="muted">See also: <a href="#cmd-hwsetup"><code>hwsetup</code></a>, <a href="#cmd-report"><code>report</code></a>, <a href="#cmd-bootlog"><code>bootlog</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-free" data-name="free">
+<h3>free</h3>
+<p class="summary">memory use</p>
+<pre><code>free</code></pre>
+<p>Total, used and free memory.</p>
+<p class="muted">See also: <a href="#cmd-df"><code>df</code></a>, <a href="#cmd-sysinfo"><code>sysinfo</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-hostname" data-name="hostname">
+<h3>hostname</h3>
+<p class="summary">the computer&#x27;s name</p>
+<pre><code>hostname [new name]</code></pre>
+<p>Shows the name shown in the prompt. Admins can change it.</p>
+</section>
+
+<section class="cmd" id="cmd-lscpu" data-name="lscpu">
+<h3>lscpu</h3>
+<p class="summary">show the processor</p>
+<pre><code>lscpu</code></pre>
+<p>Shows the processor family, cores, speed and current load.</p>
+<p class="muted">See also: <a href="#cmd-arch"><code>arch</code></a>, <a href="#cmd-nproc"><code>nproc</code></a>, <a href="#cmd-sysinfo"><code>sysinfo</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-nproc" data-name="nproc">
+<h3>nproc</h3>
+<p class="summary">number of cores</p>
+<pre><code>nproc</code></pre>
+<p>Prints how many processor cores there are.</p>
+<p class="muted">See also: <a href="#cmd-lscpu"><code>lscpu</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-pgrep" data-name="pgrep">
+<h3>pgrep</h3>
+<p class="summary">find tasks by name</p>
+<pre><code>pgrep &lt;word&gt;</code></pre>
+<p>Lists the PythonOS tasks whose command contains the word, with their ids for kill.</p>
+<pre><code><span class="g">$</span> pgrep sleep</code></pre>
+<p class="muted">See also: <a href="#cmd-ps"><code>ps</code></a>, <a href="#cmd-kill"><code>kill</code></a>, <a href="#cmd-taskman"><code>taskman</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-quickstart" data-name="quickstart">
+<h3>quickstart</h3>
+<p class="summary">two-minute tour</p>
+<pre><code>quickstart</code></pre>
+<p>A short tour of what PythonOS offers: finding commands, apps, themes, keeping your data, undo and switching off. The live USB offers it on the first start. For hands-on lessons that check what you type, use tutorial.</p>
+<p class="muted">See also: <a href="#cmd-tutorial"><code>tutorial</code></a>, <a href="#cmd-help"><code>help</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-report" data-name="report">
+<h3>report</h3>
+<p class="summary">send a problem report</p>
+<pre><code>report [what went wrong]</code></pre>
+<p>Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email and IP addresses. You read the whole text first, then choose: a link that opens a filled-in GitHub issue, a file to attach yourself, or (if settings report_relay is set) a relay that files the issue. Nothing is ever sent without your choice.</p>
+<pre><code><span class="g">$</span> report  <span class="d"># answer a question, then see the report</span>
+<span class="g">$</span> report the editor froze  <span class="d"># give the description up front</span></code></pre>
+<p class="muted">See also: <a href="#cmd-whathappened"><code>whathappened</code></a>, <a href="#cmd-logs"><code>logs</code></a>, <a href="#cmd-doctor"><code>doctor</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-settings" data-name="settings">
+<h3>settings</h3>
+<p class="summary">themes and options</p>
+<pre><code>settings
+settings list|get|set|reset|theme|themes
+settings apps
+settings app &lt;app&gt; [get|set|reset]</code></pre>
+<p>Run it alone for a menu. Themes: default, ocean, forest, sunset, mono, contrast. Other options: prompt_style (full/short/minimal), clock_24h, notifications, update_check, auto_lock_minutes, idle_logout_minutes (log out to the login screen after that many idle minutes), auto_clear_lines, confirm_delete. auto_lock_minutes and idle_logout_minutes can be set per person: settings set idle_logout_minutes 5 --user bob (you can set your own; administrators can set anyone&#x27;s). Installed apps that have options of their own (a default difficulty, units...) show them here too: settings apps lists them and settings app &lt;app&gt; changes them. Other options: use_trash, trash_days (the trash), admin_reauth (password prompt before risky admin actions), language (auto, en, es, fr, de: the system&#x27;s own messages - boot, shutdown, login, the blue screen - change language; commands and the manual stay in English).</p>
+<pre><code><span class="g">$</span> settings set theme forest  <span class="d"># change colours</span>
+<span class="g">$</span> settings set prompt_style short  <span class="d"># shorter prompt</span>
+<span class="g">$</span> settings set auto_lock_minutes 10  <span class="d"># ask for the password after 10 idle minutes</span></code></pre>
+<p class="muted">See also: <a href="#cmd-lock"><code>lock</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-sysinfo" data-name="sysinfo">
+<h3>sysinfo</h3>
+<p class="summary">information about this system</p>
+<pre><code>sysinfo</code></pre>
+<p>A table of the operating system, processor and memory.</p>
+</section>
+
+<section class="cmd" id="cmd-timesync" data-name="timesync">
+<h3>timesync</h3>
+<p class="summary">check the clock against the internet</p>
+<pre><code>timesync</code></pre>
+<p>Asks a time server what time it is, shows the difference and sets the clock when the system allows it (the live ISO and VM images do). A wrong clock breaks secure connections and updates. The live images also do this by themselves a minute after start.</p>
+<p class="muted">See also: <a href="#cmd-date"><code>date</code></a>, <a href="#cmd-ping"><code>ping</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-uname" data-name="uname">
+<h3>uname</h3>
+<p class="summary">system name</p>
+<pre><code>uname [-a]</code></pre>
+<p>Prints PyOS (and with -a the host name, kernel and Python).</p>
+<p class="muted">See also: <a href="#cmd-version"><code>version</code></a>, <a href="#cmd-sysinfo"><code>sysinfo</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-uptime" data-name="uptime">
+<h3>uptime</h3>
+<p class="summary">how long it has been running</p>
+<pre><code>uptime</code></pre>
+<p>Time since PythonOS booted.</p>
+<p class="muted">See also: <a href="#cmd-date"><code>date</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-version" data-name="version">
+<h3>version</h3>
+<p class="summary">version and package</p>
+<pre><code>version</code></pre>
+<p>Shows the PythonOS version, which package it runs in (Android app, Windows app, Linux package or ISO) and whether updates are waiting.</p>
+<p class="muted">See also: <a href="#cmd-updatecheck"><code>updatecheck</code></a>, <a href="#cmd-updates"><code>updates</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-whathappened" data-name="whathappened">
+<h3>whathappened</h3>
+<p class="summary">why the last session ended badly</p>
+<pre><code>whathappened</code></pre>
+<p>After a power cut, a closed window or a crash, the next boot says so and this command tells you more: when that session started, the crash report (if any) and the last things in the log before it stopped. Nothing is shown when the last shutdown was clean.</p>
+<p class="muted">See also: <a href="#cmd-logs"><code>logs</code></a>, <a href="#cmd-doctor"><code>doctor</code></a>, <a href="#cmd-bootlog"><code>bootlog</code></a>.</p>
+</section>
+
+<h2 id="group-network-and-hardware">Network and hardware</h2><p class="muted">Connect, share and set up hardware</p>
+<section class="cmd" id="cmd-curl" data-name="curl">
+<h3>curl</h3>
+<p class="summary">fetch a web address</p>
+<pre><code>curl &lt;url&gt;
+curl -I &lt;url&gt;
+curl -o file &lt;url&gt;</code></pre>
+<p>Shows the page at an address, only its headers (-I), or saves it to a file (-o). Answers over 50 MB are refused.</p>
+<pre><code><span class="g">$</span> curl -I example.com</code></pre>
+<p class="muted">See also: <a href="#cmd-wget"><code>wget</code></a>, <a href="#cmd-ping"><code>ping</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-display" data-name="display">
+<h3>display</h3>
+<p class="summary">change the screen resolution and text size (live ISO and VMs)</p>
+<pre><code>display
+display list
+display 1280x720
+display font</code></pre>
+<p>Shows the console resolution and the ones the screen offers, and sets one (display 1280x720): the kernel restarts with that video= option (a few seconds, files and accounts kept) and the choice is applied again at every start. If the firmware does not allow restarting the kernel, resize the VM window or its display setting instead. display font changes the text size.</p>
+<pre><code><span class="g">$</span> hwsetup</code></pre>
+</section>
+
+<section class="cmd" id="cmd-hwsetup" data-name="hwsetup">
+<h3>hwsetup</h3>
+<p class="summary">hardware, audio, network, Bluetooth, display and printer setup</p>
+<pre><code>hwsetup
+hwsetup check|audio|network|keyboard|timezone|bluetooth|display|printer</code></pre>
+<p>On the live ISO (and any Linux system as root): check devices, drivers and firmware; choose and test the sound output (remembered per sound card, so a USB headset is found again even if the card order changes); connect to a wired or Wi-Fi network; pick the keyboard layout and time zone; pair Bluetooth devices (they reconnect by themselves); change the text size and, where the screen allows it, the resolution; add a network printer (driverless IPP printers). Your choices are applied at every boot and, with persistent storage, survive a power-off.</p>
+<p class="muted">See also: <a href="#cmd-ping"><code>ping</code></a>, <a href="#cmd-persist"><code>persist</code></a>, <a href="#cmd-print"><code>print</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-ifconfig" data-name="ifconfig">
+<h3>ifconfig</h3>
+<p class="summary">show the network interfaces</p>
+<pre><code>ifconfig [name]</code></pre>
+<p>Lists each interface with its state, addresses, MAC address and speed. ipconfig is the same command.</p>
+<p class="muted">See also: <a href="#cmd-netstat"><code>netstat</code></a>, <a href="#cmd-hwsetup"><code>hwsetup</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-ipinfo" data-name="ipinfo">
+<h3>ipinfo</h3>
+<p class="summary">public IP information</p>
+<pre><code>ipinfo</code></pre>
+<p>Shows your public IP address and where it appears to be.</p>
+<p class="muted">See also: <a href="#cmd-ping"><code>ping</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-netstat" data-name="netstat">
+<h3>netstat</h3>
+<p class="summary">list network connections</p>
+<pre><code>netstat [-l] [-a]</code></pre>
+<p>Shows the open connections and listening ports of this computer; -l only listening ones, -a also the closing ones. ss is the same command.</p>
+<p class="muted">See also: <a href="#cmd-ifconfig"><code>ifconfig</code></a>, <a href="#cmd-ping"><code>ping</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-nslookup" data-name="nslookup">
+<h3>nslookup</h3>
+<p class="summary">look up a name in the DNS</p>
+<pre><code>nslookup &lt;name&gt; [type] [server]
+nslookup &lt;address&gt;</code></pre>
+<p>Asks a name server (your system&#x27;s, or the one you name) for A, AAAA, MX, NS, TXT, CNAME or SOA records, or for the name behind an address. dig and host are the same command.</p>
+<pre><code><span class="g">$</span> nslookup example.com MX  <span class="d"># mail servers</span>
+<span class="g">$</span> nslookup 1.1.1.1  <span class="d"># the name of an address</span>
+<span class="g">$</span> nslookup example.com A 8.8.8.8  <span class="d"># ask Google&#x27;s server</span></code></pre>
+<p class="muted">See also: <a href="#cmd-ping"><code>ping</code></a>, <a href="#cmd-whois"><code>whois</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-persist" data-name="persist">
+<h3>persist</h3>
+<p class="summary">keep your accounts and files across restarts of the live system</p>
+<pre><code>persist [status|list|create|resize|migrate]</code></pre>
+<p>On the live ISO and VM images, sets up a data disk (labelled PYOS_DATA, optionally encrypted) so accounts, files and settings survive power-off, and shows its state. The VM images already come with one. persist create [disk] [--encrypt] makes one from a spare disk or partition.</p>
+<pre><code><span class="g">$</span> persist status  <span class="d"># is a data disk in use?</span>
+<span class="g">$</span> persist create --encrypt</code></pre>
+<p class="muted">See also: <a href="#cmd-hwsetup"><code>hwsetup</code></a>, <a href="#cmd-backup"><code>backup</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-ping" data-name="ping">
+<h3>ping</h3>
+<p class="summary">check that a host answers, and how fast</p>
+<pre><code>ping &lt;host&gt;
+ping -c 10 &lt;host&gt;
+ping -p 80 &lt;host&gt;
+ping host:8080</code></pre>
+<p>Times a TCP connection to the host (port 443, then 80) the given number of times and shows the answers and a summary. It needs no special rights and works on every export. Ctrl+C stops it.</p>
+<pre><code><span class="g">$</span> ping example.com  <span class="d"># four tries</span>
+<span class="g">$</span> ping -c 10 -p 22 myserver  <span class="d"># ten tries on port 22</span></code></pre>
+<p class="muted">See also: <a href="#cmd-ipinfo"><code>ipinfo</code></a>, <a href="#cmd-hwsetup"><code>hwsetup</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-print" data-name="print">
+<h3>print</h3>
+<p class="summary">print a file</p>
+<pre><code>print &lt;file&gt;</code></pre>
+<p>Sends a text file or a PDF to the default printer (set one up with hwsetup printer). Plain text is turned into a PDF first, so it works with printers that only accept PDF. Files up to 5 MB.</p>
+<pre><code><span class="g">$</span> print ~/notes/todo.txt  <span class="d"># print a note</span></code></pre>
+<p class="muted">See also: <a href="#cmd-hwsetup"><code>hwsetup</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-share" data-name="share">
+<h3>share</h3>
+<p class="summary">send files between devices</p>
+<pre><code>share send &lt;file&gt;
+share receive [folder]
+share get &lt;link&gt; [folder]</code></pre>
+<p>send makes a one-time link; open it on any device on your network. receive makes an upload page for a phone or PC. get downloads from a link. Links contain a random code and stop after one use or 10 minutes.</p>
+<pre><code><span class="g">$</span> share send photo.jpg  <span class="d"># give a link</span>
+<span class="g">$</span> share receive inbox  <span class="d"># accept uploads into inbox</span>
+<span class="g">$</span> share get http://192.168.1.5:8000/t/abc/photo.jpg  <span class="d"># download</span></code></pre>
+<p class="muted">See also: <a href="#cmd-backup"><code>backup</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-tracert" data-name="tracert">
+<h3>tracert</h3>
+<p class="summary">show the route to a host</p>
+<pre><code>tracert &lt;host&gt;
+tracert -m 15 &lt;host&gt;</code></pre>
+<p>Shows every router between this computer and the host, with three timings each (traceroute is the same command). On Windows it uses the system&#x27;s own ICMP service, on Linux and the ISO the kernel&#x27;s error queue, so no special rights are needed; a * means that router did not answer.</p>
+<pre><code><span class="g">$</span> tracert example.com</code></pre>
+<p class="muted">See also: <a href="#cmd-ping"><code>ping</code></a>, <a href="#cmd-nslookup"><code>nslookup</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-wget" data-name="wget">
+<h3>wget</h3>
+<p class="summary">download a file</p>
+<pre><code>wget &lt;url&gt; [file]</code></pre>
+<p>Saves the file at an address into the current folder (named after the address unless you give a name). Up to 500 MB.</p>
+<pre><code><span class="g">$</span> wget https://example.com/a.zip</code></pre>
+<p class="muted">See also: <a href="#cmd-curl"><code>curl</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-whois" data-name="whois">
+<h3>whois</h3>
+<p class="summary">who registered a domain</p>
+<pre><code>whois &lt;domain&gt;</code></pre>
+<p>Shows the registration record of a domain from the registry&#x27;s whois service.</p>
+<pre><code><span class="g">$</span> whois example.com</code></pre>
+<p class="muted">See also: <a href="#cmd-nslookup"><code>nslookup</code></a>.</p>
+</section>
+
+<h2 id="group-updates-and-apps">Updates and apps</h2><p class="muted">Keep PythonOS current and add apps</p>
+<section class="cmd" id="cmd-backup" data-name="backup">
+<h3>backup</h3>
+<p class="summary">back up and restore</p>
+<pre><code>backup create [file]
+backup create --system [file]
+backup list
+backup restore &lt;file&gt; [-y] [--system]</code></pre>
+<p>Backups are .zip files. A normal backup holds your home folder; an admin&#x27;s --system backup holds every user, the accounts, settings and schedule (and contains password hashes, so keep it private). Restoring asks before replacing files and refuses damaged or unsafe archives.</p>
+<pre><code><span class="g">$</span> backup create  <span class="d"># save to ~/backups</span>
+<span class="g">$</span> backup restore backups/pythonos-me-2026.zip  <span class="d"># put it back</span></code></pre>
+<p class="muted">See also: <a href="#cmd-share"><code>share</code></a>, <a href="#cmd-files"><code>files</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-limits" data-name="limits">
+<h3>limits</h3>
+<p class="summary">how much an app may use</p>
+<pre><code>limits
+limits set &lt;app&gt; memory &lt;MB|off&gt;
+limits set &lt;app&gt; cpu &lt;seconds|off&gt;
+limits reset &lt;app&gt;
+limits default &lt;percent|off&gt;</code></pre>
+<p>Every app runs as a process of its own, so PythonOS can hold it to a limit. By default an app may use a quarter of the memory PythonOS owns (see free). An app can ask for its own limit, and administrators can set one per app or change the default. An app that goes over its limit is stopped with a message that says which limit it hit; its limits apply the next time it starts.</p>
+<pre><code><span class="g">$</span> limits set sysmon memory 128  <span class="d"># System Monitor may use 128 MB</span>
+<span class="g">$</span> limits default 10  <span class="d"># apps may use 10% of PythonOS&#x27;s memory by default</span></code></pre>
+<p class="muted">See also: <a href="#cmd-free"><code>free</code></a>, <a href="#cmd-taskman"><code>taskman</code></a>, <a href="#cmd-pkg"><code>pkg</code></a>, <a href="#cmd-settings"><code>settings</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-pkg" data-name="pkg">
+<h3>pkg</h3>
+<p class="summary">package manager</p>
+<pre><code>pkg search &lt;words&gt;
+pkg install &lt;name&gt;
+pkg remove &lt;name&gt;
+pkg update [name]
+pkg list
+pkg info &lt;name&gt;
+pkg why &lt;name&gt;
+pkg permissions [name]
+pkg notes &lt;name&gt;
+pkg rollback &lt;name&gt;</code></pre>
+<p>The marketplace from the command line (run marketplace opens the interactive store). Packages are checked against checksums before they are installed. why says which app needs a package, permissions shows what each app may do (network, files, notifications, schedule, system, exec), notes shows release notes and rollback goes back to the previous version of one app.</p>
+<pre><code><span class="g">$</span> pkg search game  <span class="d"># find games</span>
+<span class="g">$</span> pkg install tictactoe  <span class="d"># install one</span>
+<span class="g">$</span> pkg update  <span class="d"># update everything</span></code></pre>
+<p class="muted">See also: <a href="#cmd-packages"><code>packages</code></a>, <a href="#cmd-run"><code>run</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-rollback" data-name="rollback">
+<h3>rollback</h3>
+<p class="summary">go back to the previous version</p>
+<pre><code>rollback</code></pre>
+<p>Goes back to the version that was installed before the last update. It works right after an update (one step back); the version you leave is not kept, so updating again downloads it. Your files and accounts are not touched. Administrators only.</p>
+<p class="muted">See also: <a href="#cmd-updatecheck"><code>updatecheck</code></a>, <a href="#cmd-whatsnew"><code>whatsnew</code></a>, <a href="#cmd-version"><code>version</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-updatecheck" data-name="updatecheck">
+<h3>updatecheck</h3>
+<p class="summary">update PythonOS</p>
+<pre><code>updatecheck</code></pre>
+<p>Looks for a newer release and installs it. PythonOS&#x27;s own files update themselves. If the package around PythonOS (the APK, Windows app, Linux package or ISO) has a newer version, it cannot update itself and you are told where to download it.</p>
+<p class="muted">See also: <a href="#cmd-updates"><code>updates</code></a>, <a href="#cmd-version"><code>version</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-whatsnew" data-name="whatsnew">
+<h3>whatsnew</h3>
+<p class="summary">what the last update changed</p>
+<pre><code>whatsnew</code></pre>
+<p>Shows the release notes and the files that changed in the last update. It also appears by itself the first time PythonOS starts after an update. Updates download only the files that changed and carry on where they stopped if the connection drops.</p>
+<p class="muted">See also: <a href="#cmd-updatecheck"><code>updatecheck</code></a>, <a href="#cmd-rollback"><code>rollback</code></a>, <a href="#cmd-version"><code>version</code></a>.</p>
+</section>
+
+<h2 id="group-power">Power</h2><p class="muted">Turn off, restart or reset</p>
+<section class="cmd" id="cmd-installos" data-name="installos">
+<h3>installos</h3>
+<p class="summary">install PythonOS on a disk</p>
+<pre><code>installos</code></pre>
+<p>From the live USB (full image): turns a disk of this computer into a PythonOS computer that boots by itself and keeps everything. You choose a whole disk, see exactly what will happen, and must type its name to confirm - the disk is erased. The installed system has the same lockdown as the live one (no login or shell on any console, root locked, locked boot menu) and is checked at the end. Experimental: it is built on Alpine&#x27;s setup-disk and has been tried in virtual machines, not on every kind of computer. The minimal image has no installer.</p>
+<p class="muted">See also: <a href="#cmd-persist"><code>persist</code></a>, <a href="#cmd-hwsetup"><code>hwsetup</code></a>, <a href="#cmd-diag"><code>diag</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-restart" data-name="restart">
+<h3>restart</h3>
+<p class="summary">restart</p>
+<pre><code>restart</code></pre>
+<p>Runs the same orderly shutdown, then starts PythonOS again as a fresh program, so updated files are really loaded.</p>
+<p class="muted">See also: <a href="#cmd-shutdown"><code>shutdown</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-shutdown" data-name="shutdown">
+<h3>shutdown</h3>
+<p class="summary">turn off</p>
+<pre><code>shutdown</code></pre>
+<p>Closes PythonOS the proper way: it stops background jobs (telling you about any that take a while), signs out, writes the log, flushes the files and marks the session as closed. On the ISO this powers the machine off; in the Android app it closes the app. If PythonOS is ever stopped any other way (power cut, window closed) the next boot says so - see whathappened.</p>
+<p class="muted">See also: <a href="#cmd-restart"><code>restart</code></a>, <a href="#cmd-whathappened"><code>whathappened</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-wipe" data-name="wipe">
+<h3>wipe</h3>
+<p class="summary">reset to factory settings</p>
+<pre><code>wipe</code></pre>
+<p>Admins only. Erases all data and accounts. There is no undo.</p>
+<p class="muted">See also: <a href="#cmd-backup"><code>backup</code></a>.</p>
+</section>
+
+<h2 id="topics">Topics</h2><p class="muted">Longer explanations in the manual (<code>man &lt;topic&gt;</code>).</p>
+<section class="cmd" id="cmd-exit" data-name="exit">
+<h3>exit</h3>
+<p class="summary">leave the shell</p>
+<pre><code>exit</code></pre>
+<p>Logs you out.</p>
+<p class="muted">See also: <a href="#cmd-logout"><code>logout</code></a>, <a href="#cmd-shutdown"><code>shutdown</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-files" data-name="files">
+<h3>files</h3>
+<p class="summary">the filesystem</p>
+<pre><code>/
+~
+..</code></pre>
+<p>PythonOS has its own filesystem, separate from the device it runs on:
+  /home/&lt;you&gt;   your home folder (~)           /tmp   shared temporary space
+  /etc          system settings (admins)        /var/log   the system log
+Normal users can write only in their own home and /tmp, and cannot enter other people&#x27;s homes. Admins can change anything. Paths starting with / are from the top; others are from where you are.</p>
+<p class="muted">See also: <a href="#cmd-cd"><code>cd</code></a>, <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-users"><code>users</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-help" data-name="help">
+<h3>help</h3>
+<p class="summary">see what you can do</p>
+<pre><code>help
+help &lt;category&gt;
+help &lt;command&gt;
+help search &lt;word&gt;
+help all</code></pre>
+<p>Without words it shows the groups of commands (Files, Jobs and scheduling, ...) with a few examples of each. help &lt;group&gt; lists one group, help &lt;command&gt; shows a single command, help search &lt;word&gt; looks through names, descriptions and the manual, and help all prints everything (in a pager on a real terminal). On a narrow screen it switches to a compact layout.</p>
+<pre><code><span class="g">$</span> help files  <span class="d"># the file commands</span>
+<span class="g">$</span> help search backup  <span class="d"># find what mentions backup</span></code></pre>
+<p class="muted">See also: <a href="#cmd-man"><code>man</code></a>, <a href="#cmd-tutorial"><code>tutorial</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-lockdown" data-name="lockdown">
+<h3>lockdown</h3>
+<p class="summary">locked-down mode</p>
+<pre><code>PYOS_LOCKDOWN=1 or &quot;lockdown&quot;: true in config.json</code></pre>
+<p>Used by the bootable ISO (and optionally kiosks): nothing can reach the system underneath PythonOS. No external editor, no process killing, no installer scripts, and only catalog-approved packages that are unchanged since installation will run.</p>
+<p class="muted">See also: <a href="#cmd-pkg"><code>pkg</code></a>, <a href="#cmd-taskman"><code>taskman</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-packages" data-name="packages">
+<h3>packages</h3>
+<p class="summary">marketplace packages</p>
+<pre><code>pkg
+run marketplace</code></pre>
+<p>Packages add apps and commands. They live in /installed_&lt;category&gt; and start with run &lt;name&gt;. A package can depend on others (they are installed together) and the store lists them by category.</p>
+<p class="muted">See also: <a href="#cmd-pkg"><code>pkg</code></a>, <a href="#cmd-run"><code>run</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-reload" data-name="reload">
+<h3>reload</h3>
+<p class="summary">re-read commands and programs</p>
+<pre><code>reload</code></pre>
+<p>Use after installing a package that added commands.</p>
+</section>
+
+<section class="cmd" id="cmd-run" data-name="run">
+<h3>run</h3>
+<p class="summary">start a program</p>
+<pre><code>run &lt;program&gt; [args]</code></pre>
+<p>Programs are bigger applications (the marketplace, the calculator, installed games). Installed packages with a command name start with run too.</p>
+<pre><code><span class="g">$</span> run marketplace  <span class="d"># open the store</span>
+<span class="g">$</span> run calc  <span class="d"># calculator</span></code></pre>
+<p class="muted">See also: <a href="#cmd-pkg"><code>pkg</code></a>, <a href="#cmd-help"><code>help</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-shell" data-name="shell">
+<h3>shell</h3>
+<p class="summary">how the command line works</p>
+<pre><code>&lt;command&gt; [args]
+a | b
+a &gt; file
+a &amp;&amp; b
+a || b
+a ; b
+a &amp;</code></pre>
+<p>Quotes group words: echo &quot;hello world&quot;. Several things can be combined on one line:
+  |    send the output of one command into the next
+  &gt;    write the output to a file (&gt;&gt; adds to the end)
+  &amp;&amp;   run the next command only if the last one worked
+  ||   run the next command only if the last one failed
+  ;    run the next command no matter what
+  &amp;    run it in the background (see jobs)
+$? holds how the last command ended (0 = worked). Tab completes commands and file names; the up arrow recalls earlier lines.</p>
+<pre><code><span class="g">$</span> ls | grep txt &gt; found.txt  <span class="d"># save a filtered list</span>
+<span class="g">$</span> mkdir d &amp;&amp; cd d  <span class="d"># only enter if it was created</span>
+<span class="g">$</span> cat missing || echo nope  <span class="d"># react to a failure</span>
+<span class="g">$</span> sleep 5 &amp;&amp; echo done &amp;  <span class="d"># do it in the background</span></code></pre>
+<p class="muted">See also: <a href="#cmd-jobs"><code>jobs</code></a>, <a href="#cmd-help"><code>help</code></a>, <a href="#cmd-files"><code>files</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-updates" data-name="updates">
+<h3>updates</h3>
+<p class="summary">how updating works</p>
+<pre><code>updatecheck
+version</code></pre>
+<p>There are two kinds of update. The core (everything inside PythonOS) updates itself from the latest release - your files and accounts are never touched. The package around it (APK, Windows app, Linux package, ISO) cannot be replaced from inside, so PythonOS tells you when a newer one exists and where to get it.</p>
+<p class="muted">See also: <a href="#cmd-updatecheck"><code>updatecheck</code></a>, <a href="#cmd-version"><code>version</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-users" data-name="users">
+<h3>users</h3>
+<p class="summary">accounts and permissions</p>
+<pre><code>whoami
+passwd
+su
+lock</code></pre>
+<p>The first account is an admin (the prompt ends in #); others are normal users ($). Admins manage accounts with manageusers. Passwords are stored as salted hashes, and logins are slowed after repeated mistakes.</p>
+<p class="muted">See also: <a href="#cmd-passwd"><code>passwd</code></a>, <a href="#cmd-lock"><code>lock</code></a>, <a href="#cmd-settings"><code>settings</code></a>.</p>
+</section>
+
+<script>
+(function () {
+  var box = document.getElementById("cmd-filter");
+  if (!box) return;
+  box.addEventListener("input", function () {
+    var q = box.value.trim().toLowerCase();
+    document.querySelectorAll(".cmd[data-name]").forEach(function (el) { el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) < 0; });
+  });
+})();
+</script>
+<nav class="page-nav" aria-label="Pages"><a href="exports.html">&larr; Where it runs</a><a href="recovery.html">When something goes wrong &rarr;</a></nav>
+</main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>PythonOS is open source. <a href="https://github.com/Kalmai221/PythonOS">Source</a> · <a href="https://github.com/Kalmai221/PythonOS/issues">Report a problem</a> · <a href="../docs/contributing.html">Contribute</a></span>
+    <span>Update from inside PythonOS with <code>updatecheck</code></span>
+  </div>
+</footer>
+</body>
+</html>

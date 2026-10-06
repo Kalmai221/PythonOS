@@ -3,25 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PythonOS - Download</title>
-<meta name="description" content="PythonOS is a small operating system you drive with typed commands. Download it for Windows, Android, Linux, a bootable USB or a virtual machine.">
-<meta name="theme-color" content="#0b0e15" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f5f6fb" media="(prefers-color-scheme: light)">
+<title>PythonOS - a terminal operating system written in Python</title>
+<meta name="description" content="PythonOS is a small operating system you use by typing commands: shell, accounts, files, editor, app store and task manager. For Windows, Android, Linux, bootable USB, virtual machines and Docker.">
+<meta name="theme-color" content="#faf9f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131312" media="(prefers-color-scheme: dark)">
 <script>try { var t = localStorage.getItem("theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
-<link rel="stylesheet" href="style.css?v=5">
-<script src="app.js?v=3" defer></script>
+<link rel="stylesheet" href="style.css?v=7">
+<script src="app.js?v=4" defer></script>
+<script src="home.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to the content</a>
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="./"><span class="logo" aria-hidden="true">&gt;_</span>PythonOS</a>
+    <a class="brand" href="index.html"><span class="logo" aria-hidden="true">&gt;_</span>PythonOS</a>
     <nav aria-label="Main">
-      <a class="opt" href="#features">Features</a>
+      <a href="download.html">Download</a>
+      <a href="docs/index.html">Documentation</a>
       <a href="apps.html">Apps</a>
-      <a href="#download">Download</a>
-      <a class="opt" href="#faq">FAQ</a>
-      <a class="opt" href="status.html">Build status</a>
+      <a href="status.html">Build status</a>
       <a class="opt" href="https://github.com/Kalmai221/PythonOS">GitHub</a>
       <button class="icon-btn" id="theme" type="button" aria-pressed="false" aria-label="Switch theme">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -32,406 +32,63 @@
 </header>
 
 <main id="main">
+<div class="wrap">
   <section class="hero">
-    <div class="wrap hero-grid">
-      <div>
-        <span class="eyebrow"><span class="dot" aria-hidden="true"></span><span id="ver">Latest release</span></span>
-        <h1 class="title">A tiny operating system <em>you type to</em>.</h1>
-        <p class="lead">Files, accounts, apps, games and a network, all driven from a prompt. It runs on a PC, a USB stick, a phone, in a virtual machine or in a container.</p>
-        <div class="cta" id="cta" aria-live="polite">
-          <a class="btn primary" href="https://github.com/Kalmai221/PythonOS/releases/latest">Download PythonOS</a>
-          <a class="btn ghost" href="#download">All downloads</a>
-        </div>
-        <p class="meta-line" id="meta"></p>
-        <ul class="trust" aria-label="Good to know">
-          <li>Free and open source</li><li>Downloads are checked</li><li>Windows, Android, Linux, USB, VM, Docker</li>
-        </ul>
+    <div>
+      <h1>A terminal operating system, written in Python.</h1>
+      <p class="lead">PythonOS has a shell, user accounts, a file system, an editor, an app store and its own task manager. You use it by typing, in a terminal window, on a phone, or as a bootable USB stick.</p>
+      <div class="actions">
+        <a class="btn primary" href="download.html">Download</a>
+        <a class="btn" href="docs/getting-started.html">Get started</a>
+        <a class="btn ghost" href="apps.html">Browse the apps</a>
       </div>
-      <figure class="term reveal" aria-label="A short session in PythonOS" style="margin:0">
-        <div class="term-bar"><i></i><i></i><i></i><span>pythonos</span></div>
-<pre id="demo" aria-hidden="true"><span class="p">you@pyOS</span>:<span class="c">~</span>$ <span class="caret"></span></pre>
-      </figure>
+      <p class="facts">Free and open source. Runs on Windows, Android, Linux, a bootable USB, virtual machines and Docker. It updates itself.</p>
+    </div>
+    <pre class="terminal" id="demo" aria-label="Example session" tabindex="0"><span class="p">you@pyOS</span>:<span class="c">~</span>$ <span class="caret"></span></pre>
+  </section>
+
+  <section class="section">
+    <h2>What is in it</h2>
+    <div class="two-col">
+      <ul class="list-plain">
+        <li><b>A real shell</b>Pipes, redirects, <code>&amp;&amp;</code>, <code>||</code>, background jobs, variables, aliases and tab completion. About 120 commands, all documented with <code>man</code>.</li>
+        <li><b>Accounts and permissions</b>Users with roles, passwords, lock and idle logout. Deleted files go to a trash you can <code>undo</code>.</li>
+        <li><b>Its own tools</b>A text editor, a full-screen file manager (<code>fm</code>), a task manager that shows only PythonOS, and a settings app.</li>
+      </ul>
+      <ul class="list-plain">
+        <li><b>An app store</b>Over seventy apps and games. Each app says what it may do before you install it, and is held to that while it runs.</li>
+        <li><b>Contained</b>The live USB never gives access to the Linux underneath: no shell, no login, only PythonOS. A read-only emergency console helps when something breaks.</li>
+        <li><b>Updates itself</b>Run <code>updatecheck</code>. The core updates in place; a new package for your system is announced when one is needed.</li>
+      </ul>
     </div>
   </section>
 
-  <section class="block tight" id="paths">
-    <div class="wrap">
-      <div class="section-head reveal"><h2>How do you want to run it?</h2><p class="muted">Pick one. Each choice takes you to the right download for your computer.</p></div>
-      <div class="paths">
-        <a class="path reveal" href="#download" data-go="windows"><span class="ico" aria-hidden="true">&#x1F5A5;</span><b>Windows</b><span>Install it like any app</span></a>
-        <a class="path reveal" href="#download" data-go="android"><span class="ico" aria-hidden="true">&#x1F4F1;</span><b>Android</b><span>A tiny installer picks the right app</span></a>
-        <a class="path reveal" href="#download" data-go="linux"><span class="ico" aria-hidden="true">&#x1F427;</span><b>Linux</b><span>deb, rpm, Arch or a tarball</span></a>
-        <a class="path reveal" href="#download" data-go="usb"><span class="ico" aria-hidden="true">&#x1F4BE;</span><b>USB stick</b><span>Start any PC from it</span></a>
-        <a class="path reveal" href="#download" data-go="vm"><span class="ico" aria-hidden="true">&#x1F4E6;</span><b>Virtual machine</b><span>VirtualBox, VMware, QEMU...</span></a>
-        <a class="path reveal" href="#docker"><span class="ico" aria-hidden="true">&#x1F433;</span><b>Docker</b><span>One command</span></a>
-        <a class="path wizard reveal" href="https://github.com/Kalmai221/PythonOS/releases/latest" id="wizard-link"><span class="ico" aria-hidden="true">&#x2728;</span><b>Not sure? Setup Wizard</b><span>Looks at your computer and picks for you</span></a>
-      </div>
+  <section class="section">
+    <h2>Where it runs</h2>
+    <div class="paths">
+      <a href="download.html"><b>Windows</b><span>An installer and a portable version. Intel/AMD and ARM.</span></a>
+      <a href="download.html"><b>Android</b><span>A phone or tablet app, with a 1 MB installer that picks the right one.</span></a>
+      <a href="download.html"><b>Linux</b><span>.deb, .rpm, Arch package or a tarball, for any processor.</span></a>
+      <a href="download.html"><b>Bootable USB</b><span>Start a PC from a stick without touching its disk. Installing is optional.</span></a>
+      <a href="download.html"><b>Virtual machine</b><span>An .ova for VirtualBox and VMware, a .qcow2 for QEMU.</span></a>
+      <a href="docs/exports.html"><b>Docker</b><span>A container image for amd64 and arm64.</span></a>
     </div>
+    <p class="muted" style="margin-top:12px">Not sure which one? The <a href="download.html">download page</a> picks one for your computer. <a href="docs/exports.html">What each one is, and how it updates.</a></p>
   </section>
 
-  <section class="block" id="see">
-    <div class="wrap">
-      <div class="section-head reveal"><h2>See it</h2><p class="muted">A file manager, a task manager and a settings app, all in the terminal.</p></div>
-      <div class="shots reveal">
-        <div class="tabs chips" role="group" aria-label="Screens" id="shot-tabs">
-          <button class="tab" type="button" data-shot="fm" aria-pressed="true">File manager</button>
-          <button class="tab" type="button" data-shot="tasks" aria-pressed="false">Task manager</button>
-          <button class="tab" type="button" data-shot="settings" aria-pressed="false">Settings</button>
-        </div>
-        <figure class="term" style="margin:14px 0 0" aria-label="A screen of PythonOS">
-          <div class="term-bar"><i></i><i></i><i></i><span id="shot-title">fm</span></div>
-          <pre id="shot" class="shot"></pre>
-        </figure>
-        <p class="note" id="shot-note"></p>
-      </div>
-    </div>
+  <section class="section">
+    <h2>Build for it</h2>
+    <p>Apps are small Python programs described by one JSON file. The documentation covers the package format, what an app may do, how to test it, and how to send it in as a pull request.</p>
+    <p><a href="docs/apps-api.html">Apps API</a> · <a href="docs/contributing.html">Contributing</a> · <a href="docs/index.html">All documentation</a></p>
   </section>
-
-  <section class="block" id="features">
-    <div class="wrap">
-      <div class="section-head reveal"><h2>Small, but it feels like a system</h2><p class="muted">Everything is typed, everything can be undone, and everything is explained in the manual.</p></div>
-      <div class="grid">
-        <article class="card reveal"><div class="badge" aria-hidden="true">&#x1F5C2;</div><h3>A real file manager</h3><p><code>fm</code> has two panes, previews, marking, copy and paste, rename and the trash.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">&#x2699;</div><h3>Settings in one place</h3><p><code>settings</code> opens an app with every option, the services and each app's own options.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">&#x1F4CA;</div><h3>Tasks, services, limits</h3><p><code>taskman</code>, <code>service</code> and <code>limits</code> show what runs and hold every app to its share of memory.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">↩</div><h3>Undo what you delete</h3><p><code>rm</code> sends files to a trash, <code>undo</code> brings the last one back.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">⌕</div><h3>Find anything</h3><p><code>find</code>, <code>grep -rn</code>, <code>tree</code> and <code>diff</code> with the options you expect.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">✎</div><h3>Learn by doing</h3><p>A 28-lesson tutorial that checks what you type, and a two-minute quick start.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">◐</div><h3>Light, dark, your language</h3><p>Themes, and the system's own messages in English, Spanish, French and German.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">⏻</div><h3>Live USB or installed</h3><p>Boot from a stick without touching the PC, keep your data, or install to a disk.</p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">✓</div><h3>Checked downloads</h3><p>Every file has a checksum, signed by the release workflow, and installers verify it for you.</p></article>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="apps" style="background:var(--bg-2)">
-    <div class="wrap">
-      <div class="section-head reveal"><h2>Apps from the store</h2><p class="muted">Install with <code>pkg install &lt;name&gt;</code>. Every app says what it may do before you agree, and is held to it while it runs.</p></div>
-      <div class="grid">
-        <article class="card reveal"><div class="badge" aria-hidden="true">&#x1F916;</div><h3>AI Assistant</h3><p>Chat with OpenAI, Claude, Gemini, OpenRouter or a model on your own computer. You choose the service and bring your key.</p><p><code>pkg install assistant</code></p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">&#x1F3B5;</div><h3>YouTube Audio</h3><p>Search YouTube and play just the sound, with a queue and playlists.</p><p><code>pkg install ytaudio</code></p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">&#x1F4C8;</div><h3>System Monitor</h3><p>A live dashboard of PythonOS itself: its CPU, memory, tasks and storage.</p><p><code>pkg install sysmon</code></p></article>
-        <article class="card reveal"><div class="badge" aria-hidden="true">&#x265F;</div><h3>Chess, Tetris and more</h3><p>Games, utilities and system tools: more than sixty apps, all checked and sandboxed.</p><p><code>market</code></p></article>
-      </div>
-      <p style="margin-top:22px"><a class="btn primary" href="apps.html">Browse all apps</a></p>
-    </div>
-  </section>
-
-  <section class="block" id="download" style="background:var(--bg-2)">
-    <div class="wrap">
-      <div class="section-head reveal"><h2>Download</h2><p class="muted" id="dl-sub">Pick your device. Everything updates itself from inside PythonOS later.</p></div>
-      <div class="wizard-banner reveal" id="wizard-banner" hidden>
-        <div><b>Not sure which file you need?</b><br><span class="muted">The Setup Wizard looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker) and gets the right file for you. Windows and Linux, no Python needed.</span></div>
-        <a class="btn primary" id="wizard-download" href="#">Get the Setup Wizard</a>
-      </div>
-      <div class="archbar" id="archbar"></div>
-      <div class="tabs" role="tablist" aria-label="Platform" id="tabs"></div>
-      <div id="panels"><div class="files"><div class="skeleton"></div><div class="skeleton"></div></div></div>
-      <p class="note" id="docker">Prefer a container? <code>docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos</code> (amd64 and arm64); the volume keeps your accounts and files <button class="copy" type="button" data-copy="docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos">Copy</button></p>
-    </div>
-  </section>
-
-  <section class="block" id="faq">
-    <div class="wrap">
-      <div class="section-head reveal"><h2>Questions</h2></div>
-      <div class="faq reveal">
-        <details open><summary>What is PythonOS?</summary><p>A small operating system you drive with typed commands. It has accounts, files with permissions, a shell with pipes and background jobs, an editor, a file manager, an app store and games. It is written in Python and runs inside a window, an app, a container or on its own from a USB stick.</p></details>
-        <details><summary>Which file should I download?</summary><p>Pick your system in the Download section: the page chooses the right file for your computer and shows the others. If you are not sure, the Setup Wizard decides for you.</p></details>
-        <details><summary>Do I need Python?</summary><p>No. Windows and Android come with everything. Linux packages need Python 3.8 or newer, which almost every distribution has. The Setup Wizard needs nothing.</p></details>
-        <details><summary>Is it safe to run?</summary><p>Every download has a checksum in <code>SHA256SUMS</code>, signed by the release workflow, and the installers check it for you. Apps from the store say what they can do (files, network...) and are held to it. The live USB image is locked down so nothing underneath PythonOS can be reached.</p></details>
-        <details><summary>Does it run on a Mac?</summary><p>There is no Mac version. On a Mac, use Docker, or a virtual machine (UTM, VirtualBox or VMware) with the files from the Download section.</p></details>
-        <details><summary>How does it update?</summary><p>PythonOS updates itself from inside: type <code>updatecheck</code>. Where the package around it has to change (the Windows app, the Android app, the Linux package, the USB image), it offers to install that too, after checking the download.</p></details>
-        <details><summary>I found a problem</summary><p>Run <code>report</code> inside PythonOS (you read it before anything is sent), or <a href="https://github.com/Kalmai221/PythonOS/issues">open an issue</a>.</p></details>
-      </div>
-    </div>
-  </section>
-
-  <section class="block verify" id="verify">
-    <div class="wrap">
-      <div class="section-head reveal"><h2>Check what you downloaded</h2><p class="muted">Every release lists the SHA-256 of each file in <code>SHA256SUMS</code>, signed by the release workflow.</p></div>
-      <div class="grid">
-        <article class="card reveal"><h3>Windows (PowerShell)</h3><pre>Get-FileHash .\PythonOS-*-web-setup.exe</pre></article>
-        <article class="card reveal"><h3>Linux / macOS</h3><pre>sha256sum -c SHA256SUMS --ignore-missing</pre></article>
-        <article class="card reveal"><h3>Build provenance</h3><pre>gh attestation verify FILE --repo Kalmai221/PythonOS</pre></article>
-      </div>
-    </div>
-  </section>
+</div>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>PythonOS · <a href="https://github.com/Kalmai221/PythonOS">source</a> · <a href="status.html">build status</a> · <a href="https://github.com/Kalmai221/PythonOS/issues">report a problem</a></span>
-    <span>Update inside PythonOS with <code>updatecheck</code></span>
+    <span>PythonOS is open source. <a href="https://github.com/Kalmai221/PythonOS">Source</a> · <a href="https://github.com/Kalmai221/PythonOS/issues">Report a problem</a> · <a href="docs/contributing.html">Contribute</a></span>
+    <span>Update from inside PythonOS with <code>updatecheck</code></span>
   </div>
 </footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  "use strict";
-  var P = window.PyOS;
-  var $ = function (id) { return document.getElementById(id); };
-  var GROUPS = [
-    { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows(-arm64)?-portable\.zip)$/, note: "Windows 10 (1809) or newer, on Intel/AMD or ARM. The web installer is a tiny download that fetches and checks the right package for your PC." },
-    { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. The installer app (about 1 MB) finds out which processor your device has and downloads the right PythonOS app, checking it first. Or download the full app yourself: arm64 for nearly every phone." },
-    { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz|\.pkg\.tar\.zst|\.rpm)$/, note: "Any Linux with Python 3.9+, on any processor. Debian/Ubuntu: .deb. Arch: .pkg.tar.zst. Fedora/RHEL/openSUSE: .rpm. Everything else: the tarball." },
-    { id: "usb", title: "Bootable USB", match: /((x86_64|aarch64)\.iso|pythonos-wizard-[\d.]+\.zip)$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it with the Setup Wizard, which only offers USB sticks and checks what it wrote." },
-    { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox. These are for PCs (x86_64)." }
-  ];
-  var USE = [
-    [/web-setup\.exe$/, "Recommended installer (picks the right package for your PC)"], [/arm64-setup\.exe$/, "Full installer for Windows on ARM"], [/-setup\.exe$/, "Full installer (offline)"],
-    [/windows-arm64-portable/, "Portable, Windows on ARM"], [/windows-portable/, "Portable: unzip and run"],
-    [/android-installer\.apk$/, "Recommended: a tiny installer that picks the right app for your device"], [/arm64-v8a\.apk$/, "Phones and tablets (full app)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
-    [/\.deb$/, "Debian, Ubuntu and friends"], [/pkg\.tar\.zst$/, "Arch, Manjaro"], [/\.rpm$/, "Fedora, RHEL, openSUSE"], [/linux\.tar\.gz$/, "Any Linux, any processor"],
-    [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"],
-    [/pythonos-wizard-/, "Setup Wizard: install, write a USB stick, set up a VM (Windows, Linux)"],
-    [/\.ova$/, "VirtualBox / VMware appliance"], [/vm-data\.qcow2$/, "Data disk: attach it next to the .qcow2 to keep your files"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
-  ];
-  var ARCHS = {
-    windows: [["x64", "Intel / AMD (x64)"], ["arm64", "ARM64 (Surface Pro X, Copilot+)"]],
-    android: [["arm64", "ARM 64-bit (arm64-v8a)"], ["x64", "Intel / AMD (x86_64)"]],
-    usb: [["x64", "PC (x86_64)"], ["arm64", "ARM 64-bit (aarch64, UEFI)"]]
-  };                                                  // Linux packages and the VM images are the same for every choice, so they show no chooser
-  function archName(id, arch) {
-    var list = ARCHS[id] || [];
-    for (var i = 0; i < list.length; i++) if (list[i][0] === arch) return list[i][1];
-    return arch === "arm64" ? "ARM" : "Intel / AMD";
-  }
-  function order(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return i; return 99; }
-  function useOf(n) { for (var i = 0; i < USE.length; i++) if (USE[i][0].test(n)) return USE[i][1]; return ""; }
-
-  // which processor a file is for: "x64", "arm64", or "any" (works on both)
-  function archOf(name) {
-    if (/arm64-v8a\.apk$/.test(name) || /arm64/.test(name) || /aarch64/.test(name)) return "arm64";
-    if (/x86_64/.test(name)) return "x64";
-    if (/windows-portable\.zip$/.test(name) || (/-setup\.exe$/.test(name) && !/web-setup/.test(name))) return "x64";
-    return "any";
-  }
-  function platformGuess() {
-    var ua = navigator.userAgent || "";
-    if (/Android/i.test(ua)) return "android";
-    if (/Windows/i.test(ua)) return "windows";
-    if (/Linux|X11|CrOS/i.test(ua)) return "linux";
-    return "usb";
-  }
-  function archFromUA() { return /aarch64|arm64|\barm\b/i.test(navigator.userAgent || "") ? "arm64" : "x64"; }
-
-  var state = { arch: null, detected: null, how: "", platform: platformGuess(), assets: [], release: null, tab: null };
-  try { state.arch = sessionStorage.getItem("arch"); } catch (e) {}
-
-  // The graphics chip's name, which gives away what the user agent hides: Apple-silicon Macs say "Intel" in the user agent (Safari always
-  // does), and an x64 browser running emulated on Windows on ARM says x86. Empty when the browser does not share it.
-  function gpuName() {
-    try {
-      var canvas = document.createElement("canvas");
-      var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-      var info = gl && gl.getExtension("WEBGL_debug_renderer_info");
-      return info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || "") : "";
-    } catch (e) { return ""; }
-  }
-
-  // Detect the processor, as well as a web page can: the browser's own report first (Chromium), then the graphics chip, then the user agent
-  // text. Returns {arch: "x64" | "arm64", how: where the answer came from}. The visitor can always change it.
-  function detectArch() {
-    var ua = navigator.userAgent || "";
-    var gpu = gpuName();
-    var found = { arch: archFromUA(), how: "your browser's description of itself" };
-    if (/Macintosh|Mac OS X/.test(ua) && !/iPhone|iPad/.test(ua)) {
-      if (/Apple (M\d|GPU)/i.test(gpu)) found = { arch: "arm64", how: "your Mac's graphics chip (Apple silicon)" };
-      else if (/Intel|AMD|Radeon|NVIDIA/i.test(gpu)) found = { arch: "x64", how: "your Mac's graphics chip (Intel)" };
-    }
-    function adjust(result) {
-      // an x64 browser emulated on Windows on ARM reports x86, but its graphics chip is a Qualcomm Adreno
-      if (/Windows/.test(ua) && /Adreno|Qualcomm|Snapdragon/i.test(gpu) && result.arch !== "arm64") return { arch: "arm64", how: "your PC's graphics chip (Qualcomm, Windows on ARM)" };
-      return result;
-    }
-    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-      return navigator.userAgentData.getHighEntropyValues(["architecture", "bitness"]).then(function (v) {
-        if (!v.architecture) return adjust(found);
-        var detail = v.architecture + (v.bitness ? ", " + v.bitness + "-bit" : "");
-        return adjust({ arch: /arm/i.test(v.architecture) ? "arm64" : "x64", how: "your browser (" + detail + ")" });
-      }, function () { return adjust(found); });
-    }
-    return Promise.resolve(adjust(found));
-  }
-
-  function fits(a, arch) { var x = archOf(a.name); return x === "any" || x === arch || (x === "arm64" && arch === "arm64"); }
-  function mainFile(assets, id, arch) {
-    var by = function (re) { return assets.filter(function (a) { return re.test(a.name); })[0]; };
-    if (id === "android") return by(/android-installer\.apk$/) || (arch === "arm64" ? by(/arm64-v8a\.apk$/) : by(/x86_64\.apk$/)) || by(/android\.apk$/);
-    if (id === "windows") return by(/web-setup\.exe$/) || (arch === "arm64" ? by(/arm64-setup\.exe$/) : by(/-setup\.exe$/));
-    if (id === "linux") return by(/\.deb$/) || by(/linux\.tar\.gz$/);
-    return arch === "arm64" ? (by(/(?<!minimal-)aarch64\.iso$/) || by(/aarch64\.iso$/)) : by(/(?<!minimal-)x86_64\.iso$/);
-  }
-  var NAMES = { android: "Android", windows: "Windows", linux: "Linux", usb: "a bootable USB" };
-
-  // the three screens in "See it" (drawn as text: what the programs really show)
-  var SHOTS = {
-    fm: ["fm", "~/projects                                             sort: name   2 marked\n" +
-      "> docs/                      7 items        2026-10-02 18:40   | # Notes\n" +
-      "  src/                      12 items        2026-10-05 09:12   |\n" +
-      "* report.txt                 4.2 KB         2026-10-06 08:05   | The quarterly report. Total spend was\n" +
-      "* notes.md                   1.1 KB         2026-10-04 21:30   | below the plan for the third quarter,\n" +
-      "  todo.txt                    312 B         2026-09-28 11:02   | and ...\n" +
-      "\n? help   Enter open   Space mark   c/x/p copy-cut-paste   d trash   r rename   n/N new   / filter   q quit",
-      "<code>fm</code> opens a folder list with a preview of what is under the cursor. Names that are taken get (2): nothing is overwritten."],
-    tasks: ["taskman", "Tasks: 9 total, 2 running, 7 sleeping    Memory: 74.9 MB used of 1.0 GB (7%)\n" +
-      "PID  PPID  USER  STATE     CPU%    MEM  MEM%  TIME     TASK\n" +
-      "  1     0  root  sleeping   0.0   4.7 MB  0.5  0:00:00  init\n" +
-      "  2     1  root  sleeping   1.5  18.6 MB  1.8  0:00:01  kernel\n" +
-      "100     1  you   running    0.0   7.0 MB  0.7  0:00:00  shell  -pyos (you) on tty1\n" +
-      "101   100  you   sleeping   0.1   3.1 MB  0.3  0:00:00  scheduler  Task Scheduler\n" +
-      "104   100  you   running    4.6  44.4 MB  4.3  0:00:02  sysmon  run sysmon\n" +
-      "\nkill <pid>   sort <cpu|mem|pid|name>   limit <n>   refresh   quit",
-      "<code>taskman</code> shows PythonOS's own tasks: your shell, the services and every app, each with its share of memory."],
-    settings: ["settings", " PythonOS Settings\n" +
-      "  Display          Language                       auto\n" +
-      "  System           Theme                          ocean  (changed)\n" +
-      "  Security         Prompt style                   full\n" +
-      "  Updates          24-hour clock                  on\n" +
-      "  Storage          Clear the screen for programs  on\n" +
-      "  Power            Tidy the screen after (lines)  300\n" +
-      "  Services\n  Apps\n  About\n" +
-      "\n Up/Down move   Tab switch side   Enter/Space change   Left/Right step a choice   r default   q quit",
-      "<code>settings</code> changes everything in place and also reaches the services and the options of installed apps."]
-  };
-  function showShot(name) {
-    var s = SHOTS[name];
-    $("shot").textContent = s[1]; $("shot-title").textContent = s[0]; $("shot-note").innerHTML = s[2];
-    document.querySelectorAll("#shot-tabs [data-shot]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-shot") === name)); });
-  }
-  document.querySelectorAll("#shot-tabs [data-shot]").forEach(function (b) { b.addEventListener("click", function () { showShot(b.getAttribute("data-shot")); }); });
-  showShot("fm");
-  // a path card takes the visitor to that platform's downloads
-  document.querySelectorAll("[data-go]").forEach(function (a) {
-    a.addEventListener("click", function () { state.tab = a.getAttribute("data-go"); if (state.release) render(); });
-  });
-
-  // typing demo in the terminal card (static text for reduced motion)
-  var lines = [
-    ["rm notes.txt", "<span class='d'>1 item moved to the trash - 'undo' brings it back</span>"],
-    ["undo", "<span class='y'>Restored ~/notes.txt</span>"],
-    ["find -name \"*.md\" -size +1k", "<span class='d'>~/docs/readme.md\n~/docs/ideas.md</span>"],
-    ["pkg install chess", "<span class='y'>Installed Chess 2.2.0</span> <span class='d'>(permissions: files)</span>"]
-  ];
-  var demo = $("demo");
-  function prompt() { return "<span class='p'>you@pyOS</span>:<span class='c'>~</span>$ "; }
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    demo.innerHTML = lines.map(function (l) { return prompt() + l[0] + "\n" + l[1]; }).join("\n") + "\n" + prompt() + "<span class='caret'></span>";
-  } else {
-    var li = 0, ci = 0, shown = "";
-    (function tick() {
-      if (li >= lines.length) { setTimeout(function () { li = 0; ci = 0; shown = ""; tick(); }, 4500); return; }
-      var cmd = lines[li][0];
-      if (ci <= cmd.length) {
-        demo.innerHTML = shown + prompt() + cmd.slice(0, ci) + "<span class='caret'></span>";
-        ci++; setTimeout(tick, 38 + Math.random() * 40);
-      } else {
-        shown += prompt() + cmd + "\n" + lines[li][1] + "\n";
-        demo.innerHTML = shown + prompt() + "<span class='caret'></span>";
-        li++; ci = 0; setTimeout(tick, 900);
-      }
-    })();
-  }
-  document.querySelectorAll("[data-copy]").forEach(function (b) { b.addEventListener("click", function () { P.copy(b.getAttribute("data-copy"), b); }); });
-
-  // ---- drawing: the processor chooser, the main button and the file cards (called again whenever the processor changes)
-  function setArch(arch) {
-    state.arch = arch;
-    try { sessionStorage.setItem("arch", arch); } catch (e) {}
-    render();
-  }
-  // The chooser follows the platform tab: it lists the processors that platform comes in, and is hidden where the choice does not matter
-  function renderArchBar(groupId) {
-    var bar = $("archbar");
-    var list = ARCHS[groupId];
-    if (!list) { bar.hidden = true; bar.innerHTML = ""; return; }
-    bar.hidden = false;
-    var note = state.detected ? " <span class='muted'>Detected: " + (state.detected === "arm64" ? "ARM" : "Intel / AMD") + (state.how ? " from " + state.how : "") + (state.arch !== state.detected ? " (you chose " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + ")" : "") + "</span>" : "";
-    bar.innerHTML = "<span class='muted' id='archlabel'>Processor</span><div class='tabs chips' role='group' aria-labelledby='archlabel'>" + list.map(function (a) {
-      return "<button class='tab' type='button' data-arch='" + a[0] + "' aria-pressed='" + (state.arch === a[0]) + "'>" + a[1] + "</button>";
-    }).join("") + "</div>" + note;
-    bar.querySelectorAll("[data-arch]").forEach(function (b) { b.addEventListener("click", function () { setArch(b.getAttribute("data-arch")); }); });
-  }
-
-  function render() {
-    var assets = state.assets, rel = state.release;
-    if (!rel) return;
-    var main = mainFile(assets, state.platform, state.arch);
-    var cta = $("cta");
-    if (main) {
-      cta.innerHTML = "<a class='btn primary' href='" + main.browser_download_url + "'>Download for " + NAMES[state.platform] + "</a><a class='btn ghost' href='#download'>All downloads</a>";
-    }
-    $("meta").innerHTML = (main ? "<span>" + P.esc(main.name) + " · " + P.size(main.size) + (ARCHS[state.platform] ? " · " + archName(state.platform, state.arch) : "") + "</span>" : "") +
-      "<span>Released " + P.when(rel.published_at) + "</span><a href='" + rel.html_url + "'>Release notes</a>";
-
-    var wizard = assets.filter(function (a) { return /pythonos-wizard-[\d.]+\.zip$/.test(a.name); })[0];
-    if (wizard) {
-      $("wizard-banner").hidden = false; $("wizard-download").href = wizard.browser_download_url;
-      $("wizard-link").href = wizard.browser_download_url;
-    }
-    var tabs = $("tabs"), panels = $("panels");
-    tabs.innerHTML = ""; panels.innerHTML = "";
-    var present = GROUPS.filter(function (g) { return assets.some(function (a) { return g.match.test(a.name); }); });
-    present.forEach(function (g, i) {
-      var all = assets.filter(function (a) { return g.match.test(a.name); });
-      var items = all.filter(function (a) { return fits(a, state.arch); }).sort(function (a, b) { return order(a.name) - order(b.name); });
-      var hidden = all.length - items.length;
-      var tab = document.createElement("button");
-      tab.className = "tab"; tab.type = "button"; tab.id = "tab-" + g.id; tab.textContent = g.title;
-      tab.setAttribute("role", "tab"); tab.setAttribute("aria-controls", "panel-" + g.id);
-      var panel = document.createElement("div");
-      panel.className = "panel"; panel.id = "panel-" + g.id; panel.setAttribute("role", "tabpanel"); panel.setAttribute("aria-labelledby", tab.id);
-      var top = mainFile(assets, g.id, state.arch);
-      panel.innerHTML = (items.length ? "<div class='files'>" + items.map(function (a) {
-        return "<div class='file'>" + (top && top.name === a.name ? "<span class='rec'>Recommended</span>" : "") + "<span class='name'>" + P.esc(a.name) + "</span><span class='muted'>" + P.esc(useOf(a.name)) + "</span>" +
-               "<div class='row'><span class='size'>" + P.size(a.size) + "</span><a class='btn primary' style='padding:9px 16px' href='" + a.browser_download_url + "'>Download</a></div></div>";
-      }).join("") + "</div>" : "<p class='note'>There is no " + archName(g.id, state.arch) + " build of this in the release. Pick the other processor above.</p>") +
-        "<p class='note'>" + g.note + (hidden > 0 ? " <span class='muted'>(" + hidden + " file" + (hidden > 1 ? "s" : "") + " for the other processor hidden.)</span>" : "") + "</p>";
-      tabs.appendChild(tab); panels.appendChild(panel);
-      tab.addEventListener("click", function () { select(g.id); });
-      tab.addEventListener("keydown", function (e) {
-        var k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!k) return;
-        var j = (i + k + present.length) % present.length; select(present[j].id); $("tab-" + present[j].id).focus();
-      });
-    });
-    function select(id) {
-      state.tab = id;
-      present.forEach(function (g) {
-        var on = g.id === id;
-        $("tab-" + g.id).setAttribute("aria-selected", String(on));
-        $("tab-" + g.id).tabIndex = on ? 0 : -1;
-        $("panel-" + g.id).hidden = !on;
-      });
-      renderArchBar(id);
-    }
-    select(present.some(function (g) { return g.id === state.tab; }) ? state.tab : (present.some(function (g) { return g.id === state.platform; }) ? state.platform : (present[0] && present[0].id)));
-
-    var old = $("qrnote"); if (old) old.remove();
-    var apk = mainFile(assets, "android", state.arch);
-    if (apk && state.platform !== "android" && window.QRCode) {
-      var q = document.createElement("div");
-      q.id = "qrnote"; q.className = "note"; q.style.display = "flex"; q.style.gap = "16px"; q.style.alignItems = "center";
-      q.innerHTML = "<div style='background:#fff;padding:8px;border-radius:12px;line-height:0' id='qr'></div><span>Scan with your phone to download the Android app.</span>";
-      $("docker").before(q);
-      try { new QRCode($("qr"), { text: apk.browser_download_url, width: 112, height: 112 }); } catch (e) { q.remove(); }
-    }
-  }
-
-  Promise.all([P.api("releases/latest"), detectArch()]).then(function (r) {
-    var rel = r[0];
-    state.detected = r[1].arch;
-    state.how = r[1].how;
-    if (state.arch !== "x64" && state.arch !== "arm64") state.arch = state.detected;
-    state.release = rel;
-    state.assets = rel.assets.filter(function (a) { return !/SHA256SUMS|core|manifest|\.json$/i.test(a.name); });
-    $("ver").textContent = "Version " + rel.tag_name.replace(/^v/, "");
-    render();
-  }).catch(function (e) {
-    $("panels").innerHTML = "<p class='note err'>Could not load the latest release (" + P.esc(e.message) + "). Open the <a href='https://github.com/Kalmai221/PythonOS/releases/latest'>releases page</a> instead.</p>";
-    $("tabs").hidden = true;
-  });
-});
-</script>
 </body>
 </html>

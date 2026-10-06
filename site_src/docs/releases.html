@@ -1,0 +1,39 @@
+<!--
+title: Changelog and releases
+description: How PythonOS versions are numbered, how the changelog is split into PythonOS, Exports, Website and Development, and how a release is built.
+nav: docs
+section: docs
+group: Contributing
+order: 30
+-->
+<h1>Changelog and releases</h1>
+<p class="lead">For maintainers, and for contributors who want to know where a change ends up.</p>
+
+<h2 id="versions">Versions</h2>
+<p>A version is <code>major.minor.patch</code> (for example <code>1.0.9</code>), set in <code>config.json</code>. A release is a git tag with a <code>v</code> in front, <code>v1.0.9</code>. Pushing the tag builds and publishes the release.</p>
+
+<h2 id="changelog">The changelog</h2>
+<p><code>CHANGELOG.md</code> has one section per version, newest first. Each section is split by who gets the change:</p>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td><code>### PythonOS</code></td><td>The core: commands, the shell, the apps' runtime, new and changed apps. This is what <code>updatecheck</code> installs by itself and the only part PythonOS shows when it updates.</td></tr>
+    <tr><td><code>### Exports</code></td><td>The packages around the core: Windows, Android, Linux, the ISO and virtual machine images, Docker. A new download is needed to get these. PythonOS shows this part when it tells you a new package exists.</td></tr>
+    <tr><td><code>### Website</code></td><td>Changes to this site.</td></tr>
+    <tr><td><code>### Development</code></td><td>Tests, CI and tools. Not user-visible.</td></tr>
+  </tbody>
+</table></div>
+<p>Ask which of those a change belongs to. A change to <code>core_video.py</code> is PythonOS; the same feature needing a different ISO start-up script is also an Exports line. A section written before 1.0.8 has no headings and counts as all PythonOS. <code>python tools/test_changelog.py</code> checks the format.</p>
+<p>Write for the person who gets the change: what is different for them, in plain words, with the command name in backticks. Bullets are one or two sentences.</p>
+
+<h2 id="release">How a release is built</h2>
+<ol>
+  <li>The version in <code>config.json</code> and the section in <code>CHANGELOG.md</code> are set, and the <em>Test</em> workflow is green on <code>main</code>.</li>
+  <li>Push the tag: <code>git tag v1.0.9 &amp;&amp; git push origin v1.0.9</code>. The <em>Build PythonOS</em> workflow starts.</li>
+  <li>A <em>plan</em> step decides what to build. An export whose inputs did not change since the previous release is not rebuilt: the release links to the old file. An export an earlier run of the same version already built is taken from that run, so after a fix only what failed is built again.</li>
+  <li>The checks run, then the packages are built: Linux, Windows (installer, host, portable, Setup Wizard), Android (installer and apps), ISO (full and minimal, x86_64 and aarch64), virtual machine images, and the Docker image, which is smoke-tested.</li>
+  <li>The release is published with the release notes (built from the changelog, one heading for each part), a table of which file is for which system, <code>SHA256SUMS</code>, a signature and build attestations. The core update (<code>pythonos-core-&lt;version&gt;.zip</code> and its manifest) is attached: this is what <code>updatecheck</code> downloads.</li>
+</ol>
+<p>The manifest carries the PythonOS part of the changelog as its notes, and the Exports part as <code>export_notes</code>.</p>
+
+<h2 id="tags">Tags</h2>
+<p>A tag is a promise about which commit users got, so avoid moving one after a release has been published. If a build fails before the release is published, fixing it and moving the tag is acceptable, and the plan step reuses everything already built.</p>

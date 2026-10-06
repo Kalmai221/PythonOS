@@ -1,0 +1,50 @@
+<!--
+title: Tests and CI
+description: What each PythonOS test and check does, how to run them, and what the GitHub checks on a pull request are.
+nav: docs
+section: docs
+group: Contributing
+order: 20
+-->
+<h1>Tests and CI</h1>
+<p class="lead">Every pull request runs the same checks you can run on your own computer. Run them first and CI will be green.</p>
+
+<h2 id="local">The checks, one by one</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Command</th><th>What it checks</th></tr></thead>
+  <tbody>
+    <tr><td><code>python tools/smoke_test.py</code></td><td>Copies PythonOS to a scratch folder, signs in, and runs about ninety real commands (pipes, redirects, files, trash, aliases, network usage messages and more), then the login path, the update strategies, services, limits, the settings app and every <code>tools/test_*.py</code> file. This is the main test.</td></tr>
+    <tr><td><code>python tools/audit_lockdown.py</code></td><td>Fails on any code that can start a process or evaluate code and is not on the reviewed list. It also holds apps marked <code>lockdown_safe</code> to the same rules. This protects the live USB.</td></tr>
+    <tr><td><code>python tools/build_index.py</code></td><td>Validates every app's <code>data.json</code> and rebuilds the catalog files.</td></tr>
+    <tr><td><code>python tools/check_docs.py</code></td><td>Every command has a manual page and a help group, every manual page belongs to a command or topic, every app has a description and its exports.</td></tr>
+    <tr><td><code>python tools/build_site.py --check</code></td><td>The website in <code>site/</code> is what <code>site_src/</code> produces.</td></tr>
+    <tr><td><code>python tools/check_site.py</code></td><td>Every link, script and style the pages point at exists, every page has a title, and the JavaScript parses.</td></tr>
+    <tr><td><code>python OS_Export/ISO/check_packages.py</code></td><td>Every Alpine package the ISO asks for exists (needs a network).</td></tr>
+  </tbody>
+</table></div>
+<p>The <code>tools/test_*.py</code> files each cover one area: <code>test_newapps.py</code> (the app logic), <code>test_netcmds.py</code> (DNS packets, argument parsing, no network), <code>test_recovery.py</code> (emergency console, safe mode, boot menu), <code>test_changelog.py</code>, <code>test_marketplace_pip.py</code>, <code>test_assistant.py</code>. Run one alone: <code>python tools/test_netcmds.py</code>.</p>
+
+<h2 id="writing">Writing a test</h2>
+<p>For a command, add a line to <code>CHECKS</code> in <code>tools/smoke_test.py</code>: <code>("seq 3 | tac", "3\n2\n1", 0)</code> is the command, text its output must contain, and the exit status. For logic, add a file <code>tools/test_something.py</code> with a <code>main()</code> that asserts and prints one line when it passes. Tests must not need a network unless they say so, and must not touch your real data: the smoke test runs in a scratch copy, and new tests should use a temporary folder.</p>
+<p>Some checks need the repository itself and are skipped when the smoke test runs inside a package or a container image (<code>HAVE_REPO</code> is false there).</p>
+
+<h2 id="ci">What GitHub runs</h2>
+<p>The <em>Test</em> workflow runs on every push to <code>main</code> and every pull request, in four groups:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Job</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Test (Linux, Windows, macOS)</td><td>The lockdown audit and the smoke test on each system.</td></tr>
+    <tr><td>Python 3.9, Python 3.14</td><td>The smoke test on the oldest Python we support and the newest.</td></tr>
+    <tr><td>Static checks</td><td>No syntax errors or undefined names (flake8); nothing needs a Python newer than 3.9 (vermin); pylint (errors only); ruff (the rules the code already follows); all three catalog files current; manual and help groups complete; the website current and its links valid; shell scripts parse; ISO package names exist in Alpine. Bandit and the full ruff report run too, for information only.</td></tr>
+    <tr><td>Windows installer and host</td><td>The C# installer compiles and the PowerShell scripts parse.</td></tr>
+  </tbody>
+</table></div>
+<p>Other workflows: <em>Build PythonOS</em> builds every package and, for a version tag, publishes the release (see <a href="{{root}}docs/releases.html">releases</a>); <em>Website</em> publishes <code>site/</code> to GitHub Pages; <em>Security checks</em> runs weekly (known vulnerabilities in the dependencies, and the lockdown audit). The live <a href="{{root}}status.html">build status</a> page shows the latest runs.</p>
+
+<h2 id="reading">When a check is red</h2>
+<ul>
+  <li>Open the failed step, not just the job. The last lines name the check and what it found.</li>
+  <li>Red on one system only is real: PythonOS runs on all of them. (The macOS run once caught a command that crashed on Apple silicon.)</li>
+  <li>The catalog and website checks fail when a generated file is stale. Run <code>python tools/build_index.py</code> or <code>python tools/build_site.py</code> and commit the result.</li>
+  <li><code>pylint</code> reports errors only, with a few message types turned off because they are false alarms (the reasons are in <code>.pylintrc</code>). If you think it is wrong about your code, say so in the pull request.</li>
+</ul>

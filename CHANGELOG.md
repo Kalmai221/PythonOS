@@ -29,17 +29,19 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 ### Exports
 
 - Automatic resolution: virtual machines whose console comes up small (under 1024 wide) switch by themselves to the biggest resolution the screen offers up to 1920x1080 (`display auto off` stops it). Needs the new ISO or VM image.
-- The VM `.ova` ships a third, empty 8 GB disk for `installos`.
+- The VM `.ova` ships a third, empty 8 GB disk for `installos`. (It carries a short label so it has data blocks: an all-empty disk could not be imported by VirtualBox.)
 - The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.
 - The start-up script of the ISO and VM images opens the emergency console after three stops within two minutes. Needs the new ISO or VM image.
 
 ### Website
 
+- The website is redone: plain typography, light and dark, and a download page that picks the right file for your computer. New documentation: getting started, a command reference generated from the manual, where PythonOS runs, recovery tools, the **Apps API** (package format, permissions, limits, settings, libraries, API versions, exports and run files), how to test and publish an app, **pull requests**, tests and CI, and releases.
 - Website: the App Library has a "Works on" filter (Windows, Linux, Android, ISO / VM), shows each app's exports on its card and detail window, the per-export start files of API 2, and the "Live USB" filter now also needs the ISO in the app's exports.
 
 ### Development
 
 - Test CI is much wider: the smoke test on Linux, Windows and macOS and on Python 3.9 and 3.14; static checks (undefined names, Python 3.9 compatibility, all three catalog files current, manual and help-group completeness, website links and scripts, shell scripts, the Alpine package names of the ISO); and on Windows the installer is compiled and the PowerShell scripts parsed. (The first run found a real bug: the chess app used `os` without importing it.)
+- The website is built from `site_src/` by `tools/build_site.py` (the command reference is generated from the manual), and CI checks that `site/` is current and that its links and scripts work. There is now a `CONTRIBUTING.md` and a pull request template.
 - The changelog is split into PythonOS, Exports, Website and Development parts for every version (this file's own header explains it); the release page shows the parts under their own headings, the core manifest carries the PythonOS part as its notes and the Exports part as `export_notes`, and `tools/test_changelog.py` checks the format.
 - The macOS test run found the `lscpu` problem (fixed before release).
 

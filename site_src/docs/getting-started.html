@@ -1,0 +1,76 @@
+<!--
+title: Getting started
+description: The first start, the everyday commands, apps, settings, updates and where to find help inside PythonOS.
+nav: docs
+section: docs
+group: Using PythonOS
+order: 10
+-->
+<h1>Getting started</h1>
+<p class="lead">Install or boot PythonOS (see <a href="{{root}}download.html">Download</a>), then follow this page once. It takes ten minutes.</p>
+
+<h2 id="first-start">The first start</h2>
+<p>The first time PythonOS starts it walks you through a short setup: your account and password, a few preferences, a check for updates, and a choice of starter apps. On the bootable USB and the virtual machine images it also looks at your hardware (keyboard layout, time zone, network) first.</p>
+<p>PythonOS keeps its own memory budget. It is 1 GB by default; you choose it during setup, or later with <code>settings</code>. On the live USB it uses the whole machine.</p>
+<div class="callout"><p>On the bootable USB and the virtual machine the system forgets everything when it is switched off unless a <strong>data disk</strong> is attached. The .ova already has one. See <a href="{{root}}docs/exports.html#data">where your data lives</a>.</p></div>
+
+<h2 id="help">Finding your way</h2>
+<pre class="cmdline">help                     the groups of commands, numbered, and an "I want to..." table
+help 3                   open group 3
+help copy a file         ask in your own words
+help cp                  one command: usage, examples, related commands
+man cp                   the full manual page
+tutorial                 a guided tour that checks what you type</pre>
+<p>Press <kbd>Tab</kbd> to complete a command or a file name, and the up arrow to bring back an earlier line. <code>history</code> lists them.</p>
+
+<h2 id="files">Files and folders</h2>
+<pre class="cmdline">pwd                      where am I
+ls -l                    what is here, with sizes and dates
+cd ~/documents           go somewhere (~ is your home folder)
+mkdir notes              make a folder
+edit notes/todo.txt      the built-in editor
+cat notes/todo.txt       show a file
+cp a.txt b.txt           copy
+mv b.txt notes/          move or rename
+rm a.txt                 remove: it goes to the trash
+undo                     bring the last removed file back
+find -name "*.md"        find files by name
+grep -n error log.txt    find text in a file
+fm                       a full-screen file manager</pre>
+
+<h2 id="shell">The shell</h2>
+<p>PythonOS has the parts of a shell you would expect.</p>
+<pre class="cmdline">ls | grep txt            pipe the output of one command into another
+echo hi > a.txt          write to a file (>> adds to it)
+make && echo ok          run the second only if the first worked
+sleep 30 &amp;               run in the background (jobs lists them, fg 1 brings one back)
+NAME=Ada                 a variable; use it as $NAME
+alias ll="ls -l"         a short name for a command (kept for you)</pre>
+<p>Put aliases and variables in <code>~/.pyosrc</code> and they are set at every login. Long output of listing commands is shown a screen at a time; the settings <code>auto_page</code> and <code>clear_style</code> change that.</p>
+
+<h2 id="apps">Apps</h2>
+<pre class="cmdline">market                   browse the store
+pkg install chess        install an app
+run chess                start it (an app's own command works too: chess)
+pkg update all           update every installed app
+pkg permissions chess    see and change what an app may do
+settings app chess       the options an app offers</pre>
+<p>Before an app is installed, PythonOS shows what it may do: connect to the internet, read your files, show notifications, and so on. It is held to that while it runs. The <a href="{{root}}apps.html">App Library</a> shows the same for every app.</p>
+
+<h2 id="settings">Settings, accounts and updates</h2>
+<pre class="cmdline">settings                 every setting, in one full-screen program
+passwd                   change your password
+manageusers              add and remove accounts (administrators)
+backup create            back up your files
+updatecheck              look for a newer PythonOS and install it
+whatsnew                 what the last update changed
+version                  which version this is</pre>
+
+<h2 id="more">Useful to know</h2>
+<ul>
+  <li><code>taskman</code> (or <code>ps</code>) shows what is running inside PythonOS. <code>kill &lt;id&gt;</code> stops a task.</li>
+  <li><code>timesync</code> sets the clock from the internet. A wrong clock breaks secure connections.</li>
+  <li><code>doctor</code> checks the installation and offers to fix problems.</li>
+  <li><code>shutdown</code> and <code>restart</code> do what they say, with a proper shutdown screen.</li>
+</ul>
+<p>If something goes wrong, read <a href="{{root}}docs/recovery.html">When something goes wrong</a>.</p>
