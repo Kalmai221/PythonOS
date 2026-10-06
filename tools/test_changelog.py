@@ -19,6 +19,8 @@ def main():
     notes = make_core.changelog_notes(version)
     assert notes and all(l.startswith("- ") for l in notes.splitlines())
     assert not (set(notes.splitlines()) & set(make_core.changelog_notes(version, "Exports").splitlines())), "a bullet is in both PythonOS and Exports"
+    assert not (set(notes.splitlines()) & set(make_core.changelog_notes(version, "Apps").splitlines())), "app updates must not be part of the core update notes"
+    assert "Apps" in make_core.PARTS
     old = make_core.changelog_parts("1.0.7")
     assert list(old) == ["PythonOS"] and old["PythonOS"], "a section written before the split must count as all PythonOS"
     assert make_core.changelog_parts("0.0.0") == {} and make_core.changelog_notes("0.0.0") == ""

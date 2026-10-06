@@ -48,11 +48,12 @@ def requirements_hash(root):
     return sha256(b"\0".join(parts))
 
 
-PARTS = ("PythonOS", "Exports", "Website", "Development")
+PARTS = ("PythonOS", "Apps", "Exports", "Website", "Development")
 
 
 def changelog_parts(ver):
     """{part: [bullet text]} for one version of CHANGELOG.md. A section is split into "### PythonOS" (the core: what `updatecheck` installs),
+    "### Apps" (the marketplace: new and changed apps, live as soon as they are merged, so they are not part of a PythonOS update),
     "### Exports" (the packages around it: Windows, Android, Linux, the ISO and VM images, Docker), "### Website" and "### Development".
     A section written before the split (no ### headings) counts as all PythonOS. {} when the version has no section."""
     try:

@@ -203,6 +203,7 @@ def build(version, plan, sizes=None):
     out = [f"# PythonOS {version}", ""]
     out += ["## What's new", ""]
     titles = {"PythonOS": "PythonOS updates (installed by `updatecheck`, no new download)",
+              "Apps": "App updates (the marketplace: `pkg update all`; already live, no PythonOS update needed)",
               "Exports": "Export updates (the packages: a new download is needed to get these)",
               "Website": "Website updates", "Development": "Development"}
     if len(parts) == 1 and "PythonOS" in parts:

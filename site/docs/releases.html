@@ -40,10 +40,11 @@
 <p>A version is <code>major.minor.patch</code> (for example <code>1.0.9</code>), set in <code>config.json</code>. A release is a git tag with a <code>v</code> in front, <code>v1.0.9</code>. Pushing the tag builds and publishes the release.</p>
 
 <h2 id="changelog">The changelog</h2>
-<p><code>CHANGELOG.md</code> has one section per version, newest first. Each section is split by who gets the change:</p>
+<p><code>CHANGELOG.md</code> has one section per version, newest first. Each section is split by who gets the change (an app change is not a PythonOS change):</p>
 <div class="table-wrap"><table>
   <tbody>
-    <tr><td><code>### PythonOS</code></td><td>The core: commands, the shell, the apps' runtime, new and changed apps. This is what <code>updatecheck</code> installs by itself and the only part PythonOS shows when it updates.</td></tr>
+    <tr><td><code>### PythonOS</code></td><td>The core: commands, the shell, the apps' runtime, settings. This is what <code>updatecheck</code> installs by itself and the only part PythonOS shows when it updates.</td></tr>
+    <tr><td><code>### Apps</code></td><td>The marketplace: new and changed apps. They go live as soon as the pull request is merged and are installed with <code>pkg update all</code>, so they are <strong>not</strong> part of a PythonOS update and are left out of what <code>updatecheck</code> shows.</td></tr>
     <tr><td><code>### Exports</code></td><td>The packages around the core: Windows, Android, Linux, the ISO and virtual machine images, Docker. A new download is needed to get these. PythonOS shows this part when it tells you a new package exists.</td></tr>
     <tr><td><code>### Website</code></td><td>Changes to this site.</td></tr>
     <tr><td><code>### Development</code></td><td>Tests, CI and tools. Not user-visible.</td></tr>
