@@ -3,6 +3,12 @@ hypothesis      # property tests: random input to the parsers (tools/test_proper
 pint            # tools/test_pipapps.py (the units app)
 Pillow          # tools/test_pipapps.py (the imgview app)
 rich-pixels     # tools/test_pipapps.py (the imgview app)
+sympy           # tools/test_moreapps.py (the algebra app)
+pyfiglet        # ... banner
+pyspellchecker  # ... spell
+plotext>=5.2,<6 # ... plot
+pypdf           # ... pdfread
+ebooklib        # ... epub
 flake8
 pylint
 ruff

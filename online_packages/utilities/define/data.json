@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "dict"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Dictionary",
+  "description": "Look up what a word means: definitions, an example and synonyms.",
+  "command": "define",
+  "tags": [
+    "words",
+    "dictionary",
+    "english",
+    "learning"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "learning"
+  ]
+}

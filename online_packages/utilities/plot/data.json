@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "chart"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 384
+  },
+  "name": "Plot",
+  "description": "Draw charts in the terminal from numbers or a CSV file: lines, bars, scatter and histograms.",
+  "command": "plot",
+  "tags": [
+    "chart",
+    "graph",
+    "data",
+    "csv",
+    "plot"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools"
+  ],
+  "pip": [
+    "plotext>=5.2,<6"
+  ]
+}

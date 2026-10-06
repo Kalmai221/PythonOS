@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "wikipedia"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Wikipedia",
+  "description": "Look things up on Wikipedia from the terminal: a short summary, a search, or a random article.",
+  "command": "wiki",
+  "tags": [
+    "reference",
+    "encyclopedia",
+    "learning",
+    "search"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "learning"
+  ]
+}

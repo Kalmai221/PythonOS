@@ -1960,6 +1960,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/csvview",
+      "category": "utilities",
+      "name": "CSV Viewer",
+      "description": "Open a CSV file as a table: sort, filter, pick columns, and see a summary of the numbers.",
+      "version": "1.0.0",
+      "command": "csvview",
+      "alias": [
+        "csv"
+      ],
+      "tags": [
+        "csv",
+        "table",
+        "data",
+        "spreadsheet"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "39ee47c130e853f19291a7c654ec218127f260a99b23fdb2aed61c4bdc43ec60",
+          "size": 451
+        },
+        {
+          "path": "run.py",
+          "sha256": "ef3a4bb49d816045b54d633933f7679927304fdac6a7e9894091b218f46ce47c",
+          "size": 6486
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/datecalc",
       "category": "utilities",
       "name": "Date Calculator",
@@ -1998,6 +2048,56 @@
           "path": "run.py",
           "sha256": "878486a9d378ed8a81d04f6ae6dc0716c4dadbc5a2ad713a02e0218c03ae4437",
           "size": 7407
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/define",
+      "category": "utilities",
+      "name": "Dictionary",
+      "description": "Look up what a word means: definitions, an example and synonyms.",
+      "version": "1.0.0",
+      "command": "define",
+      "alias": [
+        "dict"
+      ],
+      "tags": [
+        "words",
+        "dictionary",
+        "english",
+        "learning"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "e1b3c9b7b9422a9dfde0f6916f433a2c0f6f3ba21099705f394432f9ffb8b322",
+          "size": 438
+        },
+        {
+          "path": "run.py",
+          "sha256": "f5364adde44436568bf634c87765f612dcd6b5fd21f188584a98b0a24f162f63",
+          "size": 3156
         }
       ]
     },
@@ -2319,6 +2419,57 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/hexview",
+      "category": "utilities",
+      "name": "Hex Viewer",
+      "description": "See the bytes of any file, in hexadecimal and text, like hexdump.",
+      "version": "1.0.0",
+      "command": "hexview",
+      "alias": [
+        "hexdump",
+        "xxd"
+      ],
+      "tags": [
+        "hex",
+        "binary",
+        "bytes",
+        "debug"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "developer"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "227127246a681949456053936218bcb510a7736405230c5c1d436d8a498dad1a",
+          "size": 442
+        },
+        {
+          "path": "run.py",
+          "sha256": "fb044e10e3ab08355c0589b6cbbc2b35e1c5f16569c4d1d2b7cf7264bb5027c4",
+          "size": 2559
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/httptest",
       "category": "utilities",
       "name": "HTTP Tester",
@@ -2358,6 +2509,56 @@
           "path": "run.py",
           "sha256": "2f771a037d29ebddd3988b00acef6d318f45d27e8aac57784cc438ae5a2f6a5e",
           "size": 6432
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/journal",
+      "category": "utilities",
+      "name": "Journal",
+      "description": "A private daily journal: write an entry, read a day back, search everything you wrote.",
+      "version": "1.0.0",
+      "command": "journal",
+      "alias": [
+        "diary"
+      ],
+      "tags": [
+        "diary",
+        "notes",
+        "writing",
+        "productivity"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "07ca78f854469fcbb3139c51a3338a3824b3eafaedc1bc5e805a7977280a7040",
+          "size": 460
+        },
+        {
+          "path": "run.py",
+          "sha256": "7dc6fad3f7b6b50aad904819333b7edc3534cb3bef7d23a52244b1209b37037d",
+          "size": 4460
         }
       ]
     },
@@ -3047,6 +3248,54 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/roll",
+      "category": "utilities",
+      "name": "Dice Roller",
+      "description": "Roll dice for games: 2d6+3, d20, 4d6kh3 (keep the best three), several at once.",
+      "version": "1.0.0",
+      "command": "roll",
+      "alias": [
+        "dice"
+      ],
+      "tags": [
+        "dice",
+        "rpg",
+        "random",
+        "games"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "a0842323e054d6a03d6bb9bf8630db54655747394de488a618dd8ce442960615",
+          "size": 420
+        },
+        {
+          "path": "run.py",
+          "sha256": "5a466c07b2b226bd6d7afd5e84f386ec0818db735a3d336a479ff2cbfe77b6c8",
+          "size": 3236
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/rss",
       "category": "utilities",
       "name": "RSS Reader",
@@ -3607,6 +3856,104 @@
           "path": "run.py",
           "sha256": "ac724988a51d09cd79165e05459400c6fceb415706559c5ef05ef1681f982811",
           "size": 4563
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/wiki",
+      "category": "utilities",
+      "name": "Wikipedia",
+      "description": "Look things up on Wikipedia from the terminal: a short summary, a search, or a random article.",
+      "version": "1.0.0",
+      "command": "wiki",
+      "alias": [
+        "wikipedia"
+      ],
+      "tags": [
+        "reference",
+        "encyclopedia",
+        "learning",
+        "search"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "427fc6837355b80367e22da1564f05be63f49dc2fc616e9df5399b5ceee97b80",
+          "size": 475
+        },
+        {
+          "path": "run.py",
+          "sha256": "fe935fadf0732125eff838588ba25638b7c1238f060dad3bd60742eeb3f0befc",
+          "size": 4320
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/worldclock",
+      "category": "utilities",
+      "name": "World Clock",
+      "description": "The time in cities around the world, and what 15:00 in London is in Tokyo.",
+      "version": "1.0.0",
+      "command": "worldclock",
+      "alias": [
+        "tz"
+      ],
+      "tags": [
+        "time",
+        "timezone",
+        "clock",
+        "travel"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "421a32562c95de89ba040319fac93c514dd19a2620a91a733da9ec162a8e18e8",
+          "size": 431
+        },
+        {
+          "path": "run.py",
+          "sha256": "6a54aa62d5c64b2543ff9b05043f2ea09546b16739e6b769cb9a49a669313631",
+          "size": 5810
         }
       ]
     }

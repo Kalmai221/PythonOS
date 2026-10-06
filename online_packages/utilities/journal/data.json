@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "diary"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Journal",
+  "description": "A private daily journal: write an entry, read a day back, search everything you wrote.",
+  "command": "journal",
+  "tags": [
+    "diary",
+    "notes",
+    "writing",
+    "productivity"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity"
+  ]
+}

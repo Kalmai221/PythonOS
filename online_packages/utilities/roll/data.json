@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "dice"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Dice Roller",
+  "description": "Roll dice for games: 2d6+3, d20, 4d6kh3 (keep the best three), several at once.",
+  "command": "roll",
+  "tags": [
+    "dice",
+    "rpg",
+    "random",
+    "games"
+  ],
+  "permissions": [],
+  "categories": [
+    "games"
+  ]
+}

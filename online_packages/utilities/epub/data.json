@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "ebook"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 384
+  },
+  "name": "Book Reader",
+  "description": "Read EPUB e-books in the terminal: chapters, text and details.",
+  "command": "epub",
+  "tags": [
+    "books",
+    "ebook",
+    "epub",
+    "reading"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "media"
+  ],
+  "pip": [
+    "ebooklib",
+    "beautifulsoup4"
+  ]
+}

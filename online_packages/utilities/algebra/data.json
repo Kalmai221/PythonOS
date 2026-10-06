@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "maths",
+    "cas"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 512,
+    "cpu_seconds": 60
+  },
+  "name": "Algebra",
+  "description": "Solve equations, simplify, expand, factor, differentiate and integrate, with sympy.",
+  "command": "algebra",
+  "tags": [
+    "maths",
+    "algebra",
+    "calculus",
+    "equations",
+    "science"
+  ],
+  "permissions": [],
+  "categories": [
+    "learning"
+  ],
+  "pip": [
+    "sympy"
+  ]
+}

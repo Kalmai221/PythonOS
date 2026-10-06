@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "hexdump",
+    "xxd"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Hex Viewer",
+  "description": "See the bytes of any file, in hexadecimal and text, like hexdump.",
+  "command": "hexview",
+  "tags": [
+    "hex",
+    "binary",
+    "bytes",
+    "debug"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "developer"
+  ]
+}

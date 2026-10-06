@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "spellcheck"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 384
+  },
+  "name": "Spell Checker",
+  "description": "Check a word or a whole file for spelling mistakes, with suggestions, in several languages.",
+  "command": "spell",
+  "tags": [
+    "spelling",
+    "writing",
+    "text",
+    "proofread"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity"
+  ],
+  "pip": [
+    "pyspellchecker"
+  ]
+}

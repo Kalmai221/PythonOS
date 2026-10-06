@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "csv"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "CSV Viewer",
+  "description": "Open a CSV file as a table: sort, filter, pick columns, and see a summary of the numbers.",
+  "command": "csvview",
+  "tags": [
+    "csv",
+    "table",
+    "data",
+    "spreadsheet"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools"
+  ]
+}

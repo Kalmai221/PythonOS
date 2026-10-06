@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "tz"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "World Clock",
+  "description": "The time in cities around the world, and what 15:00 in London is in Tokyo.",
+  "command": "worldclock",
+  "tags": [
+    "time",
+    "timezone",
+    "clock",
+    "travel"
+  ],
+  "permissions": [],
+  "categories": [
+    "productivity"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "figlet"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 384
+  },
+  "name": "Banner",
+  "description": "Turn words into big letters, in hundreds of fonts, with colour.",
+  "command": "banner",
+  "tags": [
+    "ascii",
+    "text",
+    "fun",
+    "figlet"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ],
+  "pip": [
+    "pyfiglet"
+  ]
+}
