@@ -5,6 +5,8 @@ One section per release, newest first. The section for a version is shown to use
 
 ## 1.0.8 (continued)
 
+- The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.
+
 - `help` is easier to use: the first screen has numbered groups (`help 3` opens group 3) and an "I want to..." table (see a folder, copy files, check the internet, update...); `help <command>` now shows the usage lines, examples and related commands from the manual; and you can ask in your own words: `help copy a file`, `help how do i check the internet` find the commands, best match first, understanding words like delete, folder, internet, wifi. `help find` explains the find command instead of searching.
 
 - `ping` is simple again: `ping <host>` (also `-c count`, `-p port`, `host:port`) times TCP connections and ends with a summary; no more menu. It needs no special rights and works on every export.

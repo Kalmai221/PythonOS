@@ -144,6 +144,16 @@ if [ "$VARIANT" = "full" ]; then
 	fi
 fi
 
+# The power button (or a virtual machine's "shutdown signal") shuts PythonOS down through its own shutdown screens: acpid runs our handler
+rc_add acpid default
+mkdir -p "$tmp"/etc/acpi "$tmp"/etc/modules-load.d
+cp "$OVERLAY"/pythonos-acpi-handler "$tmp"/etc/acpi/handler.sh
+chmod 755 "$tmp"/etc/acpi/handler.sh
+makefile root:root 0644 "$tmp"/etc/modules-load.d/pythonos.conf <<EOF
+button
+evdev
+EOF
+
 rc_add mount-ro shutdown
 rc_add killprocs shutdown
 rc_add savecache shutdown

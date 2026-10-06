@@ -1,0 +1,20 @@
+#!/bin/sh
+# Installed as /etc/acpi/handler.sh (acpid runs it for every ACPI event; it replaces Alpine's own handler, which powers off at once).
+#
+# The power button, or "Send the shutdown signal" of a virtual machine, must end PythonOS the way the shutdown command does: the
+# PythonOS shutdown screens, services stopped, data disk synced, then power off. So the button only tells PythonOS (signal USR1; see
+# pyos/shutdown.py). If PythonOS does not take it up within 30 seconds, or is not running yet, the machine powers off the normal way
+# so the button can never be ignored.
+#
+# This script never starts a shell and never runs anything but the fixed commands below.
+
+case "$1" in
+    button/power)
+        if pkill -USR1 -f 'python3 main.py' >/dev/null 2>&1; then
+            ( sleep 30; poweroff ) >/dev/null 2>&1 &
+        else
+            poweroff
+        fi
+        ;;
+esac
+exit 0

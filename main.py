@@ -49,6 +49,7 @@ import time
 from pathlib import Path
 
 console = Console()
+__import__("importlib").import_module("pyos.shutdown").install_signal_handler()    # the ISO's power button / a VM's shutdown signal ends PythonOS like the shutdown command
 
 CONFIG_FILE = "config.json"
 OSDATA_DIR = Path(".OSData")

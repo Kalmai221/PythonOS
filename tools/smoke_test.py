@@ -271,6 +271,24 @@ def run(root):
         print(f"FAIL installos disk choice   <- {type(e).__name__}: {e}")
         failures.append(("installos disk choice", [f"{type(e).__name__}: {e}"], ""))
 
+    # the power button / a VM's shutdown signal: SIGUSR1 ends PythonOS through its own shutdown screens
+    try:
+        import importlib as _importlib
+        shutdown_module = _importlib.import_module("pyos.shutdown")
+        try:
+            shutdown_module.on_signal()
+            raise AssertionError("the shutdown signal must raise ShutdownRequested")
+        except shutdown_module.ShutdownRequested:
+            pass
+        assert shutdown_module.pending()
+        shutdown_module._pending.clear()
+        handler = open(os.path.join(REPO, "OS_Export", "ISO", "overlay", "pythonos-acpi-handler"), encoding="utf-8").read()
+        assert "pkill -USR1" in handler and "poweroff" in handler and "button/power" in handler
+        print("ok   shutdown signal (power button)")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL shutdown signal   <- {type(e).__name__}: {e}")
+        failures.append(("shutdown signal", [f"{type(e).__name__}: {e}"], ""))
+
     # export update strategies: choosing files, commands and the parts that can be tried without root or a real disk
     try:
         import io

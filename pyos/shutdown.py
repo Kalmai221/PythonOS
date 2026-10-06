@@ -20,3 +20,22 @@ def shutdown():
 
 def pending():
     return _pending.is_set()
+
+
+def on_signal(signum=None, frame=None):
+    """Signal handler for the power button of the live ISO / a virtual machine's shutdown signal (SIGUSR1, sent by the ACPI handler of the
+    image). It runs in the main thread, so raising here interrupts whatever PythonOS is waiting on, and main.py shows the shutdown screens."""
+    _pending.set()
+    raise ShutdownRequested()
+
+
+def install_signal_handler():
+    """Make SIGUSR1 mean "shut down" where the system has that signal (Linux, macOS); does nothing on Windows. Returns True when installed."""
+    import signal
+    if not hasattr(signal, "SIGUSR1") or threading.current_thread() is not threading.main_thread():
+        return False
+    try:
+        signal.signal(signal.SIGUSR1, on_signal)
+    except (ValueError, OSError):
+        return False
+    return True
