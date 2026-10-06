@@ -1,0 +1,25 @@
+{
+  "name": "Expenses",
+  "description": "Write down what you spend and see a monthly summary by category.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "expenses",
+  "alias": [
+    "spend"
+  ],
+  "tags": [
+    "money",
+    "budget",
+    "finance"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity"
+  ],
+  "changelog": "First release."
+}

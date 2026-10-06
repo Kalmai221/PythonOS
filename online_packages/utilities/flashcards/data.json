@@ -1,0 +1,26 @@
+{
+  "name": "Flashcards",
+  "description": "Make decks of question and answer cards and study them with spaced repetition.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "flashcards",
+  "alias": [
+    "cards"
+  ],
+  "tags": [
+    "study",
+    "learning",
+    "memory",
+    "cards"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity"
+  ],
+  "changelog": "First release."
+}

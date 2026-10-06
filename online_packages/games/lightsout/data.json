@@ -1,0 +1,21 @@
+{
+  "name": "Lights Out",
+  "description": "Press a light to flip it and its neighbours; turn them all off. Always solvable, with hints.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "lightsout",
+  "alias": [],
+  "tags": [
+    "game",
+    "puzzle",
+    "logic"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

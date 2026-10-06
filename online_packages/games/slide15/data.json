@@ -1,0 +1,23 @@
+{
+  "name": "Slide Puzzle",
+  "description": "The classic sliding number puzzle in 3x3, 4x4 or 5x5.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "slide15",
+  "alias": [
+    "slide"
+  ],
+  "tags": [
+    "game",
+    "puzzle",
+    "numbers"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "games"
+  ],
+  "changelog": "First release."
+}

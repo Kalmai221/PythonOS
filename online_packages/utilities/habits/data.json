@@ -1,0 +1,23 @@
+{
+  "name": "Habits",
+  "description": "Tick off daily habits and keep your streaks going.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "habits",
+  "alias": [],
+  "tags": [
+    "habit",
+    "streak",
+    "daily"
+  ],
+  "lockdown_safe": true,
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity"
+  ],
+  "changelog": "First release."
+}

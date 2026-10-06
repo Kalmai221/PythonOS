@@ -1,0 +1,23 @@
+{
+  "name": "Pomodoro",
+  "description": "A focus timer: work in blocks with short breaks, with a live countdown.",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "command": "pomodoro",
+  "alias": [
+    "focus"
+  ],
+  "tags": [
+    "timer",
+    "focus",
+    "productivity"
+  ],
+  "lockdown_safe": true,
+  "permissions": [],
+  "categories": [
+    "productivity"
+  ],
+  "changelog": "First release."
+}

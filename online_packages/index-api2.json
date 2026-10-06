@@ -774,6 +774,51 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "games/lightsout",
+      "category": "games",
+      "name": "Lights Out",
+      "description": "Press a light to flip it and its neighbours; turn them all off. Always solvable, with hints.",
+      "version": "1.0.0",
+      "command": "lightsout",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "logic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "46c24870d92e0213c6221d75a213747b98ad78a5eee8847801e967d3ce9c60f6",
+          "size": 412
+        },
+        {
+          "path": "run.py",
+          "sha256": "8566400b6732decfbb4297198324a9e67e5b25714bfc05e27d99d96c808d3243",
+          "size": 3518
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "games/mastermind",
       "category": "games",
       "name": "Mastermind",
@@ -1050,6 +1095,53 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "games/slide15",
+      "category": "games",
+      "name": "Slide Puzzle",
+      "description": "The classic sliding number puzzle in 3x3, 4x4 or 5x5.",
+      "version": "1.0.0",
+      "command": "slide15",
+      "alias": [
+        "slide"
+      ],
+      "tags": [
+        "game",
+        "puzzle",
+        "numbers"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "1e397440f0d8c8f007e02ddd7043a0e98870abb1bd8ce7398cbf18f8a43b21f9",
+          "size": 390
+        },
+        {
+          "path": "run.py",
+          "sha256": "5081da73ad56ff3cb68ec884b77ca1333c8168d24bd9817a1faf54e0392f0235",
+          "size": 3057
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "games/snake",
       "category": "games",
       "name": "Snake",
@@ -1085,6 +1177,51 @@
           "path": "run.py",
           "sha256": "5e681d99414517fc5239f261e68be42c1984fe1dc9739e9b463c804ebecb991f",
           "size": 7066
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "games/sokoban",
+      "category": "games",
+      "name": "Sokoban",
+      "description": "Push every box onto a goal in the warehouse. Five levels, with undo.",
+      "version": "1.0.0",
+      "command": "sokoban",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "boxes"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "f171e7b1debcf3654a712793b0998fbe30e3a7132eb72e08ef7829b80133c97a",
+          "size": 383
+        },
+        {
+          "path": "run.py",
+          "sha256": "c0e789eef7bfffcb18b9338b737b87bafea6f518810e1dda75835dd60962c5d0",
+          "size": 4751
         }
       ]
     },
@@ -1923,6 +2060,55 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/expenses",
+      "category": "utilities",
+      "name": "Expenses",
+      "description": "Write down what you spend and see a monthly summary by category.",
+      "version": "1.0.0",
+      "command": "expenses",
+      "alias": [
+        "spend"
+      ],
+      "tags": [
+        "money",
+        "budget",
+        "finance"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "9fa72c973193a6171faed32b51d22317ac69028dd63b86601a6032ba90b43e40",
+          "size": 421
+        },
+        {
+          "path": "run.py",
+          "sha256": "e44118decbfa73142c26372439367fe6b804df7192a04d303611d96553792bb8",
+          "size": 5534
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/files",
       "category": "utilities",
       "name": "File Manager",
@@ -1968,6 +2154,103 @@
           "path": ".config/converter_rates.json",
           "sha256": "61c8cd0db52fc356db5d052ea953661af72d4c49b8bde25062969607feca9854",
           "size": 625
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/flashcards",
+      "category": "utilities",
+      "name": "Flashcards",
+      "description": "Make decks of question and answer cards and study them with spaced repetition.",
+      "version": "1.0.0",
+      "command": "flashcards",
+      "alias": [
+        "cards"
+      ],
+      "tags": [
+        "study",
+        "learning",
+        "memory",
+        "cards"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "1106dbb83986baac083a157e70c2833a1daf2b78d6229a36b437c294c5d819d8",
+          "size": 453
+        },
+        {
+          "path": "run.py",
+          "sha256": "f57a7f8f0c165bf03f65d92d6b9ca66bfa62fa83f0fab0562c8d54e5903cc3fd",
+          "size": 5565
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/habits",
+      "category": "utilities",
+      "name": "Habits",
+      "description": "Tick off daily habits and keep your streaks going.",
+      "version": "1.0.0",
+      "command": "habits",
+      "alias": [],
+      "tags": [
+        "habit",
+        "streak",
+        "daily"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "d8a5c64974e5434b544503a2c7f393a881f5a6fa6b305c33157eded1a7dc71db",
+          "size": 386
+        },
+        {
+          "path": "run.py",
+          "sha256": "921be286c7c23fff08d370c4a83a36c5f9792c53e27dfe047b95debe8777a483",
+          "size": 4961
         }
       ]
     },
@@ -2496,6 +2779,53 @@
           "path": "run.py",
           "sha256": "8c72832c952f49839876140d6775072b78cd3f429242b8410db67bfd1ffa79c0",
           "size": 9181
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/pomodoro",
+      "category": "utilities",
+      "name": "Pomodoro",
+      "description": "A focus timer: work in blocks with short breaks, with a live countdown.",
+      "version": "1.0.0",
+      "command": "pomodoro",
+      "alias": [
+        "focus"
+      ],
+      "tags": [
+        "timer",
+        "focus",
+        "productivity"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "d6ca5481a85ca4807a721ff4b254a3759a67d8b1aceefb7e8affeced73ce539f",
+          "size": 417
+        },
+        {
+          "path": "run.py",
+          "sha256": "82bc5594ee1a156f5ca10d21d5e4de15239f134e16e889e0404dd62f63cea1f9",
+          "size": 2435
         }
       ]
     },
