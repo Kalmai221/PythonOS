@@ -27,7 +27,7 @@ CATEGORIES = {
     "Network and hardware": ("Connect, share and set up hardware",
                              ["ping", "ipinfo", "share", "hwsetup", "persist", "print"]),
     "Updates and apps": ("Keep PythonOS current and add apps",
-                         ["updatecheck", "rollback", "whatsnew", "pkg", "backup"]),
+                         ["updatecheck", "rollback", "whatsnew", "pkg", "backup", "limits"]),
     "Power": ("Turn off, restart or reset", ["shutdown", "restart", "wipe", "installos"]),
 }
 

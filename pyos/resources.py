@@ -86,8 +86,8 @@ def percent_of_budget(rss):
 
 
 # ------------------------------------------------------------------------------------------- enforcement
-def _enforce_windows(limit):
-    """Put this process (and everything it starts) in a job object with a memory cap."""
+def _enforce_windows(limit, slot="job"):
+    """Put this process (and everything it starts) in a job object with a memory cap. `slot` names the job, so the limit can be changed."""
     import ctypes
     from ctypes import wintypes
 
@@ -112,7 +112,7 @@ def _enforce_windows(limit):
     k32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
     k32.GetCurrentProcess.restype = wintypes.HANDLE
 
-    job = _applied.get("job")
+    job = _applied.get(slot)
     existing = job is not None
     if not existing:
         job = k32.CreateJobObjectW(None, None)
@@ -125,8 +125,29 @@ def _enforce_windows(limit):
         return False
     if existing:
         return True                                     # the process is already in the job: only the limit changed
-    _applied["job"] = job
+    _applied[slot] = job
     return bool(k32.AssignProcessToJobObject(job, k32.GetCurrentProcess()))
+
+
+def cap_this_process(limit_bytes):
+    """Hold the calling process (an app, run by sandbox_run.py) to a memory limit the system enforces. Returns True when the system took it.
+    Windows: a job object. Linux: a data-segment limit (private memory: the heap and everything the app allocates). Elsewhere: no
+    system limit (the caller's watchdog covers it)."""
+    if sys.platform == "win32":
+        try:
+            return _enforce_windows(int(limit_bytes), slot="app")
+        except Exception:
+            return False
+    try:
+        import resource
+        if sys.platform.startswith("linux") and hasattr(resource, "RLIMIT_DATA"):
+            _soft, hard = resource.getrlimit(resource.RLIMIT_DATA)
+            wanted = int(limit_bytes) if hard == resource.RLIM_INFINITY else min(int(limit_bytes), hard)
+            resource.setrlimit(resource.RLIMIT_DATA, (wanted, hard))
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def apply():

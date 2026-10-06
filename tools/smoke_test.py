@@ -266,6 +266,45 @@ def run(root):
         print(f"FAIL services   <- {type(e).__name__}: {e}")
         failures.append(("services", [f"{type(e).__name__}: {e}"], ""))
 
+    # app limits: what applies to an app, the options the guard gets, and a real process held to its limit
+    try:
+        from pyos import limits as app_limits
+        from pyos import sandbox
+        assert settings.parse_value("memory_limit_mb", "2048") == 2048, "memory budgets above 1440 must be accepted"
+        pid = "utilities/limit-test"
+        assert app_limits.for_package(pid, {})["source"]["memory"] == "default"
+        assert app_limits.for_package(pid, {"limits": {"memory_mb": 96}})["memory_mb"] == 96
+        app_limits.set_limit(pid, "memory", 200)
+        assert app_limits.for_package(pid, {"limits": {"memory_mb": 96}})["memory_mb"] == 200, "what the user set beats what the app asks"
+        app_limits.reset(pid, "memory")
+        assert app_limits.for_package(pid, {"limits": {"memory_mb": 96}})["memory_mb"] == 96
+        app_limits.reset(pid)
+        for bad in (("memory", 5), ("disk", 10), ("cpu", -1)):
+            try:
+                app_limits.set_limit(pid, *bad)
+                raise AssertionError(f"{bad} should be refused")
+            except ValueError:
+                pass
+        app = os.path.join(root, "files", "installed_utilities", "hog")
+        os.makedirs(app, exist_ok=True)
+        with open(os.path.join(app, "run.py"), "w") as f:
+            f.write("\n".join(["import sys", "if sys.argv[1] == 'mem':", "    keep = [bytearray(10 * 1024 * 1024) for _ in range(80)]",
+                               "    print('not stopped')", "else:", "    print('fine')", ""]))
+        command, env = sandbox.launch(os.path.join(app, "run.py"), ["mem"], app, {})
+        assert "--mem-mb" in command and "--cpu-seconds" in command
+        command[command.index("--mem-mb") + 1] = "64"                        # a 64 MB limit; the app asks for 800 MB
+        import subprocess as _sp
+        stopped = _sp.run(command, env=env, capture_output=True, text=True, timeout=60)
+        assert stopped.returncode == 137 and "more memory than its limit" in stopped.stderr, (stopped.returncode, stopped.stderr[-200:])
+        command[-1] = "ok"
+        fine = _sp.run(command, env=env, capture_output=True, text=True, timeout=60)
+        assert fine.returncode == 0 and "fine" in fine.stdout, (fine.returncode, fine.stderr[-200:])
+        shutil.rmtree(app, ignore_errors=True)
+        print("ok   app limits")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL app limits   <- {type(e).__name__}: {e}")
+        failures.append(("app limits", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")

@@ -40,7 +40,7 @@ def list_settings():
     table.add_column("Options")
     table.add_column("What it does")
     for i, (key, (default, allowed, description)) in enumerate(settings.SCHEMA.items(), 1):
-        options = "on / off" if allowed is bool else "minutes" if allowed is int else "https:// address" if allowed is str else " / ".join(allowed)
+        options = "on / off" if allowed is bool else ("MB" if key.endswith("_mb") else "minutes") if allowed is int else "https:// address" if allowed is str else " / ".join(allowed)
         mark = "" if current[key] == default else " [dim](changed)[/dim]"
         table.add_row(str(i), key, _show(current[key]) + mark, escape(options), escape(description))
     console.print(table)
@@ -90,7 +90,7 @@ def menu():
         if allowed is bool:
             text = Prompt.ask(f"{key}", choices=["on", "off"], default=_show(settings.get(key)))
         elif allowed is int:
-            text = Prompt.ask(f"{key} (a number, 0 = off)", default=str(settings.get(key)))
+            text = Prompt.ask(f"{key} (a number{', in MB' if key.endswith('_mb') else ''}, 0 = off)", default=str(settings.get(key)))
         elif allowed is str:
             text = Prompt.ask(f"{key} (an https:// address, or none)", default=str(settings.get(key)) or "none")
         else:

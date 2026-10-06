@@ -99,6 +99,12 @@ def launch(script_path, args, folder, meta):
     from . import marketapi
     env["PYOS_PACKAGE_API"] = str(marketapi.package_api(meta))      # the marketplace API the app was written for (the app can branch on it)
     runner = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sandbox_run.py")
+    try:
+        from . import limits
+        held = limits.for_package(package_id(folder), meta)
+    except Exception:
+        held = {"memory_mb": 0, "cpu_seconds": 0}
     cmd = [sys.executable, runner, "--perms", ",".join(effective(folder, meta)), "--dir", os.path.abspath(folder),
-           "--id", package_id(folder), "--", os.path.abspath(script_path), *(args or [])]
+           "--id", package_id(folder), "--mem-mb", str(held["memory_mb"]), "--cpu-seconds", str(held["cpu_seconds"]),
+           "--", os.path.abspath(script_path), *(args or [])]
     return cmd, env

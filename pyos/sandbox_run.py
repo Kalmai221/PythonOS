@@ -218,12 +218,84 @@ def parse_args(argv):
     return perms, pkg_dir, pkg_id, argv[i:]
 
 
-def main():
+def parse_limits(argv):
+    """(memory MB, CPU seconds) from --mem-mb and --cpu-seconds in the guard's own options (0 = no limit)."""
+    found = {"--mem-mb": 0, "--cpu-seconds": 0}
+    i = 0
+    while i < len(argv) and argv[i].startswith("--"):
+        if argv[i] == "--":
+            break
+        if argv[i] in found and i + 1 < len(argv) and argv[i + 1].isdigit():
+            found[argv[i]] = int(argv[i + 1])
+        i += 2
+    return found["--mem-mb"], found["--cpu-seconds"]
+
+
+def _load_resources():
+    """pyos/resources.py loaded from its file (the standard library only) so the app is not made to import the whole OS first."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("pyos_resources", os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _stop_for_limit(name, what, detail):
+    try:
+        sys.stderr.write(f"\n{name} was stopped: {what} ({detail}). "
+                         f"Change it with: limits set {name} {'memory' if 'memory' in what else 'cpu'} <number>\n")
+        sys.stderr.flush()
+    except Exception:
+        pass
+    os._exit(137)
+
+
+def start_limits(name, memory_mb, cpu_seconds):
+    """Hold this process to its limits. The system caps the memory where it can; a watchdog thread covers what it cannot and the
+    CPU time. Returns the thread (or None when there is nothing to watch)."""
+    import threading
+    import time
+    if not memory_mb and not cpu_seconds:
+        return None
+    if memory_mb:
+        try:
+            _load_resources().cap_this_process(memory_mb * 1024 * 1024)
+        except Exception:
+            pass
+    try:
+        import resource
+    except ImportError:
+        resource = None
+
+    def peak_mb():
+        if resource is None:
+            return 0
+        peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return peak / (1024 * 1024) if sys.platform == "darwin" else peak / 1024
+
+    def watch():
+        while True:
+            time.sleep(0.25)
+            if cpu_seconds and time.process_time() > cpu_seconds:
+                _stop_for_limit(name, "it used more processor time than its limit", f"{cpu_seconds} s")
+            if memory_mb and peak_mb() > memory_mb * 1.05 + 4:
+                _stop_for_limit(name, "it used more memory than its limit", f"{memory_mb} MB")
+
+    thread = threading.Thread(target=watch, name="app-limits", daemon=True)
+    thread.start()
+    return thread
+
+
+def main(enforce_limits=False):
     perms, pkg_dir, pkg_id, rest = parse_args(sys.argv[1:])
+    memory_mb, cpu_seconds = parse_limits(sys.argv[1:])
     if not rest:
         print("usage: sandbox_run.py --perms a,b --dir D --id I -- <script> [args...]", file=sys.stderr)
         return 2
     script = rest[0]
+    app_name = (pkg_id or os.path.basename(os.path.dirname(os.path.abspath(script))) or "the app").split("/")[-1]
+    if enforce_limits:                      # only when run as its own process: never inside the host process (the Android app)
+        start_limits(app_name, memory_mb, cpu_seconds)
     guard = Guard(perms, pkg_dir or os.path.dirname(os.path.abspath(script)), pkg_id)
     guard.install()
     saved_argv, saved_path = sys.argv, list(sys.path)
@@ -234,6 +306,11 @@ def main():
     except PermissionError as e:
         print(f"Blocked: {e.strerror or e}", file=sys.stderr)
         return 1
+    except MemoryError:
+        guard.uninstall()
+        print(f"\n{app_name} was stopped: it used more memory than its limit ({memory_mb or 'the system'} MB). "
+              f"Change it with: limits set {app_name} memory <MB>", file=sys.stderr)
+        return 137
     except SystemExit as e:
         return e.code if isinstance(e.code, int) else (0 if e.code is None else 1)
     finally:
@@ -243,4 +320,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(enforce_limits=True))

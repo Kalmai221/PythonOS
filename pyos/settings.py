@@ -26,6 +26,7 @@ SCHEMA = {
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
     "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = reports are only a link or a file)"),
     "memory_limit_mb": (1024, int, "Memory PythonOS owns, in MB: it is the whole computer as far as PythonOS is concerned (0 = all of the machine's memory; applies right away; the live ISO always uses all of it)"),
+    "app_memory_percent": (25, int, "How much of PythonOS's memory one app may use, in percent (0 = no limit); an app over its limit is stopped. Per-app: limits"),
     "light_mode": (False, bool, "Light mode: skip background checks and long animations (switched on by itself on computers with little memory)"),
     "low_battery_percent": (15, int, "Warn when the battery falls to this percent and is not charging (0 = never)"),
     "critical_battery_percent": (5, int, "Shut down cleanly when the battery falls to this percent and is not charging (0 = never)"),
@@ -78,6 +79,13 @@ def _custom_theme_name(value):
     return isinstance(value, str) and value.startswith("custom:") and re.fullmatch(r"[A-Za-z0-9_-]{1,20}", value[7:]) is not None
 
 
+INT_RANGE = {"memory_limit_mb": (0, 1 << 20)}          # every other whole-number setting is a number of minutes (0 to 1440)
+
+
+def int_range(key):
+    return INT_RANGE.get(key, (0, 24 * 60))
+
+
 def _valid(key, value):
     allowed = SCHEMA[key][1]
     if allowed is bool:
@@ -85,7 +93,8 @@ def _valid(key, value):
     if allowed is str:
         return isinstance(value, str) and len(value) <= 300 and (value == "" or value.startswith("https://"))
     if allowed is int:
-        return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 24 * 60
+        low, high = int_range(key)
+        return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
     if key == "theme" and _custom_theme_name(value):
         return True
     return value in allowed
@@ -111,8 +120,9 @@ def parse_value(key, text):
             return False
         raise ValueError(f"{key} must be on or off")
     if allowed is int:
-        if not text.isdigit() or int(text) > 24 * 60:
-            raise ValueError(f"{key} must be a whole number of minutes (0 to 1440)")
+        low, high = int_range(key)
+        if not text.isdigit() or not low <= int(text) <= high:
+            raise ValueError(f"{key} must be a whole number of {'MB' if key.endswith('_mb') else 'minutes'} ({low} to {high})")
         return int(text)
     if key == "theme" and _custom_theme_name(text):
         return text

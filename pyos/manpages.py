@@ -166,6 +166,13 @@ page("taskman", "task manager", ["taskman", "top"], "Shows the tasks running ins
      "(scheduler, battery and memory watch...), background jobs and whatever is open (the marketplace, the editor, a game). Each has a "
      "PID, a parent, a state, CPU, memory and its command. Memory is shown against the memory PythonOS owns (see free). Stop a job with "
      "kill <pid>; administrators can also stop a service. The system tasks cannot be stopped.", see=["ps", "jobs", "kill", "free"])
+page("limits", "how much an app may use", ["limits", "limits set <app> memory <MB|off>", "limits set <app> cpu <seconds|off>", "limits reset <app>",
+                                              "limits default <percent|off>"],
+     "Every app runs as a process of its own, so PythonOS can hold it to a limit. By default an app may use a quarter of the memory PythonOS owns "
+     "(see free). An app can ask for its own limit, and administrators can set one per app or change the default. An app that goes over its "
+     "limit is stopped with a message that says which limit it hit; its limits apply the next time it starts.",
+     examples=[("limits set sysmon memory 128", "System Monitor may use 128 MB"), ("limits default 10", "apps may use 10% of PythonOS's memory by default")],
+     see=["free", "taskman", "pkg", "settings"])
 page("service", "the background services", ["service", "service status <name>", "service start|stop|restart <name>", "service enable|disable <name>"],
      "Lists what runs in the background while you are signed in (scheduler, idle watch, battery monitor, memory guard, update checks, startup "
      "programs) and whether each is running. Administrators can start, stop and restart a service, or disable it so it does not start at "
