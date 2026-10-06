@@ -13,7 +13,7 @@ from . import theme
 # category -> (blurb, command names). A command that is not listed lands in "Other" until it is added here.
 CATEGORIES = {
     "Files": ("Look at and change files and folders",
-              ["ls", "cd", "pwd", "cat", "head", "tail", "wc", "grep", "find", "tree", "touch", "mkdir", "cp", "mv", "rm", "trash", "undo", "edit",
+              ["ls", "cd", "pwd", "cat", "head", "tail", "wc", "grep", "find", "tree", "touch", "mkdir", "cp", "mv", "rm", "trash", "undo", "edit", "fm",
                "zip", "unzip", "tar", "du", "stat"]),
     "Text and shell": ("Print, repeat and organise what you type",
                        ["echo", "history", "clear", "man", "tutorial", "sort", "uniq", "cut", "tr", "diff", "xargs", "tee", "less",

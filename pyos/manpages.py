@@ -166,6 +166,13 @@ page("taskman", "task manager", ["taskman", "top"], "Shows the tasks running ins
      "(scheduler, battery and memory watch...), background jobs and whatever is open (the marketplace, the editor, a game). Each has a "
      "PID, a parent, a state, CPU, memory and its command. Memory is shown against the memory PythonOS owns (see free). Stop a job with "
      "kill <pid>; administrators can also stop a service. The system tasks cannot be stopped.", see=["ps", "jobs", "kill", "free"])
+page("fm", "the file manager", ["fm [folder]"],
+     "A full-screen file manager: two panes, the folder on the left and a preview of what is under the cursor on the right. Enter opens a folder "
+     "or edits a file, Space marks several, c / x / p copy, cut and paste (a name that is already there gets (2) added: nothing is overwritten), "
+     "d moves to the trash (u brings it back, D deletes for good), r renames, n and N make a file or folder, / filters by name, s sorts, . shows "
+     "hidden files, i shows details, ? lists every key. It follows the shell's rules: you cannot leave the filesystem, enter other homes, or "
+     "change anything outside your home and /tmp unless you are an administrator. Without a full-screen terminal (the Android app) it lists the folder.",
+     examples=[("fm", "open the file manager in the current folder"), ("fm ~/docs", "start in a folder")], see=["ls", "cp", "mv", "rm", "trash", "edit"])
 page("limits", "how much an app may use", ["limits", "limits set <app> memory <MB|off>", "limits set <app> cpu <seconds|off>", "limits reset <app>",
                                               "limits default <percent|off>"],
      "Every app runs as a process of its own, so PythonOS can hold it to a limit. By default an app may use a quarter of the memory PythonOS owns "

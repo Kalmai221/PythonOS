@@ -407,6 +407,49 @@ def run(root):
         print(f"FAIL setup wizard plans and release page tables   <- {type(e).__name__}: {e}")
         failures.append(("wizard plans", [f"{type(e).__name__}: {e}"], ""))
 
+    # the file manager: its engine (folders first, copy/cut/paste without overwriting, trash and undo, rename) and the screen starting and quitting
+    try:
+        from pyos import filemanager, filemanager_ui
+        base = os.path.join(root, "files", "home", "smoke", "fm-test")
+        os.makedirs(os.path.join(base, "docs"), exist_ok=True)
+        with open(os.path.join(base, "a.txt"), "w") as f:
+            f.write("hello\nworld\n")
+        manager = filemanager.Manager(base, "smoke")
+        assert [e.name for e in manager.entries()] == ["docs", "a.txt"], "folders come first"
+        manager.focus("a.txt")
+        assert manager.preview(manager.current()) == ["hello", "world"]
+        manager.copy()
+        manager.go(os.path.join(base, "docs"))
+        assert manager.paste() == (1, []) and [e.name for e in manager.entries()] == ["a.txt"]
+        assert manager.paste() == (1, []) and sorted(e.name for e in manager.entries()) == ["a (2).txt", "a.txt"], "a taken name is never overwritten"
+        manager.go(base)
+        manager.focus("a.txt")
+        assert manager.delete() == (1, []) and [e.name for e in manager.entries()] == ["docs"]
+        assert manager.undo() == "a.txt" and "a.txt" in [e.name for e in manager.entries()]
+        manager.rename("b.txt")
+        manager.make_folder("new")
+        assert sorted(e.name for e in manager.entries()) == ["b.txt", "docs", "new"]
+        try:
+            manager.rename("new")
+            raise AssertionError("an existing name must be refused")
+        except filemanager.FileManagerError:
+            pass
+        try:
+            manager.go(os.path.dirname(root))
+            raise AssertionError("leaving the filesystem must be refused")
+        except filemanager.FileManagerError:
+            pass
+        from prompt_toolkit.input import create_pipe_input
+        from prompt_toolkit.output import DummyOutput
+        with create_pipe_input() as pipe:
+            pipe.send_text("jj q")
+            filemanager_ui.build(filemanager.Manager(base, "smoke"), input=pipe, output=DummyOutput()).run()
+        shutil.rmtree(base, ignore_errors=True)
+        print("ok   file manager")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL file manager   <- {type(e).__name__}: {e}")
+        failures.append(("file manager", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")
