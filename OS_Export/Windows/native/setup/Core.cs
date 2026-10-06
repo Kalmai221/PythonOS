@@ -80,6 +80,7 @@ namespace PythonOS.Setup
         public string SumsUrl;
         public string CoreName;        // pythonos-core-<version>.zip: the newest PythonOS files, which can be newer than the package
         public string CoreUrl;
+        public string InstalledVersion;   // what the folder really holds after installing (can differ from Version if the core update failed)
     }
 
     internal static class Core
@@ -107,6 +108,22 @@ namespace PythonOS.Setup
         // The Inno Setup installer (the offline PythonOS-<version>-setup.exe, and every version before the web installer) registers
         // itself under this key, per user or for the machine. The web installer must recognise those installs and update them in place.
         public const string InnoKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\{6B0B3A63-5B6E-4C3E-9C47-7C1D2F6A9E11}_is1";
+
+        // the version the installed OS reports: config.json first (that is what `version` shows), then VERSION and export.json
+        public static string ActualVersion(string dir)
+        {
+            try
+            {
+                string path = Path.Combine(dir, "config.json");
+                if (File.Exists(path))
+                {
+                    System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(File.ReadAllText(path), @"""version""\s*:\s*""([^""]+)""");
+                    if (m.Success) return m.Groups[1].Value;
+                }
+            }
+            catch (Exception) { }
+            return FolderVersion(dir);
+        }
 
         private static string FolderVersion(string dir)
         {
@@ -144,7 +161,8 @@ namespace PythonOS.Setup
                     if (string.IsNullOrEmpty(dir) || !LooksLikePythonOS(dir)) return null;
                     Existing e = new Existing();
                     e.Directory = dir.TrimEnd('\\');
-                    e.Version = key.GetValue("DisplayVersion") as string ?? FolderVersion(e.Directory);
+                    e.Version = ActualVersion(e.Directory);
+                    if (e.Version == "?") e.Version = key.GetValue("DisplayVersion") as string ?? "?";
                     e.Source = source;
                     return e;
                 }
@@ -515,7 +533,9 @@ namespace PythonOS.Setup
             string self = Assembly.GetExecutingAssembly().Location;
             string uninstaller = Path.Combine(target, "Uninstall.exe");
             if (!string.Equals(Path.GetFullPath(self), Path.GetFullPath(uninstaller), StringComparison.OrdinalIgnoreCase)) File.Copy(self, uninstaller, true);
-            Register(target, rel.Version, uninstaller);
+            string actual = ActualVersion(target);
+            rel.InstalledVersion = actual;
+            Register(target, actual != "?" ? actual : rel.Version, uninstaller);
         }
 
         // ----------------------------------------------------------------- the newest core

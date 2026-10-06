@@ -81,6 +81,7 @@ namespace PythonOS.Setup
             en["eta"] = " - about {0} left";
             en["done"] = "PythonOS is installed";
             en["done.update"] = "PythonOS was updated to {0}";
+            en["done.partial"] = "PythonOS is now {0}, not {1}: the newest files could not be downloaded. Run updatecheck inside PythonOS to finish.";
             en["done.repair"] = "PythonOS was repaired";
             en["done.uninstall"] = "PythonOS was removed";
             en["done.sub"] = "Find it in the Start menu.";
@@ -135,6 +136,7 @@ namespace PythonOS.Setup
             es["eta"] = " - faltan unos {0}";
             es["done"] = "PythonOS está instalado";
             es["done.update"] = "PythonOS se actualizó a {0}";
+            es["done.partial"] = "PythonOS es ahora {0}, no {1}: no se pudieron descargar los archivos más recientes. Ejecute updatecheck en PythonOS para terminar.";
             es["done.repair"] = "PythonOS se reparó";
             es["done.uninstall"] = "PythonOS se eliminó";
             es["done.sub"] = "Lo encontrarás en el menú Inicio.";
@@ -189,6 +191,7 @@ namespace PythonOS.Setup
             fr["eta"] = " - environ {0} restantes";
             fr["done"] = "PythonOS est installé";
             fr["done.update"] = "PythonOS a été mis à jour vers {0}";
+            fr["done.partial"] = "PythonOS est maintenant en {0}, pas en {1} : les fichiers les plus récents n'ont pas pu être téléchargés. Lancez updatecheck dans PythonOS pour terminer.";
             fr["done.repair"] = "PythonOS a été réparé";
             fr["done.uninstall"] = "PythonOS a été supprimé";
             fr["done.sub"] = "Vous le trouverez dans le menu Démarrer.";
@@ -243,6 +246,7 @@ namespace PythonOS.Setup
             de["eta"] = " - noch etwa {0}";
             de["done"] = "PythonOS ist installiert";
             de["done.update"] = "PythonOS wurde auf {0} aktualisiert";
+            de["done.partial"] = "PythonOS ist jetzt {0}, nicht {1}: die neuesten Dateien konnten nicht geladen werden. Führen Sie updatecheck in PythonOS aus, um abzuschließen.";
             de["done.repair"] = "PythonOS wurde repariert";
             de["done.uninstall"] = "PythonOS wurde entfernt";
             de["done.sub"] = "Du findest es im Startmenü.";

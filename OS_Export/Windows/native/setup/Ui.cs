@@ -359,7 +359,12 @@ namespace PythonOS.Setup
 
         private string DoneText(Release rel)
         {
-            if (o.Mode == "update") return Strings.T("done.update", rel.Version);
+            if (o.Mode == "update")
+            {
+                string got = rel.InstalledVersion;
+                if (got != null && got != "?" && got != rel.Version) return Strings.T("done.partial", got, rel.Version);
+                return Strings.T("done.update", rel.Version);
+            }
             if (o.Mode == "repair") return Strings.T("done.repair");
             return Strings.T("done");
         }

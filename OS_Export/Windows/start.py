@@ -39,7 +39,7 @@ def libraries_ok(env):
 def install_extras(env):
     """The optional libraries (requirements-extra.txt): installed once per version of that list, and never a reason to stop PythonOS starting."""
     extras = os.path.join(HERE, "requirements-extra.txt")
-    marker = os.path.join(HERE, ".extras-installed")
+    marker = os.path.join(HERE, "python", ".extras-installed")   # lives with the libraries: a replaced python folder reinstalls them
     try:
         import hashlib
         with open(extras, "rb") as f:
