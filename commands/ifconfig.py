@@ -10,15 +10,31 @@ config = {"name": "ifconfig", "description": "Show the network interfaces and th
 
 
 def collect():
-    stats = psutil.net_if_stats()
+    try:
+        stats = psutil.net_if_stats()
+        found = psutil.net_if_addrs()
+    except (PermissionError, OSError):                       # Android 11 and newer hides the interface list from apps
+        return fallback()
     out = []
-    for name, addresses in psutil.net_if_addrs().items():
+    for name, addresses in found.items():
         v4 = [a.address for a in addresses if a.family == socket.AF_INET]
         v6 = [a.address.split("%")[0] for a in addresses if a.family == socket.AF_INET6]
         mac = next((a.address for a in addresses if a.family == psutil.AF_LINK), "")
         info = stats.get(name)
         out.append({"name": name, "up": bool(info and info.isup), "speed": info.speed if info else 0, "v4": v4, "v6": v6, "mac": mac})
     return sorted(out, key=lambda i: (not i["up"], i["name"]))
+
+
+def fallback():
+    """The one address this device uses to reach the internet (found without asking the system for its interfaces)."""
+    mine = "-"
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.connect(("203.0.113.1", 9))                 # no packet is sent: this only makes the system choose a route
+            mine = probe.getsockname()[0]
+    except OSError:
+        pass
+    return [{"name": "(this device)", "up": mine != "-", "speed": 0, "v4": [mine] if mine != "-" else [], "v6": [], "mac": ""}]
 
 
 def execute(args=None):

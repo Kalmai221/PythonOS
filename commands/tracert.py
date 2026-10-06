@@ -3,9 +3,11 @@
     tracert example.com
     tracert -m 15 example.com        give up after 15 hops (default 30)
 """
+import os
 import socket
 
 from rich.console import Console
+from rich.markup import escape
 
 from pyos import netprobe
 
@@ -30,15 +32,16 @@ def parse(args):
 
 
 def first_working(address, timeout):
-    """The probe function that works on this system (some need rights), found with a probe at TTL 64."""
-    problem = None
+    """(the probe function that works on this system, None), or (None, a text listing why each way failed). Some ways need rights the
+    system may not give a program, so each is tried with a probe at TTL 64."""
+    problems = []
     for method in netprobe.methods():
         try:
             method(address, 64, timeout)
             return method, None
         except (OSError, AttributeError, ImportError) as e:
-            problem = e
-    return None, problem
+            problems.append(f"{method.__name__.replace('probe_', '')}: {e}")
+    return None, "; ".join(problems)
 
 
 def execute(args=None):
@@ -54,8 +57,14 @@ def execute(args=None):
         return False
     method, problem = first_working(address, 2)
     if method is None:
-        console.print("[bold red]tracert: this system does not let PythonOS send those probes[/bold red] "
-                      f"({problem}). Try it as an administrator (Windows) or as root.")
+        android = "ANDROID_ROOT" in os.environ or "ANDROID_DATA" in os.environ
+        console.print("[bold red]tracert: this system does not let PythonOS send those probes.[/bold red]")
+        console.print(f"[dim]{escape(problem)}[/dim]")
+        if android:
+            console.print("Android only lets an app send the probes tracert needs on some versions and devices. You can still check that a host "
+                          "answers and how fast with [bold]ping[/bold], and look up its address with [bold]nslookup[/bold].")
+        else:
+            console.print("Try it as an administrator (Windows) or as root.")
         return False
     console.print(f"Route to {host} [{address}], at most {max_hops} hops:\n", highlight=False)
     try:

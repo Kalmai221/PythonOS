@@ -71,6 +71,12 @@ def main():
     assert netprobe.parse_errqueue([]) is None
     assert netprobe.checksum(netprobe.echo_packet(1, 1)) == 0
 
+    from unittest import mock
+    with mock.patch.object(sys, "platform", "linux"):
+        assert [m.__name__ for m in netprobe.methods()] == ["probe_errqueue", "probe_pingsock", "probe_raw"], "Linux and Android try the no-root ways first"
+    with mock.patch.object(sys, "platform", "win32"):
+        assert [m.__name__ for m in netprobe.methods()] == ["probe_windows", "probe_raw"]
+
     curl = command("curl")
     assert curl.parse(["example.com"]) == ("https://example.com", False, None) and curl.parse(["-I", "http://x.org"]) == ("http://x.org", True, None)
     assert curl.parse(["-o", "a.html", "x.org"]) == ("https://x.org", False, "a.html") and curl.parse(["ftp://x"]) is None and curl.parse([]) is None

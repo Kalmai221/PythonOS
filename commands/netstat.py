@@ -11,7 +11,7 @@ def rows(listening_only, everything):
     found = []
     try:
         connections = psutil.net_connections(kind="inet")
-    except (psutil.AccessDenied, OSError):
+    except (psutil.AccessDenied, PermissionError, OSError):
         return None
     for c in connections:
         state = c.status if c.type == 1 else "UDP"
@@ -29,7 +29,8 @@ def execute(args=None):
     args = args or []
     found = rows("-l" in args, "-a" in args)
     if found is None:
-        console.print("[bold red]netstat: this system does not let PythonOS list connections (needs more rights)[/bold red]")
+        console.print("[bold red]netstat: this system does not let PythonOS list connections[/bold red] "
+                      "[dim](Android and some locked-down systems hide them from programs; on others it needs more rights)[/dim]")
         return False
     table = Table(header_style="bold blue")
     for column in ("Proto", "Local address", "Remote address", "State"):

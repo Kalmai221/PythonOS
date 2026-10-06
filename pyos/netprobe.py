@@ -148,10 +148,57 @@ def probe_raw(address, ttl, timeout, ident=None, sequence=1):
         sock.close()
 
 
+# ----------------------------------------------------------------------------------------- Android and Linux "ping sockets"
+def probe_pingsock(address, ttl, timeout, ident=None, sequence=1):
+    """An ICMP echo sent from an unprivileged "ping socket" (SOCK_DGRAM + IPPROTO_ICMP), which Linux and Android let ordinary programs use. The
+    router that drops the packet at its TTL answers "time exceeded", which comes back through the socket's error queue; the target answers with
+    an echo reply. Needs no root."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_ICMP)
+    try:
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_TTL, ttl)
+        try:
+            sock.setsockopt(socket.IPPROTO_IP, IP_RECVERR, 1)
+        except OSError:
+            pass                                                   # without it only the target's own answer can be seen
+        sock.setblocking(False)
+        start = time.perf_counter()
+        sock.sendto(echo_packet(ident or (os.getpid() & 0xFFFF), sequence), (address, 0))
+        deadline = start + timeout
+        while True:
+            left = deadline - time.perf_counter()
+            if left <= 0:
+                return ("timeout", None, None)
+            ready, _, _ = select.select([sock], [], [sock], left)
+            if not ready:
+                return ("timeout", None, None)
+            try:
+                data, (who, _port) = sock.recvfrom(1024)
+                took = (time.perf_counter() - start) * 1000
+                if data and data[0] == 0:                          # echo reply: the target itself
+                    return ("done", who, took)
+                continue
+            except BlockingIOError:
+                pass
+            except OSError:
+                pass                                               # an error is waiting in the error queue
+            try:
+                _data, ancillary, _flags, _addr = sock.recvmsg(512, 512, MSG_ERRQUEUE)
+            except (BlockingIOError, OSError):
+                continue
+            found = parse_errqueue(ancillary)
+            took = (time.perf_counter() - start) * 1000
+            if found is None:
+                continue
+            icmp_type, who = found
+            return ("hop" if icmp_type == 11 else "done", who, took)
+    finally:
+        sock.close()
+
+
 def methods():
     """The probe functions to try, best first, for this system."""
     if sys.platform == "win32":
         return [probe_windows, probe_raw]
     if sys.platform.startswith("linux"):
-        return [probe_errqueue, probe_raw]
+        return [probe_errqueue, probe_pingsock, probe_raw]
     return [probe_raw]
