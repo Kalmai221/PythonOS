@@ -112,7 +112,10 @@ def _enforce_windows(limit):
     k32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
     k32.GetCurrentProcess.restype = wintypes.HANDLE
 
-    job = k32.CreateJobObjectW(None, None)
+    job = _applied.get("job")
+    existing = job is not None
+    if not existing:
+        job = k32.CreateJobObjectW(None, None)
     if not job:
         return False
     info = Extended()
@@ -120,13 +123,23 @@ def _enforce_windows(limit):
     info.JobMemoryLimit = limit
     if not k32.SetInformationJobObject(job, 9, ctypes.byref(info), ctypes.sizeof(info)):    # JobObjectExtendedLimitInformation
         return False
+    if existing:
+        return True                                     # the process is already in the job: only the limit changed
+    _applied["job"] = job
     return bool(k32.AssignProcessToJobObject(job, k32.GetCurrentProcess()))
 
 
 def apply():
-    """Called once at start-up. Returns a short description of what is in force."""
+    """Called at start-up and whenever the limit is changed. Returns a short description of what is in force."""
     mb = limit_mb()
     if not mb:
+        if _applied.get("job") is not None and sys.platform == "win32":
+            try:
+                _enforce_windows(1 << 50)                # "all memory": lift the cap that was set earlier
+            except Exception:
+                pass
+            _applied["enforced"] = False
+        _applied["limit"] = 0
         return "all memory"
     limit = budget()
     _applied["limit"] = limit
@@ -136,6 +149,15 @@ def apply():
         except Exception:
             _applied["enforced"] = False
     return f"{limit // MB} MB" + (" (enforced)" if _applied["enforced"] else "")
+
+
+CHOICES = (512, 1024, 2048, 4096)
+
+
+def choices():
+    """The memory sizes (MB) worth offering on this machine: those that fit in it, then 0 for all of it."""
+    physical = physical_total() // MB
+    return [c for c in CHOICES if not physical or c <= physical * 0.75] + [0]
 
 
 def describe():

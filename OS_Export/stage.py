@@ -21,7 +21,7 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 
 PAYLOAD_FILES = [
     "main.py", "shell.py", "users.py", "config.json",
-    "requirements.txt", "boot-requirements.txt", "readme.md",
+    "requirements.txt", "boot-requirements.txt", "readme.md", "core_overlay.py",
 ]
 PAYLOAD_DIRS = ["commands", "core", "programs", "pyos"]
 IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")

@@ -326,10 +326,14 @@ jobs:
         run: |
           V="${VERSION#v}"
           IMAGE="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr 'A-Z' 'a-z')"
-          cp OS_Export/Docker/Dockerfile dist/docker/Dockerfile
+          cp OS_Export/Docker/Dockerfile OS_Export/Docker/entrypoint.sh dist/docker/
           # build and check the amd64 image first, then publish one multi-architecture image (amd64 and arm64: PCs, Raspberry Pi, Apple silicon)
           docker buildx build --load --platform linux/amd64 -t "$IMAGE:$V" dist/docker
           docker run --rm "$IMAGE:$V" python /opt/tools_smoke.py --dir /opt/pythonos
+          # a volume keeps accounts, files and settings: write a marker through one container, read it back in the next
+          docker volume create pyos-check >/dev/null
+          docker run --rm -v pyos-check:/data "$IMAGE:$V" sh -c 'echo kept > /opt/pythonos/files/marker.txt'
+          docker run --rm -v pyos-check:/data "$IMAGE:$V" sh -c 'test "$(cat /opt/pythonos/files/marker.txt)" = kept'
           docker buildx build --push --platform linux/amd64,linux/arm64 -t "$IMAGE:$V" -t "$IMAGE:latest" dist/docker
 
   release:

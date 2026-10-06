@@ -75,6 +75,7 @@
       "pythonos-{v}-minimal-x86_64.iso",
       "pythonos-{v}-vm.ova",
       "pythonos-{v}-vm.qcow2",
+      "pythonos-{v}-vm-data.qcow2",
       "pythonos-{v}-vm-kit.zip",
       "pythonos-flash-tool-{v}.py"
     ],

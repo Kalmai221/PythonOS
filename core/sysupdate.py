@@ -455,6 +455,7 @@ def apply_core(stage_dir, version):
     shutil.rmtree(backup, ignore_errors=True)
     backup.mkdir(parents=True)
     moved_dirs, copied_files = [], []
+    staged_files = [p.relative_to(stage_dir).as_posix() for p in stage_dir.rglob("*") if p.is_file()]
     try:
         for name in CODE_DIRS:
             new = stage_dir / name
@@ -478,6 +479,7 @@ def apply_core(stage_dir, version):
             Path("config.json").write_text(json.dumps(cfg, indent=4), encoding="utf-8")
         except (OSError, ValueError):
             pass
+        keep_across_restarts(staged_files, version)
     except Exception:
         for name in moved_dirs:
             shutil.rmtree(name, ignore_errors=True)
@@ -487,6 +489,21 @@ def apply_core(stage_dir, version):
             if (backup / name).exists():
                 shutil.copy2(backup / name, name)
         raise
+
+
+def keep_across_restarts(files, version):
+    """Where the program files do not survive a restart (the live ISO, a Docker container) but a data disk or volume does, save
+    the updated files there too: core_overlay.py puts them back at the next start (see its notes). Elsewhere the update just stays."""
+    try:
+        import core_overlay
+        if core_overlay.enabled():
+            core_overlay.save(files, version)
+            console.print("[dim]The update is saved on your data disk and will be used again after a restart.[/dim]")
+        elif os.environ.get("PYOS_LIVE") == "1" or os.environ.get("PYOS_VOLATILE") == "1":
+            console.print("[yellow]This update lasts until the system is switched off. To keep it, set up persistent storage "
+                          "(persist create), or get the newer image.[/yellow]")
+    except Exception:
+        pass
 
 
 def offer_restart():

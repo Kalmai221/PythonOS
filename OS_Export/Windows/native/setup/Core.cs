@@ -54,6 +54,7 @@ namespace PythonOS.Setup
         public string Mode = "install";           // install | update | repair | uninstall
         public bool DeleteData;
         public bool FixWebView2 = true;           // install Microsoft's WebView2 runtime when it is missing
+        public int MemoryMb = 1024;                // the memory PythonOS owns (setting memory_limit_mb); 0 = all of it; written only on a fresh install
         public string ManifestUrl = "";            // developer override: a JSON file shaped like GitHub's "latest release" answer
 
         public static string DefaultDirectory()
@@ -515,6 +516,23 @@ namespace PythonOS.Setup
             foreach (string d in Directory.GetDirectories(from)) CopyDirectory(d, Path.Combine(to, Path.GetFileName(d)));
         }
 
+        // PythonOS owns a fixed amount of memory (see pyos/resources.py). A fresh install stores the choice; an update or repair never
+        // touches the user's settings, and a settings file that already says something about memory is left alone.
+        public static void WriteMemorySetting(Options o)
+        {
+            if (o.Mode != "install") return;
+            try
+            {
+                string folder = Path.Combine(Path.GetFullPath(o.Directory), ".OSData");
+                string file = Path.Combine(folder, "settings.json");
+                if (File.Exists(file)) return;
+                Directory.CreateDirectory(folder);
+                File.WriteAllText(file, "{\"memory_limit_mb\": " + o.MemoryMb + "}\n", new System.Text.UTF8Encoding(false));
+                Log.Write("memory " + o.MemoryMb + " MB");
+            }
+            catch (Exception e) { Log.Write("could not store the memory choice: " + e.Message); }
+        }
+
         // ----------------------------------------------------------------- shortcuts and the uninstall entry
         private static string StartMenuFolder()
         {
@@ -691,6 +709,7 @@ namespace PythonOS.Setup
             progress("verify", 1.0, "");
             InstallPackage(file, o, rel, progress);
             EnsureRequirements(o, progress);
+            WriteMemorySetting(o);
             progress("shortcuts", 0.5, "");
             MakeShortcuts(o);
             progress("shortcuts", 1.0, "");

@@ -50,6 +50,8 @@ namespace PythonOS.Setup
             en["opt.uninstall"] = "Uninstall PythonOS";
             en["where"] = "Install location";
             en["browse"] = "Browse...";
+            en["memory"] = "Memory PythonOS can use (changeable later)";
+            en["memory.all"] = "All of the computer's memory";
             en["desktop"] = "Create a desktop shortcut";
             en["startmenu"] = "Create a Start menu shortcut";
             en["install"] = "Install";
@@ -108,6 +110,8 @@ namespace PythonOS.Setup
             es["opt.uninstall"] = "Desinstalar PythonOS";
             es["where"] = "Carpeta de instalación";
             es["browse"] = "Examinar...";
+            es["memory"] = "Memoria que puede usar PythonOS (se puede cambiar después)";
+            es["memory.all"] = "Toda la memoria del equipo";
             es["desktop"] = "Crear un acceso directo en el escritorio";
             es["startmenu"] = "Crear un acceso directo en el menú Inicio";
             es["install"] = "Instalar"; es["update"] = "Actualizar"; es["repair"] = "Reparar"; es["uninstall"] = "Desinstalar";
@@ -159,6 +163,8 @@ namespace PythonOS.Setup
             fr["opt.uninstall"] = "Désinstaller PythonOS";
             fr["where"] = "Dossier d'installation";
             fr["browse"] = "Parcourir...";
+            fr["memory"] = "Mémoire utilisable par PythonOS (modifiable plus tard)";
+            fr["memory.all"] = "Toute la mémoire de l'ordinateur";
             fr["desktop"] = "Créer un raccourci sur le Bureau";
             fr["startmenu"] = "Créer un raccourci dans le menu Démarrer";
             fr["install"] = "Installer"; fr["update"] = "Mettre à jour"; fr["repair"] = "Réparer"; fr["uninstall"] = "Désinstaller";
@@ -210,6 +216,8 @@ namespace PythonOS.Setup
             de["opt.uninstall"] = "PythonOS deinstallieren";
             de["where"] = "Installationsordner";
             de["browse"] = "Durchsuchen...";
+            de["memory"] = "Arbeitsspeicher für PythonOS (später änderbar)";
+            de["memory.all"] = "Der gesamte Arbeitsspeicher des Computers";
             de["desktop"] = "Verknüpfung auf dem Desktop erstellen";
             de["startmenu"] = "Verknüpfung im Startmenü erstellen";
             de["install"] = "Installieren"; de["update"] = "Aktualisieren"; de["repair"] = "Reparieren"; de["uninstall"] = "Deinstallieren";

@@ -39,6 +39,12 @@ namespace PythonOS.Setup
                 else if (low == "/nostartmenu") o.StartMenuShortcut = false;
                 else if (low == "/deletedata") o.DeleteData = true;
                 else if (low == "/nowebview2") o.FixWebView2 = false;
+                else if (low.StartsWith("/memory="))
+                {
+                    string m = low.Substring(8);
+                    int mb;
+                    if (m == "all") o.MemoryMb = 0; else if (int.TryParse(m, out mb) && mb >= 256) o.MemoryMb = mb;
+                }
                 else if (low.StartsWith("/dir=")) { o.Directory = a.Substring(5).Trim('"'); dirGiven = true; }
                 else if (low.StartsWith("/lang=")) lang = low.Substring(6);
                 else if (low.StartsWith("/manifest=")) o.ManifestUrl = a.Substring(10);

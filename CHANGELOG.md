@@ -5,6 +5,11 @@ One section per release, newest first. The section for a version is shown to use
 
 ## Unreleased
 
+- You choose how much memory PythonOS owns: the first-time setup asks (512 MB, 1 GB, 2 GB, 4 GB or all), and both Windows installers ask on a fresh install (`/MEMORY=2048` or `/MEMORY=all` for silent installs). `settings set memory_limit_mb ...` now takes effect right away (no restart) and, on Windows, the system enforces the new limit.
+- Updates now survive restarts where the program files do not: on the live ISO with persistent storage, and in Docker with a volume, `updatecheck` also saves the new program files on the data disk (`.OSData/core_overlay`) and `core_overlay.py` puts them back at the next start. A newer image or ISO always wins over an older saved update, and every saved file is checked against its checksum.
+- The `.qcow2` virtual machine disk has a matching `-vm-data.qcow2` data disk (attach it second and the VM keeps your accounts and files), like the OVA already had.
+- Docker: `docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` really keeps your accounts, files, settings and updates (the old hint pointed at a folder PythonOS does not use). CI checks that a file written in one container is there in the next.
+
 - The `bootspeed` command and the `boot_speed` setting are gone (boot pauses are a fixed short time; light mode has none). `bootlog` still shows what each start-up step took.
 - More realistic boot and shutdown. Boot is a log with time stamps (seconds since PythonOS started), a header that says what it runs on (version, processor, memory, mode), "Loaded/Checked/Started/Mounted ..." lines for each real step, new real steps (hardware detection, kernel services, file system check) and a "Reached target" line with the start-up time. Shutdown stops the services that are really running, newest first ("Stopped Task Scheduler.", "Stopped Battery Monitor."...), warns when one does not answer, then jobs, sign-out, log and file system, and ends with "Reached target Power-Off."
 

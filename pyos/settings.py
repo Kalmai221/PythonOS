@@ -25,7 +25,7 @@ SCHEMA = {
     "auto_clear_lines": (300, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
     "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = reports are only a link or a file)"),
-    "memory_limit_mb": (1024, int, "Memory PythonOS owns, in MB: it is the whole computer as far as PythonOS is concerned (0 = all of the machine's memory; applies after a restart; the live ISO always uses all of it)"),
+    "memory_limit_mb": (1024, int, "Memory PythonOS owns, in MB: it is the whole computer as far as PythonOS is concerned (0 = all of the machine's memory; applies right away; the live ISO always uses all of it)"),
     "light_mode": (False, bool, "Light mode: skip background checks and long animations (switched on by itself on computers with little memory)"),
     "low_battery_percent": (15, int, "Warn when the battery falls to this percent and is not charging (0 = never)"),
     "critical_battery_percent": (5, int, "Shut down cleanly when the battery falls to this percent and is not charging (0 = never)"),
@@ -66,6 +66,11 @@ def load():
 
 def get(key):
     return load()[key]
+
+
+def is_set(key):
+    """True when the setting was chosen explicitly (by the user or by an installer), not just the default."""
+    return key in _read()
 
 
 def _custom_theme_name(value):

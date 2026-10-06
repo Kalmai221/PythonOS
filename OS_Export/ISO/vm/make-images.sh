@@ -5,6 +5,8 @@
 #
 # Produces in the output folder:
 #   pythonos-<version>-vm.qcow2   a bootable virtual disk for QEMU / KVM / Proxmox / libvirt (attach it as a disk, boot it)
+#   pythonos-<version>-vm-data.qcow2  the matching 2 GB data disk (labelled PYOS_DATA): attach it as a second disk and the VM keeps your
+#                                 accounts, files and settings between runs
 #   pythonos-<version>-vm.ova     an appliance for VirtualBox and VMware (File > Import Appliance): 1 GB memory, 2 CPUs, NAT network, sound,
 #                                 and a second 2 GB disk (labelled PYOS_DATA) that keeps your accounts, files and settings between runs
 #   pythonos-<version>-vm-kit.zip the run/create scripts and the .vmx for people who would rather attach the ISO themselves
@@ -42,6 +44,7 @@ command -v mkfs.ext4 >/dev/null || { echo "mkfs.ext4 is required (apt install e2
 truncate -s "$DATA_BYTES" "$WORK/data.img"
 mkfs.ext4 -q -F -L PYOS_DATA -m 0 "$WORK/data.img"
 qemu-img convert -f raw -O vmdk -o subformat=streamOptimized "$WORK/data.img" "$WORK/$DATA"
+qemu-img convert -f raw -O qcow2 -c "$WORK/data.img" "$OUT/pythonos-$VERSION-vm-data.qcow2"      # the same disk for QEMU/KVM/Proxmox
 rm -f "$WORK/data.img"
 DATA_FILE_SIZE="$(stat -c %s "$WORK/$DATA" 2>/dev/null || stat -f %z "$WORK/$DATA")"
 cat > "$WORK/pythonos-$VERSION.ovf" <<EOF

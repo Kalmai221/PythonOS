@@ -27,6 +27,8 @@ namespace PythonOS.Setup
         private Label detail;
         private TextBox pathBox;
         private ModernCheck desktop, startMenu, launch, keepData, webview;
+        private ComboBox memory;
+        private static readonly int[] MemoryChoices = new int[] { 512, 1024, 2048, 4096, 0 };
         private string page = "";
         private bool working;
         private Release finished;
@@ -146,7 +148,14 @@ namespace PythonOS.Setup
             body.Controls.Add(browse);
             startMenu = new ModernCheck(p, Strings.T("startmenu"), o.StartMenuShortcut); startMenu.SetBounds(0, 78, 596, 28); body.Controls.Add(startMenu);
             desktop = new ModernCheck(p, Strings.T("desktop"), o.DesktopShortcut); desktop.SetBounds(0, 110, 596, 28); body.Controls.Add(desktop);
-            int y = 152;
+            Label ml = Small(Strings.T("memory")); ml.SetBounds(0, 150, 596, 22); body.Controls.Add(ml);
+            memory = new ComboBox();
+            memory.DropDownStyle = ComboBoxStyle.DropDownList; memory.FlatStyle = FlatStyle.Flat; memory.BackColor = p.Surface; memory.ForeColor = p.Text;
+            memory.Font = new Font("Segoe UI", 10.5f); memory.SetBounds(0, 174, 280, 30);
+            foreach (int mb in MemoryChoices) memory.Items.Add(mb == 0 ? Strings.T("memory.all") : (mb >= 1024 ? (mb / 1024) + " GB" : mb + " MB"));
+            memory.SelectedIndex = Math.Max(0, Array.IndexOf(MemoryChoices, o.MemoryMb));
+            body.Controls.Add(memory);
+            int y = 216;
             if (!Core.HasWebView2())
             {
                 Label w = Small(Strings.T("webview")); w.SetBounds(0, y, 596, 22); w.ForeColor = p.Text; body.Controls.Add(w);
@@ -230,6 +239,7 @@ namespace PythonOS.Setup
                 o.DesktopShortcut = desktop.Checked;
                 o.StartMenuShortcut = startMenu.Checked;
                 o.FixWebView2 = webview == null || webview.Checked;
+                if (memory != null && memory.SelectedIndex >= 0) o.MemoryMb = MemoryChoices[memory.SelectedIndex];
                 if (o.Directory.Length == 0) return;
                 ShowProgress();
             }

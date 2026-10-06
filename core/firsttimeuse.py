@@ -105,6 +105,25 @@ def _look_and_feel():
         chosen = pick
 
 
+def _memory_budget():
+    """How much of the computer's memory PythonOS owns. Skipped when an installer already asked (the setting is stored)."""
+    from pyos import resources
+    if resources.live() or settings.is_set("memory_limit_mb"):
+        return
+    options = resources.choices()
+    physical = resources.physical_total() // resources.MB
+    console.print("\n[bold]How much memory should PythonOS use?[/bold] This is the whole computer as far as PythonOS is concerned "
+                  "(the machine has " + (f"{physical / 1024:.1f} GB" if physical else "an unknown amount") + "). "
+                  "You can change it later: [bold]settings set memory_limit_mb 2048[/bold].")
+    names = {str(o): ("all of it" if o == 0 else f"{o} MB") for o in options}
+    for option in options:
+        console.print(f"  [bold]{option if option else 'all'}[/bold]  {names[str(option)]}")
+    default = "1024" if 1024 in options else str(options[0])
+    answer = Prompt.ask("Memory in MB (or 'all')", choices=[str(o) if o else "all" for o in options], default=default)
+    settings.set("memory_limit_mb", 0 if answer == "all" else int(answer))
+    console.print(f"[dim]PythonOS now owns {resources.apply()}.[/dim]")
+
+
 def _persistent_storage():
     from core import persist, hardware
     if persist.active() or hardware.unavailable_reason():
@@ -200,6 +219,7 @@ def firsttimeuse():
     _step(number, total, "This computer")
     _computer_name()
     _look_and_feel()
+    _memory_budget()
 
     if live:
         number += 1

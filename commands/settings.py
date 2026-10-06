@@ -69,6 +69,9 @@ def change(key, text):
     console.print(f"[green]{key} = {_show(value)}[/green]")
     if key == "theme":
         preview_themes()
+    if key == "memory_limit_mb":
+        import pyos
+        console.print(f"[dim]PythonOS now owns {pyos.resources.apply()}.[/dim]")
     return True
 
 

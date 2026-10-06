@@ -51,6 +51,9 @@ cd /opt/pythonos 2>/dev/null || { echo "PythonOS files are missing."; sleep 5; e
 splash 40 "Looking for your saved data"
 [ -r /usr/local/bin/pythonos-persist ] && . /usr/local/bin/pythonos-persist
 
+# a newer PythonOS saved on the data disk by an update replaces the older files of this image (never the other way round)
+[ "$PYOS_CORE_OVERLAY" = "1" ] && python3 core_overlay.py >/dev/null 2>&1
+
 splash 80 "Starting PythonOS"
 printf '\033[?25h'
 clear

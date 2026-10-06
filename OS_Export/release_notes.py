@@ -38,6 +38,7 @@ FILES = [
     ("pythonos-flash-tool-{v}.py", "iso", "Bootable", "USB writer", "Run with Python on Windows/Linux/macOS: checks the ISO against its checksum, writes the stick (only removable drives), reads it back."),
     ("pythonos-{v}-vm.ova", "iso", "Virtual machine", "Appliance (OVA)", "VirtualBox or VMware: File > Import Appliance. 1 GB, 2 CPUs, NAT network, and a 2 GB data disk that keeps your accounts and files."),
     ("pythonos-{v}-vm.qcow2", "iso", "Virtual machine", "QEMU/KVM disk", "QEMU, KVM, libvirt, Proxmox: attach as a disk and boot."),
+    ("pythonos-{v}-vm-data.qcow2", "iso", "Virtual machine", "QEMU/KVM data disk", "Attach it as a second disk next to the .qcow2: the VM then keeps your accounts, files and settings (2 GB)."),
     ("pythonos-{v}-vm-kit.zip", "iso", "Virtual machine", "Run scripts", "Scripts and a .vmx to boot the ISO in QEMU, VirtualBox or VMware yourself."),
     ("pythonos-core-{v}.zip", "", "System", "Core update package", "Not for people: PythonOS downloads this by itself when you run `updatecheck`."),
     ("core-manifest.json", "", "System", "Update manifest", "Not for people: tells installed copies what is new and how to verify it."),

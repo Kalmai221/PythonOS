@@ -85,6 +85,8 @@ pyos_persist() {
     done
     export PYOS_USERS_FILE="$PYOS_DATA_MNT/users.json"
     export PYOS_PERSISTENT=1
+    # an update made with updatecheck is saved on the data disk too (.OSData/core_overlay); core_overlay.py puts it back if it is newer than this image
+    export PYOS_CORE_OVERLAY=1
 }
 
 pyos_persist

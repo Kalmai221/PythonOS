@@ -150,6 +150,48 @@ def run(root):
         print(f"FAIL marketplace API versions   <- {type(e).__name__}: {e}")
         failures.append(("marketplace API", [f"{type(e).__name__}: {e}"], ""))
 
+    # an update saved on a data disk (live ISO, Docker volume) is put back at the next start - but only when it is newer than the image
+    try:
+        import json as _json
+        import core_overlay
+        base = tempfile.mkdtemp(prefix="pyos-overlay-")
+        try:
+            def write(rel, text):
+                os.makedirs(os.path.dirname(os.path.join(base, rel)) or base, exist_ok=True)
+                with open(os.path.join(base, rel), "w", encoding="utf-8") as f:
+                    f.write(text)
+
+            def read(rel):
+                try:
+                    with open(os.path.join(base, rel), encoding="utf-8") as f:
+                        return f.read()
+                except OSError:
+                    return None
+            write("config.json", _json.dumps({"version": "1.0.0"}))
+            write("core/a.py", "new a")
+            write("core/b.py", "new b")
+            assert core_overlay.save(["core/a.py", "core/b.py", "config.json"], "1.0.1", root=base) == 3
+            write("config.json", _json.dumps({"version": "1.0.0"}))               # a fresh image starts: older files
+            write("core/a.py", "old a")
+            write("core/stale.py", "removed in 1.0.1")
+            os.remove(os.path.join(base, "core", "b.py"))
+            assert core_overlay.apply(base) == "applied" and read("core/a.py") == "new a" and read("core/b.py") == "new b"
+            assert read("core/stale.py") is None, "a file the update removed must not come back"
+            core_overlay.save(["core/a.py"], "1.0.1", root=base)
+            write("config.json", _json.dumps({"version": "1.0.2"}))               # a newer image than the saved update
+            assert core_overlay.apply(base) == "superseded" and core_overlay.apply(base) == "none"
+            core_overlay.save(["core/a.py"], "1.0.9", root=base)
+            write("config.json", _json.dumps({"version": "1.0.2"}))
+            with open(os.path.join(base, core_overlay.OVERLAY, "tree", "core", "a.py"), "w") as f:
+                f.write("tampered")
+            assert core_overlay.apply(base) == "invalid" and read("core/a.py") == "new a", "a file that does not match its checksum must be ignored"
+        finally:
+            shutil.rmtree(base, ignore_errors=True)
+        print("ok   core overlay (updates kept across restarts)")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL core overlay   <- {type(e).__name__}: {e}")
+        failures.append(("core overlay", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")

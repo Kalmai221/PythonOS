@@ -127,6 +127,8 @@ end;
 
 var
   RepairMode: Boolean;
+  FreshInstall: Boolean;
+  MemoryPage: TInputOptionWizardPage;
 
 // True when the bundled Python cannot import the libraries PythonOS needs (checked after the system was downloaded)
 function LibrariesMissing(): Boolean;
@@ -153,6 +155,7 @@ begin
   Result := True;
   RepairMode := False;
   Existing := InstalledVersion();
+  FreshInstall := Existing = '';
   if (Existing = '') or WizardSilent() then
     Exit;
   Detail := 'PythonOS ' + Existing + ' is already installed on this computer. Your accounts, files and settings are kept either way.' + #13#10#13#10 +
@@ -162,6 +165,58 @@ begin
   Choice := MsgBox(Detail, mbConfirmation, MB_YESNOCANCEL);
   Result := Choice <> IDCANCEL;
   RepairMode := Choice = IDNO;
+end;
+
+// ------------------------------------------------------------ memory for PythonOS
+// PythonOS owns a fixed amount of memory (setting memory_limit_mb). A fresh install asks for it; /MEMORY=2048 (or /MEMORY=all) answers silently.
+procedure InitializeWizard();
+begin
+  MemoryPage := CreateInputOptionPage(wpSelectDir, 'Memory', 'How much memory should PythonOS use?',
+    'PythonOS works as a small computer of its own with this much memory. You can change it later with: settings set memory_limit_mb', True, False);
+  MemoryPage.Add('512 MB');
+  MemoryPage.Add('1 GB (recommended)');
+  MemoryPage.Add('2 GB');
+  MemoryPage.Add('4 GB');
+  MemoryPage.Add('All of the computer''s memory');
+  MemoryPage.SelectedValueIndex := 1;
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = MemoryPage.ID) and not FreshInstall;       // an update or repair keeps the settings it has
+end;
+
+function ChosenMemory(): String;
+var
+  Given: String;
+begin
+  Given := Lowercase(ExpandConstant('{param:memory|}'));
+  if Given = 'all' then Result := '0'
+  else if (Given <> '') and (StrToIntDef(Given, 0) >= 256) then Result := Given
+  else
+    case MemoryPage.SelectedValueIndex of
+      0: Result := '512';
+      2: Result := '2048';
+      3: Result := '4096';
+      4: Result := '0';
+    else
+      Result := '1024';
+    end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  Settings: String;
+begin
+  if (CurStep = ssPostInstall) and FreshInstall then
+  begin
+    Settings := ExpandConstant('{app}\.OSData\settings.json');
+    if not FileExists(Settings) then
+    begin
+      ForceDirectories(ExpandConstant('{app}\.OSData'));
+      SaveStringToFile(Settings, '{"memory_limit_mb": ' + ChosenMemory() + '}' + #10, False);
+    end;
+  end;
 end;
 
 // ------------------------------------------------------------ uninstalling
