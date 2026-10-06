@@ -162,8 +162,12 @@ page("uptime", "how long it has been running", ["uptime"], "Time since PythonOS 
 page("free", "memory use", ["free"], "Total, used and free memory.", see=["df", "sysinfo"])
 page("df", "disk space", ["df"], "How much the PythonOS filesystem uses and how much room the disk has.", see=["free"])
 page("sysinfo", "information about this system", ["sysinfo"], "A table of the operating system, processor and memory.")
-page("taskman", "task manager", ["taskman"], "Lists running processes and lets you sort them. Process killing and the machine's other "
-     "processes are not available on a locked-down system.", see=["lockdown"])
+page("taskman", "task manager", ["taskman", "top"], "Shows the tasks running inside PythonOS: init and the kernel, your shell, services "
+     "(scheduler, battery and memory watch...), background jobs and whatever is open (the marketplace, the editor, a game). Each has a "
+     "PID, a parent, a state, CPU, memory and its command. Memory is shown against the memory PythonOS owns (see free). Stop a job with "
+     "kill <pid>; administrators can also stop a service. The system tasks cannot be stopped.", see=["ps", "jobs", "kill", "free"])
+page("ps", "list tasks", ["ps [-a] [-l]"], "Lists your tasks (a short list), or with -a every task and with -l the full columns.",
+     see=["taskman", "jobs", "kill"])
 page("logs", "system log", ["logs [N]", "logs --user U --level L --since T --until T --grep W", "logs --summary", "logs --crashes",
                             "logs --admin", "logs --export FILE [--csv]"],
      "Shows the last N lines (20 by default) of the system log: boots, logins, account changes, crashes. Filter by user, by "

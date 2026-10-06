@@ -1,140 +1,97 @@
 #!/usr/bin/env python3
-import psutil
+"""Task manager: the tasks running inside PythonOS (the shell, services, jobs, the marketplace and whatever else is open)."""
+import time
+
 from rich.console import Console
+from rich.markup import escape
+from rich.prompt import Prompt
 from rich.table import Table
-from rich.prompt import Prompt, IntPrompt
-from rich.text import Text
-from pyos import lockdown, resources
+
+import pyos
+from pyos import resources, tasks
 
 console = Console()
 
 config = {
     "name": "taskman",
-    "description": "Runs Task Manager."
+    "description": "Task manager: what is running in PythonOS, with CPU, memory and stop.",
+    "alias": ["top"],
 }
 
-def get_processes():
-    procs = []
-    if lockdown.enabled():
-        # Only PythonOS itself: the rest of the machine is not part of what you can see or touch here
-        import os
-        try:
-            me = psutil.Process(os.getpid())
-            mine = [me] + me.children(recursive=True)
-        except psutil.Error:
-            return procs
-        for proc in mine:
-            try:
-                info = proc.as_dict(['pid', 'name', 'cpu_percent', 'memory_info'])
-                info['memory_percent'] = resources.percent_of_budget(info['memory_info'].rss) if info.get('memory_info') else 0.0
-                procs.append(info)
-            except psutil.Error:
-                continue
-        return procs
-    for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
-        try:
-            info = proc.info
-            procs.append(info)
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-    return procs
+SORTS = {"cpu": ("cpu_percent", True), "mem": ("rss", True), "memory": ("rss", True), "pid": ("pid", False), "name": ("name", False),
+         "time": ("cpu_time", True), "user": ("user", False)}
+STATE_COLOUR = {"running": "green", "sleeping": "dim"}
 
-def show_processes(procs, sort_by="cpu_percent", reverse=True, limit=20):
-    table = Table(title="Task Manager", show_lines=True)
-    table.add_column("PID", justify="right", style="cyan")
-    table.add_column("Name", style="magenta")
-    table.add_column("CPU %", justify="right", style="green")
-    table.add_column("Memory %", justify="right", style="yellow")
 
-    procs = sorted(procs, key=lambda p: p.get(sort_by, 0) or 0, reverse=reverse)
-    for proc in procs[:limit]:
-        table.add_row(
-            str(proc['pid']),
-            proc['name'] or "",
-            f"{proc['cpu_percent']:.1f}",
-            f"{proc['memory_percent']:.1f}"
-        )
+def human(n):
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+
+
+def clock(seconds):
+    seconds = int(seconds)
+    return f"{seconds // 3600}:{seconds % 3600 // 60:02d}:{seconds % 60:02d}"
+
+
+def show(rows, sort_by="pid", reverse=False, limit=25):
+    total, used, available, percent = resources.snapshot()
+    info = tasks.summary(rows)
+    console.print(f"Tasks: {info['total']} total, [green]{info['running']} running[/green], {info['sleeping']} sleeping    "
+                  f"Memory: {human(used)} used of {human(total)} ({percent:.0f}%)")
+    table = Table(header_style="bold blue", box=None, pad_edge=False)
+    for column, align in (("PID", "right"), ("PPID", "right"), ("USER", "left"), ("STATE", "left"), ("CPU%", "right"),
+                          ("MEM", "right"), ("MEM%", "right"), ("TIME", "right"), ("TASK", "left")):
+        table.add_column(column, justify=align)
+    for row in sorted(rows, key=lambda r: r[sort_by] if r[sort_by] is not None else 0, reverse=reverse)[:limit]:
+        colour = STATE_COLOUR.get(row["state"], "white")
+        what = f"[bold]{escape(row['name'])}[/bold] [dim]{escape(row['cmd'])}[/dim]" if row["cmd"] != row["name"] else escape(row["name"])
+        table.add_row(str(row["pid"]), str(row["ppid"]), escape(row["user"]), f"[{colour}]{row['state']}[/{colour}]",
+                      f"{row['cpu_percent']:.1f}", human(row["rss"]), f"{row['memory_percent']:.1f}", clock(row["cpu_time"]), what)
     console.print(table)
 
-def kill_process(pid):
-    if lockdown.enabled():
-        console.print("[yellow]Stopping processes is switched off on this locked-down system.[/yellow]")
-        return False
-    try:
-        proc = psutil.Process(pid)
-        proc.terminate()
-        proc.wait(3)
-        console.print(f"[green]Process {pid} terminated successfully.[/green]")
-    except psutil.NoSuchProcess:
-        console.print(f"[red]Process {pid} does not exist.[/red]")
-    except psutil.AccessDenied:
-        console.print(f"[red]Permission denied to kill process {pid}.[/red]")
-    except psutil.TimeoutExpired:
-        console.print(f"[yellow]Process {pid} did not terminate in time.[/yellow]")
 
 def main():
-    sort_by = "cpu_percent"
-    reverse = True
-    limit = 20
-
+    user, role = pyos.userinfo()[0], pyos.userinfo()[1]
+    sort_by, reverse, limit = "pid", False, 25
+    tasks.listing()                                    # first look: sets the starting point for the CPU figures
+    time.sleep(1.0)
     while True:
         console.clear()
-        procs = get_processes()
-        show_processes(procs, sort_by, reverse, limit)
-
-        console.print("\nCommands:")
-        console.print("[b]kill <pid>[/b] — Kill process")
-        console.print("[b]sort <field>[/b] — Sort by cpu, mem, pid, name")
-        console.print("[b]limit <number>[/b] — Show top N processes")
-        console.print("[b]refresh[/b] — Refresh list")
-        console.print("[b]quit[/b] — Exit\n")
-
+        console.print("[bold]Task Manager[/bold]\n")
+        show(tasks.listing(), sort_by, reverse, limit)
+        console.print("\n[b]kill <pid>[/b] stop a job or service   [b]sort <cpu|mem|pid|name|time|user>[/b]   [b]limit <n>[/b]   "
+                      "[b]refresh[/b]   [b]quit[/b]\n")
         cmd = Prompt.ask("Enter command").strip().lower()
-
-        if cmd == "quit":
+        parts = cmd.split()
+        if not parts or parts[0] == "refresh":
+            time.sleep(0.3)
+            continue
+        if parts[0] in ("quit", "q", "exit"):
             break
-        elif cmd.startswith("kill"):
-            parts = cmd.split()
+        if parts[0] == "kill":
             if len(parts) != 2 or not parts[1].isdigit():
                 console.print("[red]Usage: kill <pid>[/red]")
             else:
-                kill_process(int(parts[1]))
-        elif cmd.startswith("sort"):
-            parts = cmd.split()
-            if len(parts) != 2:
-                console.print("[red]Usage: sort <field>[/red]")
+                ok, message = tasks.stop(int(parts[1]), user, admin=(role == "admin"))
+                colour = "green" if ok else "yellow"
+                console.print(f"[{colour}]{escape(message)}[/{colour}]")
+        elif parts[0] == "sort":
+            if len(parts) == 2 and parts[1] in SORTS:
+                sort_by, reverse = SORTS[parts[1]]
             else:
-                field = parts[1]
-                if field in ["cpu", "cpu_percent"]:
-                    sort_by = "cpu_percent"
-                    reverse = True
-                elif field in ["mem", "memory", "memory_percent"]:
-                    sort_by = "memory_percent"
-                    reverse = True
-                elif field == "pid":
-                    sort_by = "pid"
-                    reverse = False
-                elif field == "name":
-                    sort_by = "name"
-                    reverse = False
-                else:
-                    console.print("[red]Invalid sort field. Use cpu, mem, pid, or name.[/red]")
-        elif cmd.startswith("limit"):
-            parts = cmd.split()
-            if len(parts) != 2 or not parts[1].isdigit():
-                console.print("[red]Usage: limit <number>[/red]")
-            else:
+                console.print("[red]Use: sort cpu, mem, pid, name, time or user.[/red]")
+        elif parts[0] == "limit":
+            if len(parts) == 2 and parts[1].isdigit():
                 limit = max(1, int(parts[1]))
-        elif cmd == "refresh":
-            continue
+            else:
+                console.print("[red]Usage: limit <number>[/red]")
         else:
             console.print("[red]Unknown command.[/red]")
-
         console.print("\nPress Enter to continue...")
         input()
 
-if __name__ == "__main__":
-    main()
 
 def execute():
     main()

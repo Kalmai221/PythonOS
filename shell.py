@@ -267,7 +267,8 @@ def run_stage(argv):
             readline.parse_and_bind("set editing-mode emacs")
         stdio.fresh_screen()                                   # the program gets a clean screen
         try:
-            return 1 if invoke(available_programs[matched]["module"], args[1:]) is False else 0
+            with pyos.tasks.running(matched, "app", user, " ".join(["run", *argv[1:]])):
+                return 1 if invoke(available_programs[matched]["module"], args[1:]) is False else 0
         except ExitShell:
             raise
         except Exception as e:
@@ -288,7 +289,8 @@ def run_stage(argv):
         console.print(f"[bold red]{escape(name)}: command not found.[/bold red]{hint}")
         return 127
     try:
-        return 1 if invoke(available_commands[matched]["module"], args) is False else 0
+        with pyos.tasks.running(matched, "command", user, " ".join(argv)):
+            return 1 if invoke(available_commands[matched]["module"], args) is False else 0
     except ExitShell:
         raise
     except Exception as e:
@@ -633,19 +635,29 @@ def start_shell(username):
         pass
 
     from core import liveboot
+    market = None
     if not liveboot.light_mode():                   # light mode (little memory): skip the optional background work
-        threading.Thread(target=_market_check, args=(username,), name="market-check", daemon=True).start()
-    threading.Thread(target=_startup_items, args=(username,), name="startup-items", daemon=True).start()
+        market = threading.Thread(target=_market_check, args=(username,), name="market-check", daemon=True)
+        market.start()
+    startup_thread = threading.Thread(target=_startup_items, args=(username,), name="startup-items", daemon=True)
+    startup_thread.start()
     from pyos import power
     power_watch = power.Watcher(username, lambda text, level="info": notify.notify(text, title="Battery", level=level, user=username),
                                 pyos.shutdown)
     power_watch.start()
-    pyos.resources.Guard(lambda text, level="info": notify.notify(text, title="Memory", level=level, user=username)).start()
+    guard = pyos.resources.Guard(lambda text, level="info": notify.notify(text, title="Memory", level=level, user=username))
+    guard.start()
 
     last_activity = time.time()
     idle = IdleWatch(username)
     idle.start()
     idled_out = False
+    shell_task = pyos.tasks.start_session(username)
+    for svc_name, svc_thread, svc_stop in (("scheduler", sched, sched.stop), ("idle-watch", idle, idle.stop),
+                                           ("battery-watch", power_watch, power_watch.stop), ("memory-guard", guard, guard.stop),
+                                           ("market-check", market, None), ("startup-items", startup_thread, None)):
+        if svc_thread is not None:
+            pyos.tasks.service(svc_name, svc_thread, username, svc_stop)
     while True:
         role = pyos.userinfo()[1]
         tidy = settings.get("auto_clear_lines")
@@ -698,6 +710,8 @@ def start_shell(username):
     sched.stop()
     idle.stop()
     power_watch.stop()
+    guard.stop()
+    pyos.tasks.end_session(shell_task)
     pyos.log.log("logout (idle)" if idled_out else "logout", user=username)
     try:
         readline.write_history_file(HISTORY_FILE)

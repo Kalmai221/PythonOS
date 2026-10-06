@@ -151,12 +151,15 @@ class Guard(threading.Thread):
     def __init__(self, notify, interval=20):
         super().__init__(name="memory-guard", daemon=True)
         self.notify, self.interval, self._said = notify, interval, 0
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
 
     def run(self):
         if not limit_mb():
             return
-        while True:
-            time.sleep(self.interval)
+        while not self._stop_event.wait(self.interval):
             percent = snapshot()[3]
             level = 2 if percent >= 100 else 1 if percent >= 90 else 0
             if level > self._said:

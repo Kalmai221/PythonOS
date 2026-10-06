@@ -48,6 +48,9 @@ CHECKS = [
     ("tutorial list", "Lesson", 0) if False else ("tutorial list", "Basics", 0),
     ("whathappened", None, 0),
     ("date", None, 0),
+    ("ps -a", "kernel", 0),
+    ("sleep 5 & ps -a", "sleep 5", 0),
+    ("kill 1", None, 1),
     ("nosuchcommand", None, 127),
 ]
 

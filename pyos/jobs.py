@@ -45,6 +45,8 @@ def start(command, runner, user=None):
 
     def work():
         _local.job = job
+        from . import tasks
+        task = tasks.start_job(job.id, command, user)
         try:
             with stdio.capture() as buf:
                 try:
@@ -54,6 +56,7 @@ def start(command, runner, user=None):
                     job.code = 1
                 job.output = buf.getvalue()
         finally:
+            tasks.end(task)
             job.ended = time.time()
             if job.cancel_event.is_set():
                 job.status = "cancelled"
