@@ -5,6 +5,11 @@ One section per release, newest first. The section for a version is shown to use
 
 ## 1.0.8 (continued)
 
+- `ping` is simple again: `ping <host>` (also `-c count`, `-p port`, `host:port`) times TCP connections and ends with a summary; no more menu. It needs no special rights and works on every export.
+- New text commands: `sort`, `uniq`, `cut`, `tr`, `tee`, `rev`, `tac`, `nl`, `seq`, `xargs`, `less` (also `more`), `time`, `watch`, `cal`, `basename`, `dirname`, `which`, `du`, `stat`, `env`.
+- New network commands: `tracert` (also `traceroute`: the system's ICMP service on Windows, the kernel's error queue on Linux and the ISO, no special rights), `nslookup` (also `dig`, `host`: A, AAAA, MX, NS, TXT, CNAME, SOA and reverse lookups), `whois`, `curl`, `wget`, `netstat` (also `ss`), `ifconfig` (also `ipconfig`).
+- New system commands: `arch`, `nproc`, `lscpu`, `id` (also `groups`), `who` (also `users`), `pgrep`.
+
 - Seven new apps, all of them run on the live ISO / VMs: Flashcards (spaced repetition), Expenses (monthly summary), Habits (streaks), Pomodoro (focus timer), and the games Sokoban (five levels, checked solvable), Lights Out (always solvable, with hints) and Slide Puzzle (3x3, 4x4, 5x5).
 
 - `updatecheck` on the ISO / VM images and installed systems now also refreshes the system package lists (`apk update`) and offers the waiting upgrades (`apk upgrade`) before the PythonOS update. On the live system the upgrades last until it is switched off (it says so, and the default is no); on an installed system they are kept.

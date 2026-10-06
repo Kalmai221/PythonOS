@@ -36,6 +36,7 @@ ALLOWED = {
     "core/screens.py": "clears the screen, restarts PythonOS itself with sys.executable, and on the live ISO runs fixed commands (openrc shutdown, umount, poweroff -f) with no output as the last step of the shutdown screen",
     "core/exportupdate.py": "installs a newer package of this export from a checked release download: fixed package-tool commands (no shell), never reachable from the ISO lockdown except writing the boot medium",
     "pyos/archinfo.py": "asks the system which processor it has: `sysctl -n <fixed name>` on macOS and ctypes IsWow64Process2 on Windows; nothing user-controlled, and neither runs on the ISO",
+    "pyos/netprobe.py": "ctypes only on Windows (win32), to call the system's IcmpSendEcho for tracert (a fixed call with a fixed payload and a number as the TTL); on Linux/ISO it uses plain sockets",
     "pyos/resources.py": "ctypes only on Windows (win32), to put PythonOS in a job object with a memory limit; unused on the ISO",
     "pyos/sandbox_run.py": "runs an installed package script under the permission guard (the shell only launches packages that pass the lockdown trust check)",
     "pyos/stdio.py": "clears the screen (constant command only)",

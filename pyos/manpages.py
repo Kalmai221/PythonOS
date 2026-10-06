@@ -11,6 +11,11 @@ def page(name, summary, synopsis, description, options=(), examples=(), see=()):
                    "options": list(options), "examples": list(examples), "see": list(see)}
 
 
+def cmd_page(name, summary, synopsis, description, examples=(), see=()):
+    """page() for commands that have no option list: (name, summary, synopsis, description, examples, see)."""
+    page(name, summary, synopsis, description, [], examples, see)
+
+
 # ------------------------------------------------------------------ files
 page("ls", "list files and folders", ["ls [-a] [-l] [path]"],
      "Shows what is in a folder (the current one by default). Folders are blue and end in /.",
@@ -200,7 +205,54 @@ page("logs", "system log", ["logs [N]", "logs --user U --level L --since T --unt
       ("--export FILE", "write the result to a file")],
      [("logs --level warn --since yesterday", "yesterday's problems"), ("logs --user bob --export ~/bob.csv --csv", "bob's activity as a CSV")],
      ["tail", "doctor", "bootlog"])
-page("ping", "test a network address", ["ping"], "Interactive: sets a target and sends test requests.", see=["ipinfo", "hwsetup"])
+cmd_page("ping", "check that a host answers, and how fast", ["ping <host>", "ping -c 10 <host>", "ping -p 80 <host>", "ping host:8080"],
+     "Times a TCP connection to the host (port 443, then 80) the given number of times and shows the answers and a summary. It needs no special "
+     "rights and works on every export. Ctrl+C stops it.", [("ping example.com", "four tries"), ("ping -c 10 -p 22 myserver", "ten tries on port 22")], ["ipinfo", "hwsetup"])
+cmd_page("sort", "sort lines", ["sort [-r] [-n] [-u] [-f] [file]"], "Sorts the lines of a file or of piped text. -r reverses, -n sorts by the number at the start of each line, -u drops repeats, -f ignores case.",
+     [("cat names.txt | sort -u", "")], ["uniq", "cut"])
+cmd_page("uniq", "collapse repeated lines", ["uniq [-c] [-d] [-u] [file]"], "Joins lines that repeat one after another (sort first to find every repeat). -c counts, -d shows only repeated lines, -u only single ones.",
+     [("sort words.txt | uniq -c", "")], ["sort"])
+cmd_page("cut", "keep parts of each line", ["cut -d, -f1,3 [file]", "cut -c1-5 [file]"], "Keeps chosen fields (split at the -d character) or character positions of every line. Ranges like 2-4 and 3- work.",
+     [("cat data.csv | cut -d, -f2", "the second column")], ["sort", "tr"])
+cmd_page("tr", "change or delete characters", ["tr set1 set2", "tr -d set"], "Replaces each character of set1 with the one at the same place in set2, or deletes them with -d. Ranges like a-z work. Text comes from a pipe.",
+     [("cat a.txt | tr a-z A-Z", "")], ["cut", "rev"])
+cmd_page("tee", "show text and save it too", ["tee [-a] <file>"], "Passes piped text on to the screen and writes it to a file as well (-a adds to the file).", [("ls | tee list.txt", "")], ["cat"])
+cmd_page("rev", "reverse every line", ["rev [file]"], "Writes each line back to front.", [], ["tac"])
+cmd_page("tac", "show the lines last to first", ["tac [file]"], "Writes the lines in reverse order.", [], ["rev", "sort"])
+cmd_page("nl", "number the lines", ["nl [file]"], "Puts a line number in front of every line.", [], ["cat"])
+cmd_page("seq", "print a run of numbers", ["seq <last>", "seq <first> <last>", "seq <first> <step> <last>"], "Prints whole numbers, one per line (at most 100000).", [("seq 2 2 10", "2 4 6 8 10")], ["xargs"])
+cmd_page("basename", "the last part of a path", ["basename <path> [suffix]"], "Prints the file name of a path, optionally without a suffix.", [("basename ~/notes/a.txt .txt", "a")], ["dirname"])
+cmd_page("dirname", "the folder part of a path", ["dirname <path>"], "Prints the folder a path is in.", [], ["basename"])
+cmd_page("which", "what is this name?", ["which <name>..."], "Says whether a name is a built-in, a command or an app, and how to start it.", [("which ls", "")], ["help"])
+cmd_page("du", "how much space folders use", ["du [-s] [-h] [path]"], "Shows the size of a folder and of every folder inside it. -s only the total, -h in K, M, G.", [("du -sh ~", "")], ["df", "stat"])
+cmd_page("stat", "details of a file or folder", ["stat <path>..."], "Shows the type, size and dates of files and folders.", [], ["ls", "du"])
+cmd_page("cal", "show a calendar", ["cal", "cal <month> <year>", "cal <year>"], "Shows this month, a chosen month, or a whole year.", [("cal 12 2026", "")], ["date"])
+cmd_page("env", "who and where you are", ["env"], "Shows the user, role, home folder, host, current folder and the PythonOS settings of this session.", [], ["whoami", "pwd"])
+cmd_page("xargs", "run a command with piped words", ["xargs [-n N] <command> [arguments]"], "Takes the words of the piped text and runs the command with them as arguments (N at a time with -n).",
+     [("find .txt | xargs wc", "")], ["find", "seq"])
+cmd_page("time", "how long did a command take", ["time <command> [arguments]"], "Runs the command and then says how long it took.", [("time find .txt", "")], ["watch"])
+cmd_page("watch", "run a command again and again", ["watch [-n seconds] <command>"], "Clears the screen and runs the command every few seconds (2 by default) until Ctrl+C.", [("watch -n 5 free", "")], ["time"])
+cmd_page("tracert", "show the route to a host", ["tracert <host>", "tracert -m 15 <host>"],
+     "Shows every router between this computer and the host, with three timings each (traceroute is the same command). On Windows it uses the system's own "
+     "ICMP service, on Linux and the ISO the kernel's error queue, so no special rights are needed; a * means that router did not answer.",
+     [("tracert example.com", "")], ["ping", "nslookup"])
+cmd_page("nslookup", "look up a name in the DNS", ["nslookup <name> [type] [server]", "nslookup <address>"],
+     "Asks a name server (your system's, or the one you name) for A, AAAA, MX, NS, TXT, CNAME or SOA records, or for the name behind an address. dig and host are the same command.",
+     [("nslookup example.com MX", "mail servers"), ("nslookup 1.1.1.1", "the name of an address"), ("nslookup example.com A 8.8.8.8", "ask Google's server")], ["ping", "whois"])
+cmd_page("whois", "who registered a domain", ["whois <domain>"], "Shows the registration record of a domain from the registry's whois service.", [("whois example.com", "")], ["nslookup"])
+cmd_page("curl", "fetch a web address", ["curl <url>", "curl -I <url>", "curl -o file <url>"],
+     "Shows the page at an address, only its headers (-I), or saves it to a file (-o). Answers over 50 MB are refused.", [("curl -I example.com", "")], ["wget", "ping"])
+cmd_page("wget", "download a file", ["wget <url> [file]"], "Saves the file at an address into the current folder (named after the address unless you give a name). Up to 500 MB.", [("wget https://example.com/a.zip", "")], ["curl"])
+cmd_page("netstat", "list network connections", ["netstat [-l] [-a]"], "Shows the open connections and listening ports of this computer; -l only listening ones, -a also the closing ones. ss is the same command.", [], ["ifconfig", "ping"])
+cmd_page("ifconfig", "show the network interfaces", ["ifconfig [name]"], "Lists each interface with its state, addresses, MAC address and speed. ipconfig is the same command.", [], ["netstat", "hwsetup"])
+cmd_page("arch", "the processor family", ["arch"], "Prints x86_64, arm64 and so on for this computer.", [], ["lscpu", "uname"])
+cmd_page("nproc", "number of cores", ["nproc"], "Prints how many processor cores there are.", [], ["lscpu"])
+cmd_page("id", "who you are", ["id"], "Shows your user name and role (admin or user). groups is the same command.", [], ["whoami", "who"])
+cmd_page("who", "who is logged in", ["who"], "Lists the people who are logged in. users is the same command.", [], ["id", "last"])
+cmd_page("pgrep", "find tasks by name", ["pgrep <word>"], "Lists the PythonOS tasks whose command contains the word, with their ids for kill.", [("pgrep sleep", "")], ["ps", "kill", "taskman"])
+cmd_page("lscpu", "show the processor", ["lscpu"], "Shows the processor family, cores, speed and current load.", [], ["arch", "nproc", "sysinfo"])
+cmd_page("less", "read long text a screen at a time", ["less [file]", "... | less"], "Shows a file or piped text one screen at a time: Enter shows one more line, a space then Enter the next page, q stops. more is the same.",
+     [("less readme.txt", ""), ("man pkg | less", "")], ["cat", "head"])
 page("ipinfo", "public IP information", ["ipinfo"], "Shows your public IP address and where it appears to be.", see=["ping"])
 page("zip", "make a zip archive", ["zip <archive.zip> <file or folder>..."],
      "Packs files and folders (and everything inside them) into one .zip file. Existing archives are replaced.",
