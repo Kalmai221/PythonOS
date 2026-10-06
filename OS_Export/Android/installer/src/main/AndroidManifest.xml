@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- To tell whether the connection is mobile data before a big download -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Lets the Uninstall button open Android's own uninstall screen for PythonOS (you still confirm it) -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <!-- Lets this app hand the downloaded PythonOS APK to Android's installer (you still confirm it) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Needed to see whether PythonOS is already installed (Android 11 and newer hide other apps) -->
