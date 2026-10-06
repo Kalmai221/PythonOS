@@ -5,6 +5,8 @@ One section per release, newest first. The section for a version is shown to use
 
 ## 1.0.8 (continued)
 
+- Website: the App Library has a "Works on" filter (Windows, Linux, Android, ISO / VM), shows each app's exports on its card and detail window, the per-export start files of API 2, and the "Live USB" filter now also needs the ISO in the app's exports.
+
 - `display 1280x720` now really changes the resolution on the ISO and VM images: the kernel restarts with that `video=` option (kexec, a few seconds, files kept) and the choice is applied again at every start. If the firmware refuses, nothing changes and it says so.
 
 - Marketplace API 2: per-export run files (`run_windows`, `run_linux`, `run_android`, `run_iso` in `scripts`), checked by the catalog builder. Apps that need libraries or `exec` may leave the ISO out of their exports (ytaudio and python now say Windows and Linux; wifimeter says Linux and ISO).

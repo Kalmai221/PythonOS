@@ -7,7 +7,13 @@
     network: ["Internet", "connect to the internet"], files: ["Your files", "read and change your files"], notifications: ["Notifications", "show notifications"],
     schedule: ["Schedule", "schedule tasks"], system: ["System info", "read information about this computer"], exec: ["Other programs", "start other programs"]
   };
-  var state = { apps: [], cats: {}, q: "", cat: "all", perm: "all", live: false, plain: false, sort: "featured" };
+  var EXPORTS = { windows: "Windows app", linux: "Linux and Docker", android: "Android app", iso: "Bootable ISO and VMs" };
+  var EXPORT_SHORT = { windows: "Windows", linux: "Linux", android: "Android", iso: "ISO / VM" };
+  var state = { apps: [], cats: {}, q: "", cat: "all", perm: "all", exp: "all", live: false, plain: false, sort: "featured" };
+  function exportsOf(a) { return a.exports && a.exports.length ? a.exports : Object.keys(EXPORTS); }
+  function everywhere(a) { return exportsOf(a).length === Object.keys(EXPORTS).length; }
+  // the live USB runs apps that cannot reach anything underneath PythonOS (lockdown_safe) and that list the ISO
+  function onLive(a) { return !!a.lockdown_safe && exportsOf(a).indexOf("iso") >= 0; }
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return P.esc(s); };
 
@@ -21,10 +27,12 @@
   function newer(a, b) { var x = verKey(a), y = verKey(b); for (var i = 0; i < Math.max(x.length, y.length); i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; }
   function installCommand(a) { return "pkg install " + (a.command || a.id); }
   function catTitle(id) { return (state.cats[id] && state.cats[id].title) || id; }
-  var EXPORTS = { windows: "Windows app", linux: "Linux package and Docker", android: "Android app", iso: "bootable ISO and VM images" };
   function worksOn(a) {
-    var e = a.exports && a.exports.length ? a.exports : Object.keys(EXPORTS);
-    return e.length === Object.keys(EXPORTS).length ? "Every export" : e.map(function (k) { return EXPORTS[k] || k; }).join(", ");
+    return everywhere(a) ? "Every export" : exportsOf(a).map(function (k) { return EXPORTS[k] || k; }).join(", ");
+  }
+  function runFiles(a) {
+    var r = a.run_exports || [];
+    return r.length ? "Its own start file on: " + r.map(function (k) { return EXPORT_SHORT[k] || k; }).join(", ") + " (the others use the common one)" : "";
   }
   function pills(a) {
     var p = (a.permissions || []).map(function (k) { return "<span class='chip perm' title='" + esc((PERMS[k] || [k, k])[1]) + "'>" + esc((PERMS[k] || [k])[0]) + "</span>"; }).join("");
@@ -35,7 +43,8 @@
   function matches(a) {
     if (state.cat !== "all" && (a.categories || [a.category]).indexOf(state.cat) < 0) return false;
     if (state.perm !== "all" && (a.permissions || []).indexOf(state.perm) < 0) return false;
-    if (state.live && !a.lockdown_safe) return false;
+    if (state.exp !== "all" && exportsOf(a).indexOf(state.exp) < 0) return false;
+    if (state.live && !onLive(a)) return false;
     if (state.plain && (a.pip || []).length) return false;
     if (!state.q) return true;
     var hay = [a.name, a.id, a.command, (a.alias || []).join(" "), a.description, (a.tags || []).join(" ")].join(" ").toLowerCase();
@@ -56,7 +65,8 @@
       "<span class='app-desc'>" + esc(a.description) + "</span>" +
       "<span class='chips-row'>" + pills(a) + "</span>" +
       "<span class='app-foot'><span class='muted'>" + esc(catTitle(a.category)) + "</span><span class='badges'>" +
-      (a.featured ? "<span class='chip hot'>Featured</span>" : "") + (a.lockdown_safe ? "<span class='chip ok' title='Also runs on the live USB'>Live USB</span>" : "") +
+      (a.featured ? "<span class='chip hot'>Featured</span>" : "") + (onLive(a) ? "<span class='chip ok' title='Also runs on the live USB'>Live USB</span>" : "") +
+      (everywhere(a) ? "" : "<span class='chip quiet' title='" + esc(worksOn(a)) + "'>" + esc(exportsOf(a).map(function (k) { return EXPORT_SHORT[k] || k; }).join(" · ")) + "</span>") +
       ((a.pip || []).length ? "<span class='chip lib' title='Installs Python libraries'>Libraries</span>" : "") + "<span class='muted'>" + P.size(sizeOf(a)) + "</span></span></span></button>";
   }
   function render() {
@@ -93,11 +103,12 @@
       ["Start it with", a.command ? "<code>run " + esc(a.command) + "</code>" + ((a.alias || []).length ? " (also " + a.alias.map(function (x) { return "<code>" + esc(x) + "</code>"; }).join(", ") + ")" : "") : ""],
       ["Runs on the live USB", a.lockdown_safe ? "Yes: it cannot reach anything underneath PythonOS" : "No: it starts other programs or needs libraries, so the locked-down live USB refuses it"],
       ["Works on", worksOn(a)],
+      ["Start file", runFiles(a)],
       ["Marketplace API", String(a.api || 1)]
     ].filter(function (f) { return f[1]; }).map(function (f) { return "<tr><th>" + f[0] + "</th><td>" + f[1] + "</td></tr>"; }).join("");
     var needs = (a.requires || []).length ? "<p>" + a.requires.map(function (r) { return "<code>" + esc(r) + "</code>"; }).join(" ") + "</p><p class='muted'>Installed together with it (you are asked first).</p>" : "";
     var opt = (a.optional || []).length ? "<p>" + a.optional.map(function (r) { r = typeof r === "string" ? r : (r.ref || ""); return "<code>" + esc(r) + "</code>"; }).join(" ") + "</p>" : "";
-    var libs = (a.pip || []).length ? "<p>" + a.pip.map(function (r) { return "<code>" + esc(r) + "</code>"; }).join(" ") + "</p><p class='muted'>Python libraries from PyPI. The marketplace installs them (wheels only) inside the app's own folder and shows them before you agree. Not available on the Android app or the live USB.</p>" : "";
+    var libs = (a.pip || []).length ? "<p>" + a.pip.map(function (r) { return "<code>" + esc(r) + "</code>"; }).join(" ") + "</p><p class='muted'>Python libraries from PyPI (marketplace API 2). The marketplace installs them (wheels only) inside the app's own folder and shows them before you agree. The locked-down live USB and VM images cannot run apps with libraries, so these apps list the exports they do work on.</p>" : "";
     var options = (a.settings || []).length ? "<p>" + a.settings.map(function (r) { return "<code>" + esc(r) + "</code>"; }).join(" ") + "</p><p class='muted'>Change them with <code>settings app " + esc(a.command || a.id) + "</code> or in the Settings app.</p>" : "";
     var files = (a.files || []).length ? "<details><summary>" + a.files.length + " file" + (a.files.length === 1 ? "" : "s") + "</summary><ul class='files-list'>" + a.files.map(function (f) { return "<li><code>" + esc(f.path) + "</code> <span class='muted'>" + P.size(f.size || 0) + "</span></li>"; }).join("") + "</ul><p class='muted'>Each file is checked against a SHA-256 checksum from the catalog before it is installed.</p></details>" : "";
     var tags = (a.tags || []).length ? "<p class='chips-row'>" + a.tags.map(function (t) { return "<span class='chip quiet'>" + esc(t) + "</span>"; }).join("") + "</p>" : "";
@@ -121,13 +132,14 @@
     if (state.q) parts.push("q=" + encodeURIComponent(state.q));
     if (state.cat !== "all") parts.push("c=" + encodeURIComponent(state.cat));
     if (state.perm !== "all") parts.push("p=" + encodeURIComponent(state.perm));
+    if (state.exp !== "all") parts.push("e=" + encodeURIComponent(state.exp));
     try { history.replaceState(null, "", parts.length ? "#" + parts.join("&") : location.pathname + location.search); } catch (e) {}
   }
   function fromAddress() {
     var h = location.hash.replace(/^#/, "");
     h.split("&").forEach(function (kv) {
       var i = kv.indexOf("="), k = kv.slice(0, i), v = decodeURIComponent(kv.slice(i + 1));
-      if (k === "q") state.q = v; else if (k === "c") state.cat = v; else if (k === "p") state.perm = v; else if (k === "app") state.open = v;
+      if (k === "q") state.q = v; else if (k === "c") state.cat = v; else if (k === "p") state.perm = v; else if (k === "e") state.exp = v; else if (k === "app") state.open = v;
     });
   }
 
@@ -153,6 +165,8 @@
       chips($("cats"), catItems, "cat");
       var permItems = [["all", "Anything"]].concat(Object.keys(PERMS).filter(function (k) { return state.apps.some(function (a) { return (a.permissions || []).indexOf(k) >= 0; }); }).map(function (k) { return [k, PERMS[k][0]]; }));
       chips($("perms"), permItems, "perm");
+      var expItems = [["all", "Anywhere"]].concat(Object.keys(EXPORTS).map(function (k) { return [k, EXPORTS[k]]; }));
+      chips($("exports"), expItems, "exp");
       $("lib-count").textContent = state.apps.length + " apps";
       render();
       if (state.open) open(state.open, false);

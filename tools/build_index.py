@@ -166,6 +166,8 @@ def main():
                 "api": api,
                 "pip": pip,
                 "exports": exports or list(export.TITLES),
+                # exports that start a file of their own instead of "run" (API 2)
+                "run_exports": sorted(k[4:] for k in (meta.get("scripts") or {}) if k.startswith("run_")),
                 "id": f"{category}/{name}",
                 "category": category,
                 "name": meta.get("name", name),
