@@ -7,7 +7,7 @@ first, and Python is not needed.
 
 Start it
   Windows   double-click wizard.bat  (or PythonOS-Wizard.exe)
-  macOS     double-click wizard.command  (or run ./wizard.sh)
+  macOS     double-click wizard.command  (or run ./wizard.sh)   Apple silicon Macs only; Intel Macs: Docker or a virtual machine
   Linux     run ./wizard.sh   (or double-click it, if your file manager runs scripts)
 
 What it can set up
@@ -45,5 +45,5 @@ Included
   pythonos-wizard-linux-x86_64        Linux, PCs
   pythonos-wizard-linux-aarch64       Linux, 64-bit ARM
   pythonos-wizard-macos-arm64         macOS, Apple silicon
-  pythonos-wizard-macos-x86_64        macOS, Intel
+  (no program for Intel Macs: use Docker or a virtual machine, see the release page)
   (a release may leave out one of these if it could not be built; the others still work)

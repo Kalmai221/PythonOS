@@ -340,7 +340,8 @@ jobs:
           - {name: linux-x86_64, os: ubuntu-22.04}
           - {name: linux-aarch64, os: ubuntu-22.04-arm, optional: true}
           - {name: macos-arm64, os: macos-14, optional: true}
-          - {name: macos-x86_64, os: macos-13, optional: true}
+          # No Intel Mac build: GitHub no longer offers a runner for it (a job asking for one waits in the queue for ever and holds up the release).
+          # Intel Macs use Docker or a virtual machine; the wizard says so.
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.optional == true }}      # a system that cannot be built does not hold the release back; its program is left out of the zip
     steps:

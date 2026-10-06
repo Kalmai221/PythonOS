@@ -57,6 +57,10 @@ esac
 
 if [ ! -f "$BIN" ]; then
     echo "$(basename "$BIN") is missing from this folder (it may not be in this release for your system)." >&2
+    if [ "$OS" = Darwin ] && [ "$ARCH" = x86_64 ]; then
+        echo "There is no wizard program for Intel Macs. Run PythonOS with Docker: docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos" >&2
+        echo "or in a virtual machine (UTM, VirtualBox, VMware) with the .ova or .iso from the release page." >&2
+    fi
     exit 1
 fi
 [ -x "$BIN" ] || chmod +x "$BIN" 2>/dev/null

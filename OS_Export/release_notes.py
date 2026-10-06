@@ -74,7 +74,7 @@ GUIDE = [
         ("Anything else (Alpine, Void, Gentoo, NixOS...)", ["pythonos-{v}-linux.tar.gz"], "Unpack and run `./pythonos`. Needs Python 3.8+ with venv. Works on any processor."),
     ]),
     ("macOS", "There is no native Mac app yet. Pick the way that suits you.", [
-        ("Any Mac, easiest", ["pythonos-wizard-{v}.zip"], "The wizard sets up Docker or a virtual machine for you."),
+        ("An Apple-silicon Mac, easiest", ["pythonos-wizard-{v}.zip"], "The wizard sets up Docker or a virtual machine for you. (Intel Macs: use Docker or a virtual machine below.)"),
         ("A Mac with Docker Desktop", [], "`docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` (Intel and Apple silicon)"),
         ("A virtual machine in UTM or Parallels, Apple silicon", ["pythonos-{v}-aarch64.iso"], "Boot the ARM live image in a new virtual machine."),
         ("A virtual machine in UTM, VirtualBox or VMware, Intel Mac", ["pythonos-{v}-vm.ova", "pythonos-{v}-x86_64.iso"], "Import the appliance, or boot the live image."),
