@@ -2381,8 +2381,8 @@
       "id": "utilities/sysmon",
       "category": "utilities",
       "name": "System Monitor",
-      "description": "A live dashboard of CPU, memory, disk and network.",
-      "version": "1.1.0",
+      "description": "A live dashboard of PythonOS itself: its CPU, memory, tasks and storage.",
+      "version": "1.2.0",
       "command": "sysmon",
       "alias": [
         "monitor"
@@ -2407,19 +2407,20 @@
       "changelog": {
         "1.0.0": "First release.",
         "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
-        "1.1.0": "New: per-core CPU, history sparklines and graphs ('sysmon graph'), temperature and battery, and alerts when a limit is crossed ('sysmon alerts')."
+        "1.1.0": "New: per-core CPU, history sparklines and graphs ('sysmon graph'), temperature and battery, and alerts when a limit is crossed ('sysmon alerts').",
+        "1.2.0": "Looks only at PythonOS (its processes and tasks, its memory against the memory it owns), not the rest of the computer, so other programs no longer show up. Works on the live ISO and small screens: every reading is optional, the display fits the terminal, and a problem is explained instead of a crash. Network and per-core CPU are gone (they cannot be told apart from the rest of the computer)."
       },
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "0309fb44ec28ccb204a265249b6fd859154926e0221801c158e890a6cf3bbe1f",
-          "size": 815
+          "sha256": "438941b99a6543dbf05a05d722c7d543f824af439c5c4395f440ac154147df18",
+          "size": 1248
         },
         {
           "path": "run.py",
-          "sha256": "f70265517a5135ecda532ec885513e3d8aa8b7a9c43e0873f7470389133ccdda",
-          "size": 12845
+          "sha256": "e41ea7ab30ab1010b55ca243273bcae5451a6b800bcb2478a5a1460abfa4cd49",
+          "size": 17679
         }
       ]
     },

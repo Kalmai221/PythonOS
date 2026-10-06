@@ -1,7 +1,7 @@
 {
   "name": "System Monitor",
-  "description": "A live dashboard of CPU, memory, disk and network.",
-  "version": "1.1.0",
+  "description": "A live dashboard of PythonOS itself: its CPU, memory, tasks and storage.",
+  "version": "1.2.0",
   "scripts": {
     "run": "run.py"
   },
@@ -19,7 +19,8 @@
   "changelog": {
     "1.0.0": "First release.",
     "1.0.1": "Now says what it can do (permissions: shown before you install, enforced while it runs), is listed in the new categories, and handles Ctrl+C and command-line arguments cleanly.",
-    "1.1.0": "New: per-core CPU, history sparklines and graphs ('sysmon graph'), temperature and battery, and alerts when a limit is crossed ('sysmon alerts')."
+    "1.1.0": "New: per-core CPU, history sparklines and graphs ('sysmon graph'), temperature and battery, and alerts when a limit is crossed ('sysmon alerts').",
+    "1.2.0": "Looks only at PythonOS (its processes and tasks, its memory against the memory it owns), not the rest of the computer, so other programs no longer show up. Works on the live ISO and small screens: every reading is optional, the display fits the terminal, and a problem is explained instead of a crash. Network and per-core CPU are gone (they cannot be told apart from the rest of the computer)."
   },
   "permissions": [
     "system",

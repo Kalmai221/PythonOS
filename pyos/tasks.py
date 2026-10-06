@@ -9,6 +9,7 @@ The host computer's processes are not PythonOS's business. Inside PythonOS the t
 Every task has a PID, a parent, a user, a state, CPU time, memory and the command line. CPU time is real (taken from the operating system's
 per-thread counters); memory is PythonOS's real memory shared out between the tasks by what they are, so the total always matches `free`.
 """
+import json
 import os
 import threading
 import time
@@ -92,10 +93,56 @@ def start_session(user, tty="tty1"):
     task = _make("shell", "shell", user, f"-pyos ({user})", None)
     task.cmd = f"-pyos ({user}) on {tty}"
     _session["task"] = task
+    publisher = Publisher()
+    publisher.start()
+    _session["publisher"] = publisher
     return task
 
 
+class Publisher(threading.Thread):
+    """Writes the task list to .OSData/tasks.json once a second while a program is open, so programs that run as separate
+    processes (the System Monitor and the Process Inspector) can show PythonOS's own tasks."""
+
+    def __init__(self):
+        super().__init__(name="task-publisher", daemon=True)
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def run(self):
+        while not self._stop_event.wait(1.0):
+            try:
+                with _lock:
+                    wanted = any(t.kind == "app" for t in _tasks.values())
+                if wanted:
+                    publish()
+            except Exception:
+                pass
+
+
+def publish():
+    """Write the current task list (never raises)."""
+    try:
+        try:
+            from pyos import resources
+            budget = resources.budget()
+        except Exception:
+            budget = 0
+        data = {"at": time.time(), "pid": os.getpid(), "budget": budget, "tasks": listing()}
+        os.makedirs(".OSData", exist_ok=True)
+        tmp = os.path.join(".OSData", "tasks.json.tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        os.replace(tmp, os.path.join(".OSData", "tasks.json"))
+    except Exception:
+        pass
+
+
 def end_session(task):
+    publisher = _session.pop("publisher", None)
+    if publisher:
+        publisher.stop()
     end(task)
     with _lock:
         for other in [t for t in _tasks.values() if t.kind in ("service", "job") and t.user == task.user and t.pid != task.pid]:

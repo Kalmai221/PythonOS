@@ -68,6 +68,7 @@ class Guard:
         self.ro_files.add(_real(os.path.join(self.osdata, "settings.json")))
         self.ro_files.add(_real(os.path.join(self.osdata, "user_settings.json")))
         self.ro_files.add(_real(os.path.join(self.osdata, "jobs.json")))
+        self.ro_files.add(_real(os.path.join(self.osdata, "tasks.json")))       # PythonOS's own task list (System Monitor, Process Inspector)
         self.rw_files = set()
         for perm, name in (("notifications", "notifications.json"), ("schedule", "schedule.json")):
             if perm in self.perms:
