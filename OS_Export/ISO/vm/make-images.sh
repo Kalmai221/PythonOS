@@ -5,12 +5,14 @@
 #
 # Produces in the output folder:
 #   pythonos-<version>-vm.qcow2   a bootable virtual disk for QEMU / KVM / Proxmox / libvirt (attach it as a disk, boot it)
-#   pythonos-<version>-vm.ova     an appliance for VirtualBox and VMware (File > Import Appliance): 1 GB memory, 2 CPUs, NAT network, sound
+#   pythonos-<version>-vm.ova     an appliance for VirtualBox and VMware (File > Import Appliance): 1 GB memory, 2 CPUs, NAT network, sound,
+#                                 and a second 2 GB disk (labelled PYOS_DATA) that keeps your accounts, files and settings between runs
 #   pythonos-<version>-vm-kit.zip the run/create scripts and the .vmx for people who would rather attach the ISO themselves
 #
 # Why a disk can be made from an ISO: the PythonOS ISO is a hybrid image (it boots as a CD and as a disk, BIOS and UEFI),
 # so converting its bytes to a disk format gives a bootable disk. It is still the live system: changes are forgotten at power off
-# unless a second disk is added and `persist create` is run inside PythonOS.
+# unless a data disk is attached. The OVA ships with one already (the live system finds the disk labelled PYOS_DATA by itself); for the
+# qcow2, attach a second disk and run `persist create` inside PythonOS (run-qemu.sh --disk adds one).
 set -euo pipefail
 
 ISO="${1:?usage: make-images.sh <iso> <version> <outdir>}"
@@ -32,6 +34,16 @@ DISK="pythonos-$VERSION-disk1.vmdk"
 qemu-img convert -f raw -O vmdk -o subformat=streamOptimized "$ISO" "$WORK/$DISK"
 BYTES="$(stat -c %s "$ISO" 2>/dev/null || stat -f %z "$ISO")"
 FILE_SIZE="$(stat -c %s "$WORK/$DISK" 2>/dev/null || stat -f %z "$WORK/$DISK")"
+
+# a ready-made data disk: an empty ext4 filesystem labelled PYOS_DATA. PythonOS mounts it at start and keeps accounts, files and settings on it.
+DATA="pythonos-$VERSION-data.vmdk"
+DATA_BYTES=$((2 * 1024 * 1024 * 1024))
+command -v mkfs.ext4 >/dev/null || { echo "mkfs.ext4 is required (apt install e2fsprogs)" >&2; exit 1; }
+truncate -s "$DATA_BYTES" "$WORK/data.img"
+mkfs.ext4 -q -F -L PYOS_DATA -m 0 "$WORK/data.img"
+qemu-img convert -f raw -O vmdk -o subformat=streamOptimized "$WORK/data.img" "$WORK/$DATA"
+rm -f "$WORK/data.img"
+DATA_FILE_SIZE="$(stat -c %s "$WORK/$DATA" 2>/dev/null || stat -f %z "$WORK/$DATA")"
 cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <Envelope vmw:buildId="build-pythonos" xmlns="http://schemas.dmtf.org/ovf/envelope/1" xmlns:cim="http://schemas.dmtf.org/wbem/wscim/1/common"
@@ -40,10 +52,13 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <References>
     <File ovf:href="$DISK" ovf:id="file1" ovf:size="$FILE_SIZE"/>
+    <File ovf:href="$DATA" ovf:id="file2" ovf:size="$DATA_FILE_SIZE"/>
   </References>
   <DiskSection>
     <Info>Virtual disk information</Info>
     <Disk ovf:capacity="$BYTES" ovf:capacityAllocationUnits="byte" ovf:diskId="vmdisk1" ovf:fileRef="file1"
+          ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized"/>
+    <Disk ovf:capacity="$DATA_BYTES" ovf:capacityAllocationUnits="byte" ovf:diskId="vmdisk2" ovf:fileRef="file2"
           ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized"/>
   </DiskSection>
   <NetworkSection>
@@ -97,6 +112,14 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
         <rasd:ResourceType>17</rasd:ResourceType>
       </Item>
       <Item>
+        <rasd:AddressOnParent>1</rasd:AddressOnParent>
+        <rasd:ElementName>Hard Disk 2 (PythonOS data)</rasd:ElementName>
+        <rasd:HostResource>ovf:/disk/vmdisk2</rasd:HostResource>
+        <rasd:InstanceID>7</rasd:InstanceID>
+        <rasd:Parent>3</rasd:Parent>
+        <rasd:ResourceType>17</rasd:ResourceType>
+      </Item>
+      <Item>
         <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
         <rasd:Connection>NAT</rasd:Connection>
         <rasd:ElementName>Ethernet adapter on NAT</rasd:ElementName>
@@ -115,7 +138,7 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
   </VirtualSystem>
 </Envelope>
 EOF
-(cd "$WORK" && tar -cf "$OUT/pythonos-$VERSION-vm.ova" "pythonos-$VERSION.ovf" "$DISK")
+(cd "$WORK" && tar -cf "$OUT/pythonos-$VERSION-vm.ova" "pythonos-$VERSION.ovf" "$DISK" "$DATA")
 
 # 3) the scripts and the .vmx, for attaching the ISO yourself
 (cd "$HERE" && zip -q -r "$OUT/pythonos-$VERSION-vm-kit.zip" README.md run-qemu.sh run-qemu.ps1 create-virtualbox.sh create-virtualbox.ps1 pythonos.vmx)

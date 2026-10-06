@@ -31,7 +31,7 @@ Pick the line for your device. Every release lists each file with its size and w
 | **Fedora, RHEL, Rocky, openSUSE** | `pythonos-<version>-1.noarch.rpm` | `sudo dnf install ./pythonos-<version>-1.noarch.rpm` |
 | **Any other Linux** | `pythonos-<version>-linux.tar.gz` | Unpack, run `./pythonos` (needs Python 3.8+ with venv) |
 | **Boot from USB** | `pythonos-<version>-x86_64.iso` (PCs) or `…-aarch64.iso` (64-bit ARM, UEFI) | Write it with `pythonos-flash-tool-<version>.py` (checks the download, only offers removable drives, reads the stick back). `…-minimal-…iso` is the small version. |
-| **Virtual machine** | `pythonos-<version>-vm.ova` or `…-vm.qcow2` | VirtualBox/VMware: File → Import Appliance. QEMU/KVM/Proxmox: attach the `.qcow2`. `…-vm-kit.zip` has run scripts. |
+| **Virtual machine** | `pythonos-<version>-vm.ova` or `…-vm.qcow2` | VirtualBox/VMware: File → Import Appliance (comes with a data disk, so your accounts and files are kept). QEMU/KVM/Proxmox: attach the `.qcow2`. `…-vm-kit.zip` has run scripts. |
 | **Docker** | `ghcr.io/kalmai221/pythonos` | `docker run -it --rm ghcr.io/kalmai221/pythonos` (amd64 and arm64) |
 
 Every installer and launcher checks what PythonOS needs (its system files and Python libraries) and downloads whatever is missing.

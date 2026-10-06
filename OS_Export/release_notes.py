@@ -36,7 +36,7 @@ FILES = [
     ("pythonos-{v}-aarch64.iso", "iso", "Bootable", "Full live image for 64-bit ARM", "UEFI ARM computers and virtual machines (ARM servers, Apple-silicon VMs, Raspberry Pi 4/5 with UEFI firmware). Same features as the PC image except the PC-only tools."),
     ("pythonos-{v}-minimal-aarch64.iso", "iso", "Bootable", "Minimal live image for 64-bit ARM", "The live system only, for ARM."),
     ("pythonos-flash-tool-{v}.py", "iso", "Bootable", "USB writer", "Run with Python on Windows/Linux/macOS: checks the ISO against its checksum, writes the stick (only removable drives), reads it back."),
-    ("pythonos-{v}-vm.ova", "iso", "Virtual machine", "Appliance (OVA)", "VirtualBox or VMware: File > Import Appliance. 1 GB, 2 CPUs, NAT network."),
+    ("pythonos-{v}-vm.ova", "iso", "Virtual machine", "Appliance (OVA)", "VirtualBox or VMware: File > Import Appliance. 1 GB, 2 CPUs, NAT network, and a 2 GB data disk that keeps your accounts and files."),
     ("pythonos-{v}-vm.qcow2", "iso", "Virtual machine", "QEMU/KVM disk", "QEMU, KVM, libvirt, Proxmox: attach as a disk and boot."),
     ("pythonos-{v}-vm-kit.zip", "iso", "Virtual machine", "Run scripts", "Scripts and a .vmx to boot the ISO in QEMU, VirtualBox or VMware yourself."),
     ("pythonos-core-{v}.zip", "", "System", "Core update package", "Not for people: PythonOS downloads this by itself when you run `updatecheck`."),

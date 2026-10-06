@@ -7,6 +7,7 @@ One section per release, newest first. The section for a version is shown to use
 
 - PythonOS owns a fixed amount of memory (setting `memory_limit_mb`, 1024 MB by default; 0 = the whole machine). `free`, `sysinfo` and the task manager show that amount as the whole computer, everything PythonOS runs counts as used, and on Windows the system enforces the limit. The live ISO always uses all of the machine's memory.
 - Task manager (`taskman`, also `top`) and the new `ps` show PythonOS's own tasks instead of the host computer's processes: init, kernel, your shell, services (scheduler, battery and memory watch...), background jobs and whatever is open (marketplace, editor, games), each with a PID, parent, state, CPU time and memory. `kill <pid>` stops a job (or, for administrators, a service).
+- The virtual machine appliance (.ova) now includes a 2 GB data disk, so accounts, files and settings are kept between runs (before, the live system forgot everything at power off and setup had to be redone).
 - Live ISO: shutdown and restart are shown entirely by PythonOS (jobs, sessions, data disk, system services) and the machine then powers off or restarts with no system messages on the screen.
 
 ## 1.0.5
