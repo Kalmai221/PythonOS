@@ -71,6 +71,10 @@ def save(rels, version, root="."):
 
 def clear(root="."):
     shutil.rmtree(os.path.join(root, OVERLAY), ignore_errors=True)
+    libraries = os.environ.get("PYOS_LIBS_DIR")             # libraries installed for the saved update go with it (a container's volume)
+    if libraries and os.path.isdir(libraries):
+        shutil.rmtree(libraries, ignore_errors=True)
+        os.makedirs(libraries, exist_ok=True)
 
 
 def apply(root="."):

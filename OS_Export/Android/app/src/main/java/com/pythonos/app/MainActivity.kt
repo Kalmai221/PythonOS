@@ -46,6 +46,7 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
     private val worker = Executors.newSingleThreadExecutor()
     private val prefs by lazy { getSharedPreferences("terminal", Context.MODE_PRIVATE) }
     private var updateUrl: String? = null
+    private var updateSha: String = ""
 
     private lateinit var sizeLabel: TextView
 
@@ -73,6 +74,7 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         applyPalette()
         setContentView(buildUi())
         TerminalBridge.listener = this
+        TerminalBridge.appContext = applicationContext
         window.statusBarColor = bar
         window.navigationBarColor = bg
         if (prefs.getBoolean("keep_awake", false)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -309,6 +311,7 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
                 } else {
                     val info = JSONObject(json)
                     updateUrl = info.getString("url")
+                    updateSha = info.optString("sha256")
                     banner.text = "New app version ${info.getString("remote")} available — tap for details"
                     banner.alpha = 0f
                     banner.visibility = View.VISIBLE
@@ -326,13 +329,24 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         val sheet = Sheet(this, sheetColors())
         sheet.title(title, if (info != null) "${info.optString("title")}: ${info.optString("local")} → ${info.optString("remote")}" else null)
         if (notes.isNotEmpty()) sheet.paragraph(notes)
-        sheet.paragraph("This is a change to the app itself, so PythonOS can't update it for you. PythonOS itself keeps updating on its own.")
-        sheet.paragraph("Download the new APK and open it to install. If Android won't install it over this one, uninstall this app first " +
-            "(use the backup command beforehand to keep your files).")
+        sheet.paragraph("PythonOS itself keeps updating on its own. The app around it is a separate package, so Android asks you to confirm " +
+            "its update: tap Install now, PythonOS downloads the new app, checks it, and hands it to Android's installer. Your files are kept.")
         val sum = info?.optString("sha256").orEmpty()
-        if (sum.isNotEmpty()) sheet.paragraph("The file's SHA-256, to compare after downloading:\n$sum")
-        sheet.buttons("Download", { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }, "Later")
+        if (sum.isNotEmpty()) sheet.paragraph("The file's SHA-256:\n$sum")
+        else sheet.paragraph("This release has no checksum for the file, so it cannot be installed from here; use Download instead.")
+        sheet.buttons(if (sum.isNotEmpty()) "Install now" else "Download", {
+            if (sum.isNotEmpty()) installAppUpdate(url, sum) else startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }, "Download", { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) })
         sheet.show()
+    }
+
+    /** Downloads the new APK, checks it, and hands it to Android's installer (it shows its own confirmation). */
+    private fun installAppUpdate(url: String, sha256: String) {
+        Toast.makeText(this, "Downloading the new app...", Toast.LENGTH_SHORT).show()
+        worker.execute {
+            val problem = TerminalBridge.installUpdate(url, sha256)
+            if (problem.isNotEmpty()) runOnUiThread { Toast.makeText(this, "Not updated: $problem", Toast.LENGTH_LONG).show() }
+        }
     }
 
     // ----------------------------------------------------------------- Python

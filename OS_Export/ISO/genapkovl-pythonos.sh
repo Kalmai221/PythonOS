@@ -101,6 +101,10 @@ EOF
 	fi
 fi
 
+makefile root:root 0644 "$tmp"/etc/pythonos-variant <<EOF
+$VARIANT
+EOF
+
 makefile root:root 0644 "$tmp"/etc/motd <<EOF
 PythonOS live system ($VARIANT) - changes are lost when you power off.
 EOF

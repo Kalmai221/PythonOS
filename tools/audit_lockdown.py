@@ -34,6 +34,7 @@ ALLOWED = {
     "core/boot.py": "pip install of requirements.txt (skipped when PYOS_BUNDLED/lockdown) and clearing the screen",
     "core/BSOD.py": "clears the screen and restarts PythonOS itself with sys.executable",
     "core/screens.py": "clears the screen, restarts PythonOS itself with sys.executable, and on the live ISO runs fixed commands (openrc shutdown, umount, poweroff -f) with no output as the last step of the shutdown screen",
+    "core/exportupdate.py": "installs a newer package of this export from a checked release download: fixed package-tool commands (no shell), never reachable from the ISO lockdown except writing the boot medium",
     "pyos/resources.py": "ctypes only on Windows (win32), to put PythonOS in a job object with a memory limit; unused on the ISO",
     "pyos/sandbox_run.py": "runs an installed package script under the permission guard (the shell only launches packages that pass the lockdown trust check)",
     "pyos/stdio.py": "clears the screen (constant command only)",

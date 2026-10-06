@@ -192,6 +192,63 @@ def run(root):
         print(f"FAIL core overlay   <- {type(e).__name__}: {e}")
         failures.append(("core overlay", [f"{type(e).__name__}: {e}"], ""))
 
+    # export update strategies: choosing files, commands and the parts that can be tried without root or a real disk
+    try:
+        import io
+        import tarfile
+        from core import exportupdate as eu
+        base = "https://example.invalid/releases/download/v9.9.9/"
+        urls = [base + n for n in ("pythonos-9.9.9-x86_64.iso", "pythonos-9.9.9-minimal-x86_64.iso", "pythonos-9.9.9-aarch64.iso",
+                                   "PythonOS-9.9.9-android-arm64-v8a.apk", "PythonOS-9.9.9-android.apk", "pythonos_9.9.9_all.deb",
+                                   "pythonos-9.9.9-linux.tar.gz")]
+        assert eu.iso_for(urls, "x86_64", False).endswith("pythonos-9.9.9-x86_64.iso")
+        assert eu.iso_for(urls, "x86_64", True).endswith("minimal-x86_64.iso")
+        assert eu.iso_for(urls, "aarch64", False).endswith("aarch64.iso") and eu.iso_for(urls, "aarch64", True) is None
+        assert eu.apk_for(urls, "aarch64").endswith("arm64-v8a.apk") and eu.apk_for(urls, "x86_64").endswith("android.apk")
+        assert eu.pick(urls, r"\.deb$").endswith("all.deb")
+        assert eu.install_command("pacman", "/tmp/p")[:2] == ["pacman", "-U"] and eu.install_command("deb", "/tmp/p")[-1] == "/tmp/p"
+        assert [eu.disk_name(d) for d in ("/dev/sdb1", "/dev/nvme0n1p2", "/dev/mmcblk0p1", "/dev/sr0", "/dev/sda")] == \
+            ["sdb", "nvme0n1", "mmcblk0", "sr0", "sda"]
+        mounts = eu.parse_mounts("rootfs / rootfs rw 0 0\n/dev/sdb /media/sdb iso9660 ro 0 0\n/dev/loop0 /.modloop squashfs ro 0 0\n")
+        assert eu.mount_for_path("/media/sdb/boot/modloop-lts", mounts)[0] == "/dev/sdb"
+        work = tempfile.mkdtemp(prefix="pyos-strategy-")
+        try:
+            archive = os.path.join(work, "pkg.tar.gz")                     # a release tarball: a folder with the launcher files
+            with tarfile.open(archive, "w:gz") as tar:
+                for name, text in (("pythonos", "#!/bin/sh\necho new\n"), ("bootstrap.py", "# new"), ("export.json", "{}"), ("README.txt", "x")):
+                    data = text.encode()
+                    info = tarfile.TarInfo(f"pythonos-9.9.9-linux/{name}")
+                    info.size = len(data)
+                    tar.addfile(info, io.BytesIO(data))
+                evil = tarfile.TarInfo("../evil")
+                evil.size = 1
+                tar.addfile(evil, io.BytesIO(b"x"))
+            home = os.path.join(work, "home")
+            os.makedirs(home)
+            with open(os.path.join(home, "pythonos"), "w") as f:
+                f.write("old")
+            done = eu.replace_from_tarball(archive, home, eu.LinuxTarball.FILES)
+            assert sorted(done) == ["bootstrap.py", "export.json", "pythonos"] and open(os.path.join(home, "pythonos")).read().endswith("new\n")
+            assert not os.path.exists(os.path.join(work, "evil")) and not os.path.exists(os.path.join(home, "README.txt"))
+            image, medium = os.path.join(work, "new.iso"), os.path.join(work, "disk.img")      # a file stands in for the disk
+            with open(image, "wb") as f:
+                f.write(os.urandom(3 * 1024 * 1024 + 123))
+            with open(medium, "wb") as f:
+                f.write(b"\0" * (5 * 1024 * 1024))
+            assert eu.write_image(image, medium) == os.path.getsize(image)
+            with open(image, "rb") as a, open(medium, "rb") as b:
+                assert b.read(os.path.getsize(image)) == a.read()
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+        windows = {"platform": "windows", "remote": {"urls": [base + "PythonOS-9.9.9-web-setup.exe"]}}
+        chosen = eu.strategy_for(windows)
+        assert (chosen is not None and chosen.name == "windows") == (os.name == "nt")
+        assert eu.strategy_for({"platform": "iso", "remote": {"urls": urls}}) is None or os.environ.get("PYOS_LIVE") == "1"
+        print("ok   export update strategies")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL export update strategies   <- {type(e).__name__}: {e}")
+        failures.append(("export strategies", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")

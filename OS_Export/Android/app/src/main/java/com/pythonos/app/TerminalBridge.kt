@@ -22,6 +22,9 @@ object TerminalBridge {
     @Volatile var secretInput = false
     @Volatile var done = false
 
+    /** Set by the activity so PythonOS can ask for things only an Android app can do (installing a newer version of the app). */
+    @Volatile var appContext: android.content.Context? = null
+
     /** The prompt text PythonOS last asked with, so the screen can redraw it after listing completions. */
     @Volatile var lastPrompt = ""
 
@@ -48,6 +51,27 @@ object TerminalBridge {
             return lines.take()
         } finally {
             waitingForInput = false
+        }
+    }
+
+    /**
+     * Downloads the new APK, checks it against [sha256] and gives it to Android's installer (which asks you to confirm).
+     * Returns "" when the installer was started, otherwise what went wrong. Called by PythonOS (updatecheck); blocks until the APK is handed over.
+     */
+    @JvmStatic
+    fun installUpdate(url: String, sha256: String): String {
+        val context = appContext ?: return "the app is not ready yet"
+        return try {
+            write("Downloading the new app...\n")
+            var shown = -10
+            val apk = ApkInstaller.download(context, url, sha256) { percent ->
+                if (percent >= shown + 10) { shown = percent; write("  $percent%\n") }
+            }
+            write("The download is genuine. Android will now ask you to confirm the update.\n")
+            ApkInstaller.install(context, apk)
+            ""
+        } catch (e: Exception) {
+            e.message ?: e.toString()
         }
     }
 

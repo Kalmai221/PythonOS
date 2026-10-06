@@ -541,9 +541,9 @@ def export_status(manifest):
         return status
     status["state"] = "current"
     if int(remote.get("api", 1)) > int(local.get("api", 1)):
-        status["state"], status["reason"] = "incompatible", "it needs features this version of the package does not have"
+        status["state"], status["reason"], status["why"] = "incompatible", "it needs features this version of the package does not have", "api"
     elif os.environ.get("PYOS_BUNDLED") == "1" and manifest.get("requirements_sha256") not in (None, requirements_hash()):
-        status["state"], status["reason"] = "incompatible", "it needs new libraries, which this package cannot install itself"
+        status["state"], status["reason"], status["why"] = "incompatible", "it needs new libraries, which this package cannot install itself", "libraries"
     elif version_key(remote["version"]) > version_key(local["version"]):
         status["state"] = "update"
     return status
@@ -623,13 +623,15 @@ def update_in_place(status):
 
 
 def offer_in_place(status):
-    """After the manual-update notice: on the Windows app, offer to do it right now."""
-    if os.name != "nt" or not installer_url(status):
-        return False
+    """After the update notice: offer to install the new package right now, the way this export can (see core/exportupdate.py)."""
     try:
-        if Confirm.ask("Update the app now?", default=True):
-            return update_in_place(status)
-    except (KeyboardInterrupt, EOFError):
+        from core import exportupdate
+        if exportupdate.offer(status):
+            return True
+        why = exportupdate.why_not(status)
+        if why:
+            console.print(f"[dim]PythonOS cannot do this update itself here: {why}.[/dim]")
+    except Exception:
         pass
     return False
 
@@ -722,10 +724,15 @@ def update_packaged(current, auto_update):
     export_info = export_status(manifest)
     core_newer = version_key(latest) > version_key(current)
 
+    bridge_libraries = False
     if export_info and export_info["state"] == "incompatible" and core_newer:
-        print_export_notice(export_info, blocking=True)
-        offer_in_place(export_info)
-        return False
+        from core import exportupdate
+        if export_info.get("why") == "libraries" and exportupdate.can_install_libraries():
+            bridge_libraries = True              # a container with a data volume: the new libraries are installed onto the volume first
+        else:
+            print_export_notice(export_info, blocking=True)
+            offer_in_place(export_info)
+            return False
 
     updated = False
     if not core_newer:
@@ -762,6 +769,9 @@ def update_packaged(current, auto_update):
                 if plan["mode"] != "delta":
                     fetched = download_core(manifest, zip_path)
                     extract_core(zip_path, manifest, stage_dir)
+                if bridge_libraries:
+                    from core import exportupdate
+                    exportupdate.install_libraries(stage_dir / "requirements.txt")
                 apply_core(stage_dir, latest)
                 record_update(current, latest, manifest, plan, fetched)
                 updated = True
