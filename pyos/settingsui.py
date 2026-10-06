@@ -20,8 +20,16 @@ GROUPS = [
 MEMORY_HINT = "MB: 512, 1024, 2048, 4096... or 0 for all of the machine's memory"
 
 
+LABELS = {"memory_limit_mb": "Memory PythonOS owns", "app_memory_percent": "Memory one app may use (%)", "auto_lock_minutes": "Lock after idle (minutes)",
+          "idle_logout_minutes": "Log out after idle (minutes)", "clock_24h": "24-hour clock", "auto_clear_lines": "Tidy the screen after (lines)",
+          "low_battery_percent": "Low battery warning at (%)", "critical_battery_percent": "Shut down at battery (%)", "market_update_check": "Check for app updates",
+          "update_check": "Check for PythonOS updates", "admin_reauth": "Ask administrators for their password", "confirm_delete": "Ask before removing a folder",
+          "use_trash": "Use the trash", "trash_days": "Empty the trash after (days)", "report_relay": "Problem report relay", "clear_screens": "Clear the screen for programs",
+          "prompt_style": "Prompt style", "light_mode": "Light mode"}
+
+
 def label_of(key):
-    return key.replace("_", " ").capitalize()
+    return LABELS.get(key) or key.replace("_", " ").capitalize()
 
 
 def show(value):
