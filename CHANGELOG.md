@@ -3,7 +3,7 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
-## Unreleased
+## 1.0.8
 
 - Windows installer: the progress text under the bar is no longer cut off; updating keeps `config.json` (your settings) but now brings its version up to date, so the system reports the new version (issues 1 and 5).
 - YouTube Audio now plays the sound itself with pip libraries (`av`, `miniaudio`, installed by the marketplace): no mpv, VLC or ffplay, nothing outside PythonOS (issue 2).
