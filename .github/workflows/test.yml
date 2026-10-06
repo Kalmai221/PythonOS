@@ -73,7 +73,7 @@ jobs:
       - name: Ruff full report (informational)
         continue-on-error: true
         run: ruff check --select F,E7,B --statistics --exit-zero .
-      - name: Bandit security scan, medium and high (informational: the lockdown audit is the gate)
+      - name: "Bandit security scan, medium and high (informational: the lockdown audit is the gate)"
         continue-on-error: true
         run: bandit -q -r commands core pyos programs shell.py main.py users.py core_overlay.py core_video.py -ll
       - name: Code needs no newer Python than 3.9
