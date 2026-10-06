@@ -17,7 +17,7 @@ import platform
 import psutil
 import socket
 import importlib.metadata
-from pyos import settings
+from pyos import settings, archinfo
 from pyos.i18n import tr
 
 # Initialize the console for rich output
@@ -354,7 +354,7 @@ def boot_steps(debug):
 
     def hardware_step(debug, sink):
         from pyos import resources
-        return "ok", f"{psutil.cpu_count() or 1} CPU(s), {platform.machine() or 'unknown'}, memory {resources.describe()}"
+        return "ok", f"{psutil.cpu_count() or 1} CPU(s), {archinfo.arch() or 'unknown'}, memory {resources.describe()}"
 
     def kernel_step(debug, sink):
         from pyos import tasks
@@ -427,7 +427,7 @@ def _detailed_header():
     except Exception:
         host = platform.node()
     live = os.environ.get("PYOS_LIVE") == "1"
-    lines = [f"PythonOS {get_system_version()} ({platform.system()} {platform.machine()}) Python {platform.python_version()}",
+    lines = [f"PythonOS {get_system_version()} ({platform.system()} {archinfo.arch()}) Python {platform.python_version()}",
              f"Machine: {host}, {psutil.cpu_count() or 1} CPU(s); memory: {resources.describe()}",
              f"Command line: mode={'live' if live else 'installed' if os.environ.get('PYOS_INSTALLED') == '1' else 'normal'}"]
     for line in lines:

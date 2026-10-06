@@ -191,8 +191,8 @@ def app_update():
         if st and st["state"] in ("update", "incompatible"):
             remote = st["remote"]
             url = remote["url"]
-            import platform
-            wanted = {"aarch64": "arm64-v8a", "arm64": "arm64-v8a", "x86_64": "x86_64"}.get(platform.machine().lower())
+            from pyos import archinfo
+            wanted = {"aarch64": "arm64-v8a", "x86_64": "x86_64"}.get(archinfo.arch())          # the device's primary ABI, not the process's
             for candidate in remote.get("urls") or []:
                 if wanted and candidate.endswith(f"-android-{wanted}.apk"):
                     url = candidate                     # the smaller APK made for this phone's processor

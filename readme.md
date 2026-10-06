@@ -23,6 +23,7 @@ Pick the line for your device. Every release lists each file with its size and w
 
 | Device | What to get | How |
 |---|---|---|
+| **Not sure?** | `pythonos-wizard-<version>.zip` | The Setup Wizard (Windows, macOS, Linux; no Python needed): run `wizard.bat`, `wizard.command` or `wizard.sh`. It looks at your computer, asks what you want (install here, Android, bootable USB stick, virtual machine, Docker), downloads the right file and checks it. `--cli` is the terminal version. |
 | **Windows 10/11** | `PythonOS-<version>-web-setup.exe` | Run it. A ~100 KB installer that downloads PythonOS, checks it, installs for your user (no administrator), offers Start menu and desktop shortcuts, and can update, repair or uninstall later. Four languages, light and dark. It picks the ARM64 package on Windows on ARM. |
 | Windows (offline / no install) | `…-setup.exe` (Inno Setup) or `…-windows-portable.zip` | Full installer, or unzip anywhere (a USB stick works) and run `PythonOS.exe`. |
 | **Android 7+** | `PythonOS-<version>-android-arm64-v8a.apk` | Nearly every phone. `…-android-x86_64.apk` is for Chromebooks and emulators; `…-android.apk` works anywhere but is bigger. |
@@ -30,7 +31,7 @@ Pick the line for your device. Every release lists each file with its size and w
 | **Arch, Manjaro** | `pythonos-<version>-1-any.pkg.tar.zst` | `sudo pacman -U pythonos-<version>-1-any.pkg.tar.zst` |
 | **Fedora, RHEL, Rocky, openSUSE** | `pythonos-<version>-1.noarch.rpm` | `sudo dnf install ./pythonos-<version>-1.noarch.rpm` |
 | **Any other Linux** | `pythonos-<version>-linux.tar.gz` | Unpack, run `./pythonos` (needs Python 3.8+ with venv) |
-| **Boot from USB** | `pythonos-<version>-x86_64.iso` (PCs) or `…-aarch64.iso` (64-bit ARM, UEFI) | Write it with `pythonos-flash-tool-<version>.py` (checks the download, only offers removable drives, reads the stick back). `…-minimal-…iso` is the small version. |
+| **Boot from USB** | `pythonos-<version>-x86_64.iso` (PCs) or `…-aarch64.iso` (64-bit ARM, UEFI) | Write it with the Setup Wizard (`pythonos-wizard-<version>.zip`: checks the download, only offers USB sticks, reads the stick back). `…-minimal-…iso` is the small version. |
 | **Virtual machine** | `pythonos-<version>-vm.ova` or `…-vm.qcow2` | VirtualBox/VMware: File → Import Appliance (comes with a data disk, so your accounts and files are kept). QEMU/KVM/Proxmox: attach the `.qcow2` and, as a second disk, `…-vm-data.qcow2` to keep your files. `…-vm-kit.zip` has run scripts. |
 | **Docker** | `ghcr.io/kalmai221/pythonos` | `docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` (amd64 and arm64). The volume keeps your accounts, files, settings and updates; without `-v` everything is forgotten when the container stops |
 

@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows(-arm64)?-portable\.zip)$/, note: "Windows 10 (1809) or newer, on Intel/AMD or ARM. The web installer is a tiny download that fetches and checks the right package for your PC." },
     { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. Choose arm64 for nearly every phone; the universal APK works anywhere but is bigger." },
     { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz|\.pkg\.tar\.zst|\.rpm)$/, note: "Any Linux with Python 3.9+, on any processor. Debian/Ubuntu: .deb. Arch: .pkg.tar.zst. Fedora/RHEL/openSUSE: .rpm. Everything else: the tarball." },
-    { id: "usb", title: "Bootable USB", match: /((x86_64|aarch64)\.iso|flash-tool.*\.py)$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it with the flash tool, which checks the download first." },
+    { id: "usb", title: "Bootable USB", match: /((x86_64|aarch64)\.iso|pythonos-wizard-[\d.]+\.zip)$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it with the flash tool, which checks the download first." },
     { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox. These are for PCs (x86_64)." }
   ];
   var USE = [
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
     [/arm64-v8a\.apk$/, "Phones and tablets (smallest)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
     [/\.deb$/, "Debian, Ubuntu and friends"], [/pkg\.tar\.zst$/, "Arch, Manjaro"], [/\.rpm$/, "Fedora, RHEL, openSUSE"], [/linux\.tar\.gz$/, "Any Linux, any processor"],
     [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"],
-    [/flash-tool/, "Safely writes the ISO to a USB stick"],
+    [/pythonos-wizard-/, "Setup Wizard: install, write a USB stick, set up a VM (Windows, macOS, Linux)"],
     [/\.ova$/, "VirtualBox / VMware appliance"], [/vm-data\.qcow2$/, "Data disk: attach it next to the .qcow2 to keep your files"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
   ];
   var ARCHS = {
@@ -143,18 +143,43 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function archFromUA() { return /aarch64|arm64|\barm\b/i.test(navigator.userAgent || "") ? "arm64" : "x64"; }
 
-  var state = { arch: null, detected: null, platform: platformGuess(), assets: [], release: null, tab: null };
+  var state = { arch: null, detected: null, how: "", platform: platformGuess(), assets: [], release: null, tab: null };
   try { state.arch = sessionStorage.getItem("arch"); } catch (e) {}
 
-  // Detect the processor where the browser says (Chromium reports it; others fall back to the user agent text), then let the visitor change it
+  // The graphics chip's name, which gives away what the user agent hides: Apple-silicon Macs say "Intel" in the user agent (Safari always
+  // does), and an x64 browser running emulated on Windows on ARM says x86. Empty when the browser does not share it.
+  function gpuName() {
+    try {
+      var canvas = document.createElement("canvas");
+      var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      var info = gl && gl.getExtension("WEBGL_debug_renderer_info");
+      return info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || "") : "";
+    } catch (e) { return ""; }
+  }
+
+  // Detect the processor, as well as a web page can: the browser's own report first (Chromium), then the graphics chip, then the user agent
+  // text. Returns {arch: "x64" | "arm64", how: where the answer came from}. The visitor can always change it.
   function detectArch() {
-    var guess = archFromUA();
-    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-      return navigator.userAgentData.getHighEntropyValues(["architecture"]).then(function (v) {
-        return /arm/i.test(v.architecture || "") ? "arm64" : (v.architecture ? "x64" : guess);
-      }, function () { return guess; });
+    var ua = navigator.userAgent || "";
+    var gpu = gpuName();
+    var found = { arch: archFromUA(), how: "your browser's description of itself" };
+    if (/Macintosh|Mac OS X/.test(ua) && !/iPhone|iPad/.test(ua)) {
+      if (/Apple (M\d|GPU)/i.test(gpu)) found = { arch: "arm64", how: "your Mac's graphics chip (Apple silicon)" };
+      else if (/Intel|AMD|Radeon|NVIDIA/i.test(gpu)) found = { arch: "x64", how: "your Mac's graphics chip (Intel)" };
     }
-    return Promise.resolve(guess);
+    function adjust(result) {
+      // an x64 browser emulated on Windows on ARM reports x86, but its graphics chip is a Qualcomm Adreno
+      if (/Windows/.test(ua) && /Adreno|Qualcomm|Snapdragon/i.test(gpu) && result.arch !== "arm64") return { arch: "arm64", how: "your PC's graphics chip (Qualcomm, Windows on ARM)" };
+      return result;
+    }
+    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+      return navigator.userAgentData.getHighEntropyValues(["architecture", "bitness"]).then(function (v) {
+        if (!v.architecture) return adjust(found);
+        var detail = v.architecture + (v.bitness ? ", " + v.bitness + "-bit" : "");
+        return adjust({ arch: /arm/i.test(v.architecture) ? "arm64" : "x64", how: "your browser (" + detail + ")" });
+      }, function () { return adjust(found); });
+    }
+    return Promise.resolve(adjust(found));
   }
 
   function fits(a, arch) { var x = archOf(a.name); return x === "any" || x === arch || (x === "arm64" && arch === "arm64"); }
@@ -207,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var list = ARCHS[groupId];
     if (!list) { bar.hidden = true; bar.innerHTML = ""; return; }
     bar.hidden = false;
-    var note = state.detected ? " <span class='muted'>Detected: " + (state.detected === "arm64" ? "ARM" : "Intel / AMD") + (state.arch !== state.detected ? " (you chose " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + ")" : "") + "</span>" : "";
+    var note = state.detected ? " <span class='muted'>Detected: " + (state.detected === "arm64" ? "ARM" : "Intel / AMD") + (state.how ? " from " + state.how : "") + (state.arch !== state.detected ? " (you chose " + (state.arch === "arm64" ? "ARM" : "Intel / AMD") + ")" : "") + "</span>" : "";
     bar.innerHTML = "<span class='muted' id='archlabel'>Processor</span><div class='tabs chips' role='group' aria-labelledby='archlabel'>" + list.map(function (a) {
       return "<button class='tab' type='button' data-arch='" + a[0] + "' aria-pressed='" + (state.arch === a[0]) + "'>" + a[1] + "</button>";
     }).join("") + "</div>" + note;
@@ -274,7 +299,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   Promise.all([P.api("releases/latest"), detectArch()]).then(function (r) {
     var rel = r[0];
-    state.detected = r[1];
+    state.detected = r[1].arch;
+    state.how = r[1].how;
     if (state.arch !== "x64" && state.arch !== "arm64") state.arch = state.detected;
     state.release = rel;
     state.assets = rel.assets.filter(function (a) { return !/SHA256SUMS|core|manifest|\.json$/i.test(a.name); });

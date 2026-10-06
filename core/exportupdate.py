@@ -58,10 +58,9 @@ def pick(urls, pattern):
 
 
 def machine():
-    """'x86_64' or 'aarch64' (the names the release files use)."""
-    import platform
-    m = platform.machine().lower()
-    return {"amd64": "x86_64", "x64": "x86_64", "arm64": "aarch64"}.get(m, m)
+    """The computer's processor in the names the release files use: 'x86_64' or 'aarch64' (the real one, also for an emulated program)."""
+    from pyos import archinfo
+    return archinfo.arch()
 
 
 def fetch(url, destination, label="Downloading"):

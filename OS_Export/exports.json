@@ -76,8 +76,7 @@
       "pythonos-{v}-vm.ova",
       "pythonos-{v}-vm.qcow2",
       "pythonos-{v}-vm-data.qcow2",
-      "pythonos-{v}-vm-kit.zip",
-      "pythonos-flash-tool-{v}.py"
+      "pythonos-{v}-vm-kit.zip"
     ],
     "notes": "Locked down: boot menu and consoles can no longer reach the Linux system underneath.",
     "inputs": [
@@ -89,5 +88,19 @@
       "pythonos-{v}-aarch64.iso",
       "pythonos-{v}-minimal-aarch64.iso"
     ]
+  },
+  "wizard": {
+    "title": "Setup Wizard",
+    "api": 1,
+    "assets": [
+      "pythonos-wizard-{v}.zip"
+    ],
+    "notes": "One program that detects your computer, asks what you want (install, Android, bootable USB, virtual machine, Docker) and gets the right file.",
+    "inputs": [
+      "OS_Export/Wizard",
+      "OS_Export/catalog.py",
+      "pyos/archinfo.py"
+    ],
+    "embeds_core": false
   }
 }

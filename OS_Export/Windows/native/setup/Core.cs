@@ -304,8 +304,21 @@ namespace PythonOS.Setup
             return rel;
         }
 
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool IsWow64Process2(IntPtr process, out ushort processMachine, out ushort nativeMachine);
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern IntPtr GetCurrentProcess();
+
+        /// <summary>True on a Windows-on-ARM PC, also when this installer itself runs emulated (an x64 program asks Windows, not itself).</summary>
         public static bool IsArm64()
         {
+            try
+            {
+                ushort process, native;
+                if (IsWow64Process2(GetCurrentProcess(), out process, out native) && native != 0) return native == 0xAA64;   // IMAGE_FILE_MACHINE_ARM64
+            }
+            catch (Exception) { }                                          // an older Windows without IsWow64Process2: use the environment
             string a = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432") ?? Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") ?? "";
             return a.Equals("ARM64", StringComparison.OrdinalIgnoreCase);
         }

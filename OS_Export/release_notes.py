@@ -14,6 +14,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog  # noqa: E402
 import make_core  # noqa: E402
 import stage  # noqa: E402
 
@@ -35,7 +36,7 @@ FILES = [
     ("pythonos-{v}-minimal-x86_64.iso", "iso", "Bootable", "Minimal live image", "The live system only: much smaller and lighter (runs in 512 MB). No Bluetooth, printing, installer or guest tools."),
     ("pythonos-{v}-aarch64.iso", "iso", "Bootable", "Full live image for 64-bit ARM", "UEFI ARM computers and virtual machines (ARM servers, Apple-silicon VMs, Raspberry Pi 4/5 with UEFI firmware). Same features as the PC image except the PC-only tools."),
     ("pythonos-{v}-minimal-aarch64.iso", "iso", "Bootable", "Minimal live image for 64-bit ARM", "The live system only, for ARM."),
-    ("pythonos-flash-tool-{v}.py", "iso", "Bootable", "USB writer", "Run with Python on Windows/Linux/macOS: checks the ISO against its checksum, writes the stick (only removable drives), reads it back."),
+    ("pythonos-wizard-{v}.zip", "wizard", "Setup Wizard", "Setup Wizard (Windows, macOS, Linux)", "Start here if you are not sure. Unzip and run wizard.bat (Windows), wizard.command (macOS) or wizard.sh (Linux): it looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker), gets the right file and checks it. No Python needed."),
     ("pythonos-{v}-vm.ova", "iso", "Virtual machine", "Appliance (OVA)", "VirtualBox or VMware: File > Import Appliance. 1 GB, 2 CPUs, NAT network, and a 2 GB data disk that keeps your accounts and files."),
     ("pythonos-{v}-vm.qcow2", "iso", "Virtual machine", "QEMU/KVM disk", "QEMU, KVM, libvirt, Proxmox: attach as a disk and boot."),
     ("pythonos-{v}-vm-data.qcow2", "iso", "Virtual machine", "QEMU/KVM data disk", "Attach it as a second disk next to the .qcow2: the VM then keeps your accounts, files and settings (2 GB)."),
@@ -45,6 +46,86 @@ FILES = [
     ("SHA256SUMS", "", "Verify", "Checksums", "SHA-256 of every file here. See 'Check your download' below."),
     ("SHA256SUMS.sigstore.json", "", "Verify", "Signature", "Proves SHA256SUMS was made by this repository's release workflow."),
 ]
+
+
+# "Which file do I download?": one table per system, by the situation the reader is in. Each row: (situation, [files], how to use it).
+# {v} is the version. A row whose files are not in this release (a build that failed or was skipped) is left out.
+GUIDE = [
+    ("Not sure? Start here", "The Setup Wizard asks what you want and picks the right file for your computer. It works on Windows, macOS and Linux.", [
+        ("Any computer", ["pythonos-wizard-{v}.zip"], "Unzip, then run `wizard.bat` (Windows), `wizard.command` (macOS) or `wizard.sh` (Linux). No Python needed."),
+    ]),
+    ("Windows", "Windows 10 (1809) or newer.", [
+        ("Most PCs (Intel or AMD)", ["PythonOS-{v}-web-setup.exe"], "Run it. A tiny installer that fetches and checks the rest; it offers shortcuts, update, repair and uninstall."),
+        ("Windows on ARM (Surface Pro X, Copilot+ PCs)", ["PythonOS-{v}-web-setup.exe", "PythonOS-{v}-arm64-setup.exe"], "The web installer picks the ARM package by itself; the second file is the full offline installer for ARM."),
+        ("No internet while installing", ["PythonOS-{v}-setup.exe"], "The full installer (Intel/AMD)."),
+        ("No install at all (for example from a USB stick)", ["PythonOS-{v}-windows-portable.zip", "PythonOS-{v}-windows-arm64-portable.zip"], "Unzip anywhere and run `PythonOS.exe`. The second is for ARM."),
+    ]),
+    ("Android", "Android 7 or newer. Allow installs from this source when Android asks; updates come from inside PythonOS.", [
+        ("A phone or tablet (nearly all of them)", ["PythonOS-{v}-android-arm64-v8a.apk"], "The smallest download."),
+        ("A Chromebook or an Android emulator on a PC", ["PythonOS-{v}-android-x86_64.apk"], "For Intel/AMD processors."),
+        ("Not sure", ["PythonOS-{v}-android.apk"], "Works everywhere, but is bigger."),
+    ]),
+    ("Linux", "Any distribution. The packages add a `pythonos` command and a menu entry.", [
+        ("Debian, Ubuntu, Linux Mint, Pop!_OS, Raspberry Pi OS", ["pythonos_{v}_all.deb"], "`sudo apt install ./pythonos_{v}_all.deb`"),
+        ("Fedora, RHEL, Rocky, AlmaLinux, openSUSE", ["pythonos-{v}-1.noarch.rpm"], "`sudo dnf install ./pythonos-{v}-1.noarch.rpm`"),
+        ("Arch, Manjaro, EndeavourOS", ["pythonos-{v}-1-any.pkg.tar.zst"], "`sudo pacman -U pythonos-{v}-1-any.pkg.tar.zst`"),
+        ("Anything else (Alpine, Void, Gentoo, NixOS...)", ["pythonos-{v}-linux.tar.gz"], "Unpack and run `./pythonos`. Needs Python 3.8+ with venv. Works on any processor."),
+    ]),
+    ("macOS", "There is no native Mac app yet. Pick the way that suits you.", [
+        ("Any Mac, easiest", ["pythonos-wizard-{v}.zip"], "The wizard sets up Docker or a virtual machine for you."),
+        ("A Mac with Docker Desktop", [], "`docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` (Intel and Apple silicon)"),
+        ("A virtual machine in UTM or Parallels, Apple silicon", ["pythonos-{v}-aarch64.iso"], "Boot the ARM live image in a new virtual machine."),
+        ("A virtual machine in UTM, VirtualBox or VMware, Intel Mac", ["pythonos-{v}-vm.ova", "pythonos-{v}-x86_64.iso"], "Import the appliance, or boot the live image."),
+        ("A Mac with Python 3 and you like the terminal", ["pythonos-{v}-linux.tar.gz"], "Unpack and run `./pythonos` (experimental on macOS)."),
+    ]),
+    ("Docker", "Amd64 and arm64 (PCs, Raspberry Pi, Apple silicon). Nothing to download: Docker fetches it.", [
+        ("Any computer with Docker", [], "`docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` — the volume keeps your accounts, files and updates."),
+    ]),
+    ("Bootable USB stick (the live system)", "Starts PythonOS on a computer without touching its disk. Write the image with the Setup Wizard (it only offers USB sticks and checks what it wrote).", [
+        ("A PC (Intel or AMD), 1 GB of RAM or more", ["pythonos-{v}-x86_64.iso"], "The full image: Bluetooth, printing, the `installos` disk installer and virtual machine tools."),
+        ("A PC with little memory (512 MB)", ["pythonos-{v}-minimal-x86_64.iso"], "The live system only."),
+        ("An ARM computer with UEFI (Raspberry Pi 4/5 with UEFI firmware, ARM servers)", ["pythonos-{v}-aarch64.iso", "pythonos-{v}-minimal-aarch64.iso"], "Full and minimal images for 64-bit ARM."),
+        ("Write the stick", ["pythonos-wizard-{v}.zip"], "Choose \"Make a bootable USB stick\" in the wizard."),
+    ]),
+    ("Virtual machines", "The ready-made images are for Intel/AMD computers. On an ARM computer (Apple silicon) use the ARM image above in any program.", [
+        ("VirtualBox or VMware", ["pythonos-{v}-vm.ova"], "File > Import Appliance. 1 GB, 2 CPUs, NAT network, and a data disk that keeps your files."),
+        ("QEMU / KVM, libvirt, Proxmox", ["pythonos-{v}-vm.qcow2", "pythonos-{v}-vm-data.qcow2", "pythonos-{v}-vm-kit.zip"], "Attach the first as the boot disk and the second as a data disk; the kit has run scripts."),
+        ("Hyper-V, UTM, Parallels or any other program", ["pythonos-{v}-x86_64.iso", "pythonos-{v}-aarch64.iso"], "Boot the live image (Intel/AMD or ARM)."),
+    ]),
+]
+
+
+def quick_guide(version, sizes, tag):
+    """The 'Which file do I download?' tables: one per system, by the reader's situation, with links to the files that exist."""
+    out = []
+    for title, intro, rows in GUIDE:
+        lines = []
+        for situation, patterns, how in rows:
+            names = [p.replace("{v}", version) for p in patterns]
+            if patterns and sizes:
+                names = [n for n in names if n in sizes]
+                if not names:
+                    continue
+            files = "<br>".join(f"[`{n}`]({download_link(tag, n)})" + (f" ({human(sizes[n])})" if n in sizes else "") for n in names) if names else "nothing to download"
+            lines.append(f"| {situation} | {files} | {how.replace('{v}', version)} |")
+        if lines:
+            out += [f"### {title}", "", intro, "", "| You have | Download | How |", "|---|---|---|"] + lines + [""]
+    return out
+
+
+def write_catalog(path, version, sizes, tag):
+    """release-catalog.json: every file of the release with its system, processor, kind and size, for the Setup Wizard and the website."""
+    entries = []
+    for name in sorted(sizes):
+        entry = catalog.classify(name)
+        if entry:
+            entry["size"] = sizes[name]
+            entry["url"] = download_link(tag, name)
+            entries.append(entry)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        json.dump({"format": 1, "version": version, "tag": tag, "files": entries}, f, indent=2)
+        f.write("\n")
+    return len(entries)
 
 
 def human(n):
@@ -124,6 +205,8 @@ def build(version, plan, sizes=None):
     out += ["## Which file do I download?", "",
             "Pick one line for your device. Everything below also updates itself from inside PythonOS later (run `updatecheck`); "
             "you only download a new package when it says it has to be reinstalled.", ""]
+    out += quick_guide(version, sizes or {}, release_tag(version))
+    out += ["## Every file", "", "The same files with their size and what each one is for.", ""]
     out += file_table(version, sizes or {}, exports)
     out += ["## Check your download", "",
             "Every file is listed in `SHA256SUMS`. Compare with `sha256sum -c SHA256SUMS --ignore-missing` (Linux/macOS) or "
@@ -149,14 +232,18 @@ def main():
     parser.add_argument("--plan", default="")
     parser.add_argument("--files", default="", help="folder with the release files (for real sizes)")
     parser.add_argument("--out", default="body.md")
+    parser.add_argument("--catalog", default="", help="also write release-catalog.json here (the files of the release, classified)")
     args = parser.parse_args()
     plan = None
     if args.plan and os.path.exists(args.plan):
         with open(args.plan, encoding="utf-8") as f:
             plan = json.load(f)
+    sizes = sizes_of(args.files)
     with open(args.out, "w", encoding="utf-8", newline="\n") as f:
-        f.write(build(stage.version(), plan, sizes_of(args.files)))
+        f.write(build(stage.version(), plan, sizes))
     print(f"Wrote {args.out}")
+    if args.catalog:
+        print(f"Wrote {args.catalog} ({write_catalog(args.catalog, stage.version(), sizes, release_tag(stage.version()))} files)")
 
 
 if __name__ == "__main__":
