@@ -30,6 +30,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### Exports
 
+- The Windows web installer now also applies the newest PythonOS files of the release (the core update, checked against the release checksums) on top of the package. A release does not rebuild a package that did not change, so it could hold an older PythonOS than the release is called: 1.0.9 re-attached the 1.0.8 Windows package, and installing or updating from it said it had updated while still running 1.0.8.
 - Automatic resolution: virtual machines whose console comes up small (under 1024 wide) switch by themselves to the biggest resolution the screen offers up to 1920x1080 (`display auto off` stops it). Needs the new ISO or VM image.
 - The VM `.ova` ships a third, empty 8 GB disk for `installos`. (It carries a short label so it has data blocks: an all-empty disk could not be imported by VirtualBox.)
 - The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.

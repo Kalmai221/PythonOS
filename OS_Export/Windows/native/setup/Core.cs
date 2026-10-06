@@ -78,6 +78,8 @@ namespace PythonOS.Setup
         public string PackageUrl;
         public long PackageSize;
         public string SumsUrl;
+        public string CoreName;        // pythonos-core-<version>.zip: the newest PythonOS files, which can be newer than the package
+        public string CoreUrl;
     }
 
     internal static class Core
@@ -297,6 +299,11 @@ namespace PythonOS.Setup
                     rel.PackageSize = a.ContainsKey("size") ? Convert.ToInt64(a["size"]) : 0;
                 }
                 else if (name == "SHA256SUMS") rel.SumsUrl = link;
+                else if (name.StartsWith("pythonos-core-", StringComparison.OrdinalIgnoreCase) && name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    rel.CoreName = name;
+                    rel.CoreUrl = link;
+                }
             }
             Log.Write("latest release " + rel.Tag + ", package " + rel.PackageName);
             if (rel.PackageUrl == null) throw new SetupException(Strings.T("err.file"));
@@ -501,6 +508,7 @@ namespace PythonOS.Setup
             }
             SyncConfigVersion(Path.Combine(source, "config.json"), Path.Combine(target, "config.json"));
             Directory.Delete(stage, true);
+            ApplyLatestCore(target, rel, progress);
             progress("install", 1.0, "");
 
             // this installer stays behind as the uninstaller
@@ -508,6 +516,75 @@ namespace PythonOS.Setup
             string uninstaller = Path.Combine(target, "Uninstall.exe");
             if (!string.Equals(Path.GetFullPath(self), Path.GetFullPath(uninstaller), StringComparison.OrdinalIgnoreCase)) File.Copy(self, uninstaller, true);
             Register(target, rel.Version, uninstaller);
+        }
+
+        // ----------------------------------------------------------------- the newest core
+        // A release does not rebuild a package that did not change, so the Windows package in it can hold an older PythonOS than the release
+        // itself (1.0.9 re-attached the 1.0.8 package). The release always carries the newest PythonOS files as a core update: put them on
+        // top, exactly as `updatecheck` would, so installing or updating really gives the version the release is called.
+        private static int[] VersionNumbers(string text)
+        {
+            List<int> numbers = new List<int>();
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches((text ?? "").Split('-')[0], @"\d+")) numbers.Add(int.Parse(m.Value));
+            while (numbers.Count < 4) numbers.Add(0);
+            return numbers.ToArray();
+        }
+
+        private static bool Older(string a, string b)
+        {
+            int[] x = VersionNumbers(a), y = VersionNumbers(b);
+            for (int i = 0; i < 4; i++) if (x[i] != y[i]) return x[i] < y[i];
+            return false;
+        }
+
+        private static readonly string[] CoreFolders = new string[] { "commands", "core", "programs", "pyos" };
+
+        public static void ApplyLatestCore(string target, Release rel, Progress progress)
+        {
+            try
+            {
+                string installed = FolderVersion(target);
+                if (installed != "?" && !Older(installed, rel.Version)) { Log.Write("package is already " + installed); return; }
+                if (rel.CoreUrl == null || rel.SumsUrl == null) { Log.Write("no core update in the release"); return; }
+                progress("install", 0.85, "");
+                string folder = Path.Combine(Path.GetTempPath(), "PythonOS-Setup");
+                Directory.CreateDirectory(folder);
+                string zip = Path.Combine(folder, rel.CoreName);
+                using (WebClient web = new WebClient())
+                {
+                    web.Headers[HttpRequestHeader.UserAgent] = "PythonOS-Setup";
+                    web.DownloadFile(rel.CoreUrl, zip);
+                }
+                string want = ExpectedHash(Get(rel.SumsUrl, "text/plain"), rel.CoreName);
+                if (want == null || Sha256(zip) != want) { try { File.Delete(zip); } catch (Exception) { } throw new SetupException("the core update did not match its checksum"); }
+                string stage = target + ".core";
+                if (Directory.Exists(stage)) Directory.Delete(stage, true);
+                Directory.CreateDirectory(stage);
+                ExtractZip(zip, stage);
+                foreach (string name in CoreFolders)
+                {
+                    string fresh = Path.Combine(stage, name);
+                    if (!Directory.Exists(fresh)) continue;
+                    string old = Path.Combine(target, name);
+                    if (Directory.Exists(old)) DeletePath(old);
+                    CopyDirectory(fresh, old);
+                }
+                foreach (string file in Directory.GetFiles(stage))
+                {
+                    string name = Path.GetFileName(file);
+                    if (Array.IndexOf(KeepNames, name) >= 0) continue;                    // settings and data stay
+                    File.Copy(file, Path.Combine(target, name), true);
+                }
+                SyncConfigVersion(Path.Combine(stage, "config.json"), Path.Combine(target, "config.json"));
+                Directory.Delete(stage, true);
+                try { File.Delete(zip); } catch (Exception) { }
+                Log.Write("applied the core update " + rel.Version);
+            }
+            catch (Exception ex)
+            {
+                // the package itself is installed and works; the newest files then arrive with `updatecheck`
+                Log.Write("could not apply the core update: " + ex.Message);
+            }
         }
 
         // config.json is kept (it holds the settings), but its version belongs to the package: bring it up to date so the OS reports the new version.
