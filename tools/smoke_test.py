@@ -302,8 +302,9 @@ def run(root):
             pass
         assert shutdown_module.pending()
         shutdown_module._pending.clear()
-        handler = open(os.path.join(REPO, "OS_Export", "ISO", "overlay", "pythonos-acpi-handler"), encoding="utf-8").read()
-        assert "pkill -USR1" in handler and "poweroff" in handler and "button/power" in handler
+        if HAVE_REPO:                                # the handler script is not in a package or container image
+            handler = open(os.path.join(REPO, "OS_Export", "ISO", "overlay", "pythonos-acpi-handler"), encoding="utf-8").read()
+            assert "pkill -USR1" in handler and "poweroff" in handler and "button/power" in handler
         print("ok   shutdown signal (power button)")
     except Exception as e:                           # noqa: BLE001
         print(f"FAIL shutdown signal   <- {type(e).__name__}: {e}")
