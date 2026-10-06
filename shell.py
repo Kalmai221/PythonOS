@@ -379,6 +379,18 @@ def run_line(line):
     return last_status()
 
 
+def run_line_paged(line):
+    """run_line for the prompt. A command that only prints, run on a real terminal, has its output shown a screen at a time when it is
+    longer than the screen (settings auto_page); the Linux console of the ISO and VMs cannot scroll back."""
+    words = line.split()
+    simple = words and words[0] in pyos.paging.PAGED and not any(c in line for c in "|;&<>")
+    real = getattr(sys.stdout, "_real", sys.stdout)
+    if not (simple and settings.get("auto_page") and real.isatty() and sys.stdin.isatty()):
+        return run_line(line)
+    with stdio.paged():
+        return run_line(line)
+
+
 def run_captured(line):
     """Run a command line with its output captured (scheduler, tests). Returns (status, output)."""
     with stdio.capture() as buf:
@@ -723,7 +735,7 @@ def start_shell(username):
         if line.split()[0] not in ("clear", "cls") and (style == "always" or (style == "overflow" and stdio.overflowed())):
             stdio.clear_screen(scrollback=False)        # the last output has been read: start the next command on a clean screen
         try:
-            run_line(line)
+            run_line_paged(line)
         except ExitShell:
             console.print("[bold green]Logging out...[/bold green]")
             break

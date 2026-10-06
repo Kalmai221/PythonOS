@@ -10,7 +10,7 @@ import os
 from . import settings
 
 GROUPS = [
-    ("display", "Display", ("language", "theme", "prompt_style", "clock_24h", "clear_screens", "clear_style", "auto_clear_lines", "notifications")),
+    ("display", "Display", ("language", "theme", "prompt_style", "clock_24h", "clear_screens", "clear_style", "auto_page", "auto_clear_lines", "notifications")),
     ("system", "System", ("memory_limit_mb", "app_memory_percent", "light_mode")),
     ("security", "Security", ("auto_lock_minutes", "idle_logout_minutes", "admin_reauth", "confirm_delete")),
     ("updates", "Updates", ("update_check", "market_update_check", "report_relay")),
@@ -24,7 +24,7 @@ LABELS = {"memory_limit_mb": "Memory PythonOS owns", "app_memory_percent": "Memo
           "idle_logout_minutes": "Log out after idle (minutes)", "clock_24h": "24-hour clock", "auto_clear_lines": "Tidy the screen after (lines)",
           "low_battery_percent": "Low battery warning at (%)", "critical_battery_percent": "Shut down at battery (%)", "market_update_check": "Check for app updates",
           "update_check": "Check for PythonOS updates", "admin_reauth": "Ask administrators for their password", "confirm_delete": "Ask before removing a folder",
-          "use_trash": "Use the trash", "trash_days": "Empty the trash after (days)", "report_relay": "Problem report relay", "clear_style": "Clear before commands", "clear_screens": "Clear the screen for programs",
+          "use_trash": "Use the trash", "trash_days": "Empty the trash after (days)", "report_relay": "Problem report relay", "clear_style": "Clear before commands", "auto_page": "Page long output", "clear_screens": "Clear the screen for programs",
           "prompt_style": "Prompt style", "light_mode": "Light mode"}
 
 

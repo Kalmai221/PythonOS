@@ -13,6 +13,7 @@ import threading
 _local = threading.local()
 _targets = {}  # thread id -> buffer
 _lock = threading.Lock()
+_pager = {}               # {"active": a paging.Pager} while a listing command output is being paged
 _screen = {"lines": 0}   # lines printed to the real terminal since the last clear (for the auto_clear_lines setting)
 
 
@@ -31,6 +32,10 @@ class _Router(io.TextIOBase):
         if buf is not None:
             return buf.write(text)
         _screen["lines"] += text.count(chr(10))
+        pager = _pager.get("active")
+        if pager is not None and threading.current_thread() is threading.main_thread():
+            pager.write(text)
+            return len(text)
         return self._real.write(text)
 
     def writelines(self, lines):
@@ -112,6 +117,23 @@ def install():
     """Install the router on sys.stdout (safe to call more than once)."""
     if not isinstance(sys.stdout, _Router):
         sys.stdout = _Router(sys.stdout)
+
+
+@contextlib.contextmanager
+def paged():
+    """Page everything the main thread prints to the real terminal, a screen at a time (see pyos/paging.py)."""
+    from pyos import paging
+    install()
+    real = sys.stdout._real
+    _pager["active"] = paging.Pager(real.write, input)
+    try:
+        yield
+    finally:
+        _pager.pop("active", None)
+        try:
+            real.flush()
+        except (OSError, ValueError):
+            pass
 
 
 @contextlib.contextmanager

@@ -23,6 +23,7 @@ SCHEMA = {
     "idle_logout_minutes": (0, int, "Log out (back to the login screen) after this many idle minutes (0 = never)"),
     "clear_screens": (True, bool, "Clear the screen when a full-screen program or menu starts, and tidy it after one that printed a lot"),
     "clear_style": ("overflow", ("off", "overflow", "always"), "Clear the screen before a command: off, overflow (when the last output filled the screen) or always (every command)"),
+    "auto_page": (True, bool, "Show long output of listing commands (ls, cat, man, history...) one screen at a time, so nothing scrolls out of sight (the Linux console has no scrollback)"),
     "auto_clear_lines": (300, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
     "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = reports are only a link or a file)"),
