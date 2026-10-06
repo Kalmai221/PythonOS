@@ -68,7 +68,7 @@ def render(board):
     for y, row in enumerate(board):
         out.append(f"  {y + 1} ", style="dim")
         for cell in row:
-            out.append("██ " if cell else "·· ", style="bold yellow" if cell else "grey37")
+            out.append("[] " if cell else ".. ", style="bold yellow" if cell else "grey37")
         out.append("\n")
     return out
 

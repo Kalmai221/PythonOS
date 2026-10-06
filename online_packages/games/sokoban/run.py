@@ -105,7 +105,7 @@ class Level:
             for x in range(self.width):
                 cell = (x, y)
                 if cell in self.walls:
-                    text.append("██", style="grey50")
+                    text.append("##", style="grey50")
                 elif cell == self.player:
                     text.append("@ ", style="bold yellow")
                 elif cell in self.boxes:
