@@ -435,20 +435,17 @@ def _detailed_header():
 
 
 def boot_sequence(debug):
-    """Run the real boot steps, one line each. The detailed style (default) is a boot log like a real system's, with time stamps; the
-    classic style has a progress bar. Either way the timings are saved (see the bootlog and bootspeed commands)."""
+    """Run the real boot steps, one line each, as a boot log with time stamps. The timings are saved (see the bootlog and bootspeed commands)."""
     from core import bootlog
     pause = settings.boot_pause()  # the boot_speed setting: normal / fast / instant
-    detailed = settings.get("boot_style") != "classic"
     steps = boot_steps(debug)
     sink = _Sink()
     record = []
     started = time.perf_counter()
-    if detailed:
-        try:
-            _detailed_header()
-        except Exception:
-            pass
+    try:
+        _detailed_header()
+    except Exception:
+        pass
     for number, (label, action) in enumerate(steps, 1):
         t0 = time.perf_counter()
         try:
@@ -458,12 +455,9 @@ def boot_sequence(debug):
         ms = (time.perf_counter() - t0) * 1000
         record.append({"name": label, "ms": round(ms, 1), "status": status, "detail": detail})
         extra = f" [dim]{escape(detail)}[/dim]" if detail else ""
-        if detailed:
-            verb, unit = UNITS.get(label, ("Finished", label.lower()))
-            what = f"{verb} {unit}." if status != "fail" else f"Failed to {FAILED_TO.get(verb, 'run')} {unit}."
-            console.print(f"{_stamp()} {MARKS[status]} {escape(tr(what))}{extra}")
-        else:
-            console.print(f"{MARKS[status]} {_progress_bar(number, len(steps))} {number * 100 // len(steps):>3}%  {tr(label)}{extra} [dim]{ms:.0f} ms[/dim]")
+        verb, unit = UNITS.get(label, ("Finished", label.lower()))
+        what = f"{verb} {unit}." if status != "fail" else f"Failed to {FAILED_TO.get(verb, 'run')} {unit}."
+        console.print(f"{_stamp()} {MARKS[status]} {escape(tr(what))}{extra}")
         if status == "fail" and label == "Checking dependencies":
             console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
             sys.exit(1)
@@ -471,9 +465,8 @@ def boot_sequence(debug):
     total_ms = (time.perf_counter() - started) * 1000
     bootlog.save_boot(record, total_ms, pause * len(steps) * 1000)
 
-    if detailed:
-        console.print(f"{_stamp()} {MARKS['ok']} Reached target PythonOS Multi-User System.")
-        console.print(f"{_stamp()} Startup finished in {total_ms / 1000:.3f}s (steps) + {seconds_since_start() - total_ms / 1000:.3f}s (loading).")
+    console.print(f"{_stamp()} {MARKS['ok']} Reached target PythonOS Multi-User System.")
+    console.print(f"{_stamp()} Startup finished in {total_ms / 1000:.3f}s (steps) + {seconds_since_start() - total_ms / 1000:.3f}s (loading).")
     console.print("[bold green]" + tr("System ready!") + "[/bold green]")
     time.sleep(min(0.8, pause * 2.3))
     os.system("cls" if os.name == "nt" else "clear")

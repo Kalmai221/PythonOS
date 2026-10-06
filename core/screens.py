@@ -43,10 +43,6 @@ PAST = {"Stopping": "Stopped", "Signing out": "Signed out", "Writing": "Wrote", 
         "Saving": "Saved", "Erasing": "Erased", "Unmounting": "Unmounted", "Syncing": "Synced"}
 
 
-def _detailed():
-    return settings.get("boot_style") != "classic"
-
-
 def _past(label):
     """'Stopping Task Scheduler' -> 'Stopped Task Scheduler.' (the line a real system prints when the step is done)."""
     for present, past in PAST.items():
@@ -57,14 +53,9 @@ def _past(label):
 
 def _ok(label, detail="", number=0, total=0, ms=None):
     suffix = f" [dim]{escape(detail)}[/dim]" if detail else ""
-    if _detailed():
-        slow = "did not answer" in detail
-        mark = theme.tag("warning", "[ WARN ]") if slow else theme.tag("success", "[  OK  ]")
-        console.print(f"{mark} {escape(tr(_past(label)))}{suffix}")
-        return
-    timing = f" [dim]{ms:.0f} ms[/dim]" if ms is not None else ""
-    bar = f"{_bar(number, total)} {number * 100 // max(1, total):>3}%  " if total else ""
-    console.print(f"{theme.tag('success', '[  OK  ]')} {bar}{tr(label)}{suffix}{timing}")
+    slow = "did not answer" in detail
+    mark = theme.tag("warning", "[ WARN ]") if slow else theme.tag("success", "[  OK  ]")
+    console.print(f"{mark} {escape(tr(_past(label)))}{suffix}")
 
 
 def _step(label, action=None, seconds=0.6, number=0, total=0):
@@ -236,8 +227,7 @@ def shutdown_sequence(kind="shutdown"):
     for number, (label, action, seconds) in enumerate(steps, 1):
         _step(label, action, seconds, number, len(steps))
 
-    if _detailed():
-        console.print(f"{theme.tag('success', '[  OK  ]')} Reached target {'Reboot' if restarting else 'Power-Off'}.")
+    console.print(f"{theme.tag('success', '[  OK  ]')} Reached target {'Reboot' if restarting else 'Power-Off'}.")
     if restarting:
         console.print(f"\n{theme.tag('warning', tr('Restarting now...'))}")
         pause(0.8)
@@ -250,8 +240,7 @@ def shutdown_sequence(kind="shutdown"):
             for remaining in range(countdown, 0, -1):
                 spinner.text = tr("Powering off in {n}...", n=remaining)
                 time.sleep(1)
-    if _detailed():
-        console.print("[dim]pyos: Power down.[/dim]")
+    console.print("[dim]pyos: Power down.[/dim]")
     console.print(f"\n{theme.tag('error', tr('Shutdown complete.'))}")
     if wiping:
         console.print(f"\n{theme.tag('warning', tr('Power on the device for first-time setup.'))}")
