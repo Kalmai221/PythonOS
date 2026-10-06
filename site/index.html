@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var $ = function (id) { return document.getElementById(id); };
   var GROUPS = [
     { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows(-arm64)?-portable\.zip)$/, note: "Windows 10 (1809) or newer, on Intel/AMD or ARM. The web installer is a tiny download that fetches and checks the right package for your PC." },
-    { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. Choose arm64 for nearly every phone; the universal APK works anywhere but is bigger." },
+    { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. The installer app (about 1 MB) finds out which processor your device has and downloads the right PythonOS app, checking it first. Or download the full app yourself: arm64 for nearly every phone." },
     { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz|\.pkg\.tar\.zst|\.rpm)$/, note: "Any Linux with Python 3.9+, on any processor. Debian/Ubuntu: .deb. Arch: .pkg.tar.zst. Fedora/RHEL/openSUSE: .rpm. Everything else: the tarball." },
     { id: "usb", title: "Bootable USB", match: /((x86_64|aarch64)\.iso|pythonos-wizard-[\d.]+\.zip)$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it with the flash tool, which checks the download first." },
     { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox. These are for PCs (x86_64)." }
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var USE = [
     [/web-setup\.exe$/, "Recommended installer (picks the right package for your PC)"], [/arm64-setup\.exe$/, "Full installer for Windows on ARM"], [/-setup\.exe$/, "Full installer (offline)"],
     [/windows-arm64-portable/, "Portable, Windows on ARM"], [/windows-portable/, "Portable: unzip and run"],
-    [/arm64-v8a\.apk$/, "Phones and tablets (smallest)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
+    [/android-installer\.apk$/, "Recommended: a tiny installer that picks the right app for your device"], [/arm64-v8a\.apk$/, "Phones and tablets (full app)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
     [/\.deb$/, "Debian, Ubuntu and friends"], [/pkg\.tar\.zst$/, "Arch, Manjaro"], [/\.rpm$/, "Fedora, RHEL, openSUSE"], [/linux\.tar\.gz$/, "Any Linux, any processor"],
     [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"],
     [/pythonos-wizard-/, "Setup Wizard: install, write a USB stick, set up a VM (Windows, macOS, Linux)"],
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function fits(a, arch) { var x = archOf(a.name); return x === "any" || x === arch || (x === "arm64" && arch === "arm64"); }
   function mainFile(assets, id, arch) {
     var by = function (re) { return assets.filter(function (a) { return re.test(a.name); })[0]; };
-    if (id === "android") return (arch === "arm64" ? by(/arm64-v8a\.apk$/) : by(/x86_64\.apk$/)) || by(/android\.apk$/);
+    if (id === "android") return by(/android-installer\.apk$/) || (arch === "arm64" ? by(/arm64-v8a\.apk$/) : by(/x86_64\.apk$/)) || by(/android\.apk$/);
     if (id === "windows") return by(/web-setup\.exe$/) || (arch === "arm64" ? by(/arm64-setup\.exe$/) : by(/-setup\.exe$/));
     if (id === "linux") return by(/\.deb$/) || by(/linux\.tar\.gz$/);
     return arch === "arm64" ? (by(/(?<!minimal-)aarch64\.iso$/) || by(/aarch64\.iso$/)) : by(/(?<!minimal-)x86_64\.iso$/);

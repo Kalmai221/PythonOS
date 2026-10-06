@@ -68,7 +68,7 @@ The release page (written by `release_notes.py` from `CHANGELOG.md`) lists every
 | Platform | Files |
 |---|---|
 | Windows | `PythonOS-<v>-web-setup.exe` (100 KB; downloads and checks the rest, light/dark, four languages, repair and uninstall), `PythonOS-<v>-setup.exe` (offline Inno Setup installer), `PythonOS-<v>-windows-portable.zip`. `PythonOS.exe` is its own window (WebView2 + xterm.js + ConPTY, `Windows/native/host`); `PythonOS-console.exe` is the plain console it falls back to. |
-| Android | `PythonOS-<v>-android-arm64-v8a.apk` (nearly every phone), `-x86_64.apk`, and the universal `-android.apk` |
+| Android | `PythonOS-<v>-android-installer.apk` (about 1 MB: finds the right app for the device, downloads and checks it, installs it; module `OS_Export/Android/installer`), `PythonOS-<v>-android-arm64-v8a.apk` (nearly every phone) and `-x86_64.apk`. There is no universal APK any more |
 | Linux | `.deb` and `.tar.gz`; also a Docker image, `ghcr.io/kalmai221/pythonos` |
 | ISO | `pythonos-<v>-x86_64.iso` (full: Bluetooth, printing, `installos`, VM guest tools), `-minimal-x86_64.iso`, the VM images (`-vm.ova`, `-vm.qcow2`, `-vm-kit.zip`) and the Setup Wizard `pythonos-wizard-<v>.zip` (own export: `OS_Export/Wizard`, built per system by CI) |
 | All | `SHA256SUMS`, `SHA256SUMS.sigstore.json` (keyless signature) and build provenance attestations |

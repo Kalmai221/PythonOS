@@ -205,7 +205,7 @@ jobs:
             echo "ANDROID_KEY_ALIAS=$ALIAS"
             echo "ANDROID_KEY_PASSWORD=$KEY_PASS"
           } >> "$GITHUB_ENV"
-      - name: Build the APKs (one per processor type, plus a universal one)
+      - name: Build the APKs (one per processor type) and the small installer app
         working-directory: OS_Export/Android
         run: |
           gradle assembleRelease --no-daemon \
@@ -218,7 +218,7 @@ jobs:
           PIN=""
           [ -f OS_Export/Android/signing.sha256 ] && PIN="$(tr -d ' \r\n' < OS_Export/Android/signing.sha256)"
           FIRST=""
-          for apk in $(find OS_Export/Android/app/build/outputs/apk -name "*release*.apk"); do
+          for apk in $(find OS_Export/Android/app/build/outputs/apk OS_Export/Android/installer/build/outputs/apk -name "*release*.apk"); do
             SUM="$("$APKSIGNER" verify --print-certs "$apk" | sed -n 's/.*certificate SHA-256 digest: *//p' | head -n1)"
             echo "$apk is signed with $SUM"
             if [ -n "$FIRST" ] && [ "$SUM" != "$FIRST" ]; then echo "::error::the APKs of this build are not all signed with one key"; exit 1; fi
@@ -238,9 +238,9 @@ jobs:
           OUT=OS_Export/Android/app/build/outputs/apk
           find "$OUT" -name "*.apk" -print
           V="${VERSION#v}"
-          cp "$(find "$OUT" -name "*universal*release*.apk" | head -n1)" "dist/android/PythonOS-$V-android.apk"
           cp "$(find "$OUT" -name "*arm64*release*.apk" | head -n1)" "dist/android/PythonOS-$V-android-arm64-v8a.apk"
           cp "$(find "$OUT" -name "*x64*release*.apk" | head -n1)" "dist/android/PythonOS-$V-android-x86_64.apk"
+          cp "$(find OS_Export/Android/installer/build/outputs/apk -name "*release*.apk" | head -n1)" "dist/android/PythonOS-$V-android-installer.apk"
           ls -la dist/android
       - uses: actions/upload-artifact@v7
         with:

@@ -78,6 +78,7 @@ namespace PythonOS.Setup
             en["err.libraries"] = "The Python libraries PythonOS needs could not be installed. Check your internet connection and try again.";
             en["step.remove"] = "Removing PythonOS";
             en["speed"] = "{0} of {1} - {2}/s";
+            en["eta"] = " - about {0} left";
             en["done"] = "PythonOS is installed";
             en["done.update"] = "PythonOS was updated to {0}";
             en["done.repair"] = "PythonOS was repaired";
@@ -131,6 +132,7 @@ namespace PythonOS.Setup
             es["err.libraries"] = "No se pudieron instalar las bibliotecas de Python que necesita PythonOS. Comprueba tu conexión a internet e inténtalo de nuevo.";
             es["step.remove"] = "Quitando PythonOS";
             es["speed"] = "{0} de {1} - {2}/s";
+            es["eta"] = " - faltan unos {0}";
             es["done"] = "PythonOS está instalado";
             es["done.update"] = "PythonOS se actualizó a {0}";
             es["done.repair"] = "PythonOS se reparó";
@@ -184,6 +186,7 @@ namespace PythonOS.Setup
             fr["err.libraries"] = "Les bibliothèques Python nécessaires à PythonOS n'ont pas pu être installées. Vérifiez votre connexion internet et réessayez.";
             fr["step.remove"] = "Suppression de PythonOS";
             fr["speed"] = "{0} sur {1} - {2}/s";
+            fr["eta"] = " - environ {0} restantes";
             fr["done"] = "PythonOS est installé";
             fr["done.update"] = "PythonOS a été mis à jour vers {0}";
             fr["done.repair"] = "PythonOS a été réparé";
@@ -237,6 +240,7 @@ namespace PythonOS.Setup
             de["err.libraries"] = "Die von PythonOS benötigten Python-Bibliotheken konnten nicht installiert werden. Prüfe deine Internetverbindung und versuche es erneut.";
             de["step.remove"] = "PythonOS wird entfernt";
             de["speed"] = "{0} von {1} - {2}/s";
+            de["eta"] = " - noch etwa {0}";
             de["done"] = "PythonOS ist installiert";
             de["done.update"] = "PythonOS wurde auf {0} aktualisiert";
             de["done.repair"] = "PythonOS wurde repariert";

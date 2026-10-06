@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 7.x (API 24-25) has no adaptive icons: a plain vector with the background built in -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#0B0F14"
+        android:pathData="M24,6 H84 A18,18 0 0 1 102,24 V84 A18,18 0 0 1 84,102 H24 A18,18 0 0 1 6,84 V24 A18,18 0 0 1 24,6 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#4FE3C1"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M36,40 L56,54 L36,68" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F5C542"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M62,70 L78,70" />
+</vector>

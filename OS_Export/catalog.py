@@ -23,7 +23,8 @@ RULES = [
     (r"^PythonOS-[\d.]+-windows-portable\.zip$", "windows", "x86_64", "portable", ""),
     (r"^PythonOS-[\d.]+-android-arm64-v8a\.apk$", "android", "aarch64", "apk", ""),
     (r"^PythonOS-[\d.]+-android-x86_64\.apk$", "android", "x86_64", "apk", ""),
-    (r"^PythonOS-[\d.]+-android\.apk$", "android", "any", "apk-universal", ""),
+    (r"^PythonOS-[\d.]+-android-installer\.apk$", "android", "any", "apk-installer", ""),
+    (r"^PythonOS-[\d.]+-android\.apk$", "android", "any", "apk-universal", ""),   # releases before the installer app existed
     (r"^pythonos_[\d.]+_all\.deb$", "linux", "any", "deb", ""),
     (r"^pythonos-[\d.]+-1-any\.pkg\.tar\.zst$", "linux", "any", "pacman", ""),
     (r"^pythonos-[\d.]+-1\.noarch\.rpm$", "linux", "any", "rpm", ""),

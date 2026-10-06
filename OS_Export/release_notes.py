@@ -25,7 +25,8 @@ FILES = [
     ("PythonOS-{v}-windows-portable.zip", "windows", "Windows", "Portable zip", "No install: unzip anywhere (a USB stick works) and run PythonOS.exe."),
     ("PythonOS-{v}-arm64-setup.exe", "windows", "Windows", "Full installer for Windows on ARM", "Surface Pro X, Copilot+ PCs and ARM virtual machines. (The web installer picks the ARM64 package by itself.)"),
     ("PythonOS-{v}-windows-arm64-portable.zip", "windows", "Windows", "Portable zip for Windows on ARM", "No install: unzip and run PythonOS.exe on an ARM64 PC."),
-    ("PythonOS-{v}-android-arm64-v8a.apk", "android", "Android", "Phone APK (arm64)", "Nearly every phone and tablet made since 2016. Smallest download."),
+    ("PythonOS-{v}-android-installer.apk", "android", "Android", "Installer app (about 1 MB)", "Start here on Android. A tiny app that finds out which processor your device has, downloads the right PythonOS app from this release, checks it and hands it to Android's installer."),
+    ("PythonOS-{v}-android-arm64-v8a.apk", "android", "Android", "Phone APK (arm64)", "Nearly every phone and tablet made since 2016. Smallest full download."),
     ("PythonOS-{v}-android-x86_64.apk", "android", "Android", "APK for x86_64", "Chromebooks and Android emulators on PCs."),
     ("PythonOS-{v}-android.apk", "android", "Android", "Universal APK", "Works on any supported device, but is bigger. Use it if the arm64 one will not install."),
     ("pythonos_{v}_all.deb", "linux", "Linux", "Debian/Ubuntu package", "`sudo apt install ./pythonos_{v}_all.deb`; adds a menu entry and a `pythonos` command."),
@@ -61,9 +62,10 @@ GUIDE = [
         ("No install at all (for example from a USB stick)", ["PythonOS-{v}-windows-portable.zip", "PythonOS-{v}-windows-arm64-portable.zip"], "Unzip anywhere and run `PythonOS.exe`. The second is for ARM."),
     ]),
     ("Android", "Android 7 or newer. Allow installs from this source when Android asks; updates come from inside PythonOS.", [
-        ("A phone or tablet (nearly all of them)", ["PythonOS-{v}-android-arm64-v8a.apk"], "The smallest download."),
+        ("Any phone, tablet or Chromebook (easiest)", ["PythonOS-{v}-android-installer.apk"], "A tiny installer (about 1 MB) that downloads the right PythonOS app for your device, checks it and installs it."),
+        ("A phone or tablet, the full app directly", ["PythonOS-{v}-android-arm64-v8a.apk"], "Nearly all phones. About 25 MB."),
         ("A Chromebook or an Android emulator on a PC", ["PythonOS-{v}-android-x86_64.apk"], "For Intel/AMD processors."),
-        ("Not sure", ["PythonOS-{v}-android.apk"], "Works everywhere, but is bigger."),
+        ("Older release without the installer app", ["PythonOS-{v}-android.apk"], "Works everywhere, but is bigger."),
     ]),
     ("Linux", "Any distribution. The packages add a `pythonos` command and a menu entry.", [
         ("Debian, Ubuntu, Linux Mint, Pop!_OS, Raspberry Pi OS", ["pythonos_{v}_all.deb"], "`sudo apt install ./pythonos_{v}_all.deb`"),

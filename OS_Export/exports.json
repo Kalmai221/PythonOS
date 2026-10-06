@@ -17,9 +17,9 @@
     "title": "Android app",
     "api": 1,
     "assets": [
-      "PythonOS-{v}-android.apk",
       "PythonOS-{v}-android-arm64-v8a.apk",
-      "PythonOS-{v}-android-x86_64.apk"
+      "PythonOS-{v}-android-x86_64.apk",
+      "PythonOS-{v}-android-installer.apk"
     ],
     "notes": "New terminal screen: type straight into the terminal, always scrolled to the bottom, symbol keys, zoom.",
     "inputs": [

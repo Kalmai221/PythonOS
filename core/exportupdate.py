@@ -468,13 +468,13 @@ def replace_from_tarball(archive, folder, names):
 
 # ------------------------------------------------------------------------------------------ Android
 def apk_for(urls, arch):
-    """The APK made for this processor, else the universal one."""
+    """The APK made for this processor, else the universal one (older releases). Never the installer app: it is not an update of PythonOS."""
     wanted = {"aarch64": "arm64-v8a", "arm64": "arm64-v8a", "x86_64": "x86_64"}.get(arch)
     if wanted:
         found = pick(urls, rf"-android-{re.escape(wanted)}\.apk$")
         if found:
             return found
-    return pick(urls, r"-android\.apk$") or pick(urls, r"\.apk$")
+    return pick(urls, r"-android\.apk$")
 
 
 # ------------------------------------------------------------------------------------------ ISO

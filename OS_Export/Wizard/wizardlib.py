@@ -227,8 +227,14 @@ def plan_install(env, release):
 
 
 def plan_android(release, arch="aarch64"):
-    """The APK for a phone: arm64 (nearly every phone), x86_64 (Chromebooks, emulators) or the universal one."""
-    name = _file(release, os_name="android", kind="apk", arch=arch) or _file(release, os_name="android", kind="apk-universal")
+    """The APK for a phone: the installer app for "not sure" (it picks the right app by itself), else the full app for arm64 (nearly every
+    phone) or x86_64 (Chromebooks, emulators); the universal APK of older releases is the last resort."""
+    installer = _file(release, os_name="android", kind="apk-installer")
+    if arch == "universal" and installer:
+        name = installer
+    else:
+        name = (_file(release, os_name="android", kind="apk", arch=arch) if arch != "universal" else None) or installer \
+            or _file(release, os_name="android", kind="apk-universal")
     return make_plan("android", [name] if name else [], "android-apk", [
         "Copy the APK to the phone and open it, or connect the phone with a cable (USB debugging on) and the wizard installs it.",
         "Android asks you to allow installs from this source the first time. Updates later come from inside PythonOS."])

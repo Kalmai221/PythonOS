@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "PythonOS"
 include(":app")
+include(":installer")

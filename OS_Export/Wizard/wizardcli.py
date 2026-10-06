@@ -52,7 +52,7 @@ def run(args):
     elif goal == "android":
         options["abi"] = getattr(args, "abi", None) or ("aarch64" if not interactive else ask_choice("What kind of Android device?", [
             ("aarch64", "A phone or tablet (almost all of them)", ""), ("x86_64", "A Chromebook or an Android emulator on a PC", ""),
-            ("universal", "I am not sure", "bigger, works everywhere")]))
+            ("universal", "I am not sure", "a tiny installer app that picks the right one")]))
     elif goal == "usb":
         arch = getattr(args, "arch", None) or (env["arch"] if not interactive else ask_choice("Which kind of computer will start from the stick?", [
             ("x86_64", "A PC (Intel / AMD)", "" if env["arch"] != "x86_64" else "this computer"),

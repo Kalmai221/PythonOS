@@ -53,7 +53,7 @@ class FlashFrame(ttk.Frame):
         self.minimal_box = ttk.Checkbutton(row, text="Minimal (smaller)", variable=self.minimal)
         self.minimal_box.pack(side="left")
         ttk.Label(image, text=f"For the computer that will start from the stick. Chosen for this computer ({lib.describe_machine()}); "
-                              "change it if the stick is for a different kind of computer.", foreground="#666", wraplength=600).pack(anchor="w", padx=30)
+                              "change it if the stick is for a different kind of computer.", style="Muted.TLabel", wraplength=600).pack(anchor="w", padx=30)
         row = ttk.Frame(image)
         row.pack(fill="x", padx=8, pady=(0, 6))
         ttk.Radiobutton(row, text="Use a file I have", variable=self.source, value="file", command=self._update).pack(side="left")
@@ -73,7 +73,7 @@ class FlashFrame(ttk.Frame):
         row = ttk.Frame(stick)
         row.pack(fill="x", padx=8, pady=(0, 6))
         ttk.Button(row, text="Refresh", command=self.refresh).pack(side="left")
-        ttk.Label(row, text="Only USB sticks are listed, never the drive this computer runs from.", foreground="#666").pack(side="left", padx=10)
+        ttk.Label(row, text="Only USB sticks are listed, never the drive this computer runs from.", style="Muted.TLabel").pack(side="left", padx=10)
 
         options = ttk.Frame(self)
         options.pack(fill="x", **pad)
@@ -229,6 +229,11 @@ class App(tk.Tk):
         self.title("PythonOS Flash")
         self.geometry("680x660")
         self.minsize(620, 620)
+        try:
+            import wizardtheme
+            wizardtheme.apply(self, wizardtheme.Theme())
+        except Exception:
+            pass
         FlashFrame(self, iso=iso).pack(fill="both", expand=True)
 
 

@@ -376,13 +376,23 @@ namespace PythonOS.Setup
                         done += n;
                         double seconds = Math.Max(0.2, clock.Elapsed.TotalSeconds);
                         double speed = (done - startBytes) / seconds;
-                        progress("download", total > 0 ? (double)done / total : 0, Strings.T("speed", Size(done), Size(total), Size((long)speed)));
+                        string left = total > done && speed > 1 ? Strings.T("eta", Duration((total - done) / speed)) : "";
+                        progress("download", total > 0 ? (double)done / total : 0, Strings.T("speed", Size(done), Size(total), Size((long)speed)) + left);
                     }
                 }
             }
             if (File.Exists(file)) File.Delete(file);
             File.Move(part, file);
             return file;
+        }
+
+        /// <summary>A time in words for the "about ... left" text: 45 s, 3 min 20 s, 1 h 5 min.</summary>
+        public static string Duration(double seconds)
+        {
+            int s = (int)Math.Max(1, Math.Round(seconds));
+            if (s < 60) return s + " s";
+            if (s < 3600) return (s / 60) + " min " + (s % 60) + " s";
+            return (s / 3600) + " h " + ((s % 3600) / 60) + " min";
         }
 
         public static string Size(long bytes)

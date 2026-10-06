@@ -49,7 +49,7 @@ namespace PythonOS.Setup
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch (Exception) { }
 
             title = new Label(); title.Font = new Font("Segoe UI Semibold", 20f); title.ForeColor = p.Text; title.BackColor = p.Bg;
-            title.SetBounds(32, 22, 600, 40);
+            title.SetBounds(32, 22, 532, 40);
             sub = new Label(); sub.Font = new Font("Segoe UI", 10f); sub.ForeColor = p.Muted; sub.BackColor = p.Bg;
             sub.SetBounds(34, 66, 590, 44);
             body.SetBounds(32, 120, 596, 270); body.BackColor = p.Bg;
@@ -73,9 +73,30 @@ namespace PythonOS.Setup
             ShowWelcome();
         }
 
+        // The steps of a journey as dots at the top right: welcome, options (the folder, shortcuts), working, done.
+        private static readonly string[] Journey = new string[] { "welcome", "options", "progress", "done" };
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Graphics g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (SolidBrush bar = new SolidBrush(p.Accent)) g.FillRectangle(bar, 0, 0, ClientSize.Width, 4);          // a thin accent line along the top
+            int current = page == "failed" ? 3 : page == "uninstall" ? 1 : Array.IndexOf(Journey, page);
+            if (current < 0) return;
+            int x = ClientSize.Width - 34 - (Journey.Length - 1) * 18;
+            for (int i = 0; i < Journey.Length; i++)
+            {
+                Rectangle dot = new Rectangle(x + i * 18, 40, 10, 10);
+                if (i <= current) { using (SolidBrush b = new SolidBrush(page == "failed" && i == current ? p.Bad : p.Accent)) g.FillEllipse(b, dot); }
+                else { using (Pen pen = new Pen(p.Muted, 1.5f)) g.DrawEllipse(pen, dot); }
+            }
+        }
+
         private void Reset(string name, string heading, string subheading)
         {
             page = name;
+            Invalidate();
             foreach (Control c in new List<Control>(body.Controls.Cast())) { body.Controls.Remove(c); c.Dispose(); }
             choices.Clear();
             title.Text = heading;
