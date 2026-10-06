@@ -94,6 +94,23 @@ CHECKS = [
     ("who", "smoke", 0),
     ("lscpu", "Family", 0),
     ("pgrep", "Usage", 1),
+    # aliases and variables
+    ('alias ll="echo listed"', None, 0),
+    ("ll", "listed", 0),
+    ("alias", "alias ll=", 0),
+    ("unalias ll", None, 0),
+    ("ll", None, 127),
+    ("alias alias=ls", "cannot be an alias", 1),
+    ("unalias nosuchalias", "not found", 1),
+    ("export GREETING=hello", None, 0),
+    ("echo $GREETING world", "hello world", 0),
+    ("env", "GREETING=hello", 0),
+    ("unset GREETING", None, 0),
+    ("echo x${GREETING}y", "xy", 0),
+    ("NAME=Bob", None, 0),
+    ("echo hi $NAME", "hi Bob", 0),
+    ("echo $USER", "smoke", 0),
+    ("export 9bad=1", "not a valid variable name", 1),
 ]
 
 

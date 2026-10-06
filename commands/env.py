@@ -2,7 +2,7 @@ import os
 
 import pyos
 import pyos.fs as fs
-from pyos import textcmd
+from pyos import shellvars, textcmd
 
 config = {"name": "env", "description": "Show who and where you are: user, home, host, folder, PythonOS settings of the session."}
 
@@ -16,6 +16,8 @@ def execute(args=None):
     textcmd.emit(f"HOME={fs.display(fs.home_dir(user), tilde=False)}")
     textcmd.emit(f"HOST={fs.hostname()}")
     textcmd.emit(f"PWD={fs.display(fs.current_dir(), tilde=False)}")
+    for name, value in shellvars.exported().items():
+        textcmd.emit(f"{name}={value}")
     for name in SHOWN:
         if os.environ.get(name):
             textcmd.emit(f"{name}={os.environ[name]}")

@@ -240,13 +240,20 @@ class ExitShell(Exception):
 
 
 def expand(word):
-    return word.replace("$?", str(last_status()))
+    return pyos.shellvars.expand(word, last_status())
 
 
 # ---------------------------------------------------------------- running
 def run_stage(argv):
     """Run one command. Returns its status: 0 ok, 1 failed, 127 not found."""
     argv = [expand(a) for a in argv]
+    assigned = pyos.shellvars.assignment(argv)
+    if assigned:
+        pyos.shellvars.set_variable(*assigned)           # NAME=value
+        return 0
+    argv = pyos.shellvars.apply(argv)
+    if not argv or not argv[0]:
+        return 0
     name, args = argv[0], argv[1:]
     user = pyos.userinfo()[0]
     main_thread = threading.current_thread() is threading.main_thread()
@@ -399,7 +406,10 @@ def run_captured(line):
 
 
 def find_entry(table, name):
-    return next((k for k, info in table.items() if name == k or name in info["aliases"]), None)
+    """The command or app called `name`: an exact name wins over an alias of another entry."""
+    if name in table:
+        return name
+    return next((k for k, info in table.items() if name in info["aliases"]), None)
 
 
 # -------------------------------------------------------------- completion
@@ -409,7 +419,7 @@ def complete(line):
     word = parts[-1]
     try:
         if len(parts) <= 1:
-            options = BUILTINS + list(available_commands) + [a for c in available_commands.values() for a in c["aliases"]]
+            options = BUILTINS + list(available_commands) + [a for c in available_commands.values() for a in c["aliases"]] + list(pyos.shellvars.aliases())
         elif parts[0] == "run" and len(parts) == 2:
             options = list(available_programs) + [a for p in available_programs.values() for a in p["aliases"]]
         elif parts[0] in ("help", "man") and len(parts) == 2:
@@ -645,6 +655,12 @@ def start_shell(username):
     # Every login starts in the user's home directory
     fs.ensure_layout()
     fs.save_current_dir(fs.ensure_home(username))
+    pyos.shellvars.load_aliases()
+    for rc_line in pyos.shellvars.rc_lines():              # ~/.pyosrc: the same lines you would type at the prompt
+        try:
+            run_line(rc_line)
+        except Exception:                                  # noqa: BLE001 - a bad line must not stop the login
+            pass
 
     readline.parse_and_bind("tab: complete")
     readline.parse_and_bind("set editing-mode vi")

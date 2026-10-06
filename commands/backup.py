@@ -11,7 +11,7 @@ console = Console()
 config = {
     "name": "backup",
     "description": "Back up and restore your files: backup create|list|restore <file> [--system]. Admins can back up everything.",
-    "alias": ["export"],
+    "alias": [],
 }
 
 HELP = """[bold]backup[/bold] - keep your files safe, or move them to another PythonOS

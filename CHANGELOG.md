@@ -5,6 +5,8 @@ One section per release, newest first. The section for a version is shown to use
 
 ## 1.0.8 (continued)
 
+- Shell variables and aliases: `NAME=value` and `export NAME=value`, then `$NAME` / `${NAME}` in any command (`$USER`, `$HOME`, `$HOST`, `$PWD` and `$?` always exist); `alias ll="ls -l"` (kept per person) and `unalias`; `unset`; `source <file>` (also `.`); and `~/.pyosrc` runs at every login. An exact command name now wins over another command's alias, and the old `export` alias of `backup` is gone (use `backup`).
+
 - The ISO and VM images react to the power button: VirtualBox's "Send the shutdown signal" (and the ACPI power button of QEMU, VMware and real computers) now starts PythonOS's own shutdown, with its shutdown screens, instead of being ignored. The image runs `acpid` with a small handler that signals PythonOS; if PythonOS has not taken it up within 30 seconds the machine powers off the normal way.
 
 - `help` is easier to use: the first screen has numbered groups (`help 3` opens group 3) and an "I want to..." table (see a folder, copy files, check the internet, update...); `help <command>` now shows the usage lines, examples and related commands from the manual; and you can ask in your own words: `help copy a file`, `help how do i check the internet` find the commands, best match first, understanding words like delete, folder, internet, wifi. `help find` explains the find command instead of searching.

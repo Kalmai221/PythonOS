@@ -251,6 +251,18 @@ cmd_page("id", "who you are", ["id"], "Shows your user name and role (admin or u
 cmd_page("who", "who is logged in", ["who"], "Lists the people who are logged in. users is the same command.", [], ["id", "last"])
 cmd_page("pgrep", "find tasks by name", ["pgrep <word>"], "Lists the PythonOS tasks whose command contains the word, with their ids for kill.", [("pgrep sleep", "")], ["ps", "kill", "taskman"])
 cmd_page("lscpu", "show the processor", ["lscpu"], "Shows the processor family, cores, speed and current load.", [], ["arch", "nproc", "sysinfo"])
+cmd_page("alias", "give a command a short name", ["alias", "alias name=\"command and arguments\""],
+     "Makes a short name for a command with its arguments. The alias is kept for you (in ~/.pyos_aliases) and works at the start of a command. alias alone lists them.",
+     [("alias ll=\"ls -l\"", "ll now means ls -l"), ("alias gs=\"updatecheck\"", "")], ["unalias", "export", "source"])
+cmd_page("unalias", "remove an alias", ["unalias <name>...", "unalias -a"], "Removes one alias, or every alias with -a.", [], ["alias"])
+cmd_page("export", "set a variable", ["export NAME=value", "export"],
+     "Sets a variable you can use in later commands as $NAME or ${NAME}, and lists it in env. $USER, $HOME, $HOST, $PWD and $? always exist. NAME=value on its own does the same "
+     "without listing it. Variables last for the session; put the lines in ~/.pyosrc to have them at every login.",
+     [("export GREETING=hello", ""), ("echo $GREETING world", "hello world")], ["unset", "env", "source"])
+cmd_page("unset", "forget a variable", ["unset NAME..."], "Removes variables made with export or NAME=value.", [], ["export"])
+cmd_page("source", "run the commands of a file", ["source <file>", ". <file>"],
+     "Runs a file one command per line (empty lines and lines starting with # are skipped). The file ~/.pyosrc is run like this at every login: put your aliases and variables in it.",
+     [("source ~/setup.txt", "")], ["alias", "export"])
 cmd_page("less", "read long text a screen at a time", ["less [file]", "... | less"], "Shows a file or piped text one screen at a time: Enter shows one more line, a space then Enter the next page, q stops. more is the same.",
      [("less readme.txt", ""), ("man pkg | less", "")], ["cat", "head"])
 page("ipinfo", "public IP information", ["ipinfo"], "Shows your public IP address and where it appears to be.", see=["ping"])
