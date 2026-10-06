@@ -158,6 +158,38 @@ def service(name, thread, user=None, stop=None, cmd=None):
     return _make(name, "service", user or "root", cmd or f"pyos-{name}", parent, thread=thread, stop=stop)
 
 
+DESCRIPTIONS = {"scheduler": "Task Scheduler", "idle-watch": "Idle Session Watch", "battery-watch": "Battery Monitor",
+                "memory-guard": "Memory Guard", "market-check": "Marketplace Update Check", "startup-items": "Startup Programs"}
+
+
+def describe(task):
+    """A service's name as a system would list it."""
+    return DESCRIPTIONS.get(task.name, task.name)
+
+
+def services():
+    """The running services, newest first (the order they are stopped in)."""
+    _prune()
+    with _lock:
+        return sorted((t for t in _tasks.values() if t.kind == "service"), key=lambda t: t.pid, reverse=True)
+
+
+def stop_service(task, wait=1.5):
+    """Ask a service to stop and wait for it. Returns a short note when it was slow (empty when it stopped cleanly)."""
+    if task.stop is not None:
+        try:
+            task.stop()
+        except Exception:
+            pass
+    thread = task.thread
+    if thread is not None and thread.is_alive():
+        thread.join(wait)
+    left = thread is not None and thread.is_alive()
+    with _lock:
+        _tasks.pop(task.pid, None)
+    return "did not answer in time and was left" if left else ""
+
+
 def start_job(job_id, command, user):
     """A background job, called from the job's own thread."""
     task = _make("job", "job", user or "root", command, _session["task"])

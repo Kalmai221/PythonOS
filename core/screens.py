@@ -39,8 +39,29 @@ def _bar(done, total, width=14):
     return "[cyan]" + "#" * filled + "[/cyan][dim]" + "-" * (width - filled) + "[/dim]"
 
 
+PAST = {"Stopping": "Stopped", "Signing out": "Signed out", "Writing": "Wrote", "Flushing": "Flushed", "Marking": "Marked",
+        "Saving": "Saved", "Erasing": "Erased", "Unmounting": "Unmounted", "Syncing": "Synced"}
+
+
+def _detailed():
+    return settings.get("boot_style") != "classic"
+
+
+def _past(label):
+    """'Stopping Task Scheduler' -> 'Stopped Task Scheduler.' (the line a real system prints when the step is done)."""
+    for present, past in PAST.items():
+        if label.startswith(present):
+            return past + label[len(present):] + "."
+    return label + "."
+
+
 def _ok(label, detail="", number=0, total=0, ms=None):
-    suffix = f" [dim]{detail}[/dim]" if detail else ""
+    suffix = f" [dim]{escape(detail)}[/dim]" if detail else ""
+    if _detailed():
+        slow = "did not answer" in detail
+        mark = theme.tag("warning", "[ WARN ]") if slow else theme.tag("success", "[  OK  ]")
+        console.print(f"{mark} {escape(tr(_past(label)))}{suffix}")
+        return
     timing = f" [dim]{ms:.0f} ms[/dim]" if ms is not None else ""
     bar = f"{_bar(number, total)} {number * 100 // max(1, total):>3}%  " if total else ""
     console.print(f"{theme.tag('success', '[  OK  ]')} {bar}{tr(label)}{suffix}{timing}")
@@ -196,8 +217,15 @@ def shutdown_sequence(kind="shutdown"):
     title = "Restarting" if restarting else "Resetting to factory settings" if wiping else "Shutting down"
     console.print(Panel(f"[bold]{tr(title)}[/bold]", border_style=theme.style("border"), expand=False))
 
-    steps = [("Stopping background jobs", _stop_jobs, 0.5), ("Signing out", _close_sessions, 0.4),
-             ("Writing the system log", _record_closing, 0.2)]
+    steps = []
+    try:
+        from pyos import tasks
+        for service in tasks.services():                       # the services that are really running, newest first, like a real system
+            steps.append((f"Stopping {tasks.describe(service)}", (lambda s=service: tasks.stop_service(s)), 0.15))
+    except Exception:
+        pass
+    steps += [("Stopping background jobs", _stop_jobs, 0.5), ("Signing out", _close_sessions, 0.4),
+              ("Writing the system log", _record_closing, 0.2)]
     if wiping:
         steps.append(("Erasing accounts, settings, files and packages", factory_reset, 1.0))
     steps.append(("Flushing the filesystem", _flush, 0.5))
@@ -208,6 +236,8 @@ def shutdown_sequence(kind="shutdown"):
     for number, (label, action, seconds) in enumerate(steps, 1):
         _step(label, action, seconds, number, len(steps))
 
+    if _detailed():
+        console.print(f"{theme.tag('success', '[  OK  ]')} Reached target {'Reboot' if restarting else 'Power-Off'}.")
     if restarting:
         console.print(f"\n{theme.tag('warning', tr('Restarting now...'))}")
         pause(0.8)
@@ -220,6 +250,8 @@ def shutdown_sequence(kind="shutdown"):
             for remaining in range(countdown, 0, -1):
                 spinner.text = tr("Powering off in {n}...", n=remaining)
                 time.sleep(1)
+    if _detailed():
+        console.print("[dim]pyos: Power down.[/dim]")
     console.print(f"\n{theme.tag('error', tr('Shutdown complete.'))}")
     if wiping:
         console.print(f"\n{theme.tag('warning', tr('Power on the device for first-time setup.'))}")

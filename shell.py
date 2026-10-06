@@ -702,11 +702,9 @@ def start_shell(username):
             console.print("[bold green]Logging out...[/bold green]")
             break
         except pyos.ShutdownRequested:
-            sched.stop()
             raise                                    # the shutdown command: let main.py show the shutdown screen
         except KeyboardInterrupt:
             if _shutdown_module.pending():              # a background task asked for shutdown (timeshutdown)
-                sched.stop()
                 raise pyos.ShutdownRequested()
             console.print("\n[bold yellow]^C[/bold yellow]")
         last_activity = time.time()

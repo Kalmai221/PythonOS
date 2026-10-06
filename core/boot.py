@@ -4,6 +4,7 @@ import time
 import subprocess
 import sys
 from rich.console import Console
+from rich.markup import escape
 import importlib.util
 from yaspin import yaspin
 from rich.panel import Panel
@@ -351,25 +352,103 @@ def boot_steps(debug):
             return "warn", f"last session stopped with {before.get('code') or 'an error'} (type whathappened)"
         return "ok", tr("last shutdown was clean") if state == "clean" else tr("first start")
 
+    def hardware_step(debug, sink):
+        from pyos import resources
+        return "ok", f"{psutil.cpu_count() or 1} CPU(s), {platform.machine() or 'unknown'}, memory {resources.describe()}"
+
+    def kernel_step(debug, sink):
+        from pyos import tasks
+        tasks.listing()                                  # the task table starts here: init (1) and the kernel (2)
+        return "ok", "init (1), kernel (2)"
+
+    def filesystem_step(debug, sink):
+        import shutil
+        import pyos
+        pyos.fs.ensure_layout()
+        base = pyos.fs.BASE_DIR
+        missing = [d for d in ("home", "etc", "tmp", "var/log") if not os.path.isdir(os.path.join(base, d))]
+        try:
+            free = shutil.disk_usage(base).free
+        except OSError:
+            free = None
+        if missing:
+            return "warn", "missing " + ", ".join(missing)
+        if free is not None and free < 100 * 1024 ** 2:
+            return "warn", f"only {free // 1024 ** 2} MB free"
+        return "ok", f"{free / 1024 ** 3:.1f} GB free" if free is not None else ""
+
     return [("Reading the configuration", config_step), ("Checking system files", integrity_step),
+            ("Detecting hardware", hardware_step), ("Starting kernel services", kernel_step),
             ("Starting system services", services_step), ("Checking memory", memory_step), ("Checking dependencies", _step_internet),
             ("Loading commands", commands_step), ("Loading programs", programs_step),
-            ("Preparing the file system", files_step), ("Checking the last shutdown", session_step)]
+            ("Preparing the file system", files_step), ("Checking the file system", filesystem_step),
+            ("Checking the last shutdown", session_step)]
 
 
 MARKS = {"ok": "[bold green][  OK  ][/bold green]", "warn": "[bold yellow][ WARN ][/bold yellow]",
          "fail": "[bold red][FAILED][/bold red]"}
 
 
+# how each real step reads in the detailed boot log: (what happened, what it happened to)
+UNITS = {
+    "Reading the configuration": ("Loaded", "system configuration"),
+    "Checking system files": ("Checked", "system files"),
+    "Detecting hardware": ("Detected", "hardware"),
+    "Starting kernel services": ("Started", "the kernel"),
+    "Starting system services": ("Started", "system services"),
+    "Checking memory": ("Checked", "memory"),
+    "Checking dependencies": ("Checked", "libraries"),
+    "Loading commands": ("Loaded", "commands"),
+    "Loading programs": ("Loaded", "programs"),
+    "Preparing the file system": ("Mounted", "the file system"),
+    "Checking the file system": ("Checked", "the file system"),
+    "Checking the last shutdown": ("Checked", "the previous session"),
+}
+FAILED_TO = {"Loaded": "load", "Checked": "check", "Detected": "detect", "Started": "start", "Mounted": "mount"}
+
+
+def seconds_since_start():
+    """Seconds since this PythonOS process started: the time stamp of a boot log line."""
+    try:
+        return max(0.0, time.time() - psutil.Process(os.getpid()).create_time())
+    except Exception:
+        return time.perf_counter()
+
+
+def _stamp():
+    return "[dim]" + "\\[" + f"{seconds_since_start():9.3f}" + "][/dim]"
+
+
+def _detailed_header():
+    """The first lines of a real boot: what is starting and on what. All of it is read from the running system."""
+    from pyos import resources
+    try:
+        host = __import__("pyos").fs.hostname()
+    except Exception:
+        host = platform.node()
+    live = os.environ.get("PYOS_LIVE") == "1"
+    lines = [f"PythonOS {get_system_version()} ({platform.system()} {platform.machine()}) Python {platform.python_version()}",
+             f"Machine: {host}, {psutil.cpu_count() or 1} CPU(s); memory: {resources.describe()}",
+             f"Command line: boot_speed={settings.get('boot_speed')} mode={'live' if live else 'installed' if os.environ.get('PYOS_INSTALLED') == '1' else 'normal'}"]
+    for line in lines:
+        console.print(f"{_stamp()} {escape(line)}")
+
+
 def boot_sequence(debug):
-    """Run the real boot steps, one line each with a progress bar and how long the step took. The timings are saved
-    (see the bootlog and bootspeed commands)."""
+    """Run the real boot steps, one line each. The detailed style (default) is a boot log like a real system's, with time stamps; the
+    classic style has a progress bar. Either way the timings are saved (see the bootlog and bootspeed commands)."""
     from core import bootlog
     pause = settings.boot_pause()  # the boot_speed setting: normal / fast / instant
+    detailed = settings.get("boot_style") != "classic"
     steps = boot_steps(debug)
     sink = _Sink()
     record = []
     started = time.perf_counter()
+    if detailed:
+        try:
+            _detailed_header()
+        except Exception:
+            pass
     for number, (label, action) in enumerate(steps, 1):
         t0 = time.perf_counter()
         try:
@@ -378,8 +457,13 @@ def boot_sequence(debug):
             status, detail = "fail", f"{e.__class__.__name__}: {e}"
         ms = (time.perf_counter() - t0) * 1000
         record.append({"name": label, "ms": round(ms, 1), "status": status, "detail": detail})
-        extra = f" [dim]{detail}[/dim]" if detail else ""
-        console.print(f"{MARKS[status]} {_progress_bar(number, len(steps))} {number * 100 // len(steps):>3}%  {tr(label)}{extra} [dim]{ms:.0f} ms[/dim]")
+        extra = f" [dim]{escape(detail)}[/dim]" if detail else ""
+        if detailed:
+            verb, unit = UNITS.get(label, ("Finished", label.lower()))
+            what = f"{verb} {unit}." if status != "fail" else f"Failed to {FAILED_TO.get(verb, 'run')} {unit}."
+            console.print(f"{_stamp()} {MARKS[status]} {escape(tr(what))}{extra}")
+        else:
+            console.print(f"{MARKS[status]} {_progress_bar(number, len(steps))} {number * 100 // len(steps):>3}%  {tr(label)}{extra} [dim]{ms:.0f} ms[/dim]")
         if status == "fail" and label == "Checking dependencies":
             console.print("[bold red]Cannot continue without internet to install missing packages.[/bold red]")
             sys.exit(1)
@@ -387,6 +471,9 @@ def boot_sequence(debug):
     total_ms = (time.perf_counter() - started) * 1000
     bootlog.save_boot(record, total_ms, pause * len(steps) * 1000)
 
+    if detailed:
+        console.print(f"{_stamp()} {MARKS['ok']} Reached target PythonOS Multi-User System.")
+        console.print(f"{_stamp()} Startup finished in {total_ms / 1000:.3f}s (steps) + {seconds_since_start() - total_ms / 1000:.3f}s (loading).")
     console.print("[bold green]" + tr("System ready!") + "[/bold green]")
     time.sleep(min(0.8, pause * 2.3))
     os.system("cls" if os.name == "nt" else "clear")

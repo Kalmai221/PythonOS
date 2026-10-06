@@ -16,6 +16,7 @@ SCHEMA = {
     "theme": ("default", ("default", "ocean", "forest", "sunset", "mono", "contrast"), "Colour theme"),
     "prompt_style": ("full", ("full", "short", "minimal"), "Prompt: full user@host:path$, short path$, or minimal $"),
     "boot_speed": ("normal", ("normal", "fast", "instant"), "How long the boot animation takes"),
+    "boot_style": ("detailed", ("detailed", "classic"), "Boot and shutdown screens: detailed (a log with times, like a real system) or classic (progress bars)"),
     "clock_24h": (True, bool, "Show times as 24-hour (off = 12-hour)"),
     "notifications": (True, bool, "Show notifications before the prompt"),
     "update_check": (True, bool, "Check for PythonOS updates in the background after login"),
