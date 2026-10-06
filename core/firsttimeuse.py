@@ -117,11 +117,15 @@ def _persistent_storage():
     console.print(Panel("The live system forgets everything when it is switched off. A USB stick or spare disk can keep your "
                         "account, files and settings. (You can also do this later with [bold]persist create[/bold].)"
                         + (f"\n\n[bold]Found:[/bold] {escape(found)}" if found else
-                           "\n\n[dim]No suitable disk was found. Plug in a USB stick (not the one PythonOS started from) to use this.[/dim]"),
+                           "\n\n[dim]No suitable disk was found. Plug in a USB stick (not the one PythonOS started from) to use this. "
+                           "In a virtual machine, add a second (empty) virtual disk, then run [bold]persist create[/bold].[/dim]"),
                         border_style=theme.style("border"), expand=False))
     if not found:
         return
-    if Confirm.ask("Set up persistent storage now?", default=False):
+    blank = not device.get("fstype") and not device.get("label")        # an empty disk: nothing on it to lose, so yes is the sensible default
+    if blank:
+        console.print("[dim]It is empty, so nothing on it will be lost.[/dim]")
+    if Confirm.ask("Set up persistent storage now?", default=blank):
         try:
             persist.create(device["path"] if device else None)
         except (KeyboardInterrupt, EOFError):
