@@ -825,9 +825,71 @@ def update_packaged(current, auto_update):
     return updated
 
 
+def system_packages_available():
+    """Why the system packages (Alpine's apk) cannot be updated here, or None. They exist on the ISO / VM images and installed systems."""
+    if not sys.platform.startswith("linux") or not shutil.which("apk") or not (os.environ.get("PYOS_LIVE") == "1" or os.environ.get("PYOS_INSTALLED") == "1"):
+        return "no system packages of its own here"
+    if not hasattr(os, "geteuid") or os.geteuid() != 0:
+        return "needs root"
+    return None
+
+
+def upgradable(output):
+    """Package names from `apk list -u` output (lines like 'busybox-1.36.1-r5 x86_64 {busybox} (GPL-2.0-only) [upgradable from: busybox-1.36.1-r4]')."""
+    names = []
+    for line in (output or "").splitlines():
+        line = line.strip()
+        if "upgradable" in line and line.split(" ")[0]:
+            names.append(re.sub(r"-\d.*$", "", line.split(" ")[0]))
+    return names
+
+
+def update_system_packages():
+    """Part of `updatecheck` on the ISO / VM images: refresh the system package lists (apk update) and offer the waiting upgrades
+    (apk upgrade). On the live system the root is memory, so upgrades last until the restart, and the person is told; on an installed
+    system they are kept."""
+    if system_packages_available():
+        return
+    from core import hardware
+    live = os.environ.get("PYOS_LIVE") == "1" and not os.environ.get("PYOS_INSTALLED")
+    console.print("[bold cyan]Checking the system packages (the Linux underneath)...[/bold cyan]")
+    code, out = hardware.run(["apk", "update"], timeout=180, merge=True)
+    if code != 0:
+        console.print(f"[yellow]Could not refresh the system package lists (no internet?): {escape_text(out)}[/yellow]")
+        return
+    code, out = hardware.run(["apk", "list", "-u"], timeout=60, merge=True)
+    names = upgradable(out) if code == 0 else []
+    if not names:
+        console.print("[green]The system packages are up to date.[/green]")
+        return
+    shown = ", ".join(names[:8]) + (f" and {len(names) - 8} more" if len(names) > 8 else "")
+    console.print(f"[bold]{len(names)} system package(s) can be upgraded:[/bold] {shown}")
+    if live:
+        console.print("[yellow]This system runs from memory: the upgrades last until it is switched off, and they use memory (about the size "
+                      "of the download). Install the newer image to keep them.[/yellow]")
+    if not Confirm.ask("Upgrade the system packages now?", default=not live):
+        return
+    code, out = hardware.run(["apk", "upgrade", "--no-progress"], timeout=1800, merge=True)
+    if code == 0:
+        console.print("[bold green]System packages upgraded.[/bold green]" + (" They are used again after a restart." if not live else ""))
+    else:
+        console.print(f"[bold red]The upgrade did not finish:[/bold red] {escape_text(out)}")
+
+
+def escape_text(text):
+    from rich.markup import escape
+    lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
+    return escape(" | ".join(lines[-3:])[:300])
+
+
 def update_system(auto_update=False):
     packaged = packaged_version()
     if packaged:
+        if not auto_update:
+            try:
+                update_system_packages()
+            except Exception as e:                       # noqa: BLE001 - the core update below must still run
+                console.print(f"[dim]System packages skipped: {e}[/dim]")
         return update_packaged(packaged, auto_update)
     base_path = Path.cwd()  # Detect current working directory dynamically
     console.print(f"[bold blue]Working directory detected as:[/bold blue] {base_path}\n")

@@ -5,6 +5,8 @@ One section per release, newest first. The section for a version is shown to use
 
 ## 1.0.8 (continued)
 
+- `updatecheck` on the ISO / VM images and installed systems now also refreshes the system package lists (`apk update`) and offers the waiting upgrades (`apk upgrade`) before the PythonOS update. On the live system the upgrades last until it is switched off (it says so, and the default is no); on an installed system they are kept.
+
 - `installos` shows the real reason when the installer fails (the tool's error output was being dropped), keeps the full output in `/tmp/pythonos-install.log`, and checks before erasing anything that the package repositories can be reached.
 
 - `installos` works in the VM images, which have only a boot disk and a data disk: the data disk can now be chosen as the target (with a clear warning that its saved files and accounts are erased; they are released first so the session keeps working), and when no disk can be used it lists every disk and why, and how to add one.
