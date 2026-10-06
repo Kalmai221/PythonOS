@@ -834,26 +834,35 @@ def display_setup():
         console.print("[dim]No console fonts are installed here, so the text size cannot be changed.[/dim]")
     modes = display_modes()
     if modes and have("fbset"):
-        console.print("Resolutions this screen offers: " + ", ".join(modes[:10]))
+        console.print("Resolutions this screen offers: " + ", ".join(modes[:10]) + "   (the display command sets one directly)")
         want = Prompt.ask("Resolution to try, like 1280x720 (blank to keep it)", default="").strip()
         if want:
-            if want not in modes:
-                console.print("[yellow]The screen does not list that resolution.[/yellow]")
-            else:
-                w, h = want.split("x")
-                before = screen_size()
-                run(["fbset", "-xres", w, "-yres", h, "-vxres", w, "-vyres", h], timeout=10)
-                if screen_size() == (int(w), int(h)):
-                    prefs = load_prefs().get("display", {})
-                    prefs["mode"] = want
-                    save_pref("display", prefs)
-                    console.print(f"[green]Resolution: {want}.[/green]")
-                else:
-                    console.print("[yellow]This display only works at its native resolution (the graphics driver ignored the "
-                                  f"request).[/yellow] Staying at {before[0]}x{before[1]}." if before else "[yellow]Not changed.[/yellow]")
+            console.print(set_resolution(want)[1])
     elif modes:
         console.print("[dim]The resolution can only be changed with the fbset tool, which is not installed.[/dim]")
     return True
+
+
+def set_resolution(want, save=True):
+    """Try to change the console resolution. Returns (changed, a message in rich markup)."""
+    modes = display_modes()
+    if not have("fbset"):
+        return False, "[yellow]The resolution can only be changed with the fbset tool, which is not installed here.[/yellow]"
+    if not re.fullmatch(r"\d{3,5}x\d{3,5}", want or ""):
+        return False, "[yellow]Give a resolution like 1280x720.[/yellow]"
+    if modes and want not in modes:
+        return False, "[yellow]The screen does not list that resolution.[/yellow] It offers: " + ", ".join(modes[:10])
+    w, h = want.split("x")
+    before = screen_size()
+    run(["fbset", "-xres", w, "-yres", h, "-vxres", w, "-vyres", h], timeout=10)
+    if screen_size() == (int(w), int(h)):
+        if save:
+            prefs = load_prefs().get("display", {})
+            prefs["mode"] = want
+            save_pref("display", prefs)
+        return True, f"[green]Resolution: {want}.[/green]"
+    return False, ("[yellow]This display only works at its native resolution (the graphics driver ignored the request).[/yellow] "
+                   + (f"Staying at {before[0]}x{before[1]}. In a virtual machine, change the size of its window or its display setting instead." if before else "Not changed."))
 
 
 # --------------------------------------------------------------------- printer
@@ -963,6 +972,8 @@ def apply_saved():
         display = prefs.get("display") or {}
         if display.get("font"):
             apply_font(display["font"])
+        if display.get("mode") and have("fbset"):
+            set_resolution(display["mode"], save=False)
         for mac in prefs.get("bluetooth", []):
             if have("bluetoothctl") and MAC_RE.match(mac):
                 threading.Thread(target=run, args=(["bluetoothctl", "connect", mac], 30), daemon=True).start()

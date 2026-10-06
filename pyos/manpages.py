@@ -247,6 +247,11 @@ page("whatsnew", "what the last update changed", ["whatsnew"],
      "Shows the release notes and the files that changed in the last update. It also appears by itself the first time PythonOS "
      "starts after an update. Updates download only the files that changed and carry on where they stopped if the connection drops.",
      see=["updatecheck", "rollback", "version"])
+page("display", "change the screen resolution and text size (live ISO and VMs)",
+     ["display", "display list", "display 1280x720", "display font"],
+     "Shows the console resolution and the ones the screen offers, and sets one (display 1280x720); it is remembered and applied at the next boot. "
+     "Some graphics drivers (most virtual machines) only run at the window size: then resize the VM window or its display setting. display font changes the text size.",
+     [], ["hwsetup"]),
 page("hwsetup", "hardware, audio, network, Bluetooth, display and printer setup",
      ["hwsetup", "hwsetup check|audio|network|keyboard|timezone|bluetooth|display|printer"],
      "On the live ISO (and any Linux system as root): check devices, drivers and firmware; choose and test the sound output "
