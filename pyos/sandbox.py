@@ -96,6 +96,8 @@ def launch(script_path, args, folder, meta):
     (not the environment) so it also works where scripts are run inside the host process (the Android app)."""
     env = dict(os.environ)
     env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
+    from . import marketapi
+    env["PYOS_PACKAGE_API"] = str(marketapi.package_api(meta))      # the marketplace API the app was written for (the app can branch on it)
     runner = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sandbox_run.py")
     cmd = [sys.executable, runner, "--perms", ",".join(effective(folder, meta)), "--dir", os.path.abspath(folder),
            "--id", package_id(folder), "--", os.path.abspath(script_path), *(args or [])]

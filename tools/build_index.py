@@ -10,6 +10,10 @@ Required: permissions (a list; [] for an app that needs nothing special). Option
 version ranges such as "utilities/notes>=1.1"), optional (nice-to-have packages), categories, changelog (a string or {version: notes}),
 featured (true).
 
+Marketplace API versions (pyos/marketapi.py): a package may say "api": N in its data.json (default 1). The catalog is published as
+index-api<N>.json for every N up to the current API (each lists the packages written for API N or older), and index.json is the API 1
+catalog that the oldest systems still read.
+
 Each package is a folder online_packages/<category>/<name>/ containing a data.json
 (name, description, version, command, alias, tags, scripts) plus its files.
 """
@@ -90,7 +94,17 @@ def load_categories():
         return []
 
 
+def load_marketapi():
+    """pyos/marketapi.py loaded from its file (importing the pyos package would need rich and the other OS dependencies)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("marketapi", os.path.join(os.path.dirname(ROOT), "pyos", "marketapi.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def main():
+    marketapi = load_marketapi()
     packages = []
     for category in sorted(os.listdir(ROOT)):
         cat_dir = os.path.join(ROOT, category)
@@ -107,7 +121,11 @@ def main():
             except ValueError as e:
                 sys.exit(f"{meta_path}: invalid JSON ({e})")
             check_settings(meta, f"{category}/{name}")
+            api = marketapi.package_api(meta)
+            if str(meta.get("api", api)) != str(api) or not marketapi.OLDEST <= api <= marketapi.CURRENT:
+                sys.exit(f"{category}/{name}: data.json 'api' must be a whole number from {marketapi.OLDEST} to {marketapi.CURRENT} (the marketplace API versions that exist)")
             packages.append({
+                "api": api,
                 "id": f"{category}/{name}",
                 "category": category,
                 "name": meta.get("name", name),
@@ -144,12 +162,25 @@ def main():
             ref = re.split(r"[<>=!,\s]", spec, maxsplit=1)[0]
             if not any(ref in (i, i.split("/")[-1]) for i in ids):
                 sys.exit(f"{p['id']}: requires '{spec}' which is not in the catalog")
-    index = {"format": 2, "categories": load_categories(), "packages": packages}
-    out = os.path.join(ROOT, "index.json")
-    with open(out, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(index, f, indent=2)
-        f.write("\n")
-    print(f"Wrote {out} ({len(packages)} packages)")
+    # one catalog per API version: the packages written for that version or older. index.json is API 1 and stays readable by every
+    # system ever released; a newer catalog layout goes in index-api<N>.json only.
+    categories = load_categories()
+    names = {1: "index.json"}
+    for version in range(1, marketapi.CURRENT + 1):
+        names[version] = names.get(version) or f"index-api{version}.json"
+    written = []
+    for version in range(1, marketapi.CURRENT + 1):
+        listed = [p for p in packages if p["api"] <= version]
+        index = {"format": 2, "api": version, "categories": categories, "packages": listed}
+        files = [names[version]] + (["index-api1.json"] if version == 1 else [])
+        for name in files:
+            out = os.path.join(ROOT, name)
+            with open(out, "w", encoding="utf-8", newline="\n") as f:
+                json.dump(index, f, indent=2)
+                f.write("\n")
+            written.append((name, len(listed)))
+    for name, count in written:
+        print(f"Wrote {os.path.join(ROOT, name)} ({count} packages)")
 
 
 if __name__ == "__main__":

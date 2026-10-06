@@ -32,6 +32,17 @@ except ImportError:  # running outside PythonOS
         set_granted = staticmethod(lambda pid, perms: None)
         forget = staticmethod(lambda pid: None)
 
+try:
+    from pyos import marketapi
+except ImportError:  # running outside PythonOS: the API 1 rules
+    class marketapi:  # noqa: N801
+        CURRENT = OLDEST = 1
+        index_names = staticmethod(lambda: ["index.json"])
+        package_api = staticmethod(lambda meta: 1)
+        index_api = staticmethod(lambda index: 1)
+        compatibility = staticmethod(lambda meta: (True, ""))
+        usable = staticmethod(lambda packages: (packages, 0))
+
 config = {
     "name": "marketplace",
     "description": "Find, install, update and remove packages (marketplace search <term>).",
@@ -43,7 +54,7 @@ REPO_OWNER = "Kalmai221"
 REPO_NAME = "PythonOS"
 BRANCH = "main"
 RAW_BASE = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/online_packages"
-INDEX_URL = f"{RAW_BASE}/index.json"
+INDEX_URL = f"{RAW_BASE}/index.json"                       # the API 1 catalog, readable by every PythonOS ever released
 CACHE_FILE = Path(".OSData") / "market_index.json"
 META_FILE = Path(".OSData") / "package_meta.json"          # why each package is installed (asked for, or needed by another)
 BACKUP_DIR = Path(".OSData") / "package_backups"           # the version before the last update of each package (pkg rollback)
@@ -72,20 +83,42 @@ def http_get(url):
     return response
 
 
+def fetch_index():
+    """The catalog for this PythonOS's marketplace API: the file of its own version first (index-api<N>.json), then index.json
+    (a server that does not publish the versioned files yet). Only a missing file moves on to the next one."""
+    last = None
+    for name in marketapi.index_names():
+        try:
+            return http_get(f"{RAW_BASE}/{name}").json()
+        except requests.HTTPError as e:
+            last = e
+            if e.response is None or e.response.status_code != 404:
+                raise
+    raise last
+
+
+def usable_packages(index):
+    """The packages of a catalog this system can run. Says so when some were left out (they need a newer PythonOS)."""
+    packages, left_out = marketapi.usable(index["packages"])
+    if left_out or marketapi.index_api(index) > marketapi.CURRENT:
+        console.print(f"[dim]{left_out} app(s) are not shown: they need a newer PythonOS (update it with: updatecheck).[/dim]")
+    return packages
+
+
 def load_index():
     """Fetch the package catalog, falling back to the last copy we saw when offline."""
     try:
         with console.status("Contacting the marketplace..."):
-            index = http_get(INDEX_URL).json()
+            index = fetch_index()
         CACHE_FILE.parent.mkdir(exist_ok=True)
         CACHE_FILE.write_text(json.dumps(index), encoding="utf-8")
         CATALOG["categories"] = index.get("categories", [])
-        return index["packages"], False
+        return usable_packages(index), False
     except (requests.RequestException, ValueError, KeyError) as e:
         try:
             cached_index = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
             CATALOG["categories"] = cached_index.get("categories", [])
-            cached = cached_index["packages"]
+            cached = marketapi.usable(cached_index["packages"])[0]
             console.print("[yellow]Could not reach the marketplace; showing the last catalog we saw "
                           "(installing needs internet).[/yellow]")
             return cached, True
@@ -306,7 +339,7 @@ def show_details(pkg, installed):
     lines = [
         escape(pkg.get("description", "")),
         "",
-        f"[bold]Version:[/bold]  {pkg['version']}",
+        f"[bold]Version:[/bold]  {pkg['version']}" + (f"  [dim](marketplace API {marketapi.package_api(pkg)})[/dim]" if marketapi.package_api(pkg) > 1 else ""),
         f"[bold]Category:[/bold] {', '.join(category_title(c) for c in pkg.get('categories', [pkg['category']]))}",
         f"[bold]Start with:[/bold] [cyan]run {pkg['command']}[/cyan]" if pkg.get("command") else "[bold]Start with:[/bold] run programs",
         f"[bold]Tags:[/bold]     {', '.join(pkg.get('tags', [])) or '-'}",
@@ -363,6 +396,10 @@ def run_script(folder, meta, key, label):
 
 def install_package(pkg, installed, quiet=False, reason="you asked for it", grant=None):
     """Download into a temporary folder, verify every file, then swap into place. grant: the permissions to record."""
+    fits, why = marketapi.compatibility(pkg)
+    if not fits:
+        console.print(f"[yellow]{escape(pkg['name'])} cannot be installed: {escape(why)}[/yellow]")
+        return False
     if lockdown.enabled() and not pkg.get("lockdown_safe"):
         console.print(f"[yellow]{escape(pkg['name'])} cannot be installed on this locked-down system "
                       "(it is not marked as safe for it).[/yellow]")
@@ -908,7 +945,8 @@ def check_updates_quietly(user=None, force=False):
         installed = installed_packages()
         if not installed:
             return 0
-        index = http_get(INDEX_URL).json()
+        index = fetch_index()
+        index["packages"] = marketapi.usable(index["packages"])[0]
         CATALOG["categories"] = index.get("categories", [])
         waiting = sorted(p["id"] for p in index["packages"] if status_of(p, installed) == "update")
         state["last"] = time.time()

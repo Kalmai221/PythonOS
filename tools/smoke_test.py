@@ -117,6 +117,40 @@ def run(root):
         print(f"FAIL sandbox accepts bytes paths   <- {type(e).__name__}: {e}")
         failures.append(("sandbox bytes paths", [f"{type(e).__name__}: {e}"], ""))
 
+    # the marketplace API versions: what a system can run, and which catalog file it asks for
+    try:
+        import importlib.util
+        import requests
+        from pyos import marketapi
+        assert marketapi.compatibility({})[0] and marketapi.compatibility({"api": marketapi.CURRENT})[0]
+        assert not marketapi.compatibility({"api": marketapi.CURRENT + 1})[0], "a newer package must be refused"
+        assert marketapi.package_api({"api": "x"}) == 1 and marketapi.package_api(None) == 1
+        assert marketapi.index_names()[-1] == "index.json" and marketapi.index_names(3)[0] == "index-api3.json"
+        assert marketapi.usable([{"api": 1}, {"api": marketapi.CURRENT + 1}])[1] == 1
+        spec = importlib.util.spec_from_file_location("marketplace_api_test", os.path.join("programs", "marketplace.py"))
+        market = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(market)
+        asked = []
+
+        def fake_get(url):
+            asked.append(url.rsplit("/", 1)[-1])
+            if url.endswith(marketapi.index_names()[0]):          # the versioned file is not on the server yet
+                response = requests.Response()
+                response.status_code = 404
+                raise requests.HTTPError("404", response=response)
+
+            class Reply:
+                @staticmethod
+                def json():
+                    return {"api": 1, "packages": []}
+            return Reply()
+        market.http_get = fake_get
+        assert market.fetch_index() == {"api": 1, "packages": []} and asked == marketapi.index_names(), asked
+        print("ok   marketplace API versions")
+    except Exception as e:                           # noqa: BLE001
+        print(f"FAIL marketplace API versions   <- {type(e).__name__}: {e}")
+        failures.append(("marketplace API", [f"{type(e).__name__}: {e}"], ""))
+
     # the boot steps themselves
     from core import boot, whathappened  # noqa: F401
     steps = boot.boot_steps("No")

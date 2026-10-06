@@ -107,6 +107,8 @@ PyOS behaves like a small Unix-style system:
 
 Adding a marketplace package: put it in `online_packages/<category>/<name>/` with a `data.json` (name, description, version, command, permissions, categories, tags, scripts; optional `settings` for an options page), then run `python tools/build_index.py` and commit the regenerated `online_packages/index.json`.
 
+**Marketplace API versions.** The marketplace is versioned (`pyos/marketapi.py`) so it can change without breaking systems already out there. A package may say `"api": N` in its `data.json` (default 1); the catalog is published as `index-api<N>.json` for every version (each lists the packages written for that version or older) while `index.json` stays the API 1 catalog for the oldest systems. A PythonOS asks for the file of its own version, falls back to `index.json`, and refuses (with a clear message) packages that need a newer API. To change the marketplace in a way old systems cannot follow: raise `CURRENT` in `marketapi.py`, add an adapter for the old version, run `python tools/build_index.py`, and mark the packages that need the new behaviour with the new `api`.
+
 Pull requests are welcome! Whether you're improving code, fixing bugs, or adding features, feel free to get involved.
 
 ---

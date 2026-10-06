@@ -89,6 +89,10 @@ def make_execute_func(script_path, folder=None, meta=None):
         if not os.path.exists(script_path):
             console.print(f"[bold red]Run script not found:[/bold red] {script_path}")
             return False
+        fits, why = pyos.marketapi.compatibility(meta)
+        if not fits:                                       # for example after going back to an older PythonOS
+            console.print(f"[bold red]This app cannot run:[/bold red] {escape(why)}")
+            return False
         # Packages can `import pyos` (settings, notifications, the sandboxed filesystem, ...)
         if folder is not None:
             cmd, env = pyos.sandbox.launch(script_path, args, folder, meta or {})
