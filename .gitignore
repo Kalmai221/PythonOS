@@ -162,18 +162,13 @@ cython_debug/
 
 current_directory.txt
 current_user.json
-generated-icon.pny
 users.json
 .OSData/
+.ruff_cache/
+.pylint.d/
 
 # User Files
 files/
-
-# Replit files
-
-.replit
-replit.nix
-.prettierignore
 
 # Build output (OS_Export)
 dist/
