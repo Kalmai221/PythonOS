@@ -499,6 +499,7 @@ namespace PythonOS.Setup
                 if (Array.IndexOf(KeepNames, name) >= 0 && (File.Exists(dest) || Directory.Exists(dest))) continue;
                 if (Directory.Exists(entry)) CopyDirectory(entry, dest); else File.Copy(entry, dest, true);
             }
+            SyncConfigVersion(Path.Combine(source, "config.json"), Path.Combine(target, "config.json"));
             Directory.Delete(stage, true);
             progress("install", 1.0, "");
 
@@ -507,6 +508,22 @@ namespace PythonOS.Setup
             string uninstaller = Path.Combine(target, "Uninstall.exe");
             if (!string.Equals(Path.GetFullPath(self), Path.GetFullPath(uninstaller), StringComparison.OrdinalIgnoreCase)) File.Copy(self, uninstaller, true);
             Register(target, rel.Version, uninstaller);
+        }
+
+        // config.json is kept (it holds the settings), but its version belongs to the package: bring it up to date so the OS reports the new version.
+        private static void SyncConfigVersion(string packaged, string installed)
+        {
+            try
+            {
+                if (!File.Exists(packaged) || !File.Exists(installed)) return;
+                string pattern = @"""version""\s*:\s*""([^""]*)""";
+                System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(File.ReadAllText(packaged), pattern);
+                if (!m.Success) return;
+                string text = File.ReadAllText(installed);
+                string fixedText = System.Text.RegularExpressions.Regex.Replace(text, pattern, "\"version\": \"" + m.Groups[1].Value + "\"");
+                if (fixedText != text) File.WriteAllText(installed, fixedText);
+            }
+            catch (Exception ex) { Log.Write("could not update the version in config.json: " + ex.Message); }
         }
 
         private static void ExtractZip(string zip, string dest)

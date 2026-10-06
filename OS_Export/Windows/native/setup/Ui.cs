@@ -42,7 +42,7 @@ namespace PythonOS.Setup
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(660, 470);
+            ClientSize = new Size(660, 510);
             BackColor = p.Bg;
             DoubleBuffered = true;
             Font = new Font("Segoe UI", 10f);
@@ -52,9 +52,9 @@ namespace PythonOS.Setup
             title.SetBounds(32, 22, 532, 40);
             sub = new Label(); sub.Font = new Font("Segoe UI", 10f); sub.ForeColor = p.Muted; sub.BackColor = p.Bg;
             sub.SetBounds(34, 66, 590, 44);
-            body.SetBounds(32, 120, 596, 270); body.BackColor = p.Bg;
-            primary = new ModernButton(p, "", true); primary.SetBounds(508, 412, 120, 40);
-            secondary = new ModernButton(p, "", false); secondary.SetBounds(378, 412, 120, 40);
+            body.SetBounds(32, 118, 596, 320); body.BackColor = p.Bg;
+            primary = new ModernButton(p, "", true); primary.SetBounds(508, 452, 120, 40);
+            secondary = new ModernButton(p, "", false); secondary.SetBounds(378, 452, 120, 40);
             Controls.AddRange(new Control[] { title, sub, body, primary, secondary });
             primary.Click += delegate { OnPrimary(); };
             secondary.Click += delegate { OnSecondary(); };
@@ -193,8 +193,8 @@ namespace PythonOS.Setup
             for (int i = 0; i < keys.Length; i++) names[i] = Strings.T("step." + keys[i]);
             Reset("progress", Strings.T(o.Mode == "repair" ? "repair" : o.Mode == "update" ? "update" : "install") + " PythonOS", "");
             steps = new StepList(p); steps.SetBounds(0, 0, 596, 7 * 32 + 4); steps.Set(keys, names); body.Controls.Add(steps);
-            bar = new ModernProgress(p); bar.SetBounds(0, 7 * 32 + 22, 596, 10); body.Controls.Add(bar);
-            detail = Small(""); detail.SetBounds(0, 7 * 32 + 40, 596, 22); body.Controls.Add(detail);
+            bar = new ModernProgress(p); bar.SetBounds(0, 7 * 32 + 18, 596, 10); body.Controls.Add(bar);
+            detail = Small(""); detail.SetBounds(0, 7 * 32 + 36, 596, 44); detail.AutoEllipsis = true; body.Controls.Add(detail);
             primary.Visible = false;
             secondary.Text = Strings.T("cancel");
             Run();
