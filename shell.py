@@ -719,6 +719,9 @@ def start_shell(username):
         if not line:
             continue
 
+        style = settings.get("clear_style")
+        if line.split()[0] not in ("clear", "cls") and (style == "always" or (style == "overflow" and stdio.overflowed())):
+            stdio.clear_screen(scrollback=False)        # the last output has been read: start the next command on a clean screen
         try:
             run_line(line)
         except ExitShell:

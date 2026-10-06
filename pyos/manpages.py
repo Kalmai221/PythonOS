@@ -116,7 +116,7 @@ page("run", "start a program", ["run <program> [args]"],
 page("reload", "re-read commands and programs", ["reload"], "Use after installing a package that added commands.")
 page("exit", "leave the shell", ["exit"], "Logs you out.", see=["logout", "shutdown"])
 page("clear", "clear the screen", ["clear [-x]"], "Wipes the terminal and its scrollback so old output stops piling up. Use -x to keep the scrollback. "
-     "The screen also tidies itself before a prompt once 300 lines have printed (settings auto_clear_lines, 0 = never), and a full-screen program or menu "
+     "The screen is also cleared before a command when the last one filled it (settings clear_style: off, overflow or always), and tidies itself before a prompt once 300 lines have printed (settings auto_clear_lines, 0 = never), and a full-screen program or menu "
      "starts on a clean screen (settings clear_screens).",
      [("-x", "keep the scrollback")], [("clear", "wipe it all"), ("settings set auto_clear_lines 300", "tidy automatically")], ["settings"])
 page("echo", "print text", ["echo <text>"], "Prints its words.", examples=[("echo hello > hi.txt", "write a file")])
