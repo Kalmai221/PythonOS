@@ -76,6 +76,18 @@ fi
 
 mkdir -p /var/log
 echo "$(date '+%Y-%m-%d %H:%M:%S') PythonOS stopped with exit code $code" >> /var/log/pythonos-crash.log
+
+# Three stops within two minutes: open the emergency console (read-only: logs, crash reports, a zip of them for a USB stick; never a shell)
+now="$(date +%s)"
+echo "$now" >> /tmp/pythonos-stops
+recent=0
+while read -r stamp; do
+    [ $((now - stamp)) -le 120 ] && recent=$((recent + 1))
+done < /tmp/pythonos-stops
+if [ "$recent" -ge 3 ]; then
+    : > /tmp/pythonos-stops
+    python3 -c "from core import emergency; emergency.run()"
+fi
 echo
 echo "PythonOS stopped unexpectedly (code $code). Restarting..."
 sleep 3

@@ -105,7 +105,7 @@ def memory_state(total=None):
 
 def light_mode():
     """True when background extras should be skipped: the light_mode setting, PYOS_LIGHT=1, or the memory check set it."""
-    if os.environ.get("PYOS_LIGHT") == "1":
+    if os.environ.get("PYOS_LIGHT") == "1" or os.environ.get("PYOS_SAFE") == "1":
         return True
     try:
         from pyos import settings
@@ -115,32 +115,57 @@ def light_mode():
 
 
 # ------------------------------------------------------------------------------------------ diagnostics key
-def key_pressed(letter="d", seconds=1.5):
-    """Wait up to `seconds` for the key; True if it was pressed. Only on a real terminal (never blocks scripts or pipes)."""
+def keys_pressed(letters="d", seconds=1.5):
+    """Wait up to `seconds` for one of the keys in `letters`; returns the one pressed (lower case) or None. Only on a real terminal (never
+    blocks scripts or pipes)."""
+    letters = letters.lower()
     try:
         if not sys.stdin.isatty():
-            return False
+            return None
+    except Exception:
+        return None
+    if os.name == "nt":
+        try:
+            import msvcrt
+            end = time.time() + seconds
+            while time.time() < end:
+                if msvcrt.kbhit():
+                    key = msvcrt.getwch().lower()
+                    if key in letters:
+                        return key
+                time.sleep(0.03)
+        except Exception:
+            pass
+        return None
+    try:
         import termios
         import tty
         fd = sys.stdin.fileno()
         old = termios.tcgetattr(fd)
     except Exception:
-        return False
+        return None
     try:
         tty.setcbreak(fd)
         end = time.time() + seconds
         while time.time() < end:
             ready, _, _ = select.select([sys.stdin], [], [], max(0.0, end - time.time()))
-            if ready and sys.stdin.read(1).lower() == letter:
-                return True
-        return False
+            if ready:
+                key = sys.stdin.read(1).lower()
+                if key in letters:
+                    return key
+        return None
     except Exception:
-        return False
+        return None
     finally:
         try:
             termios.tcsetattr(fd, termios.TCSADRAIN, old)
         except Exception:
             pass
+
+
+def key_pressed(letter="d", seconds=1.5):
+    """Wait up to `seconds` for the key; True if it was pressed."""
+    return keys_pressed(letter, seconds) == letter.lower()
 
 
 # ------------------------------------------------------------------------------------------ diagnostics report

@@ -49,7 +49,7 @@ def _set_status(code):
 def load_installed_packages(base_path="files"):
     """Load commands from all data.json files under 'files/installed_*' recursively."""
     installed = {}
-    if not os.path.isdir(base_path):
+    if not os.path.isdir(base_path) or os.environ.get("PYOS_SAFE") == "1":     # safe mode: only the system itself
         return installed
 
     # Loop over directories like files/installed_developer, files/installed_games, etc.

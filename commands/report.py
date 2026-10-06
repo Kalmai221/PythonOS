@@ -27,11 +27,21 @@ def _open_link(link):
 def execute(args=None):
     args = list(args or [])
     text = " ".join(a for a in args if not a.startswith("-"))
+    waiting = None
     try:
-        if not text:
-            text = Prompt.ask("What went wrong? (one or two sentences, or leave blank)", default="")
-        body = report.redact(report.build(text, include_log="--no-log" not in args))
-        title = text.strip().splitlines()[0][:70] if text.strip() else "Problem report"
+        if "--pending" in args:
+            found = report.pending()
+            if not found:
+                console.print("[green]No crash reports are waiting.[/green]")
+                return True
+            waiting = found[-1][1]
+            title, body = report.read_pending(waiting)
+            console.print(f"[dim]{len(found)} waiting; this is the newest ({escape(found[-1][0])}). It was written when PythonOS crashed, so it works without a network.[/dim]")
+        else:
+            if not text:
+                text = Prompt.ask("What went wrong? (one or two sentences, or leave blank)", default="")
+            body = report.redact(report.build(text, include_log="--no-log" not in args))
+            title = text.strip().splitlines()[0][:70] if text.strip() else "Problem report"
         console.print(Panel(escape(body), title="[bold]This is everything the report contains[/bold]", border_style="blue"))
         console.print("[dim]Names, home folders, email and IP addresses were replaced. Nothing is sent unless you choose below.[/dim]")
         relay = str(settings.get("report_relay") or "")
@@ -43,6 +53,9 @@ def execute(args=None):
         return False
 
     stamp = time.strftime("%Y%m%d-%H%M%S")
+    if waiting and pick == "n":
+        console.print("[yellow]Nothing was sent. The report stays in the waiting list.[/yellow]")
+        return True
     if pick in ("l", "f"):
         path = fs.resolve(f"~/problem-report-{stamp}.txt", write=True)
         with open(path, "w", encoding="utf-8") as f:
@@ -67,4 +80,6 @@ def execute(args=None):
             return False
     else:
         console.print("[yellow]Nothing was sent or saved.[/yellow]")
+    if waiting and pick in ("l", "f", "s"):
+        report.finish_pending(waiting)                 # handled: it leaves the waiting list
     return True

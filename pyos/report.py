@@ -84,6 +84,50 @@ def build(description="", include_log=True):
     return "\n\n".join(parts) + "\n"
 
 
+def pending_folder():
+    import pyos
+    return os.path.join(pyos.fs.BASE_DIR, "var", "reports")
+
+
+def save_pending(summary):
+    """After a crash: write a redacted, ready-to-send report to files/var/reports (it needs no network). Returns the path, or None."""
+    try:
+        folder = pending_folder()
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, f"pending-{time.strftime('%Y%m%d-%H%M%S')}.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(summary.strip().splitlines()[0][:100] + "\n\n" + redact(build(summary)))
+        return path
+    except Exception:                                  # noqa: BLE001 - a crash must never fail while reporting itself
+        return None
+
+
+def pending():
+    """[(name, path)] of the reports waiting to be sent, oldest first."""
+    try:
+        folder = pending_folder()
+        return [(n, os.path.join(folder, n)) for n in sorted(os.listdir(folder)) if n.startswith("pending-") and n.endswith(".txt")]
+    except OSError:
+        return []
+
+
+def read_pending(path):
+    """(title, body) of a pending report file."""
+    with open(path, encoding="utf-8") as f:
+        first, _, rest = f.read().partition("\n\n")
+    return first.strip() or "Crash report", rest
+
+
+def finish_pending(path):
+    """Move a handled report out of the waiting list (into var/reports/done)."""
+    try:
+        done = os.path.join(os.path.dirname(path), "done")
+        os.makedirs(done, exist_ok=True)
+        os.replace(path, os.path.join(done, os.path.basename(path)))
+    except OSError:
+        pass
+
+
 def redact(text):
     """Remove what identifies the person: account names, home folders, email addresses, IP addresses, host name."""
     try:

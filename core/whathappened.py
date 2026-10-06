@@ -55,6 +55,12 @@ def describe(previous=None):
     if lines:
         details.append("What it was doing at the end (from the system log):")
         details.extend("  " + line for line in lines)
+    try:
+        from pyos import report as problem_report
+        if problem_report.pending():
+            details.append(f"A crash report is ready to send when you are online: report --pending ({len(problem_report.pending())} waiting).")
+    except Exception:                                  # noqa: BLE001
+        pass
     details.append("Next steps: doctor (check for problems), logs --crashes, or report (prepare a problem report to send).")
     return headline, details
 

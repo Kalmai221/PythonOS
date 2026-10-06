@@ -154,6 +154,8 @@ def start_all(user, light_mode=False):
     for name, service in list(_defs.items()):
         if name in off or (light_mode and service.skip_in_light_mode):
             continue
+        if service.oneshot and os.environ.get("PYOS_SAFE") == "1":
+            continue                                    # safe mode: no update checks, no startup commands
         if start(name, user)[0]:
             started.append(name)
     return started

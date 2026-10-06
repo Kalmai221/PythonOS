@@ -89,10 +89,24 @@ try:
         debug = "No"
         console.print("[bold yellow]Debug Mode Setting is not defined. Defaulting to Disabled.[/bold yellow]")
     diagnostics = False
+    start_mode = "normal"
+    if "--safe" in sys.argv or os.path.exists(os.path.join(".OSData", "safemode")):
+        start_mode = "safe"
+    if "--emergency" in sys.argv:
+        from core import emergency
+        emergency.run()
+    if "--menu" in sys.argv:
+        from core import bootmenu
+        start_mode = bootmenu.show()
+    diagnostics = start_mode == "diagnostics"
     if os.environ.get("PYOS_LIVE") == "1" or os.environ.get("PYOS_INSTALLED") == "1":
         from core import liveboot
-        console.print("[dim]Press D now for a diagnostic start (verbose boot and a hardware report)...[/dim]")
-        diagnostics = liveboot.key_pressed("d", 1.5)
+        console.print("[dim]Press D for a diagnostic start, M for the boot menu...[/dim]")
+        pressed = liveboot.keys_pressed("dm", 1.5)
+        if pressed == "m":
+            from core import bootmenu
+            start_mode = bootmenu.show()
+        diagnostics = pressed == "d" or start_mode == "diagnostics"
         if diagnostics:
             debug = "Yes"
             console.print("[bold cyan]Diagnostic start.[/bold cyan]")
@@ -104,6 +118,10 @@ try:
             persist.record_boot()          # when the data disk was last used (persist status)
         except Exception:
             pass
+    if start_mode == "safe":
+        from pyos import safemode
+        safemode.turn_on()
+        console.print(f"[bold yellow]{safemode.BANNER}[/bold yellow]")
     core.boot_sequence(debug)
     if diagnostics:
         try:

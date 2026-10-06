@@ -322,6 +322,11 @@ def crash_screen(error_message):
     code, summary, short = _stop_info(detail)
     log.log(f"PythonOS crashed: {code}: {summary[:160]}", "ERROR")
     report = _save_crash_report(detail, code, short)
+    try:
+        from pyos import report as problem_report
+        problem_report.save_pending(f"PythonOS crashed: {code}: {summary[:120]}")     # ready to send later, even with no network
+    except Exception:                                  # noqa: BLE001
+        pass
 
     # crash-loop guard: remember recent crashes
     record = os.path.join(".OSData", "crashes.json")
@@ -350,6 +355,11 @@ def crash_screen(error_message):
         console.print(_bsod(code, summary, short, report,
                             " PythonOS keeps crashing, so it will not restart by itself. Start it again when you are ready. ",
                             looping=True))
+        try:
+            from core import emergency
+            emergency.offer()                          # the logs and crash reports can be read, and packed for sending, without logging in
+        except Exception:                              # noqa: BLE001
+            pass
         sys.exit(1)
 
     wait = max(1, round(5 * settings.boot_pause() / 0.35)) if settings.boot_pause() > 0 else 1
