@@ -262,7 +262,7 @@ def main():
             game = play_real_time(keys) if keys.real_time else play_turns()
             if keys.real_time:
                 keys.close()
-            console.print(f"\n[bold red]Game over.[/bold red] Score {game.score}, {game.lines} lines." + (f"  [bold yellow]New best![/bold yellow]" if game.score > best else ""))
+            console.print(f"\n[bold red]Game over.[/bold red] Score {game.score}, {game.lines} lines." + ("  [bold yellow]New best![/bold yellow]" if game.score > best else ""))
             if game.score > best:
                 best = game.score
                 if appdata:

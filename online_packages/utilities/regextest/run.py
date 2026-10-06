@@ -143,7 +143,7 @@ def main(args):
     console.print("[bold]Regex tester[/bold]  :flags i m s x   :explain   :help   :quit")
     pattern = ""
     while True:
-        text = Prompt.ask(f"[cyan]pattern[/cyan]" + (f" [dim]({pattern})[/dim]" if pattern else ""), default=pattern, show_default=False)
+        text = Prompt.ask("[cyan]pattern[/cyan]" + (f" [dim]({pattern})[/dim]" if pattern else ""), default=pattern, show_default=False)
         if text in (":quit", ":q"):
             return
         if text == ":help":

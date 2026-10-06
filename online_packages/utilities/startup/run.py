@@ -94,7 +94,7 @@ def act(items, cmd, rest):
             return f"[red]You can have at most {startup.MAX_ITEMS} startup commands.[/red]"
         items.append({"command": rest.strip(), "enabled": True})
         save(items)
-        return f"[green]Added. It will run at your next login.[/green]"
+        return "[green]Added. It will run at your next login.[/green]"
     i = pick(items, rest.strip())
     if cmd in ("remove", "rm", "delete", "on", "off", "test") and i is None:
         return "[red]Give the number from the list.[/red]"

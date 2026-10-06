@@ -367,7 +367,7 @@ def move_list(history):
 
 def pgn(history, white="You", black="Computer", result="*", date=None):
     date = date or time.strftime("%Y.%m.%d")
-    head = [f'[Event "PythonOS game"]', '[Site "PythonOS"]', f'[Date "{date}"]', f'[White "{white}"]', f'[Black "{black}"]', f'[Result "{result}"]']
+    head = ['[Event "PythonOS game"]', '[Site "PythonOS"]', f'[Date "{date}"]', f'[White "{white}"]', f'[Black "{black}"]', f'[Result "{result}"]']
     body = " ".join(f"{i // 2 + 1}. " + " ".join(history[i:i + 2]) for i in range(0, len(history), 2)) + f" {result}"
     # wrap the movetext at 80 columns, as PGN readers expect
     lines, line = [], ""
@@ -495,7 +495,7 @@ def play(game):
                     record("won" if won else "lost")
             if appdata:
                 appdata.save(SAVE, None)
-            console.print(f"[dim]Save the game as a PGN file with: pgn[/dim]")
+            console.print("[dim]Save the game as a PGN file with: pgn[/dim]")
             return finish_prompt(game)
         human_turn = two or p.white == game["human_white"]
         if human_turn:

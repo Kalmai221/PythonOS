@@ -69,7 +69,6 @@ time.sleep(random.uniform(1, 3))  # Simulate a short delay before starting
 os.system("cls" if platform.system() == "Windows" else "clear")
 time.sleep(random.uniform(1, 3))
 
-import shutil
 import zipfile
 import requests
 from io import BytesIO
@@ -139,7 +138,7 @@ def is_python_installed():
             return False
         except subprocess.CalledProcessError:
             return False
-    except:
+    except Exception:
         return False
 
 def install_python():

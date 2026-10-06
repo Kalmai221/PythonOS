@@ -285,7 +285,7 @@ def check_settings():
     invalid = [k for k, v in stored.items() if k in settings.SCHEMA and not settings._valid(k, v)]
     unknown = [k for k in stored if k not in settings.SCHEMA]
     if invalid or unknown:
-        def fix():
+        def fix():  # pylint: disable=function-redefined
             for k in invalid + unknown:
                 settings.reset(k)
             return "removed the bad entries"

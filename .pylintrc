@@ -1,0 +1,11 @@
+# Pylint in CI reports only real errors (the E messages). The disabled ones are known false alarms of its type inference:
+#   not-callable            commands/time.py is a command, and pylint takes "import time" in other files to mean that file
+#   unsubscriptable-object  a variable that starts as None and is checked before use
+#   no-name-in-module       modules loaded from files by name (programs.marketplace)
+#   unpacking-non-sequence  the same inference problem
+#   import-error, no-member the optional libraries (Android, Windows, Linux only modules) are not all installed on every runner
+[MASTER]
+ignore=dist,scratch,node_modules,.git
+
+[MESSAGES CONTROL]
+disable=not-callable,unsubscriptable-object,no-name-in-module,unpacking-non-sequence,import-error,no-member,parse-error

@@ -1,0 +1,7 @@
+# Ruff in CI: a short list of rules the code already follows, so a new violation fails the build. The full report (every rule) is
+# printed as an informational step.
+exclude = ["dist", "scratch", ".git", "node_modules"]
+target-version = "py39"
+
+[lint]
+select = ["F821", "F811", "F541", "E722", "E9", "F63", "F7"]
