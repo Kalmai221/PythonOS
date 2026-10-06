@@ -48,3 +48,32 @@ def _clean(data):
 
 def title(platform):
     return TITLES.get(platform, platform)
+
+
+def current():
+    """The export this copy runs in ("android", "windows", "linux" or "iso"), or None from a source checkout (nothing is restricted there)."""
+    found = info()
+    return found["platform"] if found else None
+
+
+def valid_exports(value):
+    """A list of export names, or None for "all of them". Raises ValueError for anything else."""
+    if value is None:
+        return None
+    if not isinstance(value, list) or not value or any(x not in TITLES for x in value):
+        raise ValueError("'exports' must be a list made of: " + ", ".join(TITLES))
+    return list(value)
+
+
+def runs_here(exports, platform=None):
+    """Whether something limited to `exports` (None = every export) works in this export. A source checkout runs everything."""
+    platform = platform or current()
+    return exports is None or platform is None or platform in exports
+
+
+def where(exports):
+    """"the Windows app and the bootable ISO" for a list of exports ("every export" for None)."""
+    if not exports:
+        return "every export"
+    names = [TITLES[x] for x in exports]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]

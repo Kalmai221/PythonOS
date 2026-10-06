@@ -7,6 +7,7 @@ config = {
     "name": "persist",
     "description": "Keep your accounts and files across restarts of the live system: persist [status|list|create|resize|migrate].",
     "alias": ["storage"],
+    "exports": ["iso"],
 }
 
 

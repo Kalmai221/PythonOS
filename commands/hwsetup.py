@@ -6,6 +6,7 @@ config = {
     "name": "hwsetup",
     "description": "Hardware setup: hwsetup [check|audio|network|keyboard|timezone|bluetooth|display|printer]. Drivers, audio, Wi-Fi, keyboard, time zone, Bluetooth, display, printer.",
     "alias": ["hardware"],
+    "exports": ["iso"],
 }
 
 

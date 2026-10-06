@@ -8,7 +8,7 @@ from core import installer, persist
 
 console = Console()
 config = {"name": "installos", "description": "Install PythonOS on a disk of this computer (from the live USB; erases that disk).",
-          "alias": ["install-system"]}
+          "alias": ["install-system"], "exports": ["iso"]}
 
 
 def execute(args=None):

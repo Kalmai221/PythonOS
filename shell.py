@@ -290,6 +290,10 @@ def run_stage(argv):
         names = list(available_commands) + BUILTINS
         close = difflib.get_close_matches(name, names, n=1)
         hint = f" Did you mean [bold]{close[0]}[/bold]?" if close else " Type 'help' for a list of commands."
+        if name in unavailable_here:
+            console.print(f"[bold red]{escape(name)}[/bold red] is not available in the {pyos.export.title(pyos.export.current())}; "
+                          f"it works on {pyos.export.where(unavailable_here[name])}.")
+            return 127
         console.print(f"[bold red]{escape(name)}: command not found.[/bold red]{hint}")
         return 127
     try:
@@ -461,12 +465,19 @@ def list_available(directory):
         return [f[:-3] for f in os.listdir(directory) if f.endswith(".py")]
     return []
 
+unavailable_here = {}   # name -> the exports a command or program is for, when this export is not one of them
+
+
 def load_all_modules(directory):
-    """Loads all Python modules from a specified directory."""
+    """Loads all Python modules from a specified directory. Ones whose config says "exports": [...] are left out where they do not work."""
     available = {}
     for file_name in list_available(directory):
         module = load_module(os.path.join(directory, file_name + ".py"), file_name)
         if module and hasattr(module, "config"):
+            exports = module.config.get("exports")
+            if exports and not pyos.export.runs_here(exports):
+                unavailable_here[file_name] = exports
+                continue
             available[file_name] = {
                 "module": module,
                 "description": module.config.get("description", "No description available."),

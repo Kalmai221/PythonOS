@@ -21,6 +21,11 @@
   function newer(a, b) { var x = verKey(a), y = verKey(b); for (var i = 0; i < Math.max(x.length, y.length); i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; }
   function installCommand(a) { return "pkg install " + (a.command || a.id); }
   function catTitle(id) { return (state.cats[id] && state.cats[id].title) || id; }
+  var EXPORTS = { windows: "Windows app", linux: "Linux package and Docker", android: "Android app", iso: "bootable ISO and VM images" };
+  function worksOn(a) {
+    var e = a.exports && a.exports.length ? a.exports : Object.keys(EXPORTS);
+    return e.length === Object.keys(EXPORTS).length ? "Every export" : e.map(function (k) { return EXPORTS[k] || k; }).join(", ");
+  }
   function pills(a) {
     var p = (a.permissions || []).map(function (k) { return "<span class='chip perm' title='" + esc((PERMS[k] || [k, k])[1]) + "'>" + esc((PERMS[k] || [k])[0]) + "</span>"; }).join("");
     return p || "<span class='chip quiet'>Needs nothing special</span>";
@@ -87,6 +92,7 @@
     var facts = [
       ["Start it with", a.command ? "<code>run " + esc(a.command) + "</code>" + ((a.alias || []).length ? " (also " + a.alias.map(function (x) { return "<code>" + esc(x) + "</code>"; }).join(", ") + ")" : "") : ""],
       ["Runs on the live USB", a.lockdown_safe ? "Yes: it cannot reach anything underneath PythonOS" : "No: it starts other programs or needs libraries, so the locked-down live USB refuses it"],
+      ["Works on", worksOn(a)],
       ["Marketplace API", String(a.api || 1)]
     ].filter(function (f) { return f[1]; }).map(function (f) { return "<tr><th>" + f[0] + "</th><td>" + f[1] + "</td></tr>"; }).join("");
     var needs = (a.requires || []).length ? "<p>" + a.requires.map(function (r) { return "<code>" + esc(r) + "</code>"; }).join(" ") + "</p><p class='muted'>Installed together with it (you are asked first).</p>" : "";

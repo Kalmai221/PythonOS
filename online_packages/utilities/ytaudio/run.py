@@ -5,20 +5,16 @@
     ytaudio lo-fi beats          search and choose
     ytaudio <youtube link>       play a video or a whole playlist
 
-Inside:  search <words>   play <number|link>   add <number|link>   queue   clear   volume <0-130>   player <auto|builtin|mpv|vlc|ffplay>   help   quit
-While a track plays the player's own keys work (mpv: space pauses, the arrow keys seek, 9 and 0 change the volume, < and > go to the
-previous and next track, q stops).
+Inside:  search <words>   play <number|link>   add <number|link>   queue   clear   volume <0-130>   help   quit
+While a track plays, Ctrl+C stops it.
 
 It plays the sound itself, inside PythonOS: the marketplace installs the libraries it needs (yt-dlp, av and miniaudio) with the app, so
-nothing has to be installed on the computer. If those cannot be used there, it falls back to mpv, VLC or ffplay when one is installed.
-Use it for things you are allowed to listen to; YouTube's terms apply to what you play.
+nothing has to be installed on the computer and no other program is started. Use it for things you are allowed to listen to; YouTube's terms apply to what you play.
 """
 import array
 import importlib
 import os
 import queue
-import shutil
-import subprocess
 import sys
 import threading
 
@@ -28,41 +24,13 @@ except ImportError:                                                        # run
     appsettings = None
 
 PKG = "utilities/ytaudio"
-DEFAULTS = {"player": "auto", "volume": 80, "results": 10}
-WINDOWS_PLAYERS = {
-    "mpv": [r"C:\Program Files\mpv\mpv.exe", r"C:\Program Files (x86)\mpv\mpv.exe", os.path.expandvars(r"%LOCALAPPDATA%\Programs\mpv\mpv.exe"),
-            os.path.expandvars(r"%USERPROFILE%\scoop\apps\mpv\current\mpv.exe")],
-    "vlc": [r"C:\Program Files\VideoLAN\VLC\vlc.exe", r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"],
-    "ffplay": [os.path.expandvars(r"%USERPROFILE%\scoop\apps\ffmpeg\current\bin\ffplay.exe")],
-}
-MAC_PLAYERS = {"mpv": ["/opt/homebrew/bin/mpv", "/usr/local/bin/mpv"], "vlc": ["/Applications/VLC.app/Contents/MacOS/VLC"], "ffplay": ["/opt/homebrew/bin/ffplay"]}
-EXE_NAMES = {"mpv": ("mpv", "mpv.exe"), "vlc": ("cvlc", "vlc", "vlc.exe"), "ffplay": ("ffplay", "ffplay.exe")}
+DEFAULTS = {"volume": 80, "results": 10}
 
 
 def option(key):
     """An option of this app (settings app ytaudio), else its default."""
     value = appsettings.get(PKG, key, DEFAULTS[key]) if appsettings else DEFAULTS[key]
     return value if isinstance(value, type(DEFAULTS[key])) else DEFAULTS[key]
-
-
-def find_players():
-    """{'mpv': path, 'vlc': path, 'ffplay': path} for the players that are installed."""
-    found = {}
-    for name, executables in EXE_NAMES.items():
-        path = next((shutil.which(e) for e in executables if shutil.which(e)), None)
-        if not path:
-            candidates = (WINDOWS_PLAYERS if os.name == "nt" else MAC_PLAYERS if sys.platform == "darwin" else {}).get(name, [])
-            path = next((c for c in candidates if os.path.exists(c)), None)
-        if path:
-            found[name] = path
-    return found
-
-
-def choose_player(found, wanted="auto"):
-    """(name, path) of the player to use: the wanted one if it is there, else mpv, vlc, ffplay in that order. None when there is none."""
-    order = [wanted] if wanted in found else []
-    order += [n for n in ("mpv", "vlc", "ffplay") if n in found and n not in order]
-    return (order[0], found[order[0]]) if order else None
 
 
 # ------------------------------------------------------------------------------------------ the built-in player
@@ -171,24 +139,6 @@ def play_builtin(libs, urls, volume):
             device.close()
 
 
-def install_hint():
-    if os.name == "nt":
-        return "Install mpv: winget install mpv   (or: scoop install mpv)"
-    if sys.platform == "darwin":
-        return "Install mpv: brew install mpv"
-    return "Install mpv: sudo apt install mpv   (or your distribution's package tool; VLC and ffplay also work)"
-
-
-def build_command(name, path, urls, volume):
-    """The command that plays `urls` with the chosen player. A list of commands for ffplay (it plays one file per run)."""
-    volume = max(0, min(130, int(volume)))
-    if name == "mpv":
-        return [[path, "--no-video", f"--volume={volume}", "--force-window=no", *urls]]
-    if name == "vlc":
-        return [[path, "--intf", "dummy", "--no-video", "--play-and-exit", f"--gain={volume / 100:.2f}", *urls]]
-    return [[path, "-nodisp", "-autoexit", "-loglevel", "error", "-volume", str(min(100, volume)), url] for url in urls]
-
-
 def minutes(seconds):
     try:
         seconds = int(seconds)
@@ -199,31 +149,11 @@ def minutes(seconds):
 
 # ------------------------------------------------------------------------------------------ yt-dlp
 def load_ytdlp():
-    """The yt_dlp module, offering to install it the first time. None if it cannot be had."""
+    """The yt_dlp module (installed by the marketplace with the app). None if it is missing."""
     try:
         return importlib.import_module("yt_dlp")
     except ImportError:
-        pass
-    print("This needs the yt-dlp library, which is not installed yet.")
-    if input("Install it now for your user (pip)? (yes/no) [yes]: ").strip().lower() in ("n", "no"):
-        return None
-    try:
-        code = subprocess.run([sys.executable, "-m", "pip", "install", "--user", "--quiet", "yt-dlp"]).returncode
-    except OSError as e:
-        print(f"Could not run pip: {e}")
-        return None
-    if code != 0:
-        print("pip could not install yt-dlp. Install it yourself with: python -m pip install --user yt-dlp")
-        return None
-    import site
-    for path in (site.getusersitepackages(),):
-        if path not in sys.path:
-            sys.path.append(path)
-    importlib.invalidate_caches()
-    try:
-        return importlib.import_module("yt_dlp")
-    except ImportError:
-        print("yt-dlp was installed but could not be loaded; start ytaudio again.")
+        print("The yt-dlp library is missing. Fetch it again with: pkg install ytaudio")
         return None
 
 
@@ -311,15 +241,11 @@ class Player:
             print("play <number> plays one, add <number> queues it.")
 
     def play_tracks(self, tracks):
-        wanted = option("player")
-        libs = load_builtin() if wanted in ("auto", "builtin") else None
-        chosen = None
+        libs = load_builtin()
         if libs is None:
-            chosen = choose_player(find_players(), "auto" if wanted == "builtin" else wanted)
-            if not chosen:
-                print("The built-in player could not start (its libraries are missing or there is no sound output), and no mpv, VLC or ffplay was found.\n"
-                      "Fetch the libraries again with: pkg install ytaudio\n" + install_hint())
-                return
+            print("The sound libraries (av, miniaudio) could not be loaded, or there is no sound output on this system.\n"
+                  "Fetch the libraries again with: pkg install ytaudio")
+            return
         urls = []
         for track in tracks:
             print(f"Getting {track['title']}...")
@@ -329,18 +255,13 @@ class Player:
                 print(f"  could not get it: {str(e)[:160]}")
         if not urls:
             return
-        name = "the built-in player" if libs else chosen[0]
-        print(f"Playing {len(urls)} track(s) with {name}. " + ("Press q to stop." if name == "mpv" else "Press Ctrl+C to stop."))
+        print(f"Playing {len(urls)} track(s). Press Ctrl+C to stop.")
         try:
-            if libs:
-                play_builtin(libs, urls, option("volume"))
-            else:
-                for command in build_command(chosen[0], chosen[1], urls, option("volume")):
-                    subprocess.run(command)
+            play_builtin(libs, urls, option("volume"))
         except KeyboardInterrupt:
             print("\nStopped.")
-        except OSError as e:
-            print(f"Could not start the player: {e}")
+        except Exception as e:                                           # noqa: BLE001 - no sound device, or the stream failed
+            print(f"Could not play it: {str(e)[:200]}")
 
     def handle(self, line):
         """One command. Returns False to leave."""
@@ -350,7 +271,7 @@ class Player:
             return False
         if word in ("help", "?"):
             print(__doc__.split("Inside:")[1].split("While a track")[0].strip())
-        elif word == "search" or (word and word not in ("play", "add", "queue", "clear", "volume", "player") and not line.startswith("http")):
+        elif word == "search" or (word and word not in ("play", "add", "queue", "clear", "volume") and not line.startswith("http")):
             self.do_search(rest if word == "search" else line.strip())
         elif word == "play":
             tracks = self.find(rest) if rest else list(self.queue)
@@ -379,9 +300,6 @@ class Player:
                 except Exception:                                        # noqa: BLE001 - the option may not be saved; it still applies now
                     pass
             print(f"Volume {rest}.")
-        elif word == "player" and rest:
-            DEFAULTS["player"] = rest
-            print(f"Using {rest} when it is installed.")
         elif word:
             print("I did not understand that. help lists the commands.")
         return True

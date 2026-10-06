@@ -103,8 +103,18 @@ def load_marketapi():
     return module
 
 
+def load_export():
+    """pyos/export.py loaded from its file (it needs nothing else)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("pyos_export", os.path.join(os.path.dirname(ROOT), "pyos", "export.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def main():
     marketapi = load_marketapi()
+    export = load_export()
     packages = []
     for category in sorted(os.listdir(ROOT)):
         cat_dir = os.path.join(ROOT, category)
@@ -130,11 +140,18 @@ def main():
                 sys.exit(f"{category}/{name}: a package that needs Python libraries ('pip') must say \"api\": 2")
             if pip and meta.get("lockdown_safe"):
                 sys.exit(f"{category}/{name}: a lockdown_safe package cannot ask for Python libraries (they run code that was not reviewed here)")
+            try:
+                exports = export.valid_exports(meta.get("exports"))
+            except ValueError as e:
+                sys.exit(f"{category}/{name}: {e}")
+            if exports and "iso" not in exports:
+                sys.exit(f"{category}/{name}: an app must run on the bootable ISO (and the VM images made from it) as well as anything else it lists")
             if str(meta.get("api", api)) != str(api) or not marketapi.OLDEST <= api <= marketapi.CURRENT:
                 sys.exit(f"{category}/{name}: data.json 'api' must be a whole number from {marketapi.OLDEST} to {marketapi.CURRENT} (the marketplace API versions that exist)")
             packages.append({
                 "api": api,
                 "pip": pip,
+                "exports": exports or list(export.TITLES),
                 "id": f"{category}/{name}",
                 "category": category,
                 "name": meta.get("name", name),

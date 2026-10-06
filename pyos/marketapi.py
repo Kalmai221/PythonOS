@@ -47,6 +47,10 @@ def compatibility(meta):
                        "Update PythonOS with: updatecheck")
     if api < OLDEST:
         return False, f"it is too old for this PythonOS (API {api}; the oldest still supported is API {OLDEST}); look for a newer version of the app"
+    from pyos import export
+    exports = (meta or {}).get("exports")
+    if isinstance(exports, list) and exports and not export.runs_here(exports):
+        return False, f"it does not run on the {export.title(export.current())}; it is for {export.where(exports)}"
     return True, ""
 
 

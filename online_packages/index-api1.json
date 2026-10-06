@@ -52,6 +52,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "developer/python",
       "category": "developer",
       "name": "Python",
@@ -97,6 +103,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/adventure",
       "category": "games",
       "name": "Text Adventure",
@@ -139,6 +151,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/battleship",
       "category": "games",
       "name": "Battleship",
@@ -177,6 +195,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/blackjack",
       "category": "games",
       "name": "Blackjack",
@@ -217,6 +241,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/checkers",
       "category": "games",
       "name": "Checkers",
@@ -257,6 +287,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/chess",
       "category": "games",
       "name": "Chess",
@@ -305,6 +341,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/connect4",
       "category": "games",
       "name": "Connect Four",
@@ -345,6 +387,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/crossword",
       "category": "games",
       "name": "Crossword",
@@ -383,6 +431,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/daily",
       "category": "games",
       "name": "Daily Puzzle",
@@ -422,6 +476,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/fallingwords",
       "category": "games",
       "name": "Falling Words",
@@ -463,6 +523,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/flood",
       "category": "games",
       "name": "Flood",
@@ -501,6 +567,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/game2048",
       "category": "games",
       "name": "2048",
@@ -542,6 +614,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/guess",
       "category": "games",
       "name": "Number Guess",
@@ -581,6 +659,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/hangman",
       "category": "games",
       "name": "Hangman",
@@ -623,6 +707,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/hangman2",
       "category": "games",
       "name": "Hangman (2 players)",
@@ -663,6 +753,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/mastermind",
       "category": "games",
       "name": "Mastermind",
@@ -701,6 +797,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/memory",
       "category": "games",
       "name": "Memory",
@@ -741,6 +843,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/minesweeper",
       "category": "games",
       "name": "Minesweeper",
@@ -781,6 +889,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/pokerdice",
       "category": "games",
       "name": "Poker Dice",
@@ -819,6 +933,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/pong",
       "category": "games",
       "name": "Pong",
@@ -857,6 +977,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/reversi",
       "category": "games",
       "name": "Reversi",
@@ -897,6 +1023,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/snake",
       "category": "games",
       "name": "Snake",
@@ -938,6 +1070,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/sudoku",
       "category": "games",
       "name": "Sudoku",
@@ -977,6 +1115,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/tetris",
       "category": "games",
       "name": "Tetris",
@@ -1015,6 +1159,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/tictactoe",
       "category": "games",
       "name": "Tic-Tac-Toe",
@@ -1059,6 +1209,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/trivia",
       "category": "games",
       "name": "Trivia",
@@ -1103,6 +1259,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/triviapack",
       "category": "games",
       "name": "Trivia Pack",
@@ -1144,6 +1306,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/typingtest",
       "category": "games",
       "name": "Typing Test",
@@ -1193,6 +1361,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/wordle",
       "category": "games",
       "name": "Wordle",
@@ -1236,6 +1410,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "games/wordsearch",
       "category": "games",
       "name": "Word Search",
@@ -1274,6 +1454,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/assistant",
       "category": "utilities",
       "name": "AI Assistant",
@@ -1326,6 +1512,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/battery",
       "category": "utilities",
       "name": "Battery",
@@ -1368,6 +1560,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/calendar",
       "category": "utilities",
       "name": "Calendar",
@@ -1421,6 +1619,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/clipboard",
       "category": "utilities",
       "name": "Clipboard History",
@@ -1466,6 +1670,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/clock",
       "category": "utilities",
       "name": "Clock",
@@ -1517,6 +1727,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/converter",
       "category": "utilities",
       "name": "Converter",
@@ -1565,6 +1781,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/datecalc",
       "category": "utilities",
       "name": "Date Calculator",
@@ -1606,6 +1828,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/diskusage",
       "category": "utilities",
       "name": "Disk Usage",
@@ -1651,6 +1879,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/files",
       "category": "utilities",
       "name": "File Manager",
@@ -1702,6 +1936,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/hashtool",
       "category": "utilities",
       "name": "Hash and Encoding",
@@ -1747,6 +1987,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/httptest",
       "category": "utilities",
       "name": "HTTP Tester",
@@ -1792,6 +2038,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/jsonfmt",
       "category": "utilities",
       "name": "JSON Formatter",
@@ -1836,6 +2088,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/lanscan",
       "category": "utilities",
       "name": "LAN Scanner",
@@ -1880,6 +2138,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/logviewer",
       "category": "utilities",
       "name": "Log Viewer",
@@ -1923,6 +2187,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/mdedit",
       "category": "utilities",
       "name": "Markdown Editor",
@@ -1972,6 +2242,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/mdview",
       "category": "utilities",
       "name": "Markdown Viewer",
@@ -2021,6 +2297,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/nettools",
       "category": "utilities",
       "name": "Network Tools",
@@ -2071,6 +2353,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/notes",
       "category": "utilities",
       "name": "Notes",
@@ -2119,6 +2407,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/passgen",
       "category": "utilities",
       "name": "Password Generator",
@@ -2160,6 +2454,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/portscan",
       "category": "utilities",
       "name": "Port Scanner",
@@ -2203,6 +2503,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/procs",
       "category": "utilities",
       "name": "Process Inspector",
@@ -2246,6 +2552,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/qr",
       "category": "utilities",
       "name": "QR Codes",
@@ -2289,6 +2601,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/regextest",
       "category": "utilities",
       "name": "Regex Tester",
@@ -2331,6 +2649,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/rss",
       "category": "utilities",
       "name": "RSS Reader",
@@ -2377,6 +2701,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/schedui",
       "category": "utilities",
       "name": "Scheduler",
@@ -2421,6 +2751,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/snippets",
       "category": "utilities",
       "name": "Snippets",
@@ -2470,6 +2806,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/speedtest",
       "category": "utilities",
       "name": "Speed Test",
@@ -2514,6 +2856,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/startup",
       "category": "utilities",
       "name": "Startup Apps",
@@ -2557,6 +2905,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/sysmon",
       "category": "utilities",
       "name": "System Monitor",
@@ -2606,6 +2960,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/texttools",
       "category": "utilities",
       "name": "Text Tools",
@@ -2649,6 +3009,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/themedesigner",
       "category": "utilities",
       "name": "Theme Designer",
@@ -2690,6 +3056,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/todo",
       "category": "utilities",
       "name": "To-do List",
@@ -2733,6 +3105,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/weather",
       "category": "utilities",
       "name": "Weather",
@@ -2782,6 +3160,12 @@
     {
       "api": 1,
       "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
       "id": "utilities/wifimeter",
       "category": "utilities",
       "name": "Wi-Fi Meter",

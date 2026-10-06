@@ -381,6 +381,16 @@ def show_packages(packages, installed, title):
     console.print(table)
 
 
+def runs_on(pkg):
+    """The exports an app works on, in words (every export when it does not say)."""
+    try:
+        from pyos import export
+    except ImportError:
+        return "every export"
+    exports = pkg.get("exports")
+    return export.where(None if not exports or set(exports) >= set(export.TITLES) else exports)
+
+
 def show_details(pkg, installed):
     size = sum(f.get("size", 0) for f in pkg["files"])
     local = installed.get(pkg["id"])
@@ -394,6 +404,7 @@ def show_details(pkg, installed):
         f"[bold]Tags:[/bold]     {', '.join(pkg.get('tags', [])) or '-'}",
         *([f"[bold]Needs:[/bold]    {escape(', '.join(pkg['requires']))}"] if pkg.get("requires") else []),
         *([f"[bold]Works with:[/bold] {escape(', '.join(o if isinstance(o, str) else o.get('ref', '') for o in pkg['optional']))}"] if pkg.get("optional") else []),
+        f"[bold]Runs on:[/bold]  {escape(runs_on(pkg))}",
         f"[bold]Can:[/bold]      {sandbox.describe(pkg['permissions']) if pkg.get('permissions') is not None else '[yellow]not stated (older package)[/yellow]'}",
         *([f"[bold]What's new:[/bold] {escape(changelog_for(pkg))}"] if changelog_for(pkg) else []),
         f"[bold]Size:[/bold]     {size / 1024:.1f} KB in {len(pkg['files'])} file(s)",
