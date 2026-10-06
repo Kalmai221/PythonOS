@@ -3,7 +3,7 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
-## 1.0.8 (continued)
+## 1.0.9
 
 - Recovery tools: an emergency console (read the logs and crash reports, pack them into a zip for a USB stick; no login, no shell) opened from the new boot menu (press M at the start, or `main.py --menu` / `--emergency`) or offered after repeated crashes; safe mode (`--safe`, or `safe on` in the emergency console) that leaves out marketplace apps, startup commands and background checks; crash reports are now also written ready to send, redacted, so `report --pending` works without a network.
 - Virtual machines whose console comes up small (under 1024 wide) switch by themselves to the biggest resolution the screen offers up to 1920x1080 (`display auto off` stops it). New `timesync` command, and `updatecheck` points to it when a secure connection fails (a wrong clock is the usual cause).
@@ -31,11 +31,9 @@ One section per release, newest first. The section for a version is shown to use
 
 - Website: the App Library has a "Works on" filter (Windows, Linux, Android, ISO / VM), shows each app's exports on its card and detail window, the per-export start files of API 2, and the "Live USB" filter now also needs the ISO in the app's exports.
 
-- `display 1280x720` now really changes the resolution on the ISO and VM images: the kernel restarts with that `video=` option (kexec, a few seconds, files kept) and the choice is applied again at every start. If the firmware refuses, nothing changes and it says so.
-
-- Marketplace API 2: per-export run files (`run_windows`, `run_linux`, `run_android`, `run_iso` in `scripts`), checked by the catalog builder. Apps that need libraries or `exec` may leave the ISO out of their exports (ytaudio and python now say Windows and Linux; wifimeter says Linux and ISO).
-
 ## 1.0.8
+- `display 1280x720` now really changes the resolution on the ISO and VM images: the kernel restarts with that `video=` option (kexec, a few seconds, files kept) and the choice is applied again at every start. If the firmware refuses, nothing changes and it says so.
+- Marketplace API 2: per-export run files (`run_windows`, `run_linux`, `run_android`, `run_iso` in `scripts`), checked by the catalog builder. Apps that need libraries or `exec` may leave the ISO out of their exports (ytaudio and python now say Windows and Linux; wifimeter says Linux and ISO).
 
 - Windows installer: the progress text under the bar is no longer cut off; updating keeps `config.json` (your settings) but now brings its version up to date, so the system reports the new version (issues 1 and 5).
 - YouTube Audio now plays the sound itself with pip libraries (`av`, `miniaudio`, installed by the marketplace): no mpv, VLC or ffplay, nothing outside PythonOS (issue 2).
