@@ -219,10 +219,8 @@ def plan_install(env, release):
                  "Needs Python 3.8 or newer with venv (Debian/Ubuntu: sudo apt install python3 python3-venv)."]
         return make_plan("install", [name] if name else [], "install-tarball" if name else "none", steps)
     if env["os"] == "macos":
-        name = _file(release, os_name="linux", kind="tarball")
-        return make_plan("install", [name] if name else [], "install-tarball" if name else "none", [
-            "There is no native Mac app yet. The portable launcher works on a Mac that has Python 3 (it is part of Apple's developer tools).",
-            "For an easier way, use Docker or a virtual machine (UTM): choose those in the wizard."], warn=True)
+        return make_plan("install", [], "none", ["macOS is not supported by this program. On a Mac, use Docker (choose it here) or a virtual machine: "
+                                                 "the release page explains both."])
     return make_plan("install", [], "none", [f"{env['os']} is not supported by the wizard yet. See the releases page."])
 
 

@@ -120,7 +120,7 @@
     <div class="wrap">
       <div class="section-head reveal"><h2>Download</h2><p class="muted" id="dl-sub">Pick your device. Everything updates itself from inside PythonOS later.</p></div>
       <div class="banner reveal" id="wizard-banner" hidden>
-        <div><b>Not sure which file you need?</b><br><span class="muted">The Setup Wizard looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker) and gets the right file for you. Windows, macOS and Linux, no Python needed.</span></div>
+        <div><b>Not sure which file you need?</b><br><span class="muted">The Setup Wizard looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker) and gets the right file for you. Windows and Linux, no Python needed.</span></div>
         <a class="btn primary" id="wizard-download" href="#">Get the Setup Wizard</a>
       </div>
       <div class="archbar" id="archbar"></div>
@@ -138,7 +138,7 @@
         <details><summary>Which file should I download?</summary><p>Pick your system in the Download section: the page chooses the right file for your computer and shows the others. If you are not sure, the Setup Wizard decides for you.</p></details>
         <details><summary>Do I need Python?</summary><p>No. Windows and Android come with everything. Linux packages need Python 3.8 or newer, which almost every distribution has. The Setup Wizard needs nothing.</p></details>
         <details><summary>Is it safe to run?</summary><p>Every download has a checksum in <code>SHA256SUMS</code>, signed by the release workflow, and the installers check it for you. Apps from the store say what they can do (files, network...) and are held to it. The live USB image is locked down so nothing underneath PythonOS can be reached.</p></details>
-        <details><summary>Does it run on a Mac?</summary><p>There is no native Mac app yet. On a Mac, use Docker, or a virtual machine (UTM, VirtualBox or VMware): the Setup Wizard sets either up for you.</p></details>
+        <details><summary>Does it run on a Mac?</summary><p>There is no Mac version. On a Mac, use Docker, or a virtual machine (UTM, VirtualBox or VMware) with the files from the Download section.</p></details>
         <details><summary>How does it update?</summary><p>PythonOS updates itself from inside: type <code>updatecheck</code>. Where the package around it has to change (the Windows app, the Android app, the Linux package, the USB image), it offers to install that too, after checking the download.</p></details>
         <details><summary>I found a problem</summary><p>Run <code>report</code> inside PythonOS (you read it before anything is sent), or <a href="https://github.com/Kalmai221/PythonOS/issues">open an issue</a>.</p></details>
       </div>
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
     [/android-installer\.apk$/, "Recommended: a tiny installer that picks the right app for your device"], [/arm64-v8a\.apk$/, "Phones and tablets (full app)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
     [/\.deb$/, "Debian, Ubuntu and friends"], [/pkg\.tar\.zst$/, "Arch, Manjaro"], [/\.rpm$/, "Fedora, RHEL, openSUSE"], [/linux\.tar\.gz$/, "Any Linux, any processor"],
     [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"],
-    [/pythonos-wizard-/, "Setup Wizard: install, write a USB stick, set up a VM (Windows, macOS, Linux)"],
+    [/pythonos-wizard-/, "Setup Wizard: install, write a USB stick, set up a VM (Windows, Linux)"],
     [/\.ova$/, "VirtualBox / VMware appliance"], [/vm-data\.qcow2$/, "Data disk: attach it next to the .qcow2 to keep your files"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
   ];
   var ARCHS = {

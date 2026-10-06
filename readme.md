@@ -23,7 +23,7 @@ Pick the line for your device. Every release lists each file with its size and w
 
 | Device | What to get | How |
 |---|---|---|
-| **Not sure?** | `pythonos-wizard-<version>.zip` | The Setup Wizard (Windows, macOS, Linux; no Python needed): run `wizard.bat`, `wizard.command` or `wizard.sh`. It looks at your computer, asks what you want (install here, Android, bootable USB stick, virtual machine, Docker), downloads the right file and checks it. `--cli` is the terminal version. |
+| **Not sure?** | `pythonos-wizard-<version>.zip` | The Setup Wizard (Windows and Linux; no Python needed): run `wizard.bat` or `wizard.sh`. It looks at your computer, asks what you want (install here, Android, bootable USB stick, virtual machine, Docker), downloads the right file and checks it. `--cli` is the terminal version. |
 | **Windows 10/11** | `PythonOS-<version>-web-setup.exe` | Run it. A ~100 KB installer that downloads PythonOS, checks it, installs for your user (no administrator), offers Start menu and desktop shortcuts, and can update, repair or uninstall later. Four languages, light and dark. It picks the ARM64 package on Windows on ARM. |
 | Windows (offline / no install) | `…-setup.exe` (Inno Setup) or `…-windows-portable.zip` | Full installer, or unzip anywhere (a USB stick works) and run `PythonOS.exe`. |
 | **Android 7+** | `PythonOS-<version>-android-arm64-v8a.apk` | Nearly every phone. `…-android-x86_64.apk` is for Chromebooks and emulators; `…-android.apk` works anywhere but is bigger. |

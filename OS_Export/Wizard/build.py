@@ -3,8 +3,8 @@
 
     python OS_Export/Wizard/build.py --out dist/wizard-bin
 
-Produces PythonOS-Wizard.exe (Windows), pythonos-wizard-linux-<x86_64|aarch64> or pythonos-wizard-macos-<arm64|x86_64>. CI runs it once per system and pack.py puts the results in one zip. Needs: pip install pyinstaller
-(and Tk, which comes with Python on Windows and macOS; on Linux: python3-tk).
+Produces PythonOS-Wizard.exe (Windows), pythonos-wizard-linux-<x86_64|aarch64>. CI runs it once per system and pack.py puts the results in one zip. Needs: pip install pyinstaller
+(and Tk, which comes with Python on Windows; on Linux: python3-tk).
 """
 import argparse
 import os
@@ -24,8 +24,6 @@ def target_name():
         return "PythonOS-Wizard.exe"
     if system == "Linux":
         return "pythonos-wizard-linux-" + ("aarch64" if machine in ("aarch64", "arm64") else "x86_64")
-    if system == "Darwin":
-        return "pythonos-wizard-macos-" + ("arm64" if machine in ("arm64", "aarch64") else "x86_64")
     raise SystemExit(f"{system} is not supported")
 
 

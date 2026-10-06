@@ -37,7 +37,7 @@ FILES = [
     ("pythonos-{v}-minimal-x86_64.iso", "iso", "Bootable", "Minimal live image", "The live system only: much smaller and lighter (runs in 512 MB). No Bluetooth, printing, installer or guest tools."),
     ("pythonos-{v}-aarch64.iso", "iso", "Bootable", "Full live image for 64-bit ARM", "UEFI ARM computers and virtual machines (ARM servers, Apple-silicon VMs, Raspberry Pi 4/5 with UEFI firmware). Same features as the PC image except the PC-only tools."),
     ("pythonos-{v}-minimal-aarch64.iso", "iso", "Bootable", "Minimal live image for 64-bit ARM", "The live system only, for ARM."),
-    ("pythonos-wizard-{v}.zip", "wizard", "Setup Wizard", "Setup Wizard (Windows, macOS, Linux)", "Start here if you are not sure. Unzip and run wizard.bat (Windows), wizard.command (macOS) or wizard.sh (Linux): it looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker), gets the right file and checks it. No Python needed."),
+    ("pythonos-wizard-{v}.zip", "wizard", "Setup Wizard", "Setup Wizard (Windows, Linux)", "Start here if you are not sure. Unzip and run wizard.bat (Windows) or wizard.sh (Linux): it looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker), gets the right file and checks it. No Python needed."),
     ("pythonos-{v}-vm.ova", "iso", "Virtual machine", "Appliance (OVA)", "VirtualBox or VMware: File > Import Appliance. 1 GB, 2 CPUs, NAT network, and a 2 GB data disk that keeps your accounts and files."),
     ("pythonos-{v}-vm.qcow2", "iso", "Virtual machine", "QEMU/KVM disk", "QEMU, KVM, libvirt, Proxmox: attach as a disk and boot."),
     ("pythonos-{v}-vm-data.qcow2", "iso", "Virtual machine", "QEMU/KVM data disk", "Attach it as a second disk next to the .qcow2: the VM then keeps your accounts, files and settings (2 GB)."),
@@ -52,8 +52,8 @@ FILES = [
 # "Which file do I download?": one table per system, by the situation the reader is in. Each row: (situation, [files], how to use it).
 # {v} is the version. A row whose files are not in this release (a build that failed or was skipped) is left out.
 GUIDE = [
-    ("Not sure? Start here", "The Setup Wizard asks what you want and picks the right file for your computer. It works on Windows, macOS and Linux.", [
-        ("Any computer", ["pythonos-wizard-{v}.zip"], "Unzip, then run `wizard.bat` (Windows), `wizard.command` (macOS) or `wizard.sh` (Linux). No Python needed."),
+    ("Not sure? Start here", "The Setup Wizard asks what you want and picks the right file for your computer. It works on Windows and Linux.", [
+        ("Any computer", ["pythonos-wizard-{v}.zip"], "Unzip, then run `wizard.bat` (Windows) or `wizard.sh` (Linux). No Python needed."),
     ]),
     ("Windows", "Windows 10 (1809) or newer.", [
         ("Most PCs (Intel or AMD)", ["PythonOS-{v}-web-setup.exe"], "Run it. A tiny installer that fetches and checks the rest; it offers shortcuts, update, repair and uninstall."),
@@ -73,12 +73,10 @@ GUIDE = [
         ("Arch, Manjaro, EndeavourOS", ["pythonos-{v}-1-any.pkg.tar.zst"], "`sudo pacman -U pythonos-{v}-1-any.pkg.tar.zst`"),
         ("Anything else (Alpine, Void, Gentoo, NixOS...)", ["pythonos-{v}-linux.tar.gz"], "Unpack and run `./pythonos`. Needs Python 3.8+ with venv. Works on any processor."),
     ]),
-    ("macOS", "There is no native Mac app yet. Pick the way that suits you.", [
-        ("An Apple-silicon Mac, easiest", ["pythonos-wizard-{v}.zip"], "The wizard sets up Docker or a virtual machine for you. (Intel Macs: use Docker or a virtual machine below.)"),
+    ("macOS", "There is no Mac version. Docker and virtual machines work on a Mac:", [
         ("A Mac with Docker Desktop", [], "`docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` (Intel and Apple silicon)"),
         ("A virtual machine in UTM or Parallels, Apple silicon", ["pythonos-{v}-aarch64.iso"], "Boot the ARM live image in a new virtual machine."),
         ("A virtual machine in UTM, VirtualBox or VMware, Intel Mac", ["pythonos-{v}-vm.ova", "pythonos-{v}-x86_64.iso"], "Import the appliance, or boot the live image."),
-        ("A Mac with Python 3 and you like the terminal", ["pythonos-{v}-linux.tar.gz"], "Unpack and run `./pythonos` (experimental on macOS)."),
     ]),
     ("Docker", "Amd64 and arm64 (PCs, Raspberry Pi, Apple silicon). Nothing to download: Docker fetches it.", [
         ("Any computer with Docker", [], "`docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` — the volume keeps your accounts, files and updates."),

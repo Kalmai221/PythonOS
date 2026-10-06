@@ -7,12 +7,11 @@ first, and Python is not needed.
 
 Start it
   Windows   double-click wizard.bat  (or PythonOS-Wizard.exe)
-  macOS     double-click wizard.command  (or run ./wizard.sh)   Apple silicon Macs only; Intel Macs: Docker or a virtual machine
   Linux     run ./wizard.sh   (or double-click it, if your file manager runs scripts)
 
 What it can set up
   * PythonOS on this computer      Windows: the installer.  Linux: the package for your distribution (deb, rpm, Arch) or the portable
-                                   launcher.  macOS: the portable launcher (needs Python 3), or use Docker / a virtual machine.
+                                   launcher.  (Macs: use Docker or a virtual machine; see the release page.)
   * An Android phone or tablet     downloads the app; installs it on a phone connected with a cable (adb) if you want.
   * A bootable USB stick           writes the live system to a stick and checks it. Only USB sticks are listed, never the drive the
                                    computer runs from, and you confirm the drive before anything is erased.
@@ -31,12 +30,10 @@ The terminal version
   Windows: use PythonOS-Wizard.exe in place of ./wizard.sh.
 
 Good to know
-  * Only the part that writes a USB stick runs with administrator rights, and Windows / Linux / macOS ask you for them at that moment
+  * Only the part that writes a USB stick runs with administrator rights, and Windows and Linux ask you for them at that moment
     (UAC, polkit or sudo, a password prompt). Everything else runs as you.
   * Windows may warn that the program is from an unknown publisher (it is not signed). Check the file against SHA256SUMS on the release
     page first; "More info", then "Run anyway".
-  * macOS blocks downloaded programs until their quarantine mark is removed; wizard.sh does that for this folder. If macOS still refuses,
-    open System Settings > Privacy & Security and choose "Open Anyway".
   * Linux: the window needs pkexec (polkit, present on desktops) to write a stick. Without it use ./wizard.sh --cli (it uses sudo).
   * Other ways to write the image: balenaEtcher, or Rufus in "DD image" mode.
 
@@ -44,6 +41,4 @@ Included
   PythonOS-Wizard.exe                 Windows (64-bit; also runs on Windows on ARM)
   pythonos-wizard-linux-x86_64        Linux, PCs
   pythonos-wizard-linux-aarch64       Linux, 64-bit ARM
-  pythonos-wizard-macos-arm64         macOS, Apple silicon
-  (no program for Intel Macs: use Docker or a virtual machine, see the release page)
   (a release may leave out one of these if it could not be built; the others still work)

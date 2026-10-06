@@ -1,25 +1,18 @@
 #!/bin/sh
-# PythonOS Setup Wizard for Linux and macOS: picks the right program for this computer and runs it.
+# PythonOS Setup Wizard for Linux: picks the right program for this computer and runs it.
 #   ./wizard.sh                      the window (needs a desktop)
 #   ./wizard.sh --cli --download     the terminal version: download the latest image and write it
 #   ./wizard.sh --cli --help         every option
-# Writing a drive needs administrator rights; the program asks for them (pkexec or sudo on Linux, a password prompt on macOS).
+# Writing a drive needs administrator rights; the program asks for them (pkexec or sudo).
 HERE="$(cd "$(dirname "$0")" && pwd)"
 OS="$(uname -s)"
 
-# The real processor of this computer, not just what `uname` of this shell says: a Terminal running under Rosetta on an Apple-silicon Mac
-# reports Intel, and a 32-bit user space on a 64-bit ARM kernel reports armv7l/armv8l.
+# The real processor of this computer: a 32-bit user space on a 64-bit ARM kernel reports armv7l/armv8l, which no program here can run.
 detect_arch() {
     machine="$(uname -m)"
-    if [ "$OS" = Darwin ]; then
-        if [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ] || [ "$(sysctl -n sysctl.proc_translated 2>/dev/null)" = "1" ]; then
-            echo arm64
-            return
-        fi
-    fi
     case "$machine" in
         x86_64|amd64) echo x86_64 ;;
-        aarch64|arm64) [ "$OS" = Darwin ] && echo arm64 || echo aarch64 ;;
+        aarch64|arm64) echo aarch64 ;;
         armv7*|armv8l|armv6*|arm) echo arm32 ;;
         i386|i486|i586|i686) echo x86_32 ;;
         *) echo "$machine" ;;
@@ -45,22 +38,14 @@ case "$OS" in
         fi
         BIN="$HERE/pythonos-wizard-linux-$ARCH" ;;
     Darwin)
-        case "$ARCH" in
-            arm64|x86_64) ;;
-            *) echo "PythonOS Setup has no program for this Mac's processor." >&2; exit 1 ;;
-        esac
-        BIN="$HERE/pythonos-wizard-macos-$ARCH"
-        xattr -dr com.apple.quarantine "$HERE" 2>/dev/null       # downloaded programs are blocked until this mark is removed
-        ;;
+        echo "PythonOS Setup does not run on macOS. Use Docker: docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos" >&2
+        echo "or a virtual machine (UTM, VirtualBox, VMware) with the files from the release page." >&2
+        exit 1 ;;
     *) echo "On Windows, run wizard.bat." >&2; exit 1 ;;
 esac
 
 if [ ! -f "$BIN" ]; then
     echo "$(basename "$BIN") is missing from this folder (it may not be in this release for your system)." >&2
-    if [ "$OS" = Darwin ] && [ "$ARCH" = x86_64 ]; then
-        echo "There is no wizard program for Intel Macs. Run PythonOS with Docker: docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos" >&2
-        echo "or in a virtual machine (UTM, VirtualBox, VMware) with the .ova or .iso from the release page." >&2
-    fi
     exit 1
 fi
 [ -x "$BIN" ] || chmod +x "$BIN" 2>/dev/null

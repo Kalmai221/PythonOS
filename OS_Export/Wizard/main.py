@@ -10,7 +10,7 @@
     PythonOS-Wizard --cli --download         write the latest image to a stick (terminal): --arch x86_64|aarch64, --minimal, --device ID, --yes
     PythonOS-Wizard --cli pythonos.iso       write a file you have to a stick (checked against SHA256SUMS next to it)
 
-Writing a USB drive needs administrator rights: Windows asks (UAC) when the program starts; Linux and macOS ask when the writing starts.
+Writing a USB drive needs administrator rights: Windows asks (UAC) when the program starts; Linux asks when the writing starts.
 """
 import argparse
 import os
@@ -68,7 +68,7 @@ def parser():
     p.add_argument("--download", action="store_true", help="download the latest image for a USB stick (terminal)")
     p.add_argument("--arch", choices=["x86_64", "aarch64"], help="the processor of the computer that will start from the stick")
     p.add_argument("--minimal", action="store_true", help="the smaller image without Bluetooth, printing and the installer")
-    p.add_argument("--device", help="the drive to write to (Linux /dev/sdX, macOS /dev/diskN, Windows the disk number)")
+    p.add_argument("--device", help="the drive to write to (Linux /dev/sdX, Windows the disk number)")
     p.add_argument("--sha256", help="the expected SHA-256 of the ISO (otherwise SHA256SUMS next to it is used)")
     p.add_argument("--yes", action="store_true", help="do not ask (with --device for a drive; with --goal for the extra step)")
     p.add_argument("--no-verify", action="store_true", help="skip reading the stick back")

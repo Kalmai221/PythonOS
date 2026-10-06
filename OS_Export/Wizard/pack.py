@@ -3,9 +3,9 @@
 
     python OS_Export/Wizard/pack.py --bin dist/wizard-bin --version 1.2.0 --out dist/wizard
 
-Writes pythonos-wizard-<version>.zip: README.txt, wizard.bat, wizard.sh, wizard.command and every program that was built. The scripts and the
-Linux/macOS programs are stored as executable. A program that is not there (a system that could not be built) is left out; the zip still
-needs at least the Windows program or one Linux or macOS one.
+Writes pythonos-wizard-<version>.zip: README.txt, wizard.bat, wizard.sh and every program that was built. The scripts and the
+Linux programs are stored as executable. A program that is not there (a system that could not be built) is left out; the zip still
+needs at least the Windows program or one Linux one.
 """
 import argparse
 import os
@@ -13,9 +13,8 @@ import sys
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROGRAMS = ("PythonOS-Wizard.exe", "pythonos-wizard-linux-x86_64", "pythonos-wizard-linux-aarch64", "pythonos-wizard-macos-arm64",
-            "pythonos-wizard-macos-x86_64")
-LAUNCHERS = ("wizard.bat", "wizard.sh", "wizard.command")
+PROGRAMS = ("PythonOS-Wizard.exe", "pythonos-wizard-linux-x86_64", "pythonos-wizard-linux-aarch64")
+LAUNCHERS = ("wizard.bat", "wizard.sh")
 
 
 def add(archive, path, name, mode):

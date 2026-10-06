@@ -409,7 +409,7 @@ def run(root):
         assert wiz.plan_for("docker", x64, rel)["action"] == "docker-run"
         sizes = {n: 1024 for n in names}
         page = "\n".join(release_notes.quick_guide(v, sizes, "v" + v))
-        for title in ("### Windows", "### Android", "### Linux", "### macOS", "### Docker", "### Bootable USB stick", "### Virtual machines"):
+        for title in ("### Windows", "### Android", "### Linux", "### Docker", "### Bootable USB stick", "### Virtual machines"):
             assert title in page, f"the release page needs a table for {title}"
         assert f"releases/download/v{v}/pythonos-{v}-vm.ova" in page
         assert "pythonos-9.9.9-windows-portable.zip" not in page, "a file that is not in the release is not offered"
