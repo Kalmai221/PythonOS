@@ -5,18 +5,22 @@
     ytaudio lo-fi beats          search and choose
     ytaudio <youtube link>       play a video or a whole playlist
 
-Inside:  search <words>   play <number|link>   add <number|link>   queue   clear   volume <0-130>   player <auto|mpv|vlc|ffplay>   help   quit
+Inside:  search <words>   play <number|link>   add <number|link>   queue   clear   volume <0-130>   player <auto|builtin|mpv|vlc|ffplay>   help   quit
 While a track plays the player's own keys work (mpv: space pauses, the arrow keys seek, 9 and 0 change the volume, < and > go to the
 previous and next track, q stops).
 
-It needs two things: the yt-dlp library (offered for install the first time) and an audio player on this computer (mpv is best; VLC or
-ffplay also work). Use it for things you are allowed to listen to; YouTube's terms apply to what you play.
+It plays the sound itself, inside PythonOS: the marketplace installs the libraries it needs (yt-dlp, av and miniaudio) with the app, so
+nothing has to be installed on the computer. If those cannot be used there, it falls back to mpv, VLC or ffplay when one is installed.
+Use it for things you are allowed to listen to; YouTube's terms apply to what you play.
 """
+import array
 import importlib
 import os
+import queue
 import shutil
 import subprocess
 import sys
+import threading
 
 try:
     from pyos import appsettings
@@ -59,6 +63,112 @@ def choose_player(found, wanted="auto"):
     order = [wanted] if wanted in found else []
     order += [n for n in ("mpv", "vlc", "ffplay") if n in found and n not in order]
     return (order[0], found[order[0]]) if order else None
+
+
+# ------------------------------------------------------------------------------------------ the built-in player
+RATE = 44100
+
+
+def load_builtin():
+    """(av, miniaudio) when both libraries can be loaded here, else None."""
+    try:
+        return importlib.import_module("av"), importlib.import_module("miniaudio")
+    except Exception:                                                      # noqa: BLE001 - a missing library or a missing audio backend
+        return None
+
+
+def scale(pcm, volume):
+    """16-bit little-endian PCM at `volume` percent (100 leaves it as it is; louder is clipped)."""
+    if volume == 100:
+        return pcm
+    samples = array.array("h")
+    samples.frombytes(pcm[: len(pcm) - len(pcm) % 2])
+    factor = volume / 100.0
+    return array.array("h", [max(-32768, min(32767, int(x * factor))) for x in samples]).tobytes()
+
+
+def decode_chunks(av, url):
+    """Stereo 16-bit PCM at RATE for the audio behind `url`, as chunks of bytes."""
+    container = av.open(url, options={"reconnect": "1", "reconnect_streamed": "1", "reconnect_delay_max": "4"}, timeout=20)
+    try:
+        stream = container.streams.audio[0]
+        resampler = av.AudioResampler(format="s16", layout="stereo", rate=RATE)
+        for frame in container.decode(stream):
+            for out in resampler.resample(frame):
+                yield bytes(out.planes[0])[: out.samples * 4]
+        for out in resampler.resample(None) or []:
+            yield bytes(out.planes[0])[: out.samples * 4]
+    finally:
+        container.close()
+
+
+def play_builtin(libs, urls, volume):
+    """Play each address in turn through the sound output, in this process. Ctrl+C stops."""
+    av, miniaudio = libs
+    volume = max(0, min(130, int(volume)))
+    for number, url in enumerate(urls, 1):
+        chunks = queue.Queue(maxsize=64)                                  # decoded sound waiting for the output
+        stop = threading.Event()
+        done = threading.Event()
+
+        def decoder():
+            try:
+                for chunk in decode_chunks(av, url):
+                    data = scale(chunk, volume)
+                    while not stop.is_set():
+                        try:
+                            chunks.put(data, timeout=0.2)
+                            break
+                        except queue.Full:
+                            continue
+                    if stop.is_set():
+                        return
+                tail = None
+            except Exception as e:                                         # noqa: BLE001
+                tail = e
+            while not stop.is_set():
+                try:
+                    chunks.put(tail, timeout=0.2)
+                    return
+                except queue.Full:
+                    continue
+
+        def source():
+            buffered = bytearray()
+            finished = False
+            wanted = yield b""
+            while True:
+                need = wanted * 4
+                while len(buffered) < need and not finished:
+                    try:
+                        item = chunks.get_nowait()
+                    except queue.Empty:
+                        break
+                    if item is None or isinstance(item, Exception):
+                        finished = True
+                        if isinstance(item, Exception):
+                            print(f"\n  playback problem: {str(item)[:160]}")
+                    else:
+                        buffered += item
+                if finished and not buffered:
+                    done.set()
+                data = bytes(buffered[:need])
+                del buffered[:need]
+                wanted = yield data + b"\0" * (need - len(data))            # silence when the network is slower than the sound
+
+        threading.Thread(target=decoder, daemon=True).start()
+        device = miniaudio.PlaybackDevice(output_format=miniaudio.SampleFormat.SIGNED16, nchannels=2, sample_rate=RATE)
+        stream = source()
+        next(stream)
+        device.start(stream)
+        print(f"  playing {number}/{len(urls)}  (Ctrl+C stops)")
+        try:
+            while not done.wait(0.25):
+                pass
+            threading.Event().wait(0.6)                                    # let the last of the sound out
+        finally:
+            stop.set()
+            device.close()
 
 
 def install_hint():
@@ -201,12 +311,15 @@ class Player:
             print("play <number> plays one, add <number> queues it.")
 
     def play_tracks(self, tracks):
-        found = find_players()
-        chosen = choose_player(found, option("player"))
-        if not chosen:
-            print("No audio player was found.\n" + install_hint())
-            return
-        name, path = chosen
+        wanted = option("player")
+        libs = load_builtin() if wanted in ("auto", "builtin") else None
+        chosen = None
+        if libs is None:
+            chosen = choose_player(find_players(), "auto" if wanted == "builtin" else wanted)
+            if not chosen:
+                print("The built-in player could not start (its libraries are missing or there is no sound output), and no mpv, VLC or ffplay was found.\n"
+                      "Fetch the libraries again with: pkg install ytaudio\n" + install_hint())
+                return
         urls = []
         for track in tracks:
             print(f"Getting {track['title']}...")
@@ -216,10 +329,14 @@ class Player:
                 print(f"  could not get it: {str(e)[:160]}")
         if not urls:
             return
+        name = "the built-in player" if libs else chosen[0]
         print(f"Playing {len(urls)} track(s) with {name}. " + ("Press q to stop." if name == "mpv" else "Press Ctrl+C to stop."))
         try:
-            for command in build_command(name, path, urls, option("volume")):
-                subprocess.run(command)
+            if libs:
+                play_builtin(libs, urls, option("volume"))
+            else:
+                for command in build_command(chosen[0], chosen[1], urls, option("volume")):
+                    subprocess.run(command)
         except KeyboardInterrupt:
             print("\nStopped.")
         except OSError as e:
@@ -273,7 +390,7 @@ class Player:
 def execute(args=None):
     args = list(args or [])
     if "ANDROID_ROOT" in os.environ or "ANDROID_DATA" in os.environ:
-        print("YouTube Audio needs an audio player program, which Android does not offer to apps like this one. Use it on a computer.")
+        print("YouTube Audio cannot reach the sound output from inside the Android app. Use it on a computer.")
         return False
     yt = load_ytdlp()
     if yt is None:
