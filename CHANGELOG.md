@@ -7,18 +7,6 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 **Exports** (the packages around it: Windows, Android, Linux, the ISO and VM images, Docker; a new download is needed to get these), **Website** and
 **Development** (tests and tools, not user-visible). Versions before 1.0.8 are not split and count as PythonOS.
 
-## 1.0.10
-
-### PythonOS
-
-- `updatecheck` and the "What's new" screen now show only the PythonOS part of a release (what the core update brings), under the title "What's new in PythonOS". A new package for your export is announced separately, with its own notes.
-- `lscpu` works on Apple silicon Macs (it no longer stops when the system does not report a processor speed).
-
-### Development
-
-- The changelog is split into PythonOS, Exports, Website and Development parts for every version (this file's own header explains it); the release page shows the parts under their own headings, the core manifest carries the PythonOS part as its notes and the Exports part as `export_notes`, and `tools/test_changelog.py` checks the format.
-- The macOS test run found the `lscpu` problem above.
-
 ## 1.0.9
 
 ### PythonOS
@@ -35,6 +23,8 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - `installos` shows the real reason when the installer fails (the tool's error output was being dropped), keeps the full output in `/tmp/pythonos-install.log`, and checks before erasing anything that the package repositories can be reached.
 - `installos` works in the VM images, which have only a boot disk and a data disk: the data disk can now be chosen as the target (with a clear warning that its saved files and accounts are erased; they are released first so the session keeps working), and when no disk can be used it lists every disk and why, and how to add one.
 - New `timesync` command, and `updatecheck` points to it when a secure connection fails (a wrong clock is the usual cause).
+- `updatecheck` and the "What's new" screen now show only the PythonOS part of a release (what the core update brings), under the title "What's new in PythonOS". A new package for your export is announced separately, with its own notes.
+- `lscpu` works on Apple silicon Macs (it no longer stops when the system does not report a processor speed).
 
 ### Exports
 
@@ -50,6 +40,8 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 ### Development
 
 - Test CI is much wider: the smoke test on Linux, Windows and macOS and on Python 3.9 and 3.14; static checks (undefined names, Python 3.9 compatibility, all three catalog files current, manual and help-group completeness, website links and scripts, shell scripts, the Alpine package names of the ISO); and on Windows the installer is compiled and the PowerShell scripts parsed. (The first run found a real bug: the chess app used `os` without importing it.)
+- The changelog is split into PythonOS, Exports, Website and Development parts for every version (this file's own header explains it); the release page shows the parts under their own headings, the core manifest carries the PythonOS part as its notes and the Exports part as `export_notes`, and `tools/test_changelog.py` checks the format.
+- The macOS test run found the `lscpu` problem (fixed before release).
 
 ## 1.0.8
 
