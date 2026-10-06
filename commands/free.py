@@ -14,10 +14,13 @@ def _h(n):
 
 
 def execute(args=None):
-    vm, sw = psutil.virtual_memory(), psutil.swap_memory()
+    from pyos import resources
+    total, used, available, percent = resources.snapshot()
+    sw = psutil.swap_memory()
     table = Table(header_style="bold", box=None)
     for col in ("", "total", "used", "free", "use%"):
         table.add_column(col, justify="right" if col else "left")
-    table.add_row("Mem:", _h(vm.total), _h(vm.used), _h(vm.available), f"{vm.percent:.0f}%")
-    table.add_row("Swap:", _h(sw.total), _h(sw.used), _h(sw.free), f"{sw.percent:.0f}%")
+    table.add_row("Mem:", _h(total), _h(used), _h(available), f"{percent:.0f}%")
+    if not resources.limit_mb():
+        table.add_row("Swap:", _h(sw.total), _h(sw.used), _h(sw.free), f"{sw.percent:.0f}%")
     console.print(table)

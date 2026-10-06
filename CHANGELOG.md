@@ -3,6 +3,11 @@
 One section per release, newest first. The section for a version is shown to users when they update
 (the "What's in it" box in updatecheck, and the "What's new" screen after the restart).
 
+## Unreleased
+
+- PythonOS owns a fixed amount of memory (setting `memory_limit_mb`, 1024 MB by default; 0 = the whole machine). `free`, `sysinfo` and the task manager show that amount as the whole computer, everything PythonOS runs counts as used, and on Windows the system enforces the limit. The live ISO always uses all of the machine's memory.
+- Live ISO: shutdown and restart are shown entirely by PythonOS (jobs, sessions, data disk, system services) and the machine then powers off or restarts with no system messages on the screen.
+
 ## 1.0.5
 - More processors: Windows on ARM (portable zip and installer; the web installer picks the right one), 64-bit ARM live ISOs (full and minimal, UEFI), a multi-architecture Docker image (amd64 and arm64)
 - More Linux distributions: Arch and Manjaro (.pkg.tar.zst) and Fedora, RHEL, openSUSE (.rpm) packages next to the .deb and the tarball (all work on any processor)

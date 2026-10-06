@@ -4,7 +4,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, IntPrompt
 from rich.text import Text
-from pyos import lockdown
+from pyos import lockdown, resources
 
 console = Console()
 
@@ -25,7 +25,9 @@ def get_processes():
             return procs
         for proc in mine:
             try:
-                procs.append(proc.as_dict(['pid', 'name', 'cpu_percent', 'memory_percent']))
+                info = proc.as_dict(['pid', 'name', 'cpu_percent', 'memory_info'])
+                info['memory_percent'] = resources.percent_of_budget(info['memory_info'].rss) if info.get('memory_info') else 0.0
+                procs.append(info)
             except psutil.Error:
                 continue
         return procs

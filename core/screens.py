@@ -109,6 +109,63 @@ def _flush():
             pass
 
 
+# ------------------------------------------------------------- the live ISO: PythonOS is the whole system
+def _live():
+    return os.environ.get("PYOS_LIVE") == "1"
+
+
+def _quiet(cmd, timeout=15):
+    """Run a system command with no output at all (the Linux underneath never gets to write on the screen)."""
+    try:
+        subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=timeout, check=False)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _save_data():
+    """Write everything out and release the data disk (and lock it again if it is encrypted)."""
+    _flush()
+    try:
+        os.chdir("/")
+    except OSError:
+        pass
+    if os.path.ismount("/mnt/pyos-data"):
+        _quiet(["umount", "/mnt/pyos-data"])
+        if os.path.ismount("/mnt/pyos-data"):
+            _quiet(["umount", "-l", "/mnt/pyos-data"])
+        if os.path.exists("/dev/mapper/pyosdata"):
+            _quiet(["cryptsetup", "close", "pyosdata"])
+        return "data disk released"
+    return ""
+
+
+def _stop_services():
+    """The system services (network, Bluetooth, printing...) stop now, with their messages hidden: PythonOS shows the progress."""
+    for command in (["/sbin/openrc", "shutdown"], ["openrc", "shutdown"]):
+        if _quiet(command, 20):
+            break
+    return ""
+
+
+def power(action):
+    """Switch the machine off or restart it (live ISO only), without a single line from the system. Returns only if that failed."""
+    _flush()
+    try:
+        with open("/proc/sys/kernel/printk", "w") as f:
+            f.write("0 0 0 0")                       # no kernel message ("reboot: Power down") on the screen either
+    except OSError:
+        pass
+    try:
+        sys.stdout.write("\033[?25l")
+        sys.stdout.flush()
+    except (OSError, ValueError):
+        pass
+    verb = "reboot" if action == "restart" else "poweroff"
+    for command in ([verb, "-f"], ["/sbin/" + verb, "-f"]):
+        _quiet(command, 30)
+
+
 def factory_reset():
     """Erase accounts, settings, every user's files and installed packages. Returns a short description."""
     for name in ("current_user.json", pyos.paths.USER_DB, "current_directory.txt"):
@@ -146,12 +203,16 @@ def shutdown_sequence(kind="shutdown"):
     steps.append(("Flushing the filesystem", _flush, 0.5))
     if not wiping:
         steps.append(("Marking the session as closed", _mark_session(kind), 0.2))
+    if _live():
+        steps += [("Saving your data", _save_data, 0.4), ("Stopping system services", _stop_services, 0.4)]
     for number, (label, action, seconds) in enumerate(steps, 1):
         _step(label, action, seconds, number, len(steps))
 
     if restarting:
         console.print(f"\n{theme.tag('warning', tr('Restarting now...'))}")
         pause(0.8)
+        if _live():
+            power("restart")                          # a real restart of the machine; returns only if that failed
         return
     countdown = max(0, round(3 * settings.boot_pause() / 0.35))
     if countdown and sys.stdout.isatty():
@@ -162,6 +223,8 @@ def shutdown_sequence(kind="shutdown"):
     console.print(f"\n{theme.tag('error', tr('Shutdown complete.'))}")
     if wiping:
         console.print(f"\n{theme.tag('warning', tr('Power on the device for first-time setup.'))}")
+    if _live():
+        power("shutdown")
     sys.exit(0)
 
 

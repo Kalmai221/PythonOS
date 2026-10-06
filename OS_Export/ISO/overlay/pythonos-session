@@ -58,11 +58,13 @@ python3 main.py
 code=$?
 
 if [ "$code" -eq 0 ]; then
+    # PythonOS has already shown the shutdown, stopped the services and (normally) powered the machine off itself. If it
+    # only exited, finish quietly: nothing from the system underneath is ever printed.
     sync
-    mountpoint -q /mnt/pyos-data && umount /mnt/pyos-data 2>/dev/null
-    echo "PythonOS has shut down. Powering off..."
-    sleep 2
-    poweroff
+    mountpoint -q /mnt/pyos-data && umount /mnt/pyos-data >/dev/null 2>&1
+    printf '\033[?25l'
+    echo "0 0 0 0" > /proc/sys/kernel/printk 2>/dev/null
+    poweroff -f >/dev/null 2>&1
     exit 0
 fi
 

@@ -46,8 +46,10 @@ def get_disk_usage():
 
 def get_memory_usage():
     # Get memory usage statistics using psutil
-    memory = psutil.virtual_memory()
-    return f"{memory.percent}% used of {memory.total // (1024 ** 3)} GB"
+    from pyos import resources
+    total, used, available, percent = resources.snapshot()
+    size = f"{total // (1024 ** 3)} GB" if total >= 1024 ** 3 and total % (1024 ** 3) == 0 else f"{total // (1024 ** 2)} MB"
+    return f"{percent:.0f}% used of {size}"
 
 # The execute function will be called when the user selects this program
 def execute():

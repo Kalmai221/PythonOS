@@ -640,6 +640,7 @@ def start_shell(username):
     power_watch = power.Watcher(username, lambda text, level="info": notify.notify(text, title="Battery", level=level, user=username),
                                 pyos.shutdown)
     power_watch.start()
+    pyos.resources.Guard(lambda text, level="info": notify.notify(text, title="Memory", level=level, user=username)).start()
 
     last_activity = time.time()
     idle = IdleWatch(username)

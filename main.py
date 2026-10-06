@@ -38,6 +38,11 @@ import users
 import pyos
 from pyos import settings
 import shell
+
+try:
+    pyos.resources.apply()                      # PythonOS owns a fixed amount of memory (setting memory_limit_mb); not on the live ISO
+except Exception:
+    pass
 import core
 import traceback
 import time

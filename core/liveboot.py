@@ -83,8 +83,8 @@ def sync_clock_in_background(log=None, notify=None):
 # ------------------------------------------------------------------------------------------ memory
 def memory_total():
     try:
-        import psutil
-        return int(psutil.virtual_memory().total)
+        from pyos import resources
+        return int(resources.budget())             # the memory PythonOS owns (the whole machine on the live ISO)
     except Exception:
         return 0
 
