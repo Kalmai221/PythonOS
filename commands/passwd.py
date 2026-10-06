@@ -38,6 +38,10 @@ def execute(args=None):
         if problem:
             console.print(f"[bold red]{problem}[/bold red]")
             return False
+        from pyos import passwords
+        note = passwords.advice(new, target)
+        if note:
+            console.print(f"[yellow]{escape(note)}[/yellow]")
         if getpass.getpass("Confirm new password: ") != new:
             console.print("[bold red]Passwords do not match.[/bold red]")
             return False

@@ -28,9 +28,9 @@ page("cd", "change folder", ["cd [path]"],
      examples=[("cd docs", "go into docs"), ("cd ..", "go up one"), ("cd /tmp", "go to the shared temporary folder"), ("cd", "go home")],
      see=["pwd", "ls", "files"])
 page("pwd", "show the current folder", ["pwd"], "Prints where you are, for example /home/alex/docs.", see=["cd"])
-page("cat", "show a file", ["cat [--plain] <file>...", "<command> | cat"],
+page("cat", "show a file", ["cat [--plain] [--force] <file>...", "<command> | cat"],
      "Prints files exactly as they are. On a terminal, code, JSON, Markdown and other known file types are coloured; --plain turns that off, and piped output is never coloured. "
-     "With no file it prints what was piped into it.",
+     "A file that is not text (a picture, a program) is not printed unless you add --force; file says what it is. With no file it prints what was piped into it.",
      examples=[("cat notes.txt", "read a file"), ("cat a.txt b.txt > both.txt", "join two files")], see=["head", "tail", "edit"])
 page("head", "show the start of a file", ["head [-n N] [file]"], "Prints the first 10 lines (or N).",
      [("-n N", "how many lines")], [("head -n 3 log.txt", "first three lines"), ("ls | head -n 5", "first five names")], ["tail", "cat"])
@@ -273,6 +273,12 @@ cmd_page("persist", "keep your accounts and files across restarts of the live sy
 cmd_page("timesync", "check the clock against the internet", ["timesync"],
      "Asks a time server what time it is, shows the difference and sets the clock when the system allows it (the live ISO and VM images do). A wrong clock breaks secure "
      "connections and updates. The live images also do this by themselves a minute after start.", [], ["date", "ping"])
+cmd_page("file", "say what a file is", ["file <path>..."], "Looks at the first bytes of a file and says what it is: an image, a program, an archive, a kind of text, or binary data. "
+     "Uses the filetype library when it is installed.", [("file photo.jpg", "image/jpeg (jpg)")], ["cat", "stat", "ls"])
+cmd_page("web", "read a web page as text", ["web <url>", "web -l <url>"], "Fetches a page and shows its title, its text and its links, numbered. -l shows only the links. "
+     "Pages up to 4 MB; for a file, use wget. Uses beautifulsoup4 when it is installed. browse is the same command.", [("web example.com", ""), ("web -l https://news.ycombinator.com", "just the links")], ["curl", "wget"])
+cmd_page("convert", "convert a data file between JSON and YAML", ["convert <file> [--to json|yaml] [-o output]"], "Reads a JSON or YAML file and writes it in the other format, to the screen or to a file. "
+     "YAML needs the PyYAML library. yaml is the same command.", [("convert settings.json", "show it as YAML"), ("convert config.yml -o config.json", "")], ["cat", "edit"])
 cmd_page("less", "read long text a screen at a time", ["less [file]", "... | less"], "Shows a file or piped text one screen at a time: Enter shows one more line, a space then Enter the next page, q stops. more is the same.",
      [("less readme.txt", ""), ("man pkg | less", "")], ["cat", "head"])
 page("ipinfo", "public IP information", ["ipinfo"], "Shows your public IP address and where it appears to be.", see=["ping"])

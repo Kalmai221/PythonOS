@@ -321,7 +321,7 @@ def run_stage(argv):
     matched = find_entry(available_commands, name)
     if not matched:
         names = list(available_commands) + BUILTINS
-        close = difflib.get_close_matches(name, names, n=1)
+        close = pyos.fuzzy.close_matches(name, names, n=1)
         hint = f" Did you mean [bold]{close[0]}[/bold]?" if close else " Type 'help' for a list of commands."
         if name in unavailable_here:
             console.print(f"[bold red]{escape(name)}[/bold red] is not available in the {pyos.export.title(pyos.export.current())}; "

@@ -14,7 +14,7 @@ from . import theme
 CATEGORIES = {
     "Files": ("Look at and change files and folders",
               ["ls", "cd", "pwd", "cat", "head", "tail", "wc", "grep", "find", "tree", "touch", "mkdir", "cp", "mv", "rm", "trash", "undo", "edit", "fm",
-               "zip", "unzip", "tar", "du", "stat", "less", "tee", "which", "basename", "dirname"]),
+               "zip", "unzip", "tar", "du", "stat", "less", "tee", "which", "basename", "dirname", "file", "convert"]),
     "Text and shell": ("Print, repeat and organise what you type",
                        ["echo", "history", "clear", "man", "tutorial", "sort", "uniq", "cut", "tr", "diff", "xargs", "tee", "less",
                         "alias", "unalias", "export", "unset", "source", "env", "watch", "time", "rev", "tac", "nl", "seq", "cal", "cowsay", "fortune", "rainbow"]),
@@ -25,7 +25,7 @@ CATEGORIES = {
     "System": ("About this computer and its settings",
                ["sysinfo", "uname", "hostname", "uptime", "free", "df", "date", "version", "settings", "bootlog", "whathappened", "report", "diag", "quickstart", "arch", "nproc", "lscpu", "pgrep", "timesync"]),
     "Network and hardware": ("Connect, share and set up hardware",
-                             ["ping", "tracert", "nslookup", "whois", "curl", "wget", "netstat", "ifconfig", "ipinfo", "share", "hwsetup", "display", "persist", "print"]),
+                             ["ping", "tracert", "nslookup", "whois", "curl", "wget", "web", "netstat", "ifconfig", "ipinfo", "share", "hwsetup", "display", "persist", "print"]),
     "Updates and apps": ("Keep PythonOS current and add apps",
                          ["updatecheck", "rollback", "whatsnew", "pkg", "backup", "limits"]),
     "Power": ("Turn off, restart or reset", ["shutdown", "restart", "wipe", "installos"]),
@@ -302,7 +302,8 @@ def show(console, commands, programs, words, find_entry):
         if category.lower() == " ".join(words).lower() or category.lower().startswith(first):
             show_category(console, category, commands, programs)
             return
-    close = difflib.get_close_matches(first, list(commands) + list(programs) + [c.lower() for c in names], n=3, cutoff=0.6)
+    from . import fuzzy
+    close = fuzzy.close_matches(first, list(commands) + list(programs) + [c.lower() for c in names], n=3, cutoff=0.6)
     if search_hits(" ".join(words), commands, programs):
         show_search(console, " ".join(words), commands, programs)         # not a command name: treat it as "what I want to do"
         return

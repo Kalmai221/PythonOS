@@ -252,6 +252,13 @@ def change_password():
     if problem:
         console.print(f"[bold red]{problem}[/bold red]")
         return False
+    try:
+        from pyos import passwords
+        note = passwords.advice(new_password, username)
+        if note:
+            console.print(f"[yellow]{note}[/yellow]")
+    except Exception:                                      # noqa: BLE001 - advice is a courtesy, never a reason to fail
+        pass
     if getpass.getpass("Confirm new password: ") != new_password:
         console.print("[bold red]Passwords do not match.[/bold red]")
         return False

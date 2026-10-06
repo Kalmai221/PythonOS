@@ -36,6 +36,24 @@ def libraries_ok(env):
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
 
 
+def install_extras(env):
+    """The optional libraries (requirements-extra.txt): installed once per version of that list, and never a reason to stop PythonOS starting."""
+    extras = os.path.join(HERE, "requirements-extra.txt")
+    marker = os.path.join(HERE, ".extras-installed")
+    try:
+        import hashlib
+        with open(extras, "rb") as f:
+            digest = hashlib.sha256(f.read()).hexdigest()
+        if os.path.isfile(marker) and open(marker, encoding="utf-8").read().strip() == digest:
+            return
+        subprocess.call([PYTHON, "-m", "pip", "install", "--quiet", "--no-warn-script-location", "-r", extras], env=env,
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=600)
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write(digest)
+    except Exception:                                      # noqa: BLE001 - optional: PythonOS starts without them
+        pass
+
+
 def main():
     os.chdir(HERE)
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYOS_EXPORT_INFO=os.path.join(HERE, "export.json"),
@@ -58,6 +76,7 @@ def main():
                 or not libraries_ok(env):
             print("\nCould not install the libraries. Check your internet connection and start it again.")
             return 1
+    install_extras(env)
     try:
         return subprocess.call([PYTHON, "main.py", *sys.argv[1:]], env=env)
     except KeyboardInterrupt:

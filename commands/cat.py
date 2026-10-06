@@ -4,6 +4,7 @@ from rich.console import Console
 
 import pyos.fs as fs
 import pyos.stdio as stdio
+from pyos import filetypes
 
 console = Console()
 config = {"name": "cat", "description": "Print the contents of a file (cat [--plain] <file>); code, JSON and Markdown files are coloured on a terminal."}
@@ -41,7 +42,8 @@ def show(name, text):
 def execute(args=None):
     args = list(args or [])
     no_colour = "--plain" in args
-    args = [a for a in args if a != "--plain"]
+    force = "--force" in args
+    args = [a for a in args if a not in ("--plain", "--force")]
     if not args:
         if stdio.read_stdin() is not None:
             console.print(stdio.read_stdin(), markup=False, highlight=False, end="")
@@ -51,7 +53,14 @@ def execute(args=None):
     ok = True
     for name in args:
         try:
-            with open(fs.resolve(name), "r", encoding="utf-8", errors="replace") as f:
+            path = fs.resolve(name)
+            with open(path, "rb") as probe:
+                head = probe.read(4096)
+            if not force and head and not filetypes.is_text(head):
+                console.print(f"[yellow]cat: {name} is not text ({filetypes.describe(head, name)}). Use cat --force to print it anyway, or file {name}.[/yellow]")
+                ok = False
+                continue
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 text = f.read()
             if no_colour:
                 plain(text)

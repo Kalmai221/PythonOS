@@ -1,0 +1,10 @@
+# Optional libraries. PythonOS uses each one when it is installed and works without it, so a failure to install any of them is never a problem.
+# (requirements.txt is the list PythonOS needs to start; changing it forces a new package on Android and the ISO, so it is kept short.)
+python-dateutil     # date -d "next friday", and any date the built-in parser does not know
+humanize            # "3 minutes ago" in stat, uptime and others
+zxcvbn              # honest advice on how strong a new password is
+filetype            # file: what a file is, from its first bytes (and cat does not print a picture as text)
+beautifulsoup4      # web: readable text from a page, with its links
+pyyaml              # convert: YAML to JSON and back
+rapidfuzz           # better "did you mean" and help search
+feedparser          # rss: feeds that are not quite valid

@@ -84,6 +84,12 @@ chaquopy {
             install("prompt_toolkit")
             install("pygments")
             install("tzdata")
+            // optional extras (pure Python only: PythonOS works without them); see requirements-extra.txt
+            install("python-dateutil")
+            install("humanize")
+            install("zxcvbn")
+            install("filetype")
+            install("beautifulsoup4")
         }
     }
 }

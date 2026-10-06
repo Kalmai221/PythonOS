@@ -94,6 +94,14 @@ CHECKS = [
     ("who", "smoke", 0),
     ("lscpu", "Family", 0),
     ("pgrep", "Usage", 1),
+    # commands built on optional libraries (each works without them too: tools/test_libs.py)
+    ("date -d tomorrow", None, 0),
+    ("date -d 2026-12-25 +%d/%m/%Y", "25/12/2026", 0),
+    ("date -d what is this", "do not understand", 1),
+    ("file .", "folder", 0),
+    ("file smoke-tee.txt", "text", 0),
+    ("web", "Usage", 1),
+    ("convert", "Usage", 1),
     # aliases and variables
     ('alias ll="echo listed"', None, 0),
     ("ll", "listed", 0),
