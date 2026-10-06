@@ -14,6 +14,11 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
+HAVE_REPO = os.path.isdir(os.path.join(REPO, "OS_Export")) and os.path.isdir(os.path.join(REPO, "tools"))     # false inside a package or a container image
+
+
+class _Skip(Exception):
+    """A check that needs the repository checkout (build tools, other programs) is not run where there is only the packaged OS."""
 
 # (command line, text the output must contain or None, expected status)
 CHECKS = [
@@ -307,6 +312,8 @@ def run(root):
 
     # processor detection, and the pure parts of the Flash program (drive lists, checksums, writing to a file standing in for a stick)
     try:
+        if not HAVE_REPO:
+            raise _Skip()
         import importlib.util
         import platform as _platform
         from pyos import archinfo
@@ -359,12 +366,16 @@ def run(root):
         finally:
             shutil.rmtree(work, ignore_errors=True)
         print("ok   processor detection and the Flash program")
+    except _Skip:
+        print("skip processor detection and the Flash program (needs the repository checkout)")
     except Exception as e:                           # noqa: BLE001
         print(f"FAIL processor detection and the Flash program   <- {type(e).__name__}: {e}")
         failures.append(("arch and flash", [f"{type(e).__name__}: {e}"], ""))
 
     # the Setup Wizard's decisions (which file for which computer and goal) and the release catalog / release page tables
     try:
+        if not HAVE_REPO:
+            raise _Skip()
         sys.path.insert(0, os.path.join(REPO, "OS_Export", "Wizard"))
         sys.path.insert(0, os.path.join(REPO, "OS_Export"))
         import catalog
@@ -403,6 +414,8 @@ def run(root):
         assert f"releases/download/v{v}/pythonos-{v}-vm.ova" in page
         assert "pythonos-9.9.9-windows-portable.zip" not in page, "a file that is not in the release is not offered"
         print("ok   setup wizard plans and release page tables")
+    except _Skip:
+        print("skip setup wizard plans and release page tables (needs the repository checkout)")
     except Exception as e:                           # noqa: BLE001
         print(f"FAIL setup wizard plans and release page tables   <- {type(e).__name__}: {e}")
         failures.append(("wizard plans", [f"{type(e).__name__}: {e}"], ""))
