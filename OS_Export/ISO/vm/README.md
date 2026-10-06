@@ -10,8 +10,7 @@ No USB stick needed. The scripts here set up a ready-made VM that boots the Pyth
 | VMware (Workstation / Fusion / Player) | open `pythonos.vmx` after putting the ISO next to it as `pythonos.iso` |
 
 All of them give the VM 1 GB of memory, 1 CPU core or more, a network card (so updates and the marketplace work) and sound.
-The live system forgets everything at power off, unless a data disk is attached. The `.ova` already includes one (a second 2 GB disk,
-labelled PYOS_DATA), so accounts, files and settings are kept between runs; keep that disk when you move or clone the VM. With the `.qcow2`, attach
+The live system forgets everything at power off, unless a data disk is attached. The `.ova` already includes one (a second 2 GB disk labelled PYOS_DATA, plus a third, empty 8 GB disk that `installos` can install PythonOS on), so accounts, files and settings are kept between runs; keep that disk when you move or clone the VM. With the `.qcow2`, attach
 `pythonos-<version>-vm-data.qcow2` as a second disk (it is the same ready-made data disk). With your own VM, attach a second (empty) virtual disk and run
 `persist create` inside PythonOS; the QEMU script can add one for you with `--disk` (a file named `pythonos-data.img`, 2 GB, created once).
 

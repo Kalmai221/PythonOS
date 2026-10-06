@@ -8,7 +8,8 @@
 #   pythonos-<version>-vm-data.qcow2  the matching 2 GB data disk (labelled PYOS_DATA): attach it as a second disk and the VM keeps your
 #                                 accounts, files and settings between runs
 #   pythonos-<version>-vm.ova     an appliance for VirtualBox and VMware (File > Import Appliance): 1 GB memory, 2 CPUs, NAT network, sound,
-#                                 and a second 2 GB disk (labelled PYOS_DATA) that keeps your accounts, files and settings between runs
+#                                 a second 2 GB disk (labelled PYOS_DATA) that keeps your accounts, files and settings between runs, and a third,
+#                                 empty 8 GB disk that `installos` can install PythonOS on (it takes almost no space: the empty disk is not stored)
 #   pythonos-<version>-vm-kit.zip the run/create scripts and the .vmx for people who would rather attach the ISO themselves
 #
 # Why a disk can be made from an ISO: the PythonOS ISO is a hybrid image (it boots as a CD and as a disk, BIOS and UEFI),
@@ -47,6 +48,14 @@ qemu-img convert -f raw -O vmdk -o subformat=streamOptimized "$WORK/data.img" "$
 qemu-img convert -f raw -O qcow2 -c "$WORK/data.img" "$OUT/pythonos-$VERSION-vm-data.qcow2"      # the same disk for QEMU/KVM/Proxmox
 rm -f "$WORK/data.img"
 DATA_FILE_SIZE="$(stat -c %s "$WORK/$DATA" 2>/dev/null || stat -f %z "$WORK/$DATA")"
+
+# an empty spare disk (no filesystem at all) for `installos`. A stream-optimised disk stores no empty blocks, so it adds only a few KB to the download.
+SPARE="pythonos-$VERSION-spare.vmdk"
+SPARE_BYTES=$((8 * 1024 * 1024 * 1024))
+truncate -s "$SPARE_BYTES" "$WORK/spare.img"
+qemu-img convert -f raw -O vmdk -o subformat=streamOptimized "$WORK/spare.img" "$WORK/$SPARE"
+rm -f "$WORK/spare.img"
+SPARE_FILE_SIZE="$(stat -c %s "$WORK/$SPARE" 2>/dev/null || stat -f %z "$WORK/$SPARE")"
 cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <Envelope vmw:buildId="build-pythonos" xmlns="http://schemas.dmtf.org/ovf/envelope/1" xmlns:cim="http://schemas.dmtf.org/wbem/wscim/1/common"
@@ -56,12 +65,15 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
   <References>
     <File ovf:href="$DISK" ovf:id="file1" ovf:size="$FILE_SIZE"/>
     <File ovf:href="$DATA" ovf:id="file2" ovf:size="$DATA_FILE_SIZE"/>
+    <File ovf:href="$SPARE" ovf:id="file3" ovf:size="$SPARE_FILE_SIZE"/>
   </References>
   <DiskSection>
     <Info>Virtual disk information</Info>
     <Disk ovf:capacity="$BYTES" ovf:capacityAllocationUnits="byte" ovf:diskId="vmdisk1" ovf:fileRef="file1"
           ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized"/>
     <Disk ovf:capacity="$DATA_BYTES" ovf:capacityAllocationUnits="byte" ovf:diskId="vmdisk2" ovf:fileRef="file2"
+          ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized"/>
+    <Disk ovf:capacity="$SPARE_BYTES" ovf:capacityAllocationUnits="byte" ovf:diskId="vmdisk3" ovf:fileRef="file3"
           ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized"/>
   </DiskSection>
   <NetworkSection>
@@ -123,6 +135,14 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
         <rasd:ResourceType>17</rasd:ResourceType>
       </Item>
       <Item>
+        <rasd:AddressOnParent>2</rasd:AddressOnParent>
+        <rasd:ElementName>Hard Disk 3 (empty, for installos)</rasd:ElementName>
+        <rasd:HostResource>ovf:/disk/vmdisk3</rasd:HostResource>
+        <rasd:InstanceID>8</rasd:InstanceID>
+        <rasd:Parent>3</rasd:Parent>
+        <rasd:ResourceType>17</rasd:ResourceType>
+      </Item>
+      <Item>
         <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
         <rasd:Connection>NAT</rasd:Connection>
         <rasd:ElementName>Ethernet adapter on NAT</rasd:ElementName>
@@ -141,7 +161,7 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
   </VirtualSystem>
 </Envelope>
 EOF
-(cd "$WORK" && tar -cf "$OUT/pythonos-$VERSION-vm.ova" "pythonos-$VERSION.ovf" "$DISK" "$DATA")
+(cd "$WORK" && tar -cf "$OUT/pythonos-$VERSION-vm.ova" "pythonos-$VERSION.ovf" "$DISK" "$DATA" "$SPARE")
 
 # 3) the scripts and the .vmx, for attaching the ISO yourself
 (cd "$HERE" && zip -q -r "$OUT/pythonos-$VERSION-vm-kit.zip" README.md run-qemu.sh run-qemu.ps1 create-virtualbox.sh create-virtualbox.ps1 pythonos.vmx)

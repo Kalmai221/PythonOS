@@ -27,7 +27,8 @@ def execute(args=None):
                       "USB stick PythonOS started from.")
         for path, size, why in installer.skipped():
             console.print(f"  {escape(path)}  {persist.human(size)}  [dim]{escape(why)}[/dim]")
-        console.print("In a virtual machine, add a second virtual hard disk (8 GB is plenty) in its settings, start it again and run installos again.")
+        console.print("In a virtual machine, add another virtual hard disk (8 GB is plenty) in its settings, start it again and run installos again. "
+                      "(The .ova download comes with an empty one.)")
         return False
     table = Table(title="Disks", header_style="bold blue")
     for col in ("#", "Device", "Size", "Model", "Currently holds"):
