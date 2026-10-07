@@ -273,12 +273,66 @@ def _must(code_out, what):
     return out
 
 
-def check_repositories():
-    """The installer fetches the base system from Alpine's package repositories: say so before anything is erased when it cannot."""
+MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
+REPOSITORIES = "/etc/apk/repositories"
+BASE_PACKAGES = ("linux-lts", "acct")          # what setup-disk installs; if apk cannot find them, setup-disk stops half way
+
+
+def _missing_base():
+    """The base packages that none of the configured repositories offer (the live ISO's own repository holds only what is on the disc)."""
+    missing = []
+    for name in BASE_PACKAGES:
+        code, out = hardware.run(["apk", "search", "-e", name], timeout=120, merge=True)
+        if code != 0 or name not in out.split():
+            missing.append(name)
+    return missing
+
+
+def _alpine_branch():
+    try:
+        with open("/etc/alpine-release", encoding="utf-8") as f:
+            match = re.match(r"(\d+\.\d+)", f.read().strip())
+        return "v" + match.group(1) if match else "edge"
+    except OSError:
+        return "edge"
+
+
+def check_repositories(log=None):
+    """The installer fetches the base system from Alpine's package repositories. Make sure it can before anything is erased: the live
+    system's repository list can hold only the disc, which has no kernel or accounting packages, so the network ones are added when needed."""
     code, out = hardware.run(["apk", "update"], timeout=120, merge=True)
-    if code != 0:
-        raise InstallError("the package repositories cannot be reached, and the installer needs them to fetch the base system. "
-                           f"Connect this computer to the internet first (hwsetup network). Detail: {tail(out, 4) or 'apk update failed'}")
+    if code == 0 and not _missing_base():
+        return
+    branch = _alpine_branch()
+    try:
+        with open(REPOSITORIES, encoding="utf-8") as f:
+            original = f.read()
+    except OSError:
+        original = ""
+    lines = [l for l in original.splitlines() if l.strip()]
+    for repo in ("main", "community"):
+        url = f"{MIRROR}/{branch}/{repo}"
+        if url not in lines:
+            lines.append(url)
+    if log:
+        log("The disc does not hold the base system; using Alpine's online repositories")
+    try:
+        with open(REPOSITORIES, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+    except OSError as e:
+        raise InstallError(f"could not add the online package repositories ({e}); the installer needs them to fetch the base system")
+    code, out = hardware.run(["apk", "update"], timeout=180, merge=True)
+    missing = _missing_base() if code == 0 else list(BASE_PACKAGES)
+    if code != 0 or missing:
+        try:
+            with open(REPOSITORIES, "w", encoding="utf-8") as f:
+                f.write(original)
+        except OSError:
+            pass
+        if code != 0:
+            raise InstallError("the package repositories cannot be reached, and the installer needs them to fetch the base system. "
+                               f"Connect this computer to the internet first (hwsetup network). Detail: {tail(out, 4) or 'apk update failed'}")
+        raise InstallError(f"the repositories do not offer {', '.join(missing)} for Alpine {branch}; nothing was erased")
 
 
 def root_partition(device_path):
@@ -310,7 +364,7 @@ def install(device_path, log=print, hostname="pyOS"):
     if device is None:
         raise InstallError(why)
     _step(log, "Checking that the base system can be fetched")
-    check_repositories()
+    check_repositories(lambda text: _step(log, text))
     if device.get("is_data"):
         release_data_disk(lambda text: _step(log, text))
 
