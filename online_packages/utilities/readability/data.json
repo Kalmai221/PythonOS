@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "wordstats"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Readability",
+  "description": "How long and how hard a text is to read: words, reading time, grade level and the words you use most.",
+  "command": "readability",
+  "tags": [
+    "writing",
+    "text",
+    "statistics",
+    "reading"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools",
+    "productivity"
+  ]
+}

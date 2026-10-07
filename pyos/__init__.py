@@ -4,5 +4,5 @@ from .shutdown import shutdown, ShutdownRequested
 from .userinfo import userinfo
 from .logout import logout
 from . import paths, fs, log, stdio, resources, tasks, marketapi, services
-from . import trail, screenlog, apprun, sysmem
+from . import trail, screenlog, apprun, sysmem, bugs
 from . import sandbox, settings, theme, notify, appdata, jobs, scheduler, lockdown, export, editor, startup, paging, shellvars, prompt, optional, fuzzy, passwords

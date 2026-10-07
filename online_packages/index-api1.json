@@ -774,6 +774,54 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "games/life",
+      "category": "games",
+      "name": "Life",
+      "description": "Conway's Game of Life: watch patterns walk, pulse and grow from a few simple rules.",
+      "version": "1.0.0",
+      "command": "life",
+      "alias": [
+        "conway"
+      ],
+      "tags": [
+        "game",
+        "simulation",
+        "cellular automaton",
+        "relaxing"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "acd427b5aaa33b6076c9450743eab308b5071d325b51dd655e6818a140515990",
+          "size": 441
+        },
+        {
+          "path": "run.py",
+          "sha256": "8764f54771e9a816cb21a26dfcff223959387002de880652145a563670785635",
+          "size": 3545
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "games/lightsout",
       "category": "games",
       "name": "Lights Out",
@@ -851,6 +899,52 @@
           "path": "run.py",
           "sha256": "cafac63d0d612a0834ce46a33bde582d0b21d4e875d381c40bbb41a601093b32",
           "size": 3784
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "games/maze",
+      "category": "games",
+      "name": "Maze",
+      "description": "Find your way out of a freshly made maze, with a hint that shows the shortest route.",
+      "version": "1.0.0",
+      "command": "maze",
+      "alias": [],
+      "tags": [
+        "game",
+        "puzzle",
+        "maze",
+        "logic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "6ff6b34871bb0944dc2b313c03a126b1fb8722ce23c7db4de7372f6d30e1dec5",
+          "size": 405
+        },
+        {
+          "path": "run.py",
+          "sha256": "1b5314390914a553c9f55ce52a43db321ca053f5b5fee47274cceebf31e26743",
+          "size": 3867
         }
       ]
     },
@@ -945,6 +1039,52 @@
           "path": "run.py",
           "sha256": "9ea4dc23bd1c14afb9e3e4a9c3191f318c97340f43fca8cb60f07c768e2f79f9",
           "size": 6344
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "games/nim",
+      "category": "games",
+      "name": "Nim",
+      "description": "Take turns removing stones; the computer plays the classic perfect strategy (with the odd mistake so you can win).",
+      "version": "1.0.0",
+      "command": "nim",
+      "alias": [],
+      "tags": [
+        "game",
+        "strategy",
+        "math",
+        "logic"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "ab71995930a8a39a664cf72d1069ce0d1f9b44fc9d5934fecf2abc07354d7957",
+          "size": 435
+        },
+        {
+          "path": "run.py",
+          "sha256": "4b2ce200fc000f44db524ba9ec84b3942c353da7690686f13a71e9113085d5d5",
+          "size": 3689
         }
       ]
     },
@@ -1082,6 +1222,54 @@
           "path": "run.py",
           "sha256": "9e6c22bf967d331e390fb4fed6e08177e638b66aab4d7bfd7d9fa9c55c04d12f",
           "size": 7297
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "games/rps",
+      "category": "games",
+      "name": "Rock Paper Scissors",
+      "description": "Rock, paper, scissors, lizard, Spock against a computer that studies your habits.",
+      "version": "1.0.0",
+      "command": "rps",
+      "alias": [
+        "spock"
+      ],
+      "tags": [
+        "game",
+        "rock paper scissors",
+        "quick",
+        "fun"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "7b2913d33ebad580673d4bae4dfa8d0e5815f1fc303e6d4f5fd12c100a4dc01e",
+          "size": 443
+        },
+        {
+          "path": "run.py",
+          "sha256": "8395d62abca8ebcb6f253756ef1b49163d5a8746ce29741ce8b23d136039684c",
+          "size": 3769
         }
       ]
     },
@@ -1735,6 +1923,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/bulkrename",
+      "category": "utilities",
+      "name": "Bulk Rename",
+      "description": "Rename many files at once after seeing exactly what will change: replace, number, change case, regular expressions.",
+      "version": "1.0.0",
+      "command": "bulkrename",
+      "alias": [
+        "rename-many"
+      ],
+      "tags": [
+        "rename",
+        "files",
+        "batch",
+        "regex"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "c418d740838178c6d18fe1ebf1c5a40ab5434d767ce767ebd6618f96e9667d44",
+          "size": 487
+        },
+        {
+          "path": "run.py",
+          "sha256": "e35f0827d01773e3ca028e7ea75458e17c1708d485c67f1e04f08ee9a51cd4be",
+          "size": 4779
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/calendar",
       "category": "utilities",
       "name": "Calendar",
@@ -1782,6 +2020,54 @@
           "path": "run.py",
           "sha256": "be1abbf3db2c588478ccebaf9df3875a3af6e09af08fdb8ad0fe492f06531fb8",
           "size": 8854
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/cipher",
+      "category": "utilities",
+      "name": "Cipher",
+      "description": "Classic ciphers for puzzles and learning: Caesar, ROT13, Atbash, Vigenere, rail fence, and a Caesar cracker.",
+      "version": "1.0.0",
+      "command": "cipher",
+      "alias": [],
+      "tags": [
+        "cipher",
+        "caesar",
+        "puzzle",
+        "encryption",
+        "learning"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools",
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "685ac896d031d9a65deaad71c2e46fd30e69a294dab90d38084a762a6c6c45a1",
+          "size": 474
+        },
+        {
+          "path": "run.py",
+          "sha256": "6d22f813000fe0738b0a4aa1098cc40f5f9cd1752d44181f86e49fcdd1ee5497",
+          "size": 4674
         }
       ]
     },
@@ -1905,6 +2191,105 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/colors",
+      "category": "utilities",
+      "name": "Colors",
+      "description": "Look at a colour, convert it between hex, rgb, hsl and hsv, find its name and a matching palette.",
+      "version": "1.0.0",
+      "command": "colors",
+      "alias": [
+        "colours"
+      ],
+      "tags": [
+        "color",
+        "hex",
+        "rgb",
+        "palette",
+        "design"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "11801668826d18deb6af0513c2e0b17071a0d620b41c894082c8236e60817b24",
+          "size": 452
+        },
+        {
+          "path": "run.py",
+          "sha256": "231c7f2c099444f29b459688a6a352171ed6ca6bfb9182aa321d6829616096ab",
+          "size": 5297
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/contacts",
+      "category": "utilities",
+      "name": "Contacts",
+      "description": "A small private address book: add, search, edit and export people with their phone, email and a note.",
+      "version": "1.0.0",
+      "command": "contacts",
+      "alias": [
+        "addressbook"
+      ],
+      "tags": [
+        "address book",
+        "people",
+        "phone",
+        "productivity"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "a7ce4b98e9f16dedefa7d0c42ace0ac1f0d099d8c649229f1c95e9da2e08c1c2",
+          "size": 489
+        },
+        {
+          "path": "run.py",
+          "sha256": "512224910cdef1f0783ca12af08c8942aefaa9d5f989741c38c6a461f9584a7b",
+          "size": 5765
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/converter",
       "category": "utilities",
       "name": "Converter",
@@ -1947,6 +2332,54 @@
           "path": "run.py",
           "sha256": "7de3343b94576acbbaff83aca3a16c96b41db754e110f56ee77eb7c7b95fe983",
           "size": 21181
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/countdown",
+      "category": "utilities",
+      "name": "Countdown",
+      "description": "How many days until the things you are looking forward to: add events and see them counted down.",
+      "version": "1.0.0",
+      "command": "countdown",
+      "alias": [],
+      "tags": [
+        "countdown",
+        "dates",
+        "events",
+        "productivity"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "2cae5041b2636456f9d88376ee3c5ab4b024ea4d4b47fa47a2be5545baa380bc",
+          "size": 462
+        },
+        {
+          "path": "run.py",
+          "sha256": "079801a0930478fe9ce286ba8975615970353d1d7b775329d18f0ca56d8e43a9",
+          "size": 5121
         }
       ]
     },
@@ -2150,6 +2583,57 @@
           "path": "run.py",
           "sha256": "5be41bbb40bc9ceb16540cf4cfef729c65ab03f344e3d00166994c75e62c9c00",
           "size": 7017
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/dupes",
+      "category": "utilities",
+      "name": "Dupes",
+      "description": "Find files that are exact copies of each other and move the extras into a review folder; nothing is deleted.",
+      "version": "1.0.0",
+      "command": "dupes",
+      "alias": [
+        "duplicates"
+      ],
+      "tags": [
+        "duplicates",
+        "files",
+        "cleanup",
+        "disk"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "tools",
+        "system"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "a1c66e5c439ed557e37a79c22229732961b0cae55c6d357ac1a278d2f7e805ce",
+          "size": 487
+        },
+        {
+          "path": "run.py",
+          "sha256": "31883650f457ce1d798da28833fb7da9e6883853641e33d976c18157ed65c2a5",
+          "size": 4427
         }
       ]
     },
@@ -2677,6 +3161,55 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/loan",
+      "category": "utilities",
+      "name": "Loan Calculator",
+      "description": "What a loan or mortgage really costs: the monthly payment, the interest, the effect of paying extra, a year-by-year table.",
+      "version": "1.0.0",
+      "command": "loan",
+      "alias": [
+        "mortgage"
+      ],
+      "tags": [
+        "loan",
+        "mortgage",
+        "money",
+        "calculator",
+        "finance"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "31bca0018c5b6cfc4f3e01fcd31581f6813e804b7c543b88499f516e8c29312f",
+          "size": 495
+        },
+        {
+          "path": "run.py",
+          "sha256": "7d932876a9f916340b81aea1a53aa483159d8b3f9d9ccb4b4917ffdd438d5e9e",
+          "size": 4061
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/logviewer",
       "category": "utilities",
       "name": "Log Viewer",
@@ -2826,6 +3359,53 @@
           "path": "run.py",
           "sha256": "0e78a402851c31c96a4128d971f8b2a1a768075e85585955be0a0472d4800d73",
           "size": 10955
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/morse",
+      "category": "utilities",
+      "name": "Morse",
+      "description": "Turn text into Morse code and back, see the table, and practise with a quiz.",
+      "version": "1.0.0",
+      "command": "morse",
+      "alias": [],
+      "tags": [
+        "morse",
+        "code",
+        "learning",
+        "radio"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools",
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "dd0b20710abd6fa19735955ec9d5dbe11a7460d2b906d5139ed911381762bfcb",
+          "size": 418
+        },
+        {
+          "path": "run.py",
+          "sha256": "8a9621c58f9ab941e6145fd02c79d9a05a58b36b97cb821b423f31302eba5087",
+          "size": 3073
         }
       ]
     },
@@ -3186,6 +3766,57 @@
           "path": "run.py",
           "sha256": "f66e2a604fd9b4e7dc06fc08003eaad1c8bcb87d37333033bd175cd2f48298ed",
           "size": 13221
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/readability",
+      "category": "utilities",
+      "name": "Readability",
+      "description": "How long and how hard a text is to read: words, reading time, grade level and the words you use most.",
+      "version": "1.0.0",
+      "command": "readability",
+      "alias": [
+        "wordstats"
+      ],
+      "tags": [
+        "writing",
+        "text",
+        "statistics",
+        "reading"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "files"
+      ],
+      "settings": [],
+      "categories": [
+        "tools",
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "bfd3a4a432c433ee0534871bdc19061b4787a9aad55c27e756bb6ae32cb630d5",
+          "size": 499
+        },
+        {
+          "path": "run.py",
+          "sha256": "67b0621a6be13e9e6a16c2e18c401fa7dfb480d607c0d82603d87296e17d2d82",
+          "size": 3869
         }
       ]
     },

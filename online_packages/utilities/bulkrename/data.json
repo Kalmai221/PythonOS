@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "rename-many"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Bulk Rename",
+  "description": "Rename many files at once after seeing exactly what will change: replace, number, change case, regular expressions.",
+  "command": "bulkrename",
+  "tags": [
+    "rename",
+    "files",
+    "batch",
+    "regex"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools"
+  ]
+}

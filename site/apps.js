@@ -9,7 +9,7 @@
   };
   var EXPORTS = { windows: "Windows app", linux: "Linux and Docker", android: "Android app", iso: "Bootable ISO and VMs" };
   var EXPORT_SHORT = { windows: "Windows", linux: "Linux", android: "Android", iso: "ISO / VM" };
-  var state = { apps: [], cats: {}, q: "", cat: "all", perm: "all", exp: "all", live: false, plain: false, sort: "featured" };
+  var state = { apps: [], cats: {}, q: "", cat: "all", perm: "all", exp: "all", live: false, plain: false, sort: "featured", page: 1, per: 24 };
   function exportsOf(a) { return a.exports && a.exports.length ? a.exports : Object.keys(EXPORTS); }
   function everywhere(a) { return exportsOf(a).length === Object.keys(EXPORTS).length; }
   // the live USB runs apps that cannot reach anything underneath PythonOS (lockdown_safe) and that list the ISO
@@ -69,16 +69,57 @@
       (everywhere(a) ? "" : "<span class='chip quiet' title='" + esc(worksOn(a)) + "'>" + esc(exportsOf(a).map(function (k) { return EXPORT_SHORT[k] || k; }).join(" · ")) + "</span>") +
       ((a.pip || []).length ? "<span class='chip lib' title='Installs Python libraries'>Libraries</span>" : "") + "<span class='muted'>" + P.size(sizeOf(a)) + "</span></span></span></button>";
   }
+  // ---- pages: a window of the filtered list (state.per apps, 0 = all of them)
+  function pageCount(total) { return state.per > 0 ? Math.max(1, Math.ceil(total / state.per)) : 1; }
+  // the page numbers to show: the first, the last and the ones around the current page, with "..." where numbers are left out
+  function pageNumbers(current, last) {
+    var keep = {}, out = [], prev = 0;
+    [1, last, current - 1, current, current + 1].forEach(function (n) { if (n >= 1 && n <= last) keep[n] = true; });
+    Object.keys(keep).map(Number).sort(function (a, b) { return a - b; }).forEach(function (n) {
+      if (prev && n - prev > 1) out.push(n - prev === 2 ? prev + 1 : 0);          // one missing number is just shown; more become an ellipsis
+      out.push(n);
+      prev = n;
+    });
+    return out;
+  }
+  function pager(total) {
+    var last = pageCount(total), nav = $("pager");
+    if (last <= 1) { nav.hidden = true; nav.innerHTML = ""; return; }
+    var html = "<button class='tab' type='button' data-page='" + (state.page - 1) + "'" + (state.page <= 1 ? " disabled" : "") + " aria-label='Previous page'>&larr; Previous</button>";
+    pageNumbers(state.page, last).forEach(function (n) {
+      html += n === 0 ? "<span class='gap' aria-hidden='true'>&hellip;</span>" :
+        "<button class='tab' type='button' data-page='" + n + "' aria-label='Page " + n + "'" + (n === state.page ? " aria-current='page' aria-pressed='true'" : " aria-pressed='false'") + ">" + n + "</button>";
+    });
+    html += "<button class='tab' type='button' data-page='" + (state.page + 1) + "'" + (state.page >= last ? " disabled" : "") + " aria-label='Next page'>Next &rarr;</button>";
+    nav.innerHTML = html;
+    nav.hidden = false;
+    nav.querySelectorAll("[data-page]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var n = parseInt(b.getAttribute("data-page"), 10);
+        if (n >= 1 && n <= last && n !== state.page) { state.page = n; sync(); render(); $("result-count").scrollIntoView({ block: "start", behavior: "smooth" }); }
+      });
+    });
+  }
   function render() {
-    var shown = order(state.apps.filter(matches));
+    var all = order(state.apps.filter(matches));
+    state.page = Math.min(Math.max(state.page, 1), pageCount(all.length));                 // a filter can leave fewer pages than before
+    var from = state.per > 0 ? (state.page - 1) * state.per : 0;
+    var shown = state.per > 0 ? all.slice(from, from + state.per) : all;
     $("apps").innerHTML = shown.map(card).join("");
-    $("empty").hidden = shown.length > 0;
-    $("result-count").textContent = shown.length === state.apps.length ? shown.length + " apps" : shown.length + " of " + state.apps.length + " apps";
+    $("empty").hidden = all.length > 0;
+    var filtered = all.length !== state.apps.length;
+    var total = filtered ? all.length + " of " + state.apps.length + " apps" : all.length + " apps";
+    $("result-count").textContent = shown.length && shown.length < all.length
+      ? "Showing " + (from + 1) + "–" + (from + shown.length) + " of " + all.length + (filtered ? " matching apps (" + state.apps.length + " in all)" : " apps")
+      : total;
+    pager(all.length);
     document.querySelectorAll(".app-card").forEach(function (b) { b.addEventListener("click", function () { open(b.getAttribute("data-id"), true); }); });
   }
+  // a new search, filter or sort starts from the first page again
+  function refresh() { state.page = 1; sync(); render(); }
   function chips(el, items, key) {
     el.innerHTML = items.map(function (it) { return "<button class='tab' type='button' data-v='" + esc(it[0]) + "' aria-pressed='" + (state[key] === it[0]) + "'>" + esc(it[1]) + "</button>"; }).join("");
-    el.querySelectorAll("[data-v]").forEach(function (b) { b.addEventListener("click", function () { state[key] = b.getAttribute("data-v"); chips(el, items, key); sync(); render(); }); });
+    el.querySelectorAll("[data-v]").forEach(function (b) { b.addEventListener("click", function () { state[key] = b.getAttribute("data-v"); chips(el, items, key); refresh(); }); });
   }
 
   // ---- the detail window
@@ -133,23 +174,27 @@
     if (state.cat !== "all") parts.push("c=" + encodeURIComponent(state.cat));
     if (state.perm !== "all") parts.push("p=" + encodeURIComponent(state.perm));
     if (state.exp !== "all") parts.push("e=" + encodeURIComponent(state.exp));
+    if (state.page > 1) parts.push("pg=" + state.page);
+    if (state.per !== 24) parts.push("n=" + state.per);
     try { history.replaceState(null, "", parts.length ? "#" + parts.join("&") : location.pathname + location.search); } catch (e) {}
   }
   function fromAddress() {
     var h = location.hash.replace(/^#/, "");
     h.split("&").forEach(function (kv) {
       var i = kv.indexOf("="), k = kv.slice(0, i), v = decodeURIComponent(kv.slice(i + 1));
-      if (k === "q") state.q = v; else if (k === "c") state.cat = v; else if (k === "p") state.perm = v; else if (k === "e") state.exp = v; else if (k === "app") state.open = v;
+      if (k === "q") state.q = v; else if (k === "c") state.cat = v; else if (k === "p") state.perm = v; else if (k === "e") state.exp = v; else if (k === "pg") state.page = parseInt(v, 10) || 1; else if (k === "n") state.per = [0, 12, 24, 48].indexOf(parseInt(v, 10)) >= 0 ? parseInt(v, 10) : 24; else if (k === "app") state.open = v;
     });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     fromAddress();
     $("q").value = state.q;
-    $("q").addEventListener("input", function () { state.q = this.value.trim(); sync(); render(); });
-    $("sort").addEventListener("change", function () { state.sort = this.value; render(); });
+    $("per").value = String(state.per);
+    $("q").addEventListener("input", function () { state.q = this.value.trim(); refresh(); });
+    $("sort").addEventListener("change", function () { state.sort = this.value; refresh(); });
+    $("per").addEventListener("change", function () { state.per = parseInt(this.value, 10); refresh(); });
     [["only-live", "live"], ["only-plain", "plain"]].forEach(function (p) {
-      $(p[0]).addEventListener("click", function () { state[p[1]] = !state[p[1]]; this.setAttribute("aria-pressed", String(state[p[1]])); render(); });
+      $(p[0]).addEventListener("click", function () { state[p[1]] = !state[p[1]]; this.setAttribute("aria-pressed", String(state[p[1]])); refresh(); });
     });
     $("d-close").addEventListener("click", close);
     $("detail").addEventListener("click", function (e) { if (e.target === this) close(); });

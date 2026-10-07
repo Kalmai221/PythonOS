@@ -57,11 +57,15 @@
         <label class="sort"><span class="muted">Sort</span>
           <select id="sort"><option value="featured">Featured first</option><option value="name">Name</option><option value="size">Smallest first</option><option value="updated">Newest version</option></select>
         </label>
+        <label class="sort"><span class="muted">Per page</span>
+          <select id="per"><option value="12">12</option><option value="24" selected>24</option><option value="48">48</option><option value="0">All</option></select>
+        </label>
       </div>
     </div>
     <p class="muted" id="result-count" aria-live="polite"></p>
     <div class="lib-grid" id="apps" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
     <p class="note" id="empty" hidden>No app matches. Clear the search or a filter.</p>
+    <nav class="pager" id="pager" aria-label="Pages of apps" hidden></nav>
     <p class="muted" style="margin-top:28px">Want to add one? <a href="docs/apps-api.html">The Apps API documentation</a> explains the format and how to send an app in.</p>
   </section>
 </main>

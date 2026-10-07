@@ -81,6 +81,11 @@ footer a { color: var(--muted); }
 .tab { font: inherit; font-size: .92rem; padding: 5px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; }
 .tab:hover { border-color: var(--line-strong); }
 .tab[aria-pressed="true"], .tab[aria-selected="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin: 26px 0 8px; }
+.pager .tab { min-width: 38px; text-align: center; }
+.pager .tab[disabled] { opacity: .45; cursor: not-allowed; }
+.pager .tab[aria-current="page"] { cursor: default; }
+.pager .gap { color: var(--muted); padding: 0 4px; }
 .chip { display: inline-block; font-size: .78rem; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--line); background: var(--sunken); color: var(--text); line-height: 1.6; }
 .chip.perm { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
 .chip.quiet { color: var(--muted); background: none; }

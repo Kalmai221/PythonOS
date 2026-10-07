@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "colours"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Colors",
+  "description": "Look at a colour, convert it between hex, rgb, hsl and hsv, find its name and a matching palette.",
+  "command": "colors",
+  "tags": [
+    "color",
+    "hex",
+    "rgb",
+    "palette",
+    "design"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

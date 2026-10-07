@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Countdown",
+  "description": "How many days until the things you are looking forward to: add events and see them counted down.",
+  "command": "countdown",
+  "tags": [
+    "countdown",
+    "dates",
+    "events",
+    "productivity"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity"
+  ]
+}

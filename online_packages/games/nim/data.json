@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Nim",
+  "description": "Take turns removing stones; the computer plays the classic perfect strategy (with the odd mistake so you can win).",
+  "command": "nim",
+  "tags": [
+    "game",
+    "strategy",
+    "math",
+    "logic"
+  ],
+  "permissions": [],
+  "categories": [
+    "games"
+  ]
+}

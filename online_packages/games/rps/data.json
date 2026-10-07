@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "spock"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Rock Paper Scissors",
+  "description": "Rock, paper, scissors, lizard, Spock against a computer that studies your habits.",
+  "command": "rps",
+  "tags": [
+    "game",
+    "rock paper scissors",
+    "quick",
+    "fun"
+  ],
+  "permissions": [],
+  "categories": [
+    "games"
+  ]
+}

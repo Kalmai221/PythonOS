@@ -648,6 +648,18 @@ def lock_session(username):
     return False
 
 
+def offer_bug_report():
+    """The bug-detection service (pyos/bugs.py) queues unexpected bugs it finds in the log; ask about the next one before the prompt."""
+    try:
+        from rich.prompt import Confirm
+        pyos.bugs.offer(lambda question: Confirm.ask(f"[bold yellow]{question}[/bold yellow]", default=False),
+                        lambda text: run_line("report " + shlex.quote(text)), lambda text: console.print(f"[dim]{escape(text)}[/dim]"))
+    except (KeyboardInterrupt, EOFError):
+        console.print()
+    except Exception:                                      # noqa: BLE001 - the question must never stop the shell
+        pass
+
+
 def show_notifications(username):
     for n in notify.take_pending(username):
         level = {"warn": "warning", "error": "error", "success": "success"}.get(n["level"], "accent")
@@ -675,6 +687,7 @@ def define_services():
     services.define("battery-watch", "Battery Monitor",
                     lambda user: power.Watcher(user, lambda text, level="info": notify.notify(text, title="Battery", level=level, user=user),
                                                pyos.shutdown), critical=True)
+    services.define("bug-detection", "Bug Detection (asks whether to report unexpected bugs)", lambda user: pyos.bugs.Detector(user))
     services.define("memory-guard", "Memory Guard",
                     lambda user: pyos.resources.Guard(lambda text, level="info": notify.notify(text, title="Memory", level=level, user=user)))
 
@@ -758,6 +771,7 @@ def start_shell(username):
     # The background services (see pyos/services.py and the service command): defined here, started unless switched off
     from core import liveboot
     define_services()
+    pyos.bugs.forget()                                     # a new session: nothing has been asked about yet
     last_activity = time.time()
     idled_out = False
     shell_task = pyos.tasks.start_session(username)
@@ -770,6 +784,7 @@ def start_shell(username):
             stdio.clear_screen()
             console.print("[dim]Screen tidied (settings auto_clear_lines). Earlier output: 'history', 'logs'.[/dim]")
         show_notifications(username)
+        offer_bug_report()
         idle.waiting(True)
         try:
             shown_prompt = make_prompt(username, role)

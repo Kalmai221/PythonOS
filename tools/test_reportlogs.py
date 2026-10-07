@@ -69,7 +69,7 @@ def main():
         apprun.outcome("notes", 1, 0.5, "Traceback (most recent call last):\n  File x\nKeyError: 'a'\n", "sam")
         apprun.outcome("big", -9, 3.0, "", "sam")
         text = open(log.LOG_FILE, encoding="utf-8").read()
-        assert "app notes finished in 1.2s" in text and "app notes failed: exit 1" in text and "KeyError: 'a'" in text
+        assert "app notes finished in 1.2s" in text and "app notes crashed: exit 1" in text and "KeyError: 'a'" in text
         assert "[WARN]" in text and "killed" in text
         code = apprun.run([sys.executable, "-c", "import sys; sys.stderr.write('boom\\n'); sys.exit(3)"], dict(os.environ), "tiny", "sam", quiet_stderr=True)
         assert code == 3 and "app tiny failed: exit 3" in open(log.LOG_FILE, encoding="utf-8").read()

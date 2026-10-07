@@ -26,7 +26,10 @@ def _log_result(name, code, seconds, tail, user):
     reason = " | ".join(line.strip() for line in tail if line.strip())[-400:]
     if code in (-9, 137):
         reason = (reason + " | " if reason else "") + "killed (out of memory, or stopped by the system)"
-    log.log(f"app {name} failed: exit {code} after {seconds:.1f}s" + (f": {reason}" if reason else ""), "WARN", user=user)
+    # a traceback is a bug in the app (or in PythonOS under it); a plain non-zero exit is the app saying it did not succeed
+    crashed = any(line.startswith("Traceback (most recent call last)") for line in tail)
+    log.log(f"app {name} {'crashed' if crashed else 'failed'}: exit {code} after {seconds:.1f}s" + (f": {reason}" if reason else ""),
+            "ERROR" if crashed else "WARN", user=user)
 
 
 def run(command, env, name, user=None, quiet_stderr=False):

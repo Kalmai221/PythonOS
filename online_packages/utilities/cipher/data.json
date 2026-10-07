@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Cipher",
+  "description": "Classic ciphers for puzzles and learning: Caesar, ROT13, Atbash, Vigenere, rail fence, and a Caesar cracker.",
+  "command": "cipher",
+  "tags": [
+    "cipher",
+    "caesar",
+    "puzzle",
+    "encryption",
+    "learning"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools",
+    "learning"
+  ]
+}

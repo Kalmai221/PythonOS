@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "duplicates"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Dupes",
+  "description": "Find files that are exact copies of each other and move the extras into a review folder; nothing is deleted.",
+  "command": "dupes",
+  "tags": [
+    "duplicates",
+    "files",
+    "cleanup",
+    "disk"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "tools",
+    "system"
+  ]
+}

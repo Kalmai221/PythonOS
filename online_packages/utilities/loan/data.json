@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "mortgage"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Loan Calculator",
+  "description": "What a loan or mortgage really costs: the monthly payment, the interest, the effect of paying extra, a year-by-year table.",
+  "command": "loan",
+  "tags": [
+    "loan",
+    "mortgage",
+    "money",
+    "calculator",
+    "finance"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Morse",
+  "description": "Turn text into Morse code and back, see the table, and practise with a quiz.",
+  "command": "morse",
+  "tags": [
+    "morse",
+    "code",
+    "learning",
+    "radio"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools",
+    "learning"
+  ]
+}

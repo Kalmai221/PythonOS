@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "addressbook"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Contacts",
+  "description": "A small private address book: add, search, edit and export people with their phone, email and a note.",
+  "command": "contacts",
+  "tags": [
+    "address book",
+    "people",
+    "phone",
+    "productivity"
+  ],
+  "permissions": [
+    "files"
+  ],
+  "categories": [
+    "productivity"
+  ]
+}

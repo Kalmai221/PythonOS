@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Maze",
+  "description": "Find your way out of a freshly made maze, with a hint that shows the shortest route.",
+  "command": "maze",
+  "tags": [
+    "game",
+    "puzzle",
+    "maze",
+    "logic"
+  ],
+  "permissions": [],
+  "categories": [
+    "games"
+  ]
+}

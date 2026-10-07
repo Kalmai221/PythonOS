@@ -69,6 +69,12 @@ def targets():
     return {"discord": hook}
 
 
+def _refuse_when_locked():
+    """gh can run aliases and extensions, so it is never started on a locked-down system."""
+    if _lockdown():
+        raise SendError("the GitHub CLI is not available on a locked-down system")
+
+
 def gh_path():
     """The GitHub CLI: the one named by PYOS_GH, the one PythonOS downloaded, or one on the system (ISO, VM)."""
     from pyos import ghfetch
@@ -88,6 +94,7 @@ def ensure_gh(ask, say=print):
     """Make sure gh is available, downloading it (into PythonOS's private data only) if the person agrees. `ask(question)` returns True or False.
     Returns True when gh can be run. Raises SendError when it cannot be had."""
     from pyos import ghfetch
+    _refuse_when_locked()
     if gh_path():
         return True
     if not ghfetch.possible():
@@ -160,6 +167,7 @@ def gh_signed_in(user):
 def _gh(args, user, capture=None, timeout=None):
     """Run gh. capture=None: it uses the terminal (the sign-in prints a code and waits for a key). Otherwise its output is captured
     and `capture` is what it is given as input. Returns (exit code, output)."""
+    _refuse_when_locked()
     exe = gh_path()
     if not exe:
         raise SendError("the GitHub CLI (gh) is not installed in this copy of PythonOS")
@@ -205,6 +213,7 @@ def run_gh(args, user):
 
     On a real terminal gh gets the terminal itself (so its prompts and sign-in work). Inside a pipe or a redirect its output is
     captured and written to PythonOS's output, so `gh issue list | grep bug` works."""
+    _refuse_when_locked()
     exe = gh_path()
     if not exe:
         raise SendError("the GitHub CLI (gh) is not installed in this copy of PythonOS")

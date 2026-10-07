@@ -142,6 +142,19 @@ def main():
     finally:
         os.chdir(here)                                      # a Windows folder cannot be removed while it is the current one
         shutil.rmtree(tmp, ignore_errors=True)
+    # a locked-down system never starts gh (it can run aliases and extensions) and never downloads it
+    real_lock = reportsend._lockdown
+    reportsend._lockdown = lambda: True
+    try:
+        for call in (lambda: reportsend.ensure_gh(lambda q: True), lambda: reportsend.run_gh(["issue", "list"], "sam"),
+                     lambda: reportsend._gh(["auth", "status"], "sam", capture="")):
+            try:
+                call()
+                raise AssertionError("must refuse when locked down")
+            except reportsend.SendError as e:
+                assert "locked-down" in str(e), e
+    finally:
+        reportsend._lockdown = real_lock
     print("gh download: all checks passed")
 
 
