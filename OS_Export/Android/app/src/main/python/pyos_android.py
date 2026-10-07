@@ -208,6 +208,38 @@ def app_update():
     return ""
 
 
+def refresh_core_after_app_update(files_dir, log=print):
+    """Installing a new APK over an old one replaces the app but not the OS: the core lives in files_dir, which Android keeps, so the
+    person would still be on the old PythonOS (and its old version number) after "updating". The first start after the app changed
+    brings the core up to the newest release, so updating the app really updates PythonOS. Returns True when nothing is left to do.
+    A first installation, or an app that did not change, is left alone; offline, it tries again at the next start."""
+    try:
+        import pyos_export
+        app_version = str(pyos_export.INFO["version"])
+    except Exception:                                      # noqa: BLE001 - an app without an identity: nothing to compare
+        return True
+    marker = os.path.join(files_dir, ".app_version")
+    try:
+        with open(marker, encoding="utf-8") as f:
+            seen = f.read().strip()
+    except OSError:
+        seen = ""
+    if seen == app_version:
+        return True
+    if seen:
+        log(f"The app was updated to {app_version}. Bringing PythonOS up to date...")
+        import bootstrap
+        if not bootstrap.install(files_dir, log=log):
+            log("Could not update PythonOS now (no connection?). It will try again the next time the app starts.")
+            return False
+    try:
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write(app_version)
+    except OSError:
+        pass
+    return True
+
+
 def main(files_dir):
     global _main_thread_id
     _main_thread_id = threading.get_ident()
@@ -252,6 +284,7 @@ def main(files_dir):
             print("\nConnect to the internet, then close and reopen the app to try again.")
             Bridge.finished()
             return
+    refresh_core_after_app_update(files_dir)
     while True:
         try:
             runpy.run_path(os.path.join(files_dir, "main.py"), run_name="__main__")

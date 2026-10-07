@@ -71,6 +71,20 @@ def safe_member(path):
     return bool(path) and not os.path.isabs(path) and ".." not in path.replace("\\", "/").split("/") and not path.startswith("/")
 
 
+def sync_config_version(dest, version):
+    """config.json is never overwritten (it holds the person's settings), but the version PythonOS shows comes from it: keep it in step."""
+    path = os.path.join(dest, "config.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            config = json.load(f)
+        if isinstance(config, dict) and config.get("version") != version:
+            config["version"] = version
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(config, f, indent=4)
+    except (OSError, ValueError):
+        pass
+
+
 def install(dest, url=None, force=False, log=print):
     """Install (or update) the core into `dest`. Returns True on success."""
     dest = os.path.abspath(dest)
@@ -149,6 +163,7 @@ def install(dest, url=None, force=False, log=print):
             path = os.path.join(files, name)
             if os.path.isfile(path):
                 shutil.copy2(path, os.path.join(dest, name))
+        sync_config_version(dest, latest)
         log(f"Installed PythonOS {latest}.")
         return True
     except Exception as e:
