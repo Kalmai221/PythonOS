@@ -33,7 +33,7 @@ MENU = """[bold cyan]Developer tools[/bold cyan]
  [bold]Data[/bold]       json  regex  diff  hash  encode
  [bold]Network[/bold]    http
  [bold]Packages[/bold]   scaffold  check
- [bold]System[/bold]     tail  info  bench  bsod  shutdown  restart
+ [bold]System[/bold]     tail  info  bench  compat  bsod  shutdown  restart
  [bold]Other[/bold]      help  exit
 """
 
@@ -246,6 +246,54 @@ def tool_check():
         console.print("[bold green]Package looks good.[/bold green]")
 
 
+# ---------------------------------------------------------------- compatibility
+def tool_compat():
+    """Check every installed command, built-in program and app against this export (without running them), then offer to send the result to
+    the developers through the Discord feedback channel."""
+    from pyos import compat, export, log, report, reportsend
+    with console.status("Testing every command and app against this system..."):
+        results = compat.run()
+    counts = compat.summary(results)
+    table = Table(header_style="bold blue", expand=True)
+    table.add_column("", no_wrap=True)
+    table.add_column("What", style="cyan", no_wrap=True)
+    table.add_column("Result")
+    marks = {"fail": "[bold red]FAIL[/bold red]", "warn": "[yellow]WARN[/yellow]", "skip": "[dim]skip[/dim]"}
+    shown = [r for r in results if r.level != "ok"]
+    for r in sorted(shown, key=lambda item: compat.LEVELS.index(item.level)):
+        table.add_row(marks[r.level], f"{r.kind} {r.name}", escape("; ".join(r.notes)))
+    where = export.title(export.current()) if export.current() else "a source checkout"
+    console.print(f"[bold]Compatibility with this system ({escape(where)})[/bold]")
+    if shown:
+        console.print(table)
+    for kind, label in (("command", "commands"), ("program", "built-in programs"), ("app", "apps")):
+        c = counts[kind]
+        if sum(c.values()):
+            console.print(f"  {label}: {sum(c.values())} tested - [green]{c['ok']} ok[/green], [yellow]{c['warn']} warnings[/yellow], "
+                          f"[red]{c['fail']} failing[/red], [dim]{c['skip']} for another export[/dim]")
+    console.print("[dim]Nothing was run: the code was read and checked against what this system has (modules, os functions, tools, API level).[/dim]")
+
+    text = report.redact(compat.report(results, version=report._version(), package=report._package()))
+    problems = sum(1 for r in results if r.level in ("fail", "warn"))
+    if not reportsend.can_discord():
+        console.print("[dim]Sending feedback is not set up in this copy of PythonOS.[/dim]")
+        return
+    if not Confirm.ask("Send this result to the PythonOS developers (Discord feedback)?", default=False):
+        return
+    console.print(Panel(escape(text), title="[bold]This is everything that will be sent[/bold]", border_style="blue"))
+    if not Confirm.ask("Send it now?", default=False):
+        console.print("[yellow]Nothing was sent.[/yellow]")
+        return
+    try:
+        reportsend.send_discord(f"Compatibility test: {report._package()} ({problems} to look at)", text)
+    except reportsend.SendError as e:
+        log.log(f"compat: feedback not sent: {str(e)[:200]}", "WARN")
+        console.print(f"[bold red]{escape(str(e))}[/bold red]")
+        return
+    log.log(f"compat: sent to Discord ({problems} to look at)")
+    console.print("[green]Sent. Thank you.[/green]")
+
+
 # ---------------------------------------------------------------- system
 def tool_tail():
     path = os.path.join(pyos.fs.BASE_DIR, "var", "log", "system.log")
@@ -328,7 +376,7 @@ def tool_restart():
 
 TOOLS = {"json": tool_json, "regex": tool_regex, "diff": tool_diff, "hash": tool_hash, "encode": tool_encode,
          "http": tool_http, "scaffold": tool_scaffold, "check": tool_check, "tail": tool_tail, "info": tool_info,
-         "bench": tool_bench, "bsod": tool_bsod, "shutdown": tool_shutdown, "restart": tool_restart}
+         "bench": tool_bench, "compat": tool_compat, "bsod": tool_bsod, "shutdown": tool_shutdown, "restart": tool_restart}
 
 
 def dev_commands():
