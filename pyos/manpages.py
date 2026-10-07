@@ -371,14 +371,20 @@ page("quickstart", "two-minute tour", ["quickstart"],
      "A short tour of what PythonOS offers: finding commands, apps, themes, keeping your data, undo and switching off. The live USB offers it "
      "on the first start. For hands-on lessons that check what you type, use tutorial.", see=["tutorial", "help"])
 page("report", "send a problem report", ["report [what went wrong]", "report status [number]"],
-     "Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email "
-     "and IP addresses. You read the whole text first, then choose: (g) a GitHub issue under your own account (the GitHub CLI shows a short code and "
+     "Collects what a developer needs - versions, the last commands you ran and how they ended, the newest crash report, the last log lines "
+     "(app and command failures, updates, installs and crashes are logged with what went wrong and where) - and replaces names, home folders, "
+     "email and IP addresses, and anything that looks like a token or password. If PythonOS remembers what was on your screen, it asks "
+     "\"Share your terminal log?\": the last 60 lines, the commands you typed and what PythonOS answered. It is kept in memory only, and "
+     "nothing of it is used unless you say yes. You read the whole text first, then choose: (g) a GitHub issue under your own account (the GitHub CLI shows a short code and "
      "an address, you approve it on another device such as your phone, and the issue is created; it uses the sign-in of the gh "
      "command, and offers to keep it only if you say so), (d) the "
      "developer's Discord channel, which needs no account, or (s) a relay, if settings report_relay is set. Only the ways that are set up in your copy are offered. Nothing "
      "is ever sent without your choice. report status shows the state and replies of a report you sent, with no sign-in.",
-     examples=[("report", "answer a question, then see the report"), ("report the editor froze", "give the description up front")],
-     see=["whathappened", "logs", "doctor"])
+     [("--screen", "include the terminal log without asking"), ("--no-screen", "never include it and do not ask"), ("--no-log", "leave out the system log lines"),
+      ("--pending", "the report written after a crash")],
+     [("report", "answer a question, then see the report"), ("report the editor froze", "give the description up front"),
+      ("report --no-screen", "send without being asked about the terminal log")],
+     ["whathappened", "logs", "settings", "doctor"])
 page("whathappened", "why the last session ended badly", ["whathappened"],
      "After a power cut, a closed window or a crash, the next boot says so and this command tells you more: when that session started, "
      "the crash report (if any) and the last things in the log before it stopped. Nothing is shown when the last shutdown was clean.",

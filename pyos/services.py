@@ -115,6 +115,8 @@ def start(name, user):
             thread = service.factory(user)
             thread.start()
         except Exception as e:
+            from pyos import log
+            log.log(f"service {name} could not start: {log.describe_exception(e)}", "ERROR", user=user)
             return False, f"{name} could not start: {e}"
         _running[name] = thread
         tasks.service(name, thread, user, getattr(thread, "stop", None))

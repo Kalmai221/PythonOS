@@ -85,7 +85,7 @@ def execute_program_script(program_folder: Path, script_name: str, metadata: dic
     # run it as a separate process under the package's permission guard (the same way the shell runs it)
     if script_name in ("run", "launcher", "start") and sys.executable:
         cmd, env = pyos.sandbox.launch(script_path, [], program_folder, metadata)
-        return subprocess.call(cmd, env=env) == 0
+        return pyos.apprun.run(cmd, env, metadata.get("name") or program_folder.name, pyos.userinfo()[0]) == 0
     mod = import_program_module(script_path)
     if mod is None:
         console.print(f"[bold red]Import error. Cannot execute {script_filename}.[/bold red]")

@@ -13,14 +13,15 @@ GROUPS = [
     ("display", "Display", ("language", "theme", "prompt_style", "clock_24h", "clear_screens", "clear_style", "auto_page", "fancy_prompt", "prompt_keys", "auto_clear_lines", "notifications")),
     ("system", "System", ("memory_limit_mb", "app_memory_percent", "light_mode")),
     ("security", "Security", ("auto_lock_minutes", "idle_logout_minutes", "admin_reauth", "confirm_delete")),
-    ("updates", "Updates", ("update_check", "market_update_check", "report_relay")),
+    ("updates", "Updates", ("update_check", "market_update_check")),
+    ("reports", "Problem reports", ("terminal_log", "report_commands", "report_relay")),
     ("storage", "Storage", ("use_trash", "trash_days")),
     ("power", "Power", ("low_battery_percent", "critical_battery_percent")),
 ]
 MEMORY_HINT = "MB: 512, 1024, 2048, 4096... or 0 for all of the machine's memory"
 
 
-LABELS = {"memory_limit_mb": "Memory PythonOS owns", "app_memory_percent": "Memory one app may use (%)", "auto_lock_minutes": "Lock after idle (minutes)",
+LABELS = {"terminal_log": "Keep screen output for reports", "report_commands": "Include recent commands in reports", "memory_limit_mb": "Memory PythonOS owns", "app_memory_percent": "Memory one app may use (%)", "auto_lock_minutes": "Lock after idle (minutes)",
           "idle_logout_minutes": "Log out after idle (minutes)", "clock_24h": "24-hour clock", "auto_clear_lines": "Tidy the screen after (lines)",
           "low_battery_percent": "Low battery warning at (%)", "critical_battery_percent": "Shut down at battery (%)", "market_update_check": "Check for app updates",
           "update_check": "Check for PythonOS updates", "admin_reauth": "Ask administrators for their password", "confirm_delete": "Ask before removing a folder",

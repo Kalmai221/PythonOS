@@ -28,6 +28,8 @@ SCHEMA = {
     "prompt_keys": ("emacs", ("emacs", "vi"), "Keys of the prompt: emacs (Ctrl+A, Ctrl+E, Ctrl+R...) or vi"),
     "auto_clear_lines": (300, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
+    "terminal_log": (True, bool, "Remember the last stretch of what PythonOS showed on the screen (and the commands you typed), in memory only: never written to disk, gone when PythonOS ends. `report` asks before it puts any of it in a report (off = nothing is remembered)"),
+    "report_commands": (True, bool, "Let a problem report include the names of the last commands you ran and how they ended (kept in memory only; you read the report before it is sent)"),
     "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = no relay; GitHub and Discord are separate ways)"),
     "memory_limit_mb": (1024, int, "Memory PythonOS owns, in MB: it is the whole computer as far as PythonOS is concerned (0 = all of the machine's memory; applies right away; the live ISO always uses all of it)"),
     "app_memory_percent": (25, int, "How much of PythonOS's memory one app may use, in percent (0 = no limit); an app over its limit is stopped. Per-app: limits"),
@@ -150,6 +152,11 @@ def set(key, value):  # noqa: A001 - mirrors dict-style API
             json.dump(stored, f, indent=2)
         os.replace(tmp, SETTINGS_FILE)
         _cache["data"] = None
+    try:
+        from pyos import log
+        log.log(f"setting {key} = {str(value)[:60]}")
+    except Exception:                                      # noqa: BLE001
+        pass
 
 
 def reset(key=None):

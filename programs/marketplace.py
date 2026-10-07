@@ -19,7 +19,12 @@ from rich.table import Table
 
 try:
     from pyos import lockdown, sandbox
+    from pyos import log as syslog
 except ImportError:  # running outside PythonOS
+    class syslog:  # noqa: N801 - stand-in: nothing to log to
+        log = staticmethod(lambda *a, **k: None)
+        describe_exception = staticmethod(lambda e: str(e))
+
     class lockdown:  # noqa: N801 - stand-in with the same interface
         enabled = staticmethod(lambda: False)
         record_package = staticmethod(lambda *a, **k: None)
@@ -499,6 +504,7 @@ def install_package(pkg, installed, quiet=False, reason="you asked for it", gran
         keep_previous(pkg["id"], old, installed.get(pkg["id"], {}).get("version"))
     except Exception as e:
         console.print(f"[bold red]Could not install {escape(pkg['name'])}: {escape(str(e))}[/bold red]")
+        syslog.log(f"app {pkg['id']} {pkg.get('version', '?')} could not be installed: {syslog.describe_exception(e)}", "ERROR")
         shutil.rmtree(tmp, ignore_errors=True)
         if old.exists() and not dest.exists():
             old.rename(dest)  # put the previous version back
@@ -518,6 +524,7 @@ def install_package(pkg, installed, quiet=False, reason="you asked for it", gran
                           f"It keeps running without them until you allow them: pkg permissions {escape(pkg['id'])}[/yellow]")
     verb = "Updated" if was_installed else "Installed"
     console.print(f"[bold green]{verb} {escape(pkg['name'])} {pkg['version']}.[/bold green]")
+    syslog.log(f"app {pkg['id']} {pkg['version']} {verb.lower()}" + (f" (was {installed.get(pkg['id'], {}).get('version', '?')})" if was_installed else ""))
     meta = {}
     try:
         meta = json.loads((dest / "data.json").read_text(encoding="utf-8"))
@@ -821,7 +828,9 @@ def remove_package(pid, info, quiet=False, packages=None, installed=None):
         shutil.rmtree(folder)
     except OSError as e:
         console.print(f"[bold red]Could not delete {folder}: {e}[/bold red]")
+        syslog.log(f"app {pid} could not be removed: {syslog.describe_exception(e)}", "ERROR")
         return False
+    syslog.log(f"app {pid} removed")
     lockdown.forget_package(folder)
     sandbox.forget(pid)
     forget_reason(pid)

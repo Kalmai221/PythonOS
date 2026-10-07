@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import difflib
 import shlex
@@ -100,13 +101,17 @@ def make_execute_func(script_path, folder=None, meta=None):
             env = dict(os.environ)
             env["PYTHONPATH"] = os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
             cmd = [sys.executable, script_path, *(args or [])]
+        app_name = (meta or {}).get("name") or (os.path.basename(str(folder)) if folder is not None else os.path.basename(script_path))
+        user = pyos.userinfo()[0]
         if sys.stdout.isatty():
-            return subprocess.call(cmd, env=env) == 0
+            return pyos.apprun.run(cmd, env, app_name, user) == 0
         # output is being piped or captured: collect it instead of letting it go to the terminal
         env["PYTHONIOENCODING"] = "utf-8"          # read it back as UTF-8 whatever the console's code page is
+        began = time.monotonic()
         result = subprocess.run(cmd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace",
                                 stdin=subprocess.DEVNULL if stdio.read_stdin() is None else None,
                                 input=stdio.read_stdin())
+        pyos.apprun.outcome(app_name, result.returncode, time.monotonic() - began, result.stderr, user)
         sys.stdout.write(result.stdout or "")
         sys.stdout.write(result.stderr or "")
         return result.returncode == 0
@@ -271,7 +276,26 @@ def expand(word):
 
 # ---------------------------------------------------------------- running
 def run_stage(argv):
-    """Run one command. Returns its status: 0 ok, 1 failed, 127 not found."""
+    """Run one command. Returns its status: 0 ok, 1 failed, 127 not found. Remembers it for problem reports (pyos.trail) and logs failures."""
+    started = time.monotonic()
+    status = _run_stage(argv)
+    try:
+        if argv and argv[0] and not pyos.shellvars.assignment(list(argv)):
+            seconds = time.monotonic() - started
+            user = pyos.userinfo()[0]
+            line = " ".join(str(a) for a in argv)
+            if settings.get("report_commands"):
+                pyos.trail.record(argv[0], argv[1:], status, seconds, user)
+            if status not in (0, 127):
+                pyos.log.log(f"command failed (exit {status}, {seconds:.1f}s): {line[:200]}", "WARN", user=user)
+            elif status == 127:
+                pyos.log.log(f"command not found: {str(argv[0])[:60]}", "DEBUG", user=user)
+    except Exception:                                      # noqa: BLE001 - bookkeeping must never break a command
+        pass
+    return status
+
+
+def _run_stage(argv):
     argv = [expand(a) for a in argv]
     assigned = pyos.shellvars.assignment(argv)
     if assigned:
@@ -310,7 +334,7 @@ def run_stage(argv):
             raise
         except Exception as e:
             console.print(f"[bold red]Program '{args[0]}' crashed: {e}[/bold red]")
-            pyos.log.log(f"program {args[0]} crashed: {e}", "ERROR", user=user)
+            pyos.log.log(f"program {args[0]} crashed: {pyos.log.describe_exception(e)}", "ERROR", user=user)
             return 1
         finally:
             if main_thread:
@@ -336,7 +360,7 @@ def run_stage(argv):
         raise
     except Exception as e:
         console.print(f"[bold red]Command '{name}' failed: {e}[/bold red]")
-        pyos.log.log(f"command {name} failed: {e}", "ERROR", user=user)
+        pyos.log.log(f"command {name} crashed: {pyos.log.describe_exception(e)}", "ERROR", user=user)
         return 1
 
 
@@ -748,7 +772,9 @@ def start_shell(username):
         show_notifications(username)
         idle.waiting(True)
         try:
-            line = pyos.prompt.read_line(make_prompt(username, role), complete, _is_known_command, _is_command_prefix).strip()
+            shown_prompt = make_prompt(username, role)
+            line = pyos.prompt.read_line(shown_prompt, complete, _is_known_command, _is_command_prefix).strip()
+            pyos.screenlog.feed(re.sub(r"[\x01\x02]|\x1b\[[0-9;]*m", "", shown_prompt) + line + "\n")      # the typed line is part of what was on screen
         except (KeyboardInterrupt, EOFError):
             if idle.fired:
                 idled_out = True

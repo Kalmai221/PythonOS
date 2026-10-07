@@ -1,3 +1,4 @@
+import pyos
 from rich.console import Console
 from rich.markup import escape
 from rich.panel import Panel
@@ -63,7 +64,9 @@ def execute(args=None):
     try:
         installer.install(device["path"], log=lambda text: console.print(f"[cyan]{escape(text)}[/cyan]"))
     except installer.InstallError as e:
+        pyos.log.log(f"installos stopped: {str(e)[:300]}", "ERROR")
         console.print(f"[bold red]The installation stopped: {escape(str(e))}[/bold red]")
         return False
+    pyos.log.log("installos finished: PythonOS is installed on the disk")
     console.print("[bold green]PythonOS is installed.[/bold green] Shut down, remove the USB stick, and start the computer from the disk.")
     return True

@@ -160,8 +160,10 @@ class Scheduler(threading.Thread):
         while not self._stop_event.wait(1.0):
             try:
                 run_due(self.runner, self.user)
-            except Exception:
-                pass  # a bad task must never kill the scheduler
+            except Exception as e:
+                # a bad task must never kill the scheduler, but it should be in the log
+                from pyos import log
+                log.log(f"scheduler: a task failed: {log.describe_exception(e)}", "ERROR", user=self.user)
 
     def stop(self):
         self._stop_event.set()

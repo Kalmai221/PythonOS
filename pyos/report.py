@@ -57,8 +57,12 @@ def newest_crash_report():
     return names[-1], _tail(os.path.join(folder, names[-1]), 40)
 
 
-def build(description="", include_log=True):
-    """The report text (not redacted yet)."""
+SCREEN_LINES = 60
+
+
+def build(description="", include_log=True, include_screen=False):
+    """The report text (not redacted yet). `include_screen` adds the last lines of what was on the screen (pyos.screenlog): only when the
+    person said yes."""
     import pyos
     parts = []
     if description.strip():
@@ -76,10 +80,24 @@ def build(description="", include_log=True):
     name, crash = newest_crash_report()
     if crash:
         parts.append(f"## Newest crash report ({name})\n```\n" + "\n".join(crash) + "\n```")
+    try:
+        from pyos import settings, trail
+        if settings.get("report_commands") and trail.recent(1):
+            parts.append("## Recent commands (this session)\n```\n" + "\n".join(trail.lines(15)) + "\n```")
+    except Exception:                                  # noqa: BLE001 - a report is built even when this part cannot be
+        pass
     if include_log:
         lines = _tail(pyos.log.LOG_FILE, 25)
         if lines:
             parts.append("## Last system log lines\n```\n" + "\n".join(lines) + "\n```")
+    if include_screen:
+        try:
+            from pyos import screenlog
+            screen = screenlog.text(SCREEN_LINES)
+            if screen:
+                parts.append(f"## What was on the screen (last {SCREEN_LINES} lines)\n```\n" + screen + "\n```")
+        except Exception:                              # noqa: BLE001
+            pass
     return "\n\n".join(parts) + "\n"
 
 
@@ -142,6 +160,11 @@ def redact(text):
         if host and len(host) > 2:
             text = re.sub(rf"(?<![\w-]){re.escape(host)}(?![\w-])", "<host>", text)
     except Exception:
+        pass
+    try:
+        from pyos import log
+        text = log.scrub(text)                         # tokens, web-hook addresses and passwords
+    except Exception:                                  # noqa: BLE001
         pass
     text = re.sub(r"[\w.+-]+@[\w-]+(\.[\w-]+)+", "<email>", text)
     text = re.sub(r"\b\d{1,3}(\.\d{1,3}){3}\b", "<ip>", text)

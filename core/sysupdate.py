@@ -733,17 +733,28 @@ def check_in_background(user):
         thread.start()
 
 
+def _log(message, level="INFO"):
+    """A line in the system log about updating (never raises): what was checked, what was installed, why something failed."""
+    try:
+        from pyos import log
+        log.log(f"update: {message}", level)
+    except Exception:                                      # noqa: BLE001
+        pass
+
+
 def update_packaged(current, auto_update):
     """Update a packaged build from the latest GitHub release. Returns True if the core was updated."""
     console.print(f"[bold cyan]PythonOS {current}[/bold cyan] - checking for a newer release...")
     try:
         manifest = fetch_manifest()
     except requests.RequestException as e:
+        _log(f"could not reach the update server: {type(e).__name__}: {str(e)[:150]}", "WARN")
         console.print(f"[bold red]Could not reach the update server:[/bold red] {e}")
         if "certificate" in str(e).lower() or "ssl" in str(e).lower():
             console.print("[yellow]A secure connection failed. The most common cause is a wrong clock: run timesync, then try again.[/yellow]")
         return False
     except ValueError as e:
+        _log(f"the latest release has no usable update information: {str(e)[:150]}", "WARN")
         console.print(f"[bold red]The latest release has no usable update information:[/bold red] {e}")
         return False
 
@@ -762,6 +773,7 @@ def update_packaged(current, auto_update):
             return False
 
     updated = False
+    _log(f"checked: installed {current}, latest {latest}" + (f", package {export_info['state']}" if export_info else ""))
     if not core_newer:
         console.print(f"[bold green]PythonOS itself is up to date (latest release: {latest}).[/bold green]")
     else:
@@ -806,6 +818,7 @@ def update_packaged(current, auto_update):
                 record_update(current, latest, manifest, plan, fetched)
                 updated = True
             except (requests.RequestException, OSError, ValueError, zipfile.BadZipFile, KeyError) as e:
+                _log(f"failed ({current} -> {latest}), nothing was changed: {type(e).__name__}: {str(e)[:200]}", "ERROR")
                 console.print(f"[bold red]Update failed - nothing was changed:[/bold red] {e}")
             finally:
                 shutil.rmtree(stage_dir, ignore_errors=True)
@@ -815,6 +828,7 @@ def update_packaged(current, auto_update):
                     except OSError:
                         pass
             if updated:
+                _log(f"core updated {current} -> {latest} ({plan['mode']}, {fetched} bytes downloaded)")
                 console.print(f"[bold green]Updated to {latest}![/bold green] Your files and accounts were not touched.")
                 if not auto_update:
                     offer_restart()

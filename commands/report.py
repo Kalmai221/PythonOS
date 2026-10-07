@@ -6,7 +6,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
 import pyos
-from pyos import report, reportsend, settings
+from pyos import report, reportsend, screenlog, settings
 
 console = Console()
 config = {"name": "report", "description": "Prepare a problem report you can read first, then send it (GitHub, Discord) or save it: report [what went wrong] | report status [number]"}
@@ -64,10 +64,12 @@ def _send_github(title, body):
             reportsend.gh_forget(user)
             console.print("[dim]The sign-in was deleted from this computer.[/dim]")
     except reportsend.SendError as e:
+        pyos.log.log(f"report: GitHub failed: {str(e)[:200]}", "WARN", user=user)
         console.print(f"[bold red]{escape(str(e))}[/bold red]")
         if not was_signed_in:
             reportsend.gh_forget(user)                     # a half-finished sign-in is not kept
         return False
+    pyos.log.log(f"report: posted as GitHub issue #{issue['number']}", user=user)
     console.print(f"[green]Created issue #{issue['number']}.[/green] To see it, type {escape(issue['url'])} into a browser on another device, "
                   f"or run [bold]report status {issue['number']}[/bold] here to read the replies.")
     return True
@@ -77,8 +79,10 @@ def _send_discord(title, body):
     try:
         reportsend.send_discord(title, body)
     except reportsend.SendError as e:
+        pyos.log.log(f"report: Discord failed: {str(e)[:200]}", "WARN")
         console.print(f"[bold red]{escape(str(e))}[/bold red]")
         return False
+    pyos.log.log("report: sent to Discord")
     console.print("[green]Sent. It reached the developer's Discord channel (it is not a GitHub issue, so there is no number to follow).[/green]")
     return True
 
@@ -101,7 +105,13 @@ def execute(args=None):
         else:
             if not text:
                 text = Prompt.ask("What went wrong? (one or two sentences, or leave blank)", default="")
-            body = report.redact(report.build(text, include_log="--no-log" not in args))
+            screen = False
+            if screenlog.available() and "--no-screen" not in args:
+                shown = screenlog.text(report.SCREEN_LINES).count("\n") + 1
+                screen = "--screen" in args or Confirm.ask(
+                    f"Share your terminal log? That is the last {shown} lines of what was on your screen: the commands you typed and what PythonOS "
+                    "answered. You will see it below, with the rest of the report, before anything is sent", default=False)
+            body = report.redact(report.build(text, include_log="--no-log" not in args, include_screen=screen))
             title = text.strip().splitlines()[0][:70] if text.strip() else "Problem report"
         console.print(Panel(escape(body), title="[bold]This is everything the report contains[/bold]", border_style="blue"))
         console.print("[dim]Names, home folders, email and IP addresses were replaced. Nothing is sent unless you choose below.[/dim]")

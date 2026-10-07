@@ -10,6 +10,8 @@ import os
 import sys
 import threading
 
+from . import screenlog
+
 _local = threading.local()
 _targets = {}  # thread id -> buffer
 _lock = threading.Lock()
@@ -32,6 +34,7 @@ class _Router(io.TextIOBase):
         if buf is not None:
             return buf.write(text)
         _screen["lines"] += text.count(chr(10))
+        screenlog.feed(text)                                  # kept in memory only when the terminal_log setting is on
         pager = _pager.get("active")
         if pager is not None and threading.current_thread() is threading.main_thread():
             pager.write(text)

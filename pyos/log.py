@@ -1,14 +1,50 @@
 # pyos/log.py - system log written to /var/log/system.log
-import os
 import datetime
+import os
+from re import compile as _compile
 
 LOG_FILE = os.path.join(os.path.abspath("files"), "var", "log", "system.log")
 MAX_BYTES = 256 * 1024
 
 
-def log(message, level="INFO", user=None):
-    """Append a line to the system log. Never raises."""
+# Things that must never reach the log (it is read by `logs`, and goes into problem reports): tokens, web-hook addresses, passwords.
+_SECRETS = (
+    _compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})"),
+    _compile(r"https://(?:discord(?:app)?\.com)/api/webhooks/\S+"),
+    _compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
+    _compile(r"(?i)\b(password|passwd|pwd|secret|token|api[_-]?key)(\s*[=:]\s*|\s+)\S+"),
+    _compile(r"\b[A-Fa-f0-9]{40,}\b"),
+)
+
+
+def scrub(text):
+    """The text with tokens, web-hook addresses and passwords replaced by <secret>."""
+    text = str(text)
+    for pattern in _SECRETS:
+        if pattern.groups:
+            text = pattern.sub(lambda m: m.group(1) + (m.group(2) or " ") + "<secret>", text)
+        else:
+            text = pattern.sub("<secret>", text)
+    return text
+
+
+def describe_exception(error, frames=3):
+    """One line about an exception for the log: its type and message, and where it happened (the last few frames, innermost first)."""
+    import traceback
+    where = []
     try:
+        for frame in reversed(traceback.extract_tb(error.__traceback__)[-frames:]):
+            where.append(f"{os.path.basename(frame.filename)}:{frame.lineno} {frame.name}")
+    except Exception:                                      # noqa: BLE001
+        pass
+    text = " ".join(str(error).split())[:200]
+    return f"{type(error).__name__}: {text}" + (f" (at {' < '.join(where)})" if where else "")
+
+
+def log(message, level="INFO", user=None):
+    """Append a line to the system log. Never raises. Secrets are removed first (see scrub)."""
+    try:
+        message = scrub(message)
         os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
         if os.path.exists(LOG_FILE) and os.path.getsize(LOG_FILE) > MAX_BYTES:
             with open(LOG_FILE, "r", encoding="utf-8", errors="replace") as f:

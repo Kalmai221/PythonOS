@@ -250,6 +250,11 @@ class InstallError(Exception):
 
 def _step(log, text):
     log(text)
+    try:
+        from pyos import log as syslog
+        syslog.log(f"installos: {text}")
+    except Exception:                                      # noqa: BLE001
+        pass
 
 
 LOG = "/tmp/pythonos-install.log"
