@@ -68,6 +68,11 @@ class Sheet(private val activity: Activity, private val ui: SheetColors) {
         add(text(value.uppercase(), 11f, ui.muted, bold = true), top = 14, bottom = 6)
     }
 
+    /** Text written in Markdown (a release's notes), shown styled. */
+    fun markdown(value: String) {
+        add(text(value, 14f, ui.text).apply { setLineSpacing(0f, 1.15f); setText(Markdown.render(value, ui.chip)) }, bottom = 6)
+    }
+
     fun paragraph(value: String) {
         add(text(value, 14f, ui.text).apply { setLineSpacing(0f, 1.15f) }, bottom = 6)
     }

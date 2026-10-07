@@ -328,7 +328,7 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
         val notes = info?.optString("notes").orEmpty()
         val sheet = Sheet(this, sheetColors())
         sheet.title(title, if (info != null) "${info.optString("title")}: ${info.optString("local")} → ${info.optString("remote")}" else null)
-        if (notes.isNotEmpty()) sheet.paragraph(notes)
+        if (notes.isNotEmpty()) sheet.markdown(notes)
         sheet.paragraph("PythonOS itself keeps updating on its own. The app around it is a separate package, so Android asks you to confirm " +
             "its update: tap Install now, PythonOS downloads the new app, checks it, and hands it to Android's installer. Your files are kept.")
         val sum = info?.optString("sha256").orEmpty()

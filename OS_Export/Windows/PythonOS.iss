@@ -16,6 +16,10 @@
 #ifndef TargetArch
   #define TargetArch "x64"
 #endif
+; The "What's new" page (RTF made from the CHANGELOG by OS_Export/whatsnew_rtf.py); without it the wizard simply has no such page
+#ifndef WhatsNew
+  #define WhatsNew ""
+#endif
 ; The wizard artwork drawn by make_art.py (side panel, header badge, icon)
 #ifndef ArtDir
   #error ArtDir must be defined (the folder produced by make_art.py)
@@ -58,8 +62,14 @@ ShowLanguageDialog=no
 CloseApplications=yes
 AppComments=A tiny operating system that lives in your terminal.
 VersionInfoDescription=PythonOS setup
+#if WhatsNew != ""
+InfoBeforeFile={#WhatsNew}
+#endif
 
 [Messages]
+WizardInfoBefore=What's new
+InfoBeforeLabel=Here is what changed in this version.
+InfoBeforeClickLabel=When you are ready to continue, click Next.
 WelcomeLabel1=Welcome to PythonOS
 WelcomeLabel2=This installs [name/ver].%n%nA tiny operating system that lives in your terminal, with its own accounts, files, shell and app store.%n%nYou do not need Python: it comes with PythonOS. The system itself downloads on the first start and keeps itself up to date.
 SelectDirDesc=Where should PythonOS live?

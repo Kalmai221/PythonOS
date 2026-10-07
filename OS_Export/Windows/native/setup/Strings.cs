@@ -85,6 +85,7 @@ namespace PythonOS.Setup
             en["done.repair"] = "PythonOS was repaired";
             en["done.uninstall"] = "PythonOS was removed";
             en["done.sub"] = "Find it in the Start menu.";
+            en["whatsnew"] = "What's new in {0}";
             en["failed"] = "The installation stopped";
             en["failed.sub"] = "Nothing was changed that cannot be repaired. The log has the details:";
             en["err.windows"] = "PythonOS needs Windows 10 (version 1809) or newer.";
@@ -140,6 +141,7 @@ namespace PythonOS.Setup
             es["done.repair"] = "PythonOS se reparó";
             es["done.uninstall"] = "PythonOS se eliminó";
             es["done.sub"] = "Lo encontrarás en el menú Inicio.";
+            es["whatsnew"] = "Novedades de {0}";
             es["failed"] = "La instalación se detuvo";
             es["failed.sub"] = "No se cambió nada que no se pueda reparar. El registro tiene los detalles:";
             es["err.windows"] = "PythonOS necesita Windows 10 (versión 1809) o posterior.";
@@ -195,6 +197,7 @@ namespace PythonOS.Setup
             fr["done.repair"] = "PythonOS a été réparé";
             fr["done.uninstall"] = "PythonOS a été supprimé";
             fr["done.sub"] = "Vous le trouverez dans le menu Démarrer.";
+            fr["whatsnew"] = "Nouveautés de {0}";
             fr["failed"] = "L'installation s'est arrêtée";
             fr["failed.sub"] = "Rien n'a été modifié qui ne puisse être réparé. Le journal contient les détails :";
             fr["err.windows"] = "PythonOS nécessite Windows 10 (version 1809) ou plus récent.";
@@ -250,6 +253,7 @@ namespace PythonOS.Setup
             de["done.repair"] = "PythonOS wurde repariert";
             de["done.uninstall"] = "PythonOS wurde entfernt";
             de["done.sub"] = "Du findest es im Startmenü.";
+            de["whatsnew"] = "Neu in {0}";
             de["failed"] = "Die Installation wurde angehalten";
             de["failed.sub"] = "Es wurde nichts verändert, was sich nicht reparieren ließe. Das Protokoll enthält die Einzelheiten:";
             de["err.windows"] = "PythonOS benötigt Windows 10 (Version 1809) oder neuer.";

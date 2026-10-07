@@ -210,11 +210,17 @@ namespace PythonOS.Setup
 
         private void ShowDone(string text)
         {
+            ShowDone(text, null);
+        }
+
+        private void ShowDone(string text, Release rel)
+        {
             Reset("done", text, Strings.T("done.sub"));
             primary.Visible = true;
             if (o.Mode != "uninstall")
             {
                 launch = new ModernCheck(p, Strings.T("launch"), true); launch.SetBounds(0, 20, 596, 28); body.Controls.Add(launch);
+                if (rel != null && !string.IsNullOrEmpty(rel.Notes)) body.Controls.Add(NotesBox(rel));
             }
             primary.Text = Strings.T("close");
             secondary.Text = Strings.T("openlog");
@@ -229,6 +235,23 @@ namespace PythonOS.Setup
             Label log = Small(Log.Path_); log.SetBounds(0, 90, 596, 40); body.Controls.Add(log);
             primary.Text = Strings.T("retry");
             secondary.Text = Strings.T("openlog");
+        }
+
+        /// <summary>The release's "What's new", styled (headings, bullets, bold, code), in a box that scrolls.</summary>
+        private Control NotesBox(Release rel)
+        {
+            RichTextBox box = new RichTextBox();
+            box.ReadOnly = true;
+            box.BorderStyle = BorderStyle.None;
+            box.BackColor = p.Surface;
+            box.ForeColor = p.Text;
+            box.DetectUrls = false;
+            box.TabStop = false;
+            box.ScrollBars = RichTextBoxScrollBars.Vertical;
+            box.SetBounds(0, 64, 596, 250);
+            try { box.Rtf = Markdown.ToRtf("## " + Strings.T("whatsnew", rel.Version) + "\n\n" + rel.Notes, p.Text, p.Accent); }
+            catch (Exception ex) { Log.Write("could not show the notes: " + ex.Message); box.Text = rel.Notes; }
+            return box;
         }
 
         private Label Small(string text)
@@ -337,7 +360,7 @@ namespace PythonOS.Setup
                     }
                     Release rel = Core.InstallOrUpdate(o, Report2, cancel);
                     finished = rel;
-                    BeginInvoke((MethodInvoker)delegate { working = false; steps.AllDone(); bar.Value = 1; ShowDone(DoneText(rel)); });
+                    BeginInvoke((MethodInvoker)delegate { working = false; steps.AllDone(); bar.Value = 1; ShowDone(DoneText(rel), rel); });
                 }
                 catch (OperationCanceledException)
                 {

@@ -120,7 +120,10 @@ if (-not $Iscc) {
     if (Test-Path $Candidate) { $Iscc = $Candidate }
 }
 if ($Iscc) {
-    & $Iscc "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" "/DArtDir=$Art" "/DNameTag=$Tag" "/DTargetArch=$Arch" (Join-Path $Here "PythonOS.iss")
+    $WhatsNew = Join-Path $Out "whatsnew.rtf"
+    python (Join-Path $Repo "OS_Export\whatsnew_rtf.py") $WhatsNew
+    if ($LASTEXITCODE -ne 0) { throw "making the What's new page failed" }
+    & $Iscc "/DWhatsNew=$WhatsNew" "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" "/DArtDir=$Art" "/DNameTag=$Tag" "/DTargetArch=$Arch" (Join-Path $Here "PythonOS.iss")
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
     Write-Host "Built installer"
 } else {

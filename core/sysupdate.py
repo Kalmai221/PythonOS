@@ -9,7 +9,8 @@ import shutil
 import sys
 import zipfile
 import requests
-from rich.console import Console
+from rich.console import Console, Group
+from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 from rich.prompt import Confirm
@@ -379,14 +380,14 @@ def show_whats_new(force=False):
     info = load_last_update()
     if not info or (info.get("seen") and not force):
         return False
-    lines = [f"[bold]{'Rolled back' if info.get('rollback') else 'Updated'}[/bold] {info['from']} -> [green]{info['to']}[/green]"]
+    parts = [f"[bold]{'Rolled back' if info.get('rollback') else 'Updated'}[/bold] {info['from']} -> [green]{info['to']}[/green]"]
     if info.get("notes"):
-        lines += ["", *[f"  {line}" for line in str(info["notes"]).splitlines()]]
+        parts += ["", Markdown(str(info["notes"]))]                 # the notes are Markdown: lists, `code`, **bold**
     changed = info.get("changed") or []
     if changed:
         shown = ", ".join(changed[:6]) + (f" and {len(changed) - 6} more" if len(changed) > 6 else "")
-        lines += ["", f"[dim]{len(changed)} file(s) changed: {shown}[/dim]"]
-    console.print(Panel("\n".join(lines), title="[bold cyan]What's new in PythonOS[/bold cyan]", border_style="cyan", expand=False))
+        parts += ["", f"[dim]{len(changed)} file(s) changed: {shown}[/dim]"]
+    console.print(Panel(Group(*parts), title="[bold cyan]What's new in PythonOS[/bold cyan]", border_style="cyan", expand=False))
     info["seen"] = True
     try:
         LAST_UPDATE.write_text(json.dumps(info), encoding="utf-8")
@@ -660,11 +661,12 @@ def print_export_notice(status, blocking=False):
             f"is needed.\n\n[bold]This can't be done from inside PythonOS[/bold] - download and install the new "
             f"{status['title']}:", title="[bold yellow]Install the new package first[/bold yellow]", border_style="yellow", expand=False))
     else:
-        console.print(Panel(
-            f"A newer [bold]{status['title']}[/bold] is available: {local['version']} -> [bold green]{remote['version']}[/bold green]\n"
-            f"[dim]{remote.get('notes') or ''}[/dim]\n\n"
+        console.print(Panel(Group(
+            f"A newer [bold]{status['title']}[/bold] is available: {local['version']} -> [bold green]{remote['version']}[/bold green]",
+            *([Markdown(str(remote["notes"]))] if remote.get("notes") else []),
+            "",
             "This is a change to the package itself, so PythonOS [bold]can't update it automatically[/bold]. "
-            "The core still updates by itself; to get the new package, download and install it:",
+            "The core still updates by itself; to get the new package, download and install it:"),
             title="[bold yellow]Manual update available[/bold yellow]", border_style="yellow", expand=False))
     for url in remote.get("urls") or [remote.get("url")]:
         console.print(f"  [bold cyan]{url}[/bold cyan]", soft_wrap=True)   # never break an address across lines
@@ -775,7 +777,7 @@ def update_packaged(current, auto_update):
         table.add_row("[bold]Time[/bold]", f"{_estimate_seconds(plan['bytes'])} at your usual speed")
         console.print(table)
         if manifest.get("notes"):
-            console.print(Panel(str(manifest["notes"]), title="What's new in PythonOS", border_style="dim", expand=False))
+            console.print(Panel(Markdown(str(manifest["notes"])), title="What's new in PythonOS", border_style="dim", expand=False))
 
         lasts = update_lasts_only_until_restart()
         if lasts and not auto_update:

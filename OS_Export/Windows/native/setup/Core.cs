@@ -80,6 +80,7 @@ namespace PythonOS.Setup
         public string SumsUrl;
         public string CoreName;        // pythonos-core-<version>.zip: the newest PythonOS files, which can be newer than the package
         public string CoreUrl;
+        public string Notes;               // the release's "What's new", still Markdown (shown styled when the installer is done)
         public string InstalledVersion;   // what the folder really holds after installing (can differ from Version if the core update failed)
     }
 
@@ -301,6 +302,7 @@ namespace PythonOS.Setup
             Release rel = new Release();
             rel.Tag = Convert.ToString(root["tag_name"]);
             rel.Version = rel.Tag.TrimStart('v');
+            rel.Notes = root.ContainsKey("body") ? Markdown.WhatsNew(Convert.ToString(root["body"])) : "";
             foreach (object item in (System.Collections.ArrayList)root["assets"])
             {
                 Dictionary<string, object> a = (Dictionary<string, object>)item;

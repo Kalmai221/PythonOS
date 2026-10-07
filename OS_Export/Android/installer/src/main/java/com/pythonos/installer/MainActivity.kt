@@ -18,6 +18,7 @@ import android.os.SystemClock
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -349,6 +350,7 @@ class MainActivity : Activity() {
 
     private fun work(release: Installer.Release) {
         busy = true
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)          // the screen stays on while it downloads
         lastProblem = null
         primary.isEnabled = false
         stepsBox.visibility = View.VISIBLE
@@ -375,12 +377,13 @@ class MainActivity : Activity() {
                     runOnUiThread { bar.progress = if (total > 0) (done * 1000 / total).toInt() else 0; barText.text = text }
                 }
                 step = 3
-                runOnUiThread { setStep(2, 2); setStep(3, 2); setStep(4, 1); bar.progress = 1000; barText.text = "Downloaded and checked. Confirm the installation in the window Android shows." }
+                runOnUiThread { setStep(2, 2); setStep(3, 2); setStep(4, 1); bar.progress = 1000; barText.text = "Downloaded and checked (SHA-256 ${release.sha256.take(12)}...). Confirm the installation in the window Android shows." }
                 step = 4
                 Installer.install(this, apk)
             } catch (e: Exception) {
                 val why = e.message ?: e.toString()
                 runOnUiThread {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     setStep(step, 3)
                     busy = false
                     lastProblem = "Not installed: $why"
@@ -395,6 +398,7 @@ class MainActivity : Activity() {
     }
 
     private fun installFinished(ok: Boolean, message: String) {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         busy = false
         installed = installedVersion()
         if (ok) {
@@ -430,7 +434,7 @@ class MainActivity : Activity() {
         }
         val release = latest ?: return
         val text = if (release.notes.isNotEmpty()) release.notes else "No release notes."
-        notes.text = "What is new in ${release.version}\n\n$text\n\nTap to open the full release page."
+        notes.text = Markdown.render("## What is new in ${release.version}\n\n$text\n\nTap to open the full release page.", p.line)
         notes.visibility = View.VISIBLE
     }
 

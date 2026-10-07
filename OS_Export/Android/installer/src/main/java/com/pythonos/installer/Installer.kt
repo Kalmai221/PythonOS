@@ -84,21 +84,18 @@ object Installer {
         }
     }
 
-    /** The part of a release's text under "What's new" (its first lines), without the markdown marks. */
+    /** The part of a release's text under "What's new" (up to 80 lines), as the Markdown it was written in. */
     fun whatsNew(body: String): String {
         val lines = body.lines()
         val start = lines.indexOfFirst { it.trim().startsWith("## ") && it.contains("What", ignoreCase = true) }
         val out = ArrayList<String>()
-        if (start >= 0) {
-            for (i in start + 1 until lines.size) {
-                val line = lines[i].trim()
-                if (line.startsWith("## ")) break
-                if (line.isEmpty()) continue
-                out.add(line.removePrefix("### ").removePrefix("- ").replace("`", "").replace("**", ""))
-                if (out.size >= 14) break
-            }
+        for (i in start + 1 until lines.size) {
+            val line = lines[i].trimEnd()
+            if (start >= 0 && line.trim().startsWith("## ")) break
+            out.add(line)
+            if (out.size >= 80) break
         }
-        return out.joinToString("\n")
+        return out.joinToString("\n").trim()                // still Markdown: the screen shows it styled (Markdown.kt)
     }
 
     /** The release for [abi] in one GitHub release object, or null when it has no app for that processor or no checksums. */
@@ -195,6 +192,10 @@ object Installer {
         target.delete()
         var have = if (part.exists()) part.length() else 0L
         if (release.size > 0 && have >= release.size) { part.delete(); have = 0L }
+        val need = if (release.size > 0) release.size - have else 0L
+        if (need > 0 && folder.usableSpace < need + 32L * 1024 * 1024) {
+            throw IOException("there is not enough free space on this phone (about ${(need + 32L * 1024 * 1024) / 1048576} MB are needed for the download)")
+        }
         val connection = open(release.url)
         try {
             if (have > 0) connection.setRequestProperty("Range", "bytes=$have-")
