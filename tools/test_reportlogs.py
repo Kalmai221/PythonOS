@@ -31,6 +31,7 @@ def main():
         assert "ghp_" not in report.redact("token ghp_abcdefghijklmnopqrstuvwxyz0123456789 and me@example.com")
 
         # an exception says what and where, in one line
+        line = ""
         try:
             int("x")
         except ValueError as e:
