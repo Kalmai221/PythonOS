@@ -43,6 +43,8 @@ def _status(args):
 
 def _send_github(title, body):
     """Sign in with a code, create the issue as the person, forget the token. True if the issue was created."""
+    if reportsend.gh_path():
+        return _send_gh(title, body)
     try:
         flow = reportsend.start_device_flow()
         console.print(Panel("This computer has no web browser, so do the next step on [bold]another device[/bold] (your phone or another computer):\n"
@@ -62,6 +64,28 @@ def _send_github(title, body):
         return False
     console.print(f"[green]Created issue #{issue['number']}.[/green] To see it, type {escape(issue['url'])} into a browser on another device, "
                   f"or run [bold]report status {issue['number']}[/bold] here to read the replies.")
+    return True
+
+
+def _send_gh(title, body):
+    """The same with the GitHub CLI: it shows its own code; the token is deleted at the end."""
+    console.print(Panel("This computer has no web browser, so do the sign-in on [bold]another device[/bold] (your phone or another computer):\n"
+                        "  1. GitHub's tool is about to show a one-time code. If it asks to open a browser, just press Enter: it cannot, and carries on.\n"
+                        "  2. On the other device open [bold cyan]https://github.com/login/device[/bold cyan], sign in if it asks, and type the code.\n"
+                        "  3. Approve it. Then come back here: the report is posted by itself.\n"
+                        "[dim]The sign-in is only kept for this report and is deleted straight afterwards. Press Ctrl+C to stop.[/dim]",
+                        title="[bold]Sign in to GitHub[/bold]", border_style="green", expand=False))
+    try:
+        reportsend.gh_login()
+        with console.status("Creating the issue..."):
+            issue = reportsend.gh_create_issue(title, body)
+    except reportsend.SendError as e:
+        console.print(f"[bold red]{escape(str(e))}[/bold red]")
+        return False
+    finally:
+        reportsend.gh_forget()
+    console.print(f"[green]Created issue #{issue['number']}.[/green] The sign-in was deleted from this computer. To see the issue, type "
+                  f"{escape(issue['url'])} into a browser on another device, or run [bold]report status {issue['number']}[/bold] here to read the replies.")
     return True
 
 

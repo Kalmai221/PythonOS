@@ -373,7 +373,8 @@ page("quickstart", "two-minute tour", ["quickstart"],
 page("report", "send a problem report", ["report [what went wrong]", "report status [number]"],
      "Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email "
      "and IP addresses. You read the whole text first, then choose: (g) a GitHub issue under your own account (PythonOS shows a short code and "
-     "an address, you approve it on another device such as your phone, and the issue is created; the sign-in is used once and never stored), (d) the "
+     "an address, you approve it on another device such as your phone, and the issue is created; it uses the GitHub CLI, gh, when it is "
+     "installed (the ISO has it), and the sign-in is deleted straight afterwards), (d) the "
      "developer's Discord channel, which needs no account, (f) a file, with the short address of the GitHub issue page, since PythonOS "
      "cannot open links, or (s) a relay, if settings report_relay is set. Only the ways that are set up in your copy are offered. Nothing "
      "is ever sent without your choice. report status shows the state and replies of a report you sent, with no sign-in.",

@@ -52,6 +52,7 @@ class FakeNet:
 def main():
     net = FakeNet()
     reportsend._open = net
+    reportsend.gh_path = lambda: None                      # whether the machine running this test has gh must not matter
     with tempfile.TemporaryDirectory() as tmp:
         here = os.getcwd()
         os.chdir(tmp)
@@ -78,6 +79,47 @@ def main():
             assert not reportsend.can_discord(), "only https addresses are used"
             with open(reportsend.TARGETS, "w", encoding="utf-8") as f:
                 json.dump({"github_client_id": "Iv1.test", "discord": reportsend.disguise(hook)}, f)
+
+            # with the GitHub CLI: sign in, create the issue, and the token folder is deleted whatever happens
+            ran = []
+            gh_home = os.path.join(tmp, ".OSData", "gh")
+
+            def fake_gh(args, text=None, timeout=None):
+                ran.append((args, text))
+                if args[:2] == ["auth", "login"]:
+                    os.makedirs(gh_home, exist_ok=True)
+                    open(os.path.join(gh_home, "hosts.yml"), "w", encoding="utf-8").write("oauth_token: secret")
+                    return 0, ""
+                if args[:2] == ["issue", "create"]:
+                    return 0, "https://github.com/Kalmai221/PythonOS/issues/91\n"
+                raise AssertionError(args)
+
+            reportsend.gh_path = lambda: "/usr/bin/gh"
+            reportsend._gh = fake_gh
+            assert reportsend.can_github(), "gh alone is enough: no client id is needed"
+            reportsend.gh_login()
+            assert "--web" in ran[0][0] and "public_repo" in ran[0][0] and "--insecure-storage" in ran[0][0]
+            issue = reportsend.gh_create_issue("It broke", "details")
+            assert issue == {"number": 91, "url": "https://github.com/Kalmai221/PythonOS/issues/91"}, issue
+            args, text = ran[-1]
+            assert args[args.index("--repo") + 1] == "Kalmai221/PythonOS" and text == "details" and "-" in args, ran[-1]
+            assert os.path.isdir(gh_home)
+            reportsend.gh_forget()
+            assert not os.path.exists(gh_home), "the sign-in must be deleted afterwards"
+            reportsend._gh = lambda args, text=None, timeout=None: (1, "HTTP 403: nope\n")
+            try:
+                reportsend.gh_create_issue("x", "y")
+                raise AssertionError("must fail")
+            except reportsend.SendError as e:
+                assert "could not create" in str(e) and "403" in str(e), e
+            reportsend._gh = lambda args, text=None, timeout=None: (1, "")
+            try:
+                reportsend.gh_login()
+                raise AssertionError("must fail when the sign-in does not finish")
+            except reportsend.SendError as e:
+                assert "did not finish" in str(e)
+            assert not os.path.exists(gh_home)
+            reportsend.gh_path = lambda: None
 
             # the device flow: a code, GitHub says "pending", then "slow down", then the token
             net.on("/login/device/code", Reply(200, {"device_code": "dc", "user_code": "ABCD-1234", "verification_uri": "https://github.com/login/device",

@@ -11,11 +11,15 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
-- `report` can now send a report for you. **GitHub**: PythonOS shows a short code and asks you to open an address on another device (your phone or another computer) and approve it there; then the issue is created under your own GitHub account (the sign-in is used once and never stored). **Discord**, for people with no GitHub account: the report goes to the developer's channel. You read the whole report first and nothing is sent without your choice. `report status` shows the state and replies of a report you sent, with no sign-in. Each way is only offered once it is set up in the build.
+- `report` can now send a report for you. **GitHub**: PythonOS shows a short code and asks you to open an address on another device (your phone or another computer) and approve it there; then the issue is created under your own GitHub account (it uses the GitHub CLI, `gh`, when it is installed, so no setup is needed; the sign-in is deleted straight afterwards). **Discord**, for people with no GitHub account: the report goes to the developer's channel. You read the whole report first and nothing is sent without your choice. `report status` shows the state and replies of a report you sent, with no sign-in. Each way is only offered once it is set up in the build.
 - New command `sudo`: run one command as an administrator. An administrator confirms with their own password; a standard user gives an administrator's name and password and is a standard user again when the command ends. `sudo -k` forgets the password. Every use is in `logs --admin`.
 - `doctor` (and any command that needs an administrator) now says why it did not see you as one, so a wrong refusal can be traced, and the account lookup no longer fails on a file it cannot read as text.
 - PythonOS is a command line system and cannot open links: `report` no longer tries to open a browser or prints a very long pre-filled address. It saves the report and shows the short GitHub address to type on any device, with `share send` to move the file there. `updatecheck` says the same beside its download addresses, and a new test keeps browser opening and hyperlinks out of the system.
 - `installos` no longer stops half way with "unable to select packages: acct, linux-lts (no such package)". It now checks, before erasing anything, that the base system can really be fetched; when the live system's repositories hold only the disc, it adds Alpine's online ones (and says no disk was touched if they cannot be reached).
+
+### Exports
+
+- The ISO and virtual machine images (full variant) now include the GitHub CLI (`gh`), which `report` uses to post a problem report as a GitHub issue.
 
 ## 1.0.11
 

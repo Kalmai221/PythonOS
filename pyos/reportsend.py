@@ -2,7 +2,10 @@
 #
 # PythonOS is a command line system, so nothing here opens a browser or a link. Everything is plain HTTPS from this process.
 #
-#   GitHub (main):  the "device flow". The person is shown a short code and an address to type on any device; once they have approved,
+#   GitHub, with the GitHub CLI (`gh`): when it is installed (the ISO has it), PythonOS asks it to sign the person in (it shows a one-time
+#                   code to approve on another device) and to create the issue, in a private config folder that is deleted afterwards. gh
+#                   brings its own sign-in, so no app of ours has to be registered.
+#   GitHub, device flow, when gh is not there and the build has a client id: The person is shown a short code and an address to type on any device; once they have approved,
 #                   PythonOS gets a token for the `public_repo` scope, creates the issue as them, and throws the token away. It is never
 #                   written to disk (anything inside an app can be taken out of it). It needs the client id of PythonOS's OAuth app, which
 #                   is public and not a secret (pyos/report_targets.json, set with tools/set_report_targets.py).
@@ -14,6 +17,9 @@
 import base64
 import json
 import os
+import re
+import shutil
+import subprocess
 import time
 import urllib.error
 import urllib.parse
@@ -65,8 +71,13 @@ def targets():
     return {"github_client_id": str(data.get("github_client_id", "")).strip(), "discord": hook}
 
 
+def gh_path():
+    """The GitHub CLI, if it is installed."""
+    return shutil.which("gh")
+
+
 def can_github():
-    return bool(targets()["github_client_id"])
+    return bool(gh_path()) or bool(targets()["github_client_id"])
 
 
 def can_discord():
@@ -171,6 +182,57 @@ def create_issue(token, title, body):
     if status == 410:
         raise SendError("issues are switched off on that repository")
     raise SendError(f"GitHub could not create the issue (HTTP {status}): {_message(data)}")
+
+
+# ---------------------------------------------------------------- GitHub with the GitHub CLI
+GH_HOME = os.path.join(".OSData", "gh")      # gh's own config (and so its token) lives here only for the length of one report
+
+
+def _gh_env():
+    return dict(os.environ, GH_CONFIG_DIR=os.path.abspath(GH_HOME), NO_COLOR="1")
+
+
+def _gh(args, text=None, timeout=None):
+    """Run gh. Without `text` it uses the terminal (for the sign-in, which prints a code and waits); with it, output is captured."""
+    exe = gh_path()
+    if not exe:
+        raise SendError("the GitHub CLI (gh) is not installed")
+    try:
+        if text is None and timeout is None:
+            return subprocess.call([exe] + args, env=_gh_env()), ""
+        done = subprocess.run([exe] + args, input=text, capture_output=True, text=True, env=_gh_env(), timeout=timeout or 60, check=False)
+        return done.returncode, (done.stdout or "") + (done.stderr or "")
+    except subprocess.TimeoutExpired as e:
+        raise SendError("gh took too long") from e
+    except OSError as e:
+        raise SendError(f"could not run gh: {e}") from e
+
+
+def gh_login():
+    """Let gh sign the person in (one-time code, approved on another device). The token stays in GH_HOME, in plain text, until gh_forget()."""
+    os.makedirs(GH_HOME, exist_ok=True)
+    code, _out = _gh(["auth", "login", "--hostname", "github.com", "--web", "--scopes", "public_repo", "--git-protocol", "https", "--insecure-storage"])
+    if code != 0:
+        gh_forget()
+        raise SendError("the GitHub sign-in did not finish")
+
+
+def gh_create_issue(title, body):
+    """Create the issue with gh. Returns {"number", "url"}."""
+    if len(body) > MAX_BODY:
+        body = body[:MAX_BODY] + "\n\n(cut to fit GitHub's limit)"
+    code, out = _gh(["issue", "create", "--repo", report.REPO, "--title", title[:250] or "Problem report", "--body-file", "-"], text=body, timeout=90)
+    match = re.search(r"https://github\.com/[^\s]+/issues/(\d+)", out)
+    if code != 0 or not match:
+        raise SendError("GitHub could not create the issue: " + (out.strip().splitlines() or ["no answer"])[-1][:300])
+    number = int(match.group(1))
+    remember(number, title, match.group(0))
+    return {"number": number, "url": match.group(0)}
+
+
+def gh_forget():
+    """Delete what gh stored (the token). Always called when a report is done, whether it worked or not."""
+    shutil.rmtree(GH_HOME, ignore_errors=True)
 
 
 # ---------------------------------------------------------------- reports already sent, and what became of them
