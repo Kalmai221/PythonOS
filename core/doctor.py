@@ -372,6 +372,23 @@ IMPORT_NAMES = {"python-dateutil": "dateutil", "beautifulsoup4": "bs4", "pyyaml"
                 "python-docx": "docx", "opencv-python": "cv2", "scikit-learn": "sklearn", "python-magic": "magic"}
 
 
+def _libraries_hint():
+    """What the person can do about missing optional libraries. PythonOS is a closed system: pip is not something to ask anyone to run, and
+    on most exports it cannot be run at all. Each export brings (or installs) the libraries itself."""
+    try:
+        from pyos import export
+        here = export.current()
+    except Exception:                                      # noqa: BLE001
+        here = None
+    if here == "windows":
+        return "PythonOS installs them itself when it starts; close it and open it again with a connection to the internet. What uses them still works in a simpler way"
+    if here == "linux":
+        return "the launcher installs them on the next start (needs the internet). What uses them still works in a simpler way"
+    if here in ("android", "iso"):
+        return "they come with the " + ("app" if here == "android" else "image") + ", so a newer one may include them (updatecheck tells you). What uses them still works in a simpler way"
+    return "they are optional: what uses them still works in a simpler way"
+
+
 def check_libraries():
     """Which optional libraries (requirements-extra.txt) are installed. Missing ones are only a loss of features."""
     try:
@@ -398,7 +415,7 @@ def check_libraries():
     if missing:
         return [Finding("warn", "Libraries", f"{len(names) - len(missing)} of {len(names)} optional libraries installed; missing: "
                         + ", ".join(missing[:8]) + (", ..." if len(missing) > 8 else ""),
-                        hint="python -m pip install -r requirements-extra.txt (what uses them still works, in a simpler way)")]
+                        hint=_libraries_hint())]
     return [Finding("ok", "Libraries", f"all {len(names)} optional libraries are installed")]
 
 

@@ -106,6 +106,24 @@ def main():
         assert any(f.check == "commands" for f in results)
     finally:
         doctor.CHECKS.remove(boom)
+    # missing optional libraries: a plain note for each export, and never a pip command (PythonOS is a closed system; most exports cannot run pip)
+    from pyos import export
+    real_current = export.current
+    with tempfile.TemporaryDirectory() as tmp:
+        here = os.getcwd()
+        os.chdir(tmp)
+        try:
+            with open("requirements-extra.txt", "w", encoding="utf-8") as f:
+                f.write("no-such-library-zzz  # not installed\n")
+            for platform_name in (None, "windows", "linux", "android", "iso"):
+                export.current = lambda name=platform_name: name
+                found = doctor.check_libraries()
+                assert found and found[0].level == "warn" and "no-such-library-zzz" in found[0].message, found
+                hint = found[0].hint
+                assert hint and "pip" not in hint.lower() and "requirements-extra" not in hint, (platform_name, hint)
+        finally:
+            export.current = real_current
+            os.chdir(here)
     print("doctor: all checks passed")
 
 

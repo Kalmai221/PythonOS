@@ -11,6 +11,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
+- `doctor` no longer tells you to run `python -m pip install -r requirements-extra.txt` when optional libraries are missing (PythonOS is a closed system, and most exports cannot run pip). It now says what happens on your export: Windows and Linux install them when PythonOS starts, the Android app and the ISO bring them with a newer version.
 - The Developer Console (`run developer`) has a new tool, `compat`: it checks every installed command, built-in program and app against the export you are on, without running them (the code is read and checked against the modules, `os` functions, system tools, marketplace API level and libraries this system has), lists what will not work and what may not, and offers to send the result to the developers through the Discord feedback channel after you have read it.
 - `report` now asks "Share your terminal log?": the last 60 lines of what was on your screen (the commands you typed and what PythonOS answered). It is kept in memory only, never on disk, and nothing of it is used unless you say yes (`--screen` and `--no-screen` answer for you; `settings set terminal_log off` stops it being remembered).
 - A problem report is more useful: it lists the last commands you ran and how they ended (in memory only; `settings set report_commands off` leaves them out), and anything that looks like a token, web-hook address or password is replaced in the report and never written to the log.
