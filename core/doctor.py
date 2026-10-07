@@ -352,22 +352,19 @@ def _optional(name):
 
 
 def check_memory():
-    psutil = _optional("psutil")
-    if psutil is None:
-        return []
-    try:
-        mem = psutil.virtual_memory()
-        out = []
+    """Memory and swap. Each is skipped on its own where the system does not allow reading it (Android restricts /proc): never an error."""
+    from pyos import sysmem
+    out = []
+    mem = sysmem.memory()
+    if mem is not None:
         if mem.percent >= 95:
             out.append(Finding("warn", "Memory", f"{mem.percent:.0f}% of {_human(mem.total)} in use", hint="close other programs"))
         else:
             out.append(Finding("ok", "Memory", f"{_human(mem.available)} available of {_human(mem.total)}"))
-        swap = psutil.swap_memory()
-        if swap.total and swap.percent >= 90:
-            out.append(Finding("warn", "Swap", f"{swap.percent:.0f}% of the swap space is in use; the computer is short of memory"))
-        return out
-    except Exception:                                      # noqa: BLE001 - some systems do not allow reading this
-        return []
+    swap = sysmem.swap()
+    if swap is not None and swap.total and swap.percent >= 90:
+        out.append(Finding("warn", "Swap", f"{swap.percent:.0f}% of the swap space is in use; the computer is short of memory"))
+    return out
 
 
 # the import name of each optional library, where it is not the package name

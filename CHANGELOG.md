@@ -11,6 +11,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
+- `doctor` and `free` no longer fail on Android with "permission denied" for swap memory. Android restricts what programs may read about memory; PythonOS now skips what it cannot read (`free` says swap is not readable) instead of showing an error or a warning.
 - What's new in `updatecheck` (the update offer, the screen after the restart, and the notice of a newer package) is now shown as formatted text instead of raw Markdown: real bullets, bold and `code`.
 - New command `gh`: the real GitHub CLI, run in the PythonOS terminal (`gh issue list`, `gh pr list`, `gh auth login`, and everything else it does). PythonOS has no browser, so `gh auth login` shows a one-time code to approve on another device (your phone or another computer). In a pipe the output is captured, so `gh issue list | grep bug` works.
 - `report` can now send a report for you. **GitHub**: it uses `gh`, asking you to sign in first on another device if needed, posts the report as an issue under your own account, and deletes the sign-in afterwards unless you choose to stay signed in. **Discord**, for people with no GitHub account: the report goes to the developer's channel. You read the whole report first and nothing is sent without your choice. `report status` shows the state and replies of a report you sent, with no sign-in. The Discord way is only offered once it is set up in the build.
