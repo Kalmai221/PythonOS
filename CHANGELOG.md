@@ -20,6 +20,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### Exports
 
+- The Android installer app no longer offers the same app for ever. A release that only changed PythonOS itself carries the app of an older release, so installing it never produced the release's version number; the installer now compares the installed app with the version of the app file the release really carries, and says when the newest release is PythonOS only (it updates from inside with `updatecheck`, nothing to install).
 - The ISO and virtual machine images (full variant) now include the GitHub CLI (`gh`), which they install as part of their own system. Every other export (Windows, Linux, Docker) does not install anything: the `gh` command offers to download GitHub's release into PythonOS's own folder the first time it is used. There is no `gh` on Android yet.
 
 ## 1.0.11

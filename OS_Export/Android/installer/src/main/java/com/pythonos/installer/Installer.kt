@@ -40,7 +40,16 @@ object Installer {
         val published: String,
         var sha256: String = ""
     ) {
+        /** The release's version (its tag): what PythonOS itself is called, because the core updates from inside the app. */
         val version: String get() = tag.removePrefix("v")
+
+        /**
+         * The version of the app file this release carries, read from its file name (PythonOS-1.0.8-android-arm64-v8a.apk). A release does not
+         * rebuild an app that did not change, so it can carry the app of an older release: installing it gives that older app's version, never
+         * the release's. Comparing the installed app with [version] would offer the same file for ever.
+         */
+        val appVersion: String
+            get() = Regex("^PythonOS-([0-9][0-9A-Za-z.\\-]*?)-android-").find(apkName)?.groupValues?.get(1) ?: version
     }
 
     /** Set by the screen that is showing: called (on a background thread) when Android reports how the installation ended. */

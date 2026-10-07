@@ -261,21 +261,24 @@ class MainActivity : Activity() {
                 primary.text = "Install PythonOS ${release.version}"
                 style(primary, true)
             }
-            Installer.compare(have, release.version) < 0 -> {
+            Installer.compare(have, release.appVersion) < 0 -> {
                 statusTitle.text = "An update is available"
-                statusDetail.text = "You have $have. The latest is ${release.version} (released ${release.published}$size). PythonOS also updates itself from inside with updatecheck."
-                primary.text = "Update to ${release.version}"
+                statusDetail.text = "You have the app $have. The latest app is ${release.appVersion} (released ${release.published}$size). PythonOS also updates itself from inside with updatecheck."
+                primary.text = "Update the app to ${release.appVersion}"
                 style(primary, true)
             }
-            Installer.compare(have, release.version) == 0 -> {
-                statusTitle.text = "PythonOS is up to date"
-                statusDetail.text = "You have the latest version, ${release.version}."
-                primary.text = "Check again"
-                style(primary, false)
+            Installer.compare(have, release.appVersion) == 0 -> {
+                statusTitle.text = "The app is up to date"
+                statusDetail.text = if (Installer.compare(release.appVersion, release.version) < 0)
+                    "You have the latest app ($have). The newest release, ${release.version}, only changed PythonOS itself, and that updates from inside: open PythonOS and type updatecheck. There is nothing to install here."
+                else
+                    "You have the latest version, ${release.version}."
+                primary.text = if (Installer.compare(release.appVersion, release.version) < 0) "Open PythonOS" else "Check again"
+                style(primary, Installer.compare(release.appVersion, release.version) < 0)
             }
             else -> {
-                statusTitle.text = "PythonOS is up to date"
-                statusDetail.text = "You have $have, which is newer than the latest release (${release.version})."
+                statusTitle.text = "The app is up to date"
+                statusDetail.text = "You have $have, which is newer than the latest release's app (${release.appVersion})."
                 primary.text = "Check again"
                 style(primary, false)
             }
@@ -301,7 +304,11 @@ class MainActivity : Activity() {
         if (justInstalled && installed != null) { openApp(); return }
         val release = latest
         val have = installed
-        if (release == null || (have != null && Installer.compare(have, release.version) >= 0)) {
+        if (release != null && have != null && Installer.compare(have, release.appVersion) == 0 && Installer.compare(release.appVersion, release.version) < 0) {
+            openApp()                                    // the app is current; the newer release is PythonOS itself, which updates from inside
+            return
+        }
+        if (release == null || (have != null && Installer.compare(have, release.appVersion) >= 0)) {
             latest = null
             check()
             return
@@ -453,7 +460,7 @@ class MainActivity : Activity() {
 
     private fun chooseOlder(release: Installer.Release) {
         val have = installed
-        if (have != null && Installer.compare(have, release.version) > 0) {
+        if (have != null && Installer.compare(have, release.appVersion) > 0) {
             AlertDialog.Builder(this)
                 .setTitle("Install an older version?")
                 .setMessage("You have $have. Android refuses to install an older version over a newer one. If it does, uninstall PythonOS first (back up your files with the backup command inside PythonOS), then install again.")
