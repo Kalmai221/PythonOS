@@ -74,14 +74,13 @@ safe on                      (in the emergency console) safe mode at every start
 <h2 id="reports">Crash reports</h2>
 <p>When PythonOS crashes it writes the full trace to a crash report, and also writes a ready-to-send problem report with names, home folders, email and IP addresses removed. Nothing is sent. After you log in:</p>
 <pre class="cmdline">whathappened             what the last session was doing when it stopped
-report --pending         read the waiting report, then send it or save it as a file
+report --pending         read the waiting report, then send it
 report                   write a report about something else
 report status            what became of a report you sent: its state and any replies</pre>
 <p>You always see the whole text before anything leaves your computer, and writing it works without a network. You choose how to send it:</p>
 <ul>
   <li><strong>GitHub</strong> - the issue is created under your own GitHub account with the <code>gh</code> command, the real GitHub CLI. The ISO and virtual machines include it; everywhere else PythonOS asks before downloading it into its own folder (nothing is installed on the computer). PythonOS has no browser, so <code>gh</code> shows a one-time code and you approve it on another device (your phone or another computer); PythonOS then carries on by itself. The sign-in is deleted afterwards unless you choose to stay signed in. On Android there is no <code>gh</code>, so use Discord or a file.</li>
   <li><strong>Discord</strong> - no account needed. The report goes to the developer's channel. It is not a GitHub issue, so there is no number to follow.</li>
-  <li><strong>A file</strong> - saved in your home folder, with the short address of the GitHub issues page to paste it into from another device.</li>
 </ul>
 
 <h2 id="tools">Other tools</h2>

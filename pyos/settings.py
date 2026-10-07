@@ -28,7 +28,7 @@ SCHEMA = {
     "prompt_keys": ("emacs", ("emacs", "vi"), "Keys of the prompt: emacs (Ctrl+A, Ctrl+E, Ctrl+R...) or vi"),
     "auto_clear_lines": (300, int, "Tidy the screen before a prompt once this many lines have piled up (0 = never)"),
     "confirm_delete": (True, bool, "Ask before rm removes a folder"),
-    "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = reports are only a link or a file)"),
+    "report_relay": ("", str, "https:// address of a relay that files problem reports as GitHub issues (empty = no relay; GitHub and Discord are separate ways)"),
     "memory_limit_mb": (1024, int, "Memory PythonOS owns, in MB: it is the whole computer as far as PythonOS is concerned (0 = all of the machine's memory; applies right away; the live ISO always uses all of it)"),
     "app_memory_percent": (25, int, "How much of PythonOS's memory one app may use, in percent (0 = no limit); an app over its limit is stopped. Per-app: limits"),
     "light_mode": (False, bool, "Light mode: skip background checks and long animations (switched on by itself on computers with little memory)"),

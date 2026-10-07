@@ -6,7 +6,6 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
 import pyos
-import pyos.fs as fs
 from pyos import report, reportsend, settings
 
 console = Console()
@@ -108,15 +107,21 @@ def execute(args=None):
         console.print("[dim]Names, home folders, email and IP addresses were replaced. Nothing is sent unless you choose below.[/dim]")
         relay = str(settings.get("report_relay") or "")
         online = not _locked_down()
-        options = {"f": "(f)ile"}
+        options = {}
         if online and reportsend.can_github():
             options["g"] = "(g)itHub issue, signing in on another device"
         if online and reportsend.can_discord():
             options["d"] = "(d)iscord, no account needed"
         if online and relay:
             options["s"] = "(s)end through the relay"
+        if not options:
+            console.print("[yellow]This copy of PythonOS has no way to send a report from here"
+                          + (" (reports are switched off in lockdown mode)" if not online else "") + ".[/yellow]")
+            if waiting:
+                console.print("[dim]The crash report stays in the waiting list.[/dim]")
+            return False
         options["n"] = "(n)o"
-        pick = Prompt.ask("What would you like to do? " + ", ".join(options.values()), choices=list(options), default="f")
+        pick = Prompt.ask("What would you like to do? " + ", ".join(options.values()), choices=list(options), default="n")
         if pick == "g" and not Confirm.ask("Post this report as a public issue on GitHub under your account?", default=False):
             pick = "n"
         if pick == "d" and not Confirm.ask("Send this report to the developer's Discord channel?", default=False):
@@ -125,22 +130,12 @@ def execute(args=None):
         console.print("\n[yellow]Cancelled. Nothing was sent.[/yellow]")
         return False
 
-    stamp = time.strftime("%Y%m%d-%H%M%S")
     if waiting and pick == "n":
         console.print("[yellow]Nothing was sent. The report stays in the waiting list.[/yellow]")
         return True
-    done = pick in ("f", "s")
+    done = pick == "s"
     try:
-        if pick == "f":
-            path = fs.resolve(f"~/problem-report-{stamp}.txt", write=True)
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(body)
-            console.print(f"[green]Saved the report as {escape(fs.display(path, tilde=True))}.[/green]")
-            # PythonOS is a command line system: it cannot open a link, so it gives a short address to type on another device
-            console.print("To report it from [bold]another device[/bold] (your phone or another computer):")
-            console.print(f"  1. Get the file there: run [bold]share send {escape(fs.display(path, tilde=True))}[/bold] here and type the address it shows into that device's browser")
-            console.print(f"  2. Open [bold cyan]{report.ISSUE_URL}[/bold cyan] there and paste the text of the file")
-        elif pick == "g":
+        if pick == "g":
             done = _send_github(title, body)
             if not done:
                 console.print("[yellow]Nothing was posted. Try again, or choose another way (report keeps nothing until you pick).[/yellow]")
@@ -152,14 +147,14 @@ def execute(args=None):
                 return False
             console.print(f"[green]Sent. {escape(report.send_via_relay(relay, title, body))}[/green]")
         else:
-            console.print("[yellow]Nothing was sent or saved.[/yellow]")
+            console.print("[yellow]Nothing was sent.[/yellow]")
     except (KeyboardInterrupt, EOFError):
         console.print("\n[yellow]Cancelled. Nothing was sent.[/yellow]")
         return False
     except Exception as e:
-        console.print(f"[bold red]Could not send: {escape(str(e))}[/bold red]  (use the file option instead)")
+        console.print(f"[bold red]Could not send: {escape(str(e))}[/bold red]  (try again, or choose another way)")
         return False
-    if waiting and done and pick in ("f", "g", "d", "s"):
+    if waiting and done and pick in ("g", "d", "s"):
         report.finish_pending(waiting)                 # handled: it leaves the waiting list
     return done
 

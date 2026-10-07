@@ -3,7 +3,7 @@
 # Nothing here sends anything by itself. build() gathers: the version and package, the platform, the last log lines, what happened
 # to the last session and the newest crash report. redact() removes things that identify the person (user names, home paths, email
 # and IP addresses). The user sees the whole text first, then picks: post it as a GitHub issue under their own account (a sign-in with
-# a short code), send it to the developer's Discord channel (no account needed), save it to a file, or - only if a relay address is
+# a short code), send it to the developer's Discord channel (no account needed), or - only if a relay address is
 # set - send it through a small relay service that files the issue (see OS_Export/relay/README.md). The sending is in reportsend.py.
 # PythonOS is a command line system and cannot open links. A GitHub token is never stored: anything inside an app can be taken out of it.
 import json

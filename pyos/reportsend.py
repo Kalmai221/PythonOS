@@ -225,9 +225,9 @@ def install_hint():
     """Why gh is not here and what to do, in one line."""
     from pyos import ghfetch
     if ghfetch.on_android():
-        return "the GitHub CLI cannot run on Android yet; use report with Discord or a file"
+        return "the GitHub CLI cannot run on Android yet; use report with Discord"
     if not ghfetch.possible():
-        return "GitHub's CLI has no download for this kind of computer; use report with Discord or a file"
+        return "GitHub's CLI has no download for this kind of computer; use report with Discord"
     return "the GitHub CLI is not here yet; run gh again and say yes to download it"
 
 
