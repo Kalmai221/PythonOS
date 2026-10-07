@@ -11,6 +11,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
+- `report` can now send a report for you. **GitHub**: PythonOS shows a short code and asks you to open an address on another device (your phone or another computer) and approve it there; then the issue is created under your own GitHub account (the sign-in is used once and never stored). **Discord**, for people with no GitHub account: the report goes to the developer's channel. You read the whole report first and nothing is sent without your choice. `report status` shows the state and replies of a report you sent, with no sign-in. Each way is only offered once it is set up in the build.
 - New command `sudo`: run one command as an administrator. An administrator confirms with their own password; a standard user gives an administrator's name and password and is a standard user again when the command ends. `sudo -k` forgets the password. Every use is in `logs --admin`.
 - `doctor` (and any command that needs an administrator) now says why it did not see you as one, so a wrong refusal can be traced, and the account lookup no longer fails on a file it cannot read as text.
 - PythonOS is a command line system and cannot open links: `report` no longer tries to open a browser or prints a very long pre-filled address. It saves the report and shows the short GitHub address to type on any device, with `share send` to move the file there. `updatecheck` says the same beside its download addresses, and a new test keeps browser opening and hyperlinks out of the system.

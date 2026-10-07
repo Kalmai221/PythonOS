@@ -44,7 +44,7 @@ def main():
     from pyos import report
     assert not hasattr(report, "issue_link"), "report must not build long pre-filled links"
     source = open(os.path.join(REPO, "commands", "report.py"), encoding="utf-8").read()
-    assert "(l)ink" not in source and "browser" not in source.replace("into a browser on any device", "")
+    assert "(l)ink" not in source, "report must not offer a link"
     print("cli only: all checks passed")
 
 

@@ -370,11 +370,13 @@ page("diag", "hardware and boot report", ["diag [--show]"],
 page("quickstart", "two-minute tour", ["quickstart"],
      "A short tour of what PythonOS offers: finding commands, apps, themes, keeping your data, undo and switching off. The live USB offers it "
      "on the first start. For hands-on lessons that check what you type, use tutorial.", see=["tutorial", "help"])
-page("report", "send a problem report", ["report [what went wrong]"],
+page("report", "send a problem report", ["report [what went wrong]", "report status [number]"],
      "Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email "
-     "and IP addresses. You read the whole text first, then choose: a file (with the short address of the GitHub issue page to type on any "
-     "device, since PythonOS cannot open links) or, if settings report_relay is set, a relay that files the issue. Nothing is ever sent "
-     "without your choice.",
+     "and IP addresses. You read the whole text first, then choose: (g) a GitHub issue under your own account (PythonOS shows a short code and "
+     "an address, you approve it on another device such as your phone, and the issue is created; the sign-in is used once and never stored), (d) the "
+     "developer's Discord channel, which needs no account, (f) a file, with the short address of the GitHub issue page, since PythonOS "
+     "cannot open links, or (s) a relay, if settings report_relay is set. Only the ways that are set up in your copy are offered. Nothing "
+     "is ever sent without your choice. report status shows the state and replies of a report you sent, with no sign-in.",
      examples=[("report", "answer a question, then see the report"), ("report the editor froze", "give the description up front")],
      see=["whathappened", "logs", "doctor"])
 page("whathappened", "why the last session ended badly", ["whathappened"],
