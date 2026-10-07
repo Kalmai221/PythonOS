@@ -179,6 +179,20 @@ def main():
             sys.stdout = old_out
         assert code == 0 and printed == "#1 a bug\n" and calls == [["issue", "list"]], (code, printed, calls)
 
+        # on a real terminal gh gets the terminal itself (its sign-in prompts and waits for a key)
+        class Terminal(io.StringIO):
+            def isatty(self):
+                return True
+        direct, old_in, old_call = [], sys.stdin, subprocess.call
+        subprocess.call = lambda cmd, env=None: (direct.append((cmd, env["GH_CONFIG_DIR"])), 0)[1]
+        sys.stdin, sys.stdout = Terminal(), Terminal()
+        try:
+            code = reportsend.run_gh(["auth", "login"], "sam")
+        finally:
+            sys.stdin, sys.stdout, subprocess.call = old_in, old_out, old_call
+        assert code == 0 and direct and direct[0][0] == ["/usr/bin/gh", "auth", "login"] and ".OSData" in direct[0][1], direct
+        assert calls == [["issue", "list"]], "on a terminal gh must not be captured"
+
         # what became of the report: state and replies, with no sign-in
         net.routes = [["/issues/77/comments", [Reply(200, [{"user": {"login": "Kalmai221"}, "body": "Fixed in 1.0.12"}])]],
                       ["/issues/77", [Reply(200, {"title": "It broke", "state": "closed", "state_reason": "completed", "comments": 1,

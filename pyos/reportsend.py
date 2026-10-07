@@ -182,9 +182,13 @@ def run_gh(args, user):
     exe = gh_path()
     if not exe:
         raise SendError("the GitHub CLI (gh) is not installed in this copy of PythonOS")
-    real = getattr(sys.stdout, "_real", sys.stdout)
-    if sys.stdout is real and sys.stdin.isatty() and sys.stdout.isatty():
+    # PythonOS's stdout is a router that says it is not a terminal while the output is captured (a pipe, a redirect, `$(...)`)
+    if sys.stdout.isatty() and sys.stdin.isatty():
         os.makedirs(os.path.join(GH_HOME, user or "default"), exist_ok=True)
+        try:
+            sys.stdout.flush()
+        except (OSError, ValueError):
+            pass
         return subprocess.call([exe] + args, env=gh_env(user))
     code, out = _gh(args, user, capture="", timeout=300)
     sys.stdout.write(out)
