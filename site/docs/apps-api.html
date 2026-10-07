@@ -143,6 +143,9 @@ except ImportError:          # run on its own, outside PythonOS
 <h2 id="notify">Notifications</h2>
 <p>With the <code>notifications</code> permission: <code>from pyos import notify</code>, then <code>notify.notify("Time is up", title="Timer", level="info")</code>. The message is shown before the user's next prompt. <code>level</code> is <code>info</code> or <code>warn</code>.</p>
 
+<h2 id="links">No links</h2>
+<p>PythonOS is a command line system. An app cannot open a browser, and a clickable link means nothing in a terminal. When an app needs to point at a web address, print it as plain text and say that it is meant to be typed on another device. Do not use <code>webbrowser</code>, <code>xdg-open</code> or hyperlink escape codes.</p>
+
 <h2 id="limits">Limits</h2>
 <p>Every app runs as a process of its own and is held to a memory and processor-time limit. The most specific wins: what the user set (<code>limits set</code>), then what the app declares, then the system default (a quarter of PythonOS's memory, setting <code>app_memory_percent</code>). <code>0</code> means no limit. An app over its memory limit is stopped with a message that says so.</p>
 <pre><code>"limits": {"memory_mb": 64, "cpu_seconds": 30}</code></pre>

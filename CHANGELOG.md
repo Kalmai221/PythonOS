@@ -11,6 +11,9 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
+- New command `sudo`: run one command as an administrator. An administrator confirms with their own password; a standard user gives an administrator's name and password and is a standard user again when the command ends. `sudo -k` forgets the password. Every use is in `logs --admin`.
+- `doctor` (and any command that needs an administrator) now says why it did not see you as one, so a wrong refusal can be traced, and the account lookup no longer fails on a file it cannot read as text.
+- PythonOS is a command line system and cannot open links: `report` no longer tries to open a browser or prints a very long pre-filled address. It saves the report and shows the short GitHub address to type on any device, with `share send` to move the file there. `updatecheck` says the same beside its download addresses, and a new test keeps browser opening and hyperlinks out of the system.
 - `installos` no longer stops half way with "unable to select packages: acct, linux-lts (no such package)". It now checks, before erasing anything, that the base system can really be fetched; when the live system's repositories hold only the disc, it adds Alpine's online ones (and says no disk was touched if they cannot be reached).
 
 ## 1.0.11

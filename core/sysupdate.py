@@ -667,7 +667,8 @@ def print_export_notice(status, blocking=False):
             "The core still updates by itself; to get the new package, download and install it:",
             title="[bold yellow]Manual update available[/bold yellow]", border_style="yellow", expand=False))
     for url in remote.get("urls") or [remote.get("url")]:
-        console.print(f"  [bold cyan]{url}[/bold cyan]", soft_wrap=True)   # never break a link across lines
+        console.print(f"  [bold cyan]{url}[/bold cyan]", soft_wrap=True)   # never break an address across lines
+    console.print("[dim]PythonOS is a command line system and cannot open links: type the address into a browser on any device.[/dim]")
 
 
 def check_export_update(timeout=8):

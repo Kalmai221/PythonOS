@@ -55,7 +55,9 @@ def execute(args=None):
         console.print("Checks: " + ", ".join(doctor.names()) + "\n[dim](network needs --online)[/dim]")
         return True
     if pyos.userinfo()[1] != "admin":
+        from pyos.userinfo import diagnose
         console.print("[bold red]doctor: only an administrator can check the installation[/bold red]")
+        console.print(f"[dim]Why: {escape(diagnose())}. A standard user can run: sudo doctor[/dim]")
         return False
     only = None
     if "--only" in args:

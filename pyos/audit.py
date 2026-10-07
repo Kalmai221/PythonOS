@@ -58,6 +58,12 @@ def elevate(action):
     return False
 
 
+def remember(user):
+    """Treat `user`'s password as just given (sudo has checked it), so the actions inside the command do not ask again."""
+    with _lock:
+        _ok_until[user] = time.time() + GRACE_SECONDS
+
+
 def forget(user=None):
     """Drop a remembered password (on logout or lock)."""
     with _lock:

@@ -10,11 +10,9 @@ import os
 import platform
 import re
 import time
-import urllib.parse
 
 REPO = "Kalmai221/PythonOS"
 ISSUE_URL = f"https://github.com/{REPO}/issues/new"
-MAX_URL_BODY = 3500           # browsers and GitHub refuse very long links
 
 
 def _version():
@@ -149,16 +147,6 @@ def redact(text):
     text = re.sub(r"[A-Za-z]:\\Users\\[^\\\s]+", lambda m: "C:\\Users\\<user>", text)
     text = re.sub(r"/(home|Users)/[^/\s]+", r"/\1/<user>", text)
     return text
-
-
-def issue_link(title, body):
-    """A link that opens GitHub's new-issue page with the title and text filled in (the text is cut to fit a link)."""
-    note = ""
-    if len(body) > MAX_URL_BODY:
-        body = body[:MAX_URL_BODY]
-        note = "\n\n(report cut to fit a link - the full text is in the file the app saved)"
-    query = urllib.parse.urlencode({"title": title, "body": body + note}, quote_via=urllib.parse.quote)
-    return f"{ISSUE_URL}?{query}"
 
 
 def send_via_relay(url, title, body, timeout=15):

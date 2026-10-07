@@ -813,6 +813,18 @@ passwd &lt;user&gt;</code></pre>
 <p class="muted">See also: <a href="#cmd-users"><code>users</code></a>, <a href="#cmd-whoami"><code>whoami</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-sudo" data-name="sudo">
+<h3>sudo</h3>
+<p class="summary">run one command as an administrator</p>
+<pre><code>sudo &lt;command&gt; [arguments]
+sudo -k</code></pre>
+<p>Runs a single command with administrator rights. An administrator confirms with their own password (it is remembered for a few minutes, and the admin_reauth setting can switch the question off). A standard user gives the name and password of an administrator, and is a standard user again as soon as the command ends. Every use is recorded in the log (logs --admin). Unlike su it does not start a shell, and the command still sees the administrator&#x27;s home folder.</p>
+<div class="table-wrap"><table><tbody><tr><td><code>-k</code></td><td>forget the remembered password, so the next sudo asks again</td></tr></tbody></table></div>
+<pre><code><span class="g">$</span> sudo doctor --fix  <span class="d"># check the installation and repair it</span>
+<span class="g">$</span> sudo hostname lab  <span class="d"># rename the computer</span></code></pre>
+<p class="muted">See also: <a href="#cmd-su"><code>su</code></a>, <a href="#cmd-logs"><code>logs</code></a>, <a href="#cmd-passwd"><code>passwd</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-who" data-name="who">
 <h3>who</h3>
 <p class="summary">who is logged in</p>
@@ -926,7 +938,7 @@ bootlog &lt;number&gt;</code></pre>
 <h3>report</h3>
 <p class="summary">send a problem report</p>
 <pre><code>report [what went wrong]</code></pre>
-<p>Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email and IP addresses. You read the whole text first, then choose: a link that opens a filled-in GitHub issue, a file to attach yourself, or (if settings report_relay is set) a relay that files the issue. Nothing is ever sent without your choice.</p>
+<p>Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email and IP addresses. You read the whole text first, then choose: a file (with the short address of the GitHub issue page to type on any device, since PythonOS cannot open links) or, if settings report_relay is set, a relay that files the issue. Nothing is ever sent without your choice.</p>
 <pre><code><span class="g">$</span> report  <span class="d"># answer a question, then see the report</span>
 <span class="g">$</span> report the editor froze  <span class="d"># give the description up front</span></code></pre>
 <p class="muted">See also: <a href="#cmd-whathappened"><code>whathappened</code></a>, <a href="#cmd-logs"><code>logs</code></a>, <a href="#cmd-doctor"><code>doctor</code></a>.</p>

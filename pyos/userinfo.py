@@ -11,9 +11,10 @@ SESSION_FILE = "current_user.json"
 def load_session():
     """Load the current user session from current_user.json."""
     try:
-        with open(SESSION_FILE, 'r') as f:
-            return json.load(f)  # Returns the entire session data
-    except (FileNotFoundError, KeyError):
+        with open(SESSION_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)  # Returns the entire session data
+        return data if isinstance(data, dict) else None
+    except (OSError, ValueError, KeyError):
         return None
 
 def userinfo():
@@ -33,10 +34,34 @@ def userinfo():
         return [None, None]
     username = session_data.get('username')
     try:
-        with open(USER_DB, 'r') as f:
+        with open(USER_DB, 'r', encoding='utf-8') as f:
             users = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (OSError, ValueError):
         return [None, None]
-    if username not in users:
+    if not isinstance(users, dict) or not isinstance(users.get(username), dict):
         return [None, None]
     return [username, users[username].get('role')]
+
+
+def diagnose():
+    """Why userinfo() does not say "admin", in one line (for the message of a command that needs an administrator)."""
+    name, role = userinfo()
+    if role == "admin":
+        return "you are an administrator"
+    if os.environ.get("PYOS_SANDBOX_USER"):
+        return f"this runs inside an app's sandbox as '{name}' with the role '{role}'"
+    session = load_session()
+    if not session:
+        return f"there is no login session ({SESSION_FILE} in {os.getcwd()} is missing or unreadable)"
+    try:
+        with open(USER_DB, 'r', encoding='utf-8') as f:
+            users = json.load(f)
+    except OSError as e:
+        return f"the account database {USER_DB} cannot be read ({e.__class__.__name__})"
+    except ValueError:
+        return f"the account database {USER_DB} is damaged"
+    who = session.get('username')
+    if not isinstance(users, dict) or who not in users:
+        return f"'{who}' is not in the account database {USER_DB}"
+    return f"'{who}' has the role '{users[who].get('role')}' in {USER_DB}, not 'admin'"
+

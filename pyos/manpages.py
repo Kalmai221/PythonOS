@@ -372,8 +372,9 @@ page("quickstart", "two-minute tour", ["quickstart"],
      "on the first start. For hands-on lessons that check what you type, use tutorial.", see=["tutorial", "help"])
 page("report", "send a problem report", ["report [what went wrong]"],
      "Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email "
-     "and IP addresses. You read the whole text first, then choose: a link that opens a filled-in GitHub issue, a file to attach yourself, "
-     "or (if settings report_relay is set) a relay that files the issue. Nothing is ever sent without your choice.",
+     "and IP addresses. You read the whole text first, then choose: a file (with the short address of the GitHub issue page to type on any "
+     "device, since PythonOS cannot open links) or, if settings report_relay is set, a relay that files the issue. Nothing is ever sent "
+     "without your choice.",
      examples=[("report", "answer a question, then see the report"), ("report the editor froze", "give the description up front")],
      see=["whathappened", "logs", "doctor"])
 page("whathappened", "why the last session ended badly", ["whathappened"],
@@ -391,6 +392,13 @@ page("passwd", "change a password", ["passwd", "passwd <user>"],
 page("su", "work as another user", ["su <user>"],
      "Starts a shell as another user. Admins do not need a password; everyone else must enter the other user's. Type exit to come back.",
      examples=[("su sam", "become sam for a while")], see=["users", "whoami"])
+page("sudo", "run one command as an administrator", ["sudo <command> [arguments]", "sudo -k"],
+     "Runs a single command with administrator rights. An administrator confirms with their own password (it is remembered for a few "
+     "minutes, and the admin_reauth setting can switch the question off). A standard user gives the name and password of an administrator, "
+     "and is a standard user again as soon as the command ends. Every use is recorded in the log (logs --admin). Unlike su it does not "
+     "start a shell, and the command still sees the administrator's home folder.",
+     [("-k", "forget the remembered password, so the next sudo asks again")],
+     [("sudo doctor --fix", "check the installation and repair it"), ("sudo hostname lab", "rename the computer")], ["su", "logs", "passwd"])
 page("lock", "lock the session", ["lock"],
      "Hides everything until your password is entered again (three tries, then you are logged out). PythonOS can also lock itself after you "
      "have been idle for a while: settings set auto_lock_minutes 10.", see=["settings", "passwd"])

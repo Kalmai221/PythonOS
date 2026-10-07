@@ -12,18 +12,6 @@ console = Console()
 config = {"name": "report", "description": "Prepare a problem report you can read first, then send as a GitHub issue or save to a file."}
 
 
-def _open_link(link):
-    """Try to open the link in a browser; True if the system says it did (never on a locked-down system)."""
-    try:
-        from pyos import lockdown
-        if lockdown.enabled():
-            return False
-        import webbrowser
-        return bool(webbrowser.open(link))
-    except Exception:
-        return False
-
-
 def execute(args=None):
     args = list(args or [])
     text = " ".join(a for a in args if not a.startswith("-"))
@@ -45,8 +33,8 @@ def execute(args=None):
         console.print(Panel(escape(body), title="[bold]This is everything the report contains[/bold]", border_style="blue"))
         console.print("[dim]Names, home folders, email and IP addresses were replaced. Nothing is sent unless you choose below.[/dim]")
         relay = str(settings.get("report_relay") or "")
-        choices = ["l", "f", "n"] + (["s"] if relay else [])
-        label = "(l)ink to open on GitHub, (f)ile, " + ("(s)end through the relay, " if relay else "") + "(n)o"
+        choices = ["f", "n"] + (["s"] if relay else [])
+        label = "(f)ile, " + ("(s)end through the relay, " if relay else "") + "(n)o"
         pick = Prompt.ask(f"What would you like to do? {label}", choices=choices, default="f")
     except (KeyboardInterrupt, EOFError):
         console.print("\n[yellow]Cancelled. Nothing was sent.[/yellow]")
@@ -56,19 +44,15 @@ def execute(args=None):
     if waiting and pick == "n":
         console.print("[yellow]Nothing was sent. The report stays in the waiting list.[/yellow]")
         return True
-    if pick in ("l", "f"):
+    if pick == "f":
         path = fs.resolve(f"~/problem-report-{stamp}.txt", write=True)
         with open(path, "w", encoding="utf-8") as f:
             f.write(body)
         console.print(f"[green]Saved the report as {escape(fs.display(path, tilde=True))}.[/green]")
-    if pick == "l":
-        link = report.issue_link(title, body)
-        if _open_link(link):
-            console.print("[green]Opened GitHub in your browser. Check the text and press 'Submit new issue'.[/green]")
-        else:
-            console.print("Open this address on any device (it fills the issue in for you):")
-            console.print(f"[bold cyan]{escape(link)}[/bold cyan]", soft_wrap=True)
-            console.print(f"[dim]Or open {report.ISSUE_URL} and paste the saved file.[/dim]")
+    if pick == "f":
+        # PythonOS is a command line system: it cannot open a link, so it gives a short address to type on another device
+        console.print(f"To report it, type [bold cyan]{report.ISSUE_URL}[/bold cyan] into a browser on any device and paste the text of the file.")
+        console.print("[dim]To get the file onto that device: share send <file>  (gives a short address to type there).[/dim]")
     elif pick == "s":
         try:
             if not Confirm.ask(f"Send this report to {escape(relay)}?", default=False):
@@ -80,6 +64,6 @@ def execute(args=None):
             return False
     else:
         console.print("[yellow]Nothing was sent or saved.[/yellow]")
-    if waiting and pick in ("l", "f", "s"):
+    if waiting and pick in ("f", "s"):
         report.finish_pending(waiting)                 # handled: it leaves the waiting list
     return True
