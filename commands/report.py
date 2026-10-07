@@ -47,6 +47,9 @@ def _send_github(title, body):
     user = pyos.userinfo()[0]
     was_signed_in = False
     try:
+        if not reportsend.ensure_gh(lambda question: Confirm.ask(question, default=True), console.print):
+            console.print("[yellow]Nothing was downloaded, so nothing was posted.[/yellow]")
+            return False
         was_signed_in = reportsend.gh_signed_in(user)
         if not was_signed_in:
             console.print(Panel("This computer has no web browser, so do the sign-in on [bold]another device[/bold] (your phone or another computer):\n"

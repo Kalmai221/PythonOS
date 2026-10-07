@@ -7,9 +7,6 @@ FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 PYTHONIOENCODING=utf-8 PYOS_BUNDLED=1 TERM=xterm-256color LANG=C.UTF-8
 
-# the GitHub CLI, which the PythonOS `gh` command runs (and `report` uses to file a GitHub issue); the image still works without it
-RUN (apt-get update && apt-get install -y --no-install-recommends gh ca-certificates && rm -rf /var/lib/apt/lists/*) || echo "gh is not available for this base image"
-
 COPY payload/requirements.txt payload/requirements-extra.txt /tmp/
 RUN pip install --no-cache-dir -r /tmp/requirements.txt && (pip install --no-cache-dir -r /tmp/requirements-extra.txt || true) && rm /tmp/requirements*.txt
 

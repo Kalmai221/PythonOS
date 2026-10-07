@@ -20,7 +20,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### Exports
 
-- The GitHub CLI (`gh`) is now installed by the exports that can run it: the ISO and virtual machine images (full variant), the Docker image and the Windows package (a pinned release, checked against GitHub's checksums). On Linux install it with your package manager. There is no `gh` on Android.
+- The ISO and virtual machine images (full variant) now include the GitHub CLI (`gh`), which they install as part of their own system. Every other export (Windows, Linux, Docker) does not install anything: the `gh` command offers to download GitHub's release into PythonOS's own folder the first time it is used. There is no `gh` on Android yet.
 
 ## 1.0.11
 

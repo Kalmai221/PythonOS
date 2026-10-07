@@ -14,7 +14,8 @@ import urllib.error
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 sys.path.insert(0, REPO_ROOT)
 
-from pyos import reportsend  # noqa: E402
+from pyos import ghfetch, reportsend  # noqa: E402
+reportsend.ghfetch = ghfetch
 
 
 class Reply:
@@ -86,7 +87,8 @@ def main():
         real_which = shutil.which
         shutil.which = lambda name, *a, **k: None if name == "gh" else real_which(name, *a, **k)
         try:
-            assert not reportsend.can_github() and reportsend.gh_path() is None
+            assert reportsend.gh_path() is None
+            assert reportsend.can_github() == reportsend.ghfetch.possible(), "without gh it can be downloaded, except on Android"
             try:
                 reportsend.gh_login("sam")
                 raise AssertionError("must say gh is missing")

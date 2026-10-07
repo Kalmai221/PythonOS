@@ -18,7 +18,7 @@ def main():
         os.makedirs(".OSData")
         import users
         from commands import gh, report as report_command
-        from pyos import reportsend
+        from pyos import ghfetch, reportsend
 
         with open(os.environ["PYOS_USERS_FILE"], "w", encoding="utf-8") as f:
             json.dump({"sam": {"password": users.hash_password("x"), "role": "user"}}, f)
@@ -26,8 +26,14 @@ def main():
         gh.console.quiet = True
         report_command.console.quiet = True
 
-        # gh missing: a clear failure with how to install it, nothing run
+        # gh missing: it asks before downloading anything; "no" runs nothing, and a failed download is a clean failure
         reportsend.gh_path = lambda: None
+        asked = []
+        gh.Confirm.ask = lambda question, **k: (asked.append(question), False)[1]
+        reportsend.run_gh = lambda args, user: (_ for _ in ()).throw(AssertionError("gh must not run"))
+        assert gh.execute(["issue", "list"]) is False and len(asked) == 1 and "download" in asked[0].lower()
+        gh.Confirm.ask = lambda question, **k: True
+        ghfetch.fetch = lambda log=print: (_ for _ in ()).throw(ghfetch.FetchError("could not download the GitHub CLI: offline"))
         assert gh.execute(["issue", "list"]) is False
 
         # gh present: the arguments go to the real gh untouched, as this account; its exit code is the command's

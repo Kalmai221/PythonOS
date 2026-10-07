@@ -396,9 +396,10 @@ page("su", "work as another user", ["su <user>"],
      "Starts a shell as another user. Admins do not need a password; everyone else must enter the other user's. Type exit to come back.",
      examples=[("su sam", "become sam for a while")], see=["users", "whoami"])
 page("gh", "GitHub from the command line", ["gh <anything the GitHub CLI takes>", "gh auth login", "gh issue list", "gh issue create", "gh pr list"],
-     "This is the real GitHub CLI, run inside the PythonOS terminal, so everything it does works the same: gh --help lists it. Each export "
-     "installs it (the ISO and virtual machines, the Docker image and the Windows package include it; on Linux install it with your package "
-     "manager; it cannot run on Android). PythonOS has no web browser, so gh auth login shows a one-time code and you approve it on another "
+     "This is the real GitHub CLI, run inside the PythonOS terminal, so everything it does works the same: gh --help lists it. The ISO and virtual "
+     "machines come with it; everywhere else gh asks before downloading GitHub's own release into PythonOS's folder, and installs nothing on "
+     "the computer itself (there is no gh on Android yet). "
+     "PythonOS has no web browser, so gh auth login shows a one-time code and you approve it on another "
      "device (your phone or another computer). The sign-in is kept for your account only, in PythonOS's private data. Inside a pipe or a "
      "redirect the output is captured, so gh issue list | grep bug works. report uses the same sign-in.",
      [("auth login", "sign in: shows a code to approve on another device"), ("auth logout", "sign out and delete the sign-in"),

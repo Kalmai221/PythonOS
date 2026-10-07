@@ -58,7 +58,6 @@ def main():
     os.chdir(HERE)
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYOS_EXPORT_INFO=os.path.join(HERE, "export.json"),
                COLORTERM="truecolor")
-    env["PATH"] = os.path.join(HERE, "gh") + os.pathsep + env.get("PATH", "")      # the bundled GitHub CLI, run by the gh command
     env.pop("NO_COLOR", None)         # the PythonOS window always shows colour (the mono theme is a PythonOS setting)
     sys.path.insert(0, HERE)
     import bootstrap

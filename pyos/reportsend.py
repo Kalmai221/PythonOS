@@ -2,7 +2,9 @@
 #
 # PythonOS is a command line system, so nothing here opens a browser or a link. Everything is plain HTTPS from this process.
 #
-#   GitHub (main):  the real GitHub CLI, `gh`, which each export installs (the `gh` command of PythonOS just runs it in this terminal).
+#   GitHub (main):  the real GitHub CLI, `gh` (the `gh` command of PythonOS just runs it in this terminal). The ISO and the virtual
+#                   machines install it (their own system), and every other export downloads it once, after asking, into PythonOS's
+#                   private data (pyos/ghfetch.py): it is never installed on the computer itself.
 #                   `gh` signs the person in (it shows a one-time code to approve on another device) and creates the issue. Its sign-in
 #                   is kept in a private folder of PythonOS's data, per account, and `report` deletes it afterwards unless the person
 #                   chooses to stay signed in. No app of ours is involved.
@@ -68,12 +70,36 @@ def targets():
 
 
 def gh_path():
-    """The GitHub CLI, if this export has installed it."""
-    return shutil.which("gh")
+    """The GitHub CLI: the one named by PYOS_GH, the one PythonOS downloaded, or one on the system (ISO, VM)."""
+    from pyos import ghfetch
+    named = os.environ.get("PYOS_GH")
+    if named and os.path.isfile(named):
+        return named
+    return ghfetch.fetched() or shutil.which("gh")
 
 
 def can_github():
-    return bool(gh_path())
+    """True if gh is here or can be downloaded (everywhere but Android)."""
+    from pyos import ghfetch
+    return bool(gh_path()) or ghfetch.possible()
+
+
+def ensure_gh(ask, say=print):
+    """Make sure gh is available, downloading it (into PythonOS's private data only) if the person agrees. `ask(question)` returns True or False.
+    Returns True when gh can be run. Raises SendError when it cannot be had."""
+    from pyos import ghfetch
+    if gh_path():
+        return True
+    if not ghfetch.possible():
+        raise SendError(install_hint())
+    if not ask(f"The GitHub CLI is not in this PythonOS yet. Download GitHub's official release (version {ghfetch.VERSION}, about 15 MB) into "
+               "PythonOS's own folder? It is not installed anywhere else and its checksum is verified"):
+        return False
+    try:
+        ghfetch.fetch(say)
+    except ghfetch.FetchError as e:
+        raise SendError(str(e)) from e
+    return True
 
 
 def can_discord():
@@ -196,16 +222,13 @@ def run_gh(args, user):
 
 
 def install_hint():
-    """How to get gh on this system, in one line."""
-    if os.environ.get("ANDROID_DATA") or os.environ.get("ANDROID_ROOT"):
-        return "the GitHub CLI cannot run on Android; use report with Discord or a file"
-    if os.name == "nt":
-        return "install it for Windows: winget install --id GitHub.cli (the PythonOS Windows package includes it)"
-    for tool, line in (("apk", "apk add github-cli"), ("apt", "apt install gh"), ("dnf", "dnf install gh"), ("pacman", "pacman -S github-cli"),
-                       ("brew", "brew install gh")):
-        if shutil.which(tool):
-            return "install it with: " + line
-    return "install it from your system's package manager (the package is called gh or github-cli)"
+    """Why gh is not here and what to do, in one line."""
+    from pyos import ghfetch
+    if ghfetch.on_android():
+        return "the GitHub CLI cannot run on Android yet; use report with Discord or a file"
+    if not ghfetch.possible():
+        return "GitHub's CLI has no download for this kind of computer; use report with Discord or a file"
+    return "the GitHub CLI is not here yet; run gh again and say yes to download it"
 
 
 # ---------------------------------------------------------------- reports already sent, and what became of them

@@ -71,31 +71,6 @@ if ($Arch -eq "arm64") {
 }
 Get-ChildItem $App -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
 
-# 3b. The GitHub CLI: the `gh` command of PythonOS runs it (start.py puts this folder on PATH). A pinned release, checked against the
-# checksums GitHub publishes next to it.
-$GhVersion = "2.102.0"
-$GhArch = if ($Arch -eq "arm64") { "arm64" } else { "amd64" }
-$GhName = "gh_${GhVersion}_windows_$GhArch.zip"
-$GhBase = "https://github.com/cli/cli/releases/download/v$GhVersion"
-$GhZip = Join-Path $Out $GhName
-$GhTemp = Join-Path $Out "gh-unpacked"
-Invoke-WebRequest -Uri "$GhBase/$GhName" -OutFile $GhZip
-$GhSums = (Invoke-WebRequest -Uri "$GhBase/gh_${GhVersion}_checksums.txt").Content
-if ($GhSums -is [byte[]]) { $GhSums = [System.Text.Encoding]::UTF8.GetString($GhSums) }
-$GhLine = ($GhSums -split "`n" | Where-Object { $_ -like "*$GhName*" } | Select-Object -First 1)
-if (-not $GhLine) { throw "no checksum was published for $GhName" }
-$GhWant = $GhLine.Trim().Split(" ")[0]
-if ((Get-FileHash $GhZip -Algorithm SHA256).Hash.ToLower() -ne $GhWant.ToLower()) { throw "the GitHub CLI download did not match its checksum" }
-Expand-Archive -Path $GhZip -DestinationPath $GhTemp
-$GhExe = Get-ChildItem $GhTemp -Recurse -Filter "gh.exe" | Select-Object -First 1
-if (-not $GhExe) { throw "gh.exe was not in the GitHub CLI download" }
-$GhDir = Join-Path $App "gh"
-New-Item -ItemType Directory -Path $GhDir | Out-Null
-Copy-Item $GhExe.FullName $GhDir
-$GhLicense = Get-ChildItem $GhTemp -Recurse -Filter "LICENSE*" | Select-Object -First 1
-if ($GhLicense) { Copy-Item $GhLicense.FullName (Join-Path $GhDir "LICENSE-gh.txt") }
-Remove-Item $GhZip, $GhTemp -Recurse -Force
-
 # 4. PythonOS.exe launcher (PyInstaller, running on the build machine's Python)
 python -m pip install --quiet pyinstaller pillow
 if ($LASTEXITCODE -ne 0) { throw "installing PyInstaller failed" }
