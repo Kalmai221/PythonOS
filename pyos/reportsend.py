@@ -2,24 +2,22 @@
 #
 # PythonOS is a command line system, so nothing here opens a browser or a link. Everything is plain HTTPS from this process.
 #
-#   GitHub, with the GitHub CLI (`gh`): when it is installed (the ISO has it), PythonOS asks it to sign the person in (it shows a one-time
-#                   code to approve on another device) and to create the issue, in a private config folder that is deleted afterwards. gh
-#                   brings its own sign-in, so no app of ours has to be registered.
-#   GitHub, device flow, when gh is not there and the build has a client id: The person is shown a short code and an address to type on any device; once they have approved,
-#                   PythonOS gets a token for the `public_repo` scope, creates the issue as them, and throws the token away. It is never
-#                   written to disk (anything inside an app can be taken out of it). It needs the client id of PythonOS's OAuth app, which
-#                   is public and not a secret (pyos/report_targets.json, set with tools/set_report_targets.py).
+#   GitHub (main):  the real GitHub CLI, `gh`, which each export installs (the `gh` command of PythonOS just runs it in this terminal).
+#                   `gh` signs the person in (it shows a one-time code to approve on another device) and creates the issue. Its sign-in
+#                   is kept in a private folder of PythonOS's data, per account, and `report` deletes it afterwards unless the person
+#                   chooses to stay signed in. No app of ours is involved.
 #   Discord:        for people with no GitHub account: the report is posted to a channel through a webhook. The address is only lightly
 #                   disguised (so GitHub's secret scanner does not revoke it): it is not a secret from anyone who reads the code, so it is
 #                   rate limited on this side and can be replaced by editing one file.
 #
-# Both are used only when the person chooses them, after reading the whole report.
+# Each is used only when the person chooses it, after reading the whole report.
 import base64
 import json
 import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -29,8 +27,6 @@ from pyos import report
 
 TARGETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "report_targets.json")
 API = "https://api.github.com"
-GITHUB = "https://github.com"
-SCOPE = "public_repo"                        # the smallest scope that lets an OAuth app create an issue in a public repository
 DISCORD_EVERY = 10 * 60                      # seconds between two reports sent to Discord from one installation
 MAX_BODY = 60000                             # GitHub accepts 65536 characters in an issue body
 RECORDS = os.path.join(".OSData", "reports.json")
@@ -57,7 +53,7 @@ def reveal(text):
 
 
 def targets():
-    """{"github_client_id": str, "discord": str}; an empty value means that way of sending is not set up in this build."""
+    """{"discord": str}; an empty value means that way of sending is not set up in this build."""
     try:
         with open(TARGETS, encoding="utf-8") as f:
             data = json.load(f)
@@ -68,16 +64,16 @@ def targets():
     hook = reveal(str(data.get("discord", ""))) if data.get("discord") else ""
     if hook and not hook.startswith("https://"):
         hook = ""
-    return {"github_client_id": str(data.get("github_client_id", "")).strip(), "discord": hook}
+    return {"discord": hook}
 
 
 def gh_path():
-    """The GitHub CLI, if it is installed."""
+    """The GitHub CLI, if this export has installed it."""
     return shutil.which("gh")
 
 
 def can_github():
-    return bool(gh_path()) or bool(targets()["github_client_id"])
+    return bool(gh_path())
 
 
 def can_discord():
@@ -111,96 +107,41 @@ def _request(url, data=None, headers=None, method=None, timeout=15):
         return status, text
 
 
-def _form(url, fields):
-    return _request(url, urllib.parse.urlencode(fields).encode("ascii"),
-                    {"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"}, "POST")
-
-
-# ---------------------------------------------------------------- GitHub: sign in with a code
-def start_device_flow():
-    """Ask GitHub for a code. Returns {"user_code", "verification_uri", "device_code", "interval", "expires_in"}."""
-    client = targets()["github_client_id"]
-    if not client:
-        raise SendError("sending through GitHub is not set up in this copy of PythonOS")
-    status, data = _form(f"{GITHUB}/login/device/code", {"client_id": client, "scope": SCOPE})
-    if status != 200 or not isinstance(data, dict) or "device_code" not in data:
-        raise SendError(f"GitHub did not start the sign-in (HTTP {status}): {_message(data)}")
-    return {"user_code": data["user_code"], "verification_uri": data.get("verification_uri", f"{GITHUB}/login/device"),
-            "device_code": data["device_code"], "interval": max(int(data.get("interval", 5)), 1), "expires_in": int(data.get("expires_in", 900))}
-
-
-def wait_for_token(flow, sleep=time.sleep, clock=time.time, tick=None):
-    """Wait until the person has approved the code on their other device. Returns the access token (kept in memory only)."""
-    client = targets()["github_client_id"]
-    deadline = clock() + flow["expires_in"]
-    interval = flow["interval"]
-    while clock() < deadline:
-        sleep(interval)
-        status, data = _form(f"{GITHUB}/login/oauth/access_token",
-                             {"client_id": client, "device_code": flow["device_code"], "grant_type": "urn:ietf:params:oauth:grant-type:device_code"})
-        if isinstance(data, dict):
-            if data.get("access_token"):
-                return data["access_token"]
-            error = data.get("error")
-            if error == "authorization_pending":
-                if tick:
-                    tick()
-                continue
-            if error == "slow_down":
-                interval += 5
-                continue
-            if error == "expired_token":
-                raise SendError("the code ran out; start again")
-            if error == "access_denied":
-                raise SendError("the sign-in was cancelled on GitHub")
-            raise SendError(f"GitHub refused the sign-in: {data.get('error_description') or error or status}")
-        raise SendError(f"unexpected answer from GitHub (HTTP {status})")
-    raise SendError("the code ran out; start again")
-
-
 def _message(data):
     if isinstance(data, dict):
         return str(data.get("message") or data.get("error_description") or data.get("error") or "")[:300]
     return str(data)[:300]
 
 
-def create_issue(token, title, body):
-    """Create the issue as the person who signed in. Returns {"number", "url"}."""
-    if len(body) > MAX_BODY:
-        body = body[:MAX_BODY] + "\n\n(cut to fit GitHub's limit)"
-    payload = json.dumps({"title": title[:250] or "Problem report", "body": body}).encode("utf-8")
-    status, data = _request(f"{API}/repos/{report.REPO}/issues", payload,
-                            {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
-                             "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28"}, "POST")
-    if status in (200, 201) and isinstance(data, dict) and data.get("number"):
-        number = int(data["number"])
-        url = str(data.get("html_url") or f"https://github.com/{report.REPO}/issues/{number}")
-        remember(number, title, url)
-        return {"number": number, "url": url}
-    if status in (401, 403):
-        raise SendError(f"GitHub did not allow it (HTTP {status}): {_message(data)}")
-    if status == 410:
-        raise SendError("issues are switched off on that repository")
-    raise SendError(f"GitHub could not create the issue (HTTP {status}): {_message(data)}")
-
-
 # ---------------------------------------------------------------- GitHub with the GitHub CLI
-GH_HOME = os.path.join(".OSData", "gh")      # gh's own config (and so its token) lives here only for the length of one report
+GH_HOME = os.path.join(".OSData", "gh")      # one folder of gh's own config (and so its sign-in) for each account, inside PythonOS's private data
 
 
-def _gh_env():
-    return dict(os.environ, GH_CONFIG_DIR=os.path.abspath(GH_HOME), NO_COLOR="1")
+def gh_env(user):
+    """The environment gh runs in: its config is in PythonOS's private data for this account, so accounts do not share a sign-in and apps cannot read it."""
+    env = dict(os.environ, GH_CONFIG_DIR=os.path.abspath(os.path.join(GH_HOME, user or "default")), GH_NO_UPDATE_NOTIFIER="1")
+    env.pop("GH_BROWSER", None)
+    env.pop("BROWSER", None)
+    return env
 
 
-def _gh(args, text=None, timeout=None):
-    """Run gh. Without `text` it uses the terminal (for the sign-in, which prints a code and waits); with it, output is captured."""
+def gh_signed_in(user):
+    """True if gh has a working sign-in for this account."""
+    code, _out = _gh(["auth", "status", "--hostname", "github.com"], user, capture="")
+    return code == 0
+
+
+def _gh(args, user, capture=None, timeout=None):
+    """Run gh. capture=None: it uses the terminal (the sign-in prints a code and waits for a key). Otherwise its output is captured
+    and `capture` is what it is given as input. Returns (exit code, output)."""
     exe = gh_path()
     if not exe:
-        raise SendError("the GitHub CLI (gh) is not installed")
+        raise SendError("the GitHub CLI (gh) is not installed in this copy of PythonOS")
+    os.makedirs(os.path.join(GH_HOME, user or "default"), exist_ok=True)
     try:
-        if text is None and timeout is None:
-            return subprocess.call([exe] + args, env=_gh_env()), ""
-        done = subprocess.run([exe] + args, input=text, capture_output=True, text=True, env=_gh_env(), timeout=timeout or 60, check=False)
+        if capture is None:
+            return subprocess.call([exe] + args, env=gh_env(user)), ""
+        done = subprocess.run([exe] + args, input=capture, capture_output=True, text=True, env=gh_env(user), timeout=timeout or 60, check=False)
         return done.returncode, (done.stdout or "") + (done.stderr or "")
     except subprocess.TimeoutExpired as e:
         raise SendError("gh took too long") from e
@@ -208,20 +149,18 @@ def _gh(args, text=None, timeout=None):
         raise SendError(f"could not run gh: {e}") from e
 
 
-def gh_login():
-    """Let gh sign the person in (one-time code, approved on another device). The token stays in GH_HOME, in plain text, until gh_forget()."""
-    os.makedirs(GH_HOME, exist_ok=True)
-    code, _out = _gh(["auth", "login", "--hostname", "github.com", "--web", "--scopes", "public_repo", "--git-protocol", "https", "--insecure-storage"])
-    if code != 0:
-        gh_forget()
+def gh_login(user):
+    """Let gh sign the person in: it shows a one-time code to approve on another device. The token stays in this account's gh folder."""
+    code, _out = _gh(["auth", "login", "--hostname", "github.com", "--web", "--scopes", "public_repo", "--git-protocol", "https", "--insecure-storage"], user)
+    if code != 0 or not gh_signed_in(user):
         raise SendError("the GitHub sign-in did not finish")
 
 
-def gh_create_issue(title, body):
+def gh_create_issue(user, title, body):
     """Create the issue with gh. Returns {"number", "url"}."""
     if len(body) > MAX_BODY:
         body = body[:MAX_BODY] + "\n\n(cut to fit GitHub's limit)"
-    code, out = _gh(["issue", "create", "--repo", report.REPO, "--title", title[:250] or "Problem report", "--body-file", "-"], text=body, timeout=90)
+    code, out = _gh(["issue", "create", "--repo", report.REPO, "--title", title[:250] or "Problem report", "--body-file", "-"], user, capture=body, timeout=90)
     match = re.search(r"https://github\.com/[^\s]+/issues/(\d+)", out)
     if code != 0 or not match:
         raise SendError("GitHub could not create the issue: " + (out.strip().splitlines() or ["no answer"])[-1][:300])
@@ -230,9 +169,39 @@ def gh_create_issue(title, body):
     return {"number": number, "url": match.group(0)}
 
 
-def gh_forget():
-    """Delete what gh stored (the token). Always called when a report is done, whether it worked or not."""
-    shutil.rmtree(GH_HOME, ignore_errors=True)
+def gh_forget(user):
+    """Delete this account's gh sign-in."""
+    shutil.rmtree(os.path.join(GH_HOME, user or "default"), ignore_errors=True)
+
+
+def run_gh(args, user):
+    """The `gh` command: run the real gh and show it in this terminal. Returns its exit code.
+
+    On a real terminal gh gets the terminal itself (so its prompts and sign-in work). Inside a pipe or a redirect its output is
+    captured and written to PythonOS's output, so `gh issue list | grep bug` works."""
+    exe = gh_path()
+    if not exe:
+        raise SendError("the GitHub CLI (gh) is not installed in this copy of PythonOS")
+    real = getattr(sys.stdout, "_real", sys.stdout)
+    if sys.stdout is real and sys.stdin.isatty() and sys.stdout.isatty():
+        os.makedirs(os.path.join(GH_HOME, user or "default"), exist_ok=True)
+        return subprocess.call([exe] + args, env=gh_env(user))
+    code, out = _gh(args, user, capture="", timeout=300)
+    sys.stdout.write(out)
+    return code
+
+
+def install_hint():
+    """How to get gh on this system, in one line."""
+    if os.environ.get("ANDROID_DATA") or os.environ.get("ANDROID_ROOT"):
+        return "the GitHub CLI cannot run on Android; use report with Discord or a file"
+    if os.name == "nt":
+        return "install it for Windows: winget install --id GitHub.cli (the PythonOS Windows package includes it)"
+    for tool, line in (("apk", "apk add github-cli"), ("apt", "apt install gh"), ("dnf", "dnf install gh"), ("pacman", "pacman -S github-cli"),
+                       ("brew", "brew install gh")):
+        if shutil.which(tool):
+            return "install it with: " + line
+    return "install it from your system's package manager (the package is called gh or github-cli)"
 
 
 # ---------------------------------------------------------------- reports already sent, and what became of them
@@ -258,14 +227,15 @@ def recorded():
 
 def status_of(number):
     """What is public about issue `number`: {"title", "state", "comments": [(who, text)], "url"}. Needs no sign-in (the repository is public)."""
-    status, data = _request(f"{API}/repos/{report.REPO}/issues/{int(number)}", headers={"Accept": "application/vnd.github+json"})
+    repo = report.REPO
+    status, data = _request(f"{API}/repos/{repo}/issues/{int(number)}", headers={"Accept": "application/vnd.github+json"})
     if status == 404:
         raise SendError(f"there is no issue number {int(number)}")
     if status != 200 or not isinstance(data, dict):
         raise SendError(f"GitHub could not be asked (HTTP {status}): {_message(data)}")
     comments = []
     if data.get("comments"):
-        code, found = _request(f"{API}/repos/{report.REPO}/issues/{int(number)}/comments?per_page=10", headers={"Accept": "application/vnd.github+json"})
+        code, found = _request(f"{API}/repos/{repo}/issues/{int(number)}/comments?per_page=10", headers={"Accept": "application/vnd.github+json"})
         if code == 200 and isinstance(found, list):
             comments = [(str((c.get("user") or {}).get("login", "?")), str(c.get("body", ""))) for c in found if isinstance(c, dict)]
     return {"title": str(data.get("title", "")), "state": str(data.get("state", "?")) + (" (resolved)" if data.get("state_reason") == "completed" else ""),

@@ -33,7 +33,7 @@ profile_pythonos() {
 	case "${PYTHONOS_VARIANT:-full}" in
 		full)
 			apks="$apks bluez bluez-openrc cups cups-client cups-openrc"
-			apks="$apks github-cli"       # report: post a problem report as a GitHub issue (signing in with a code on another device)
+			apks="$apks github-cli"       # the gh command: GitHub from the PythonOS terminal (and report, as a GitHub issue)
 			apks="$apks alpine-conf sfdisk grub grub-efi dosfstools efibootmgr e2fsprogs-extra"
 			apks="$apks qemu-guest-agent qemu-guest-agent-openrc"
 			case "${PYTHONOS_ARCH:-x86_64}" in

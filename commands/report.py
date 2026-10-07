@@ -5,6 +5,7 @@ from rich.markup import escape
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
+import pyos
 import pyos.fs as fs
 from pyos import report, reportsend, settings
 
@@ -42,50 +43,31 @@ def _status(args):
 
 
 def _send_github(title, body):
-    """Sign in with a code, create the issue as the person, forget the token. True if the issue was created."""
-    if reportsend.gh_path():
-        return _send_gh(title, body)
+    """Post the report as a GitHub issue with the GitHub CLI (gh), signing the person in first if needed. True if it was created."""
+    user = pyos.userinfo()[0]
+    was_signed_in = False
     try:
-        flow = reportsend.start_device_flow()
-        console.print(Panel("This computer has no web browser, so do the next step on [bold]another device[/bold] (your phone or another computer):\n"
-                            f"  1. Open a browser there and go to [bold cyan]{escape(flow['verification_uri'])}[/bold cyan]\n"
-                            f"  2. Sign in to GitHub if it asks, then type this code:  [bold green]{escape(flow['user_code'])}[/bold green]\n"
-                            "  3. Approve it. This screen carries on by itself.\n"
-                            "[dim]The report is then posted under your GitHub account, and the sign-in is used once and never stored. "
-                            "Press Ctrl+C to stop waiting.[/dim]",
-                            title="[bold]Sign in to GitHub[/bold]", border_style="green", expand=False))
-        with console.status("Waiting for you to approve the code..."):
-            token = reportsend.wait_for_token(flow)
+        was_signed_in = reportsend.gh_signed_in(user)
+        if not was_signed_in:
+            console.print(Panel("This computer has no web browser, so do the sign-in on [bold]another device[/bold] (your phone or another computer):\n"
+                                "  1. GitHub's tool is about to show a one-time code. If it asks to open a browser, press Enter: it cannot, and carries on.\n"
+                                "  2. On the other device open [bold cyan]https://github.com/login/device[/bold cyan], sign in if it asks, and type the code.\n"
+                                "  3. Approve it. Then come back here: the report is posted by itself.\n"
+                                "[dim]Press Ctrl+C to stop.[/dim]", title="[bold]Sign in to GitHub[/bold]", border_style="green", expand=False))
+            reportsend.gh_login(user)
         with console.status("Creating the issue..."):
-            issue = reportsend.create_issue(token, title, body)
-        del token                                          # never stored
+            issue = reportsend.gh_create_issue(user, title, body)
+        stay = was_signed_in or Confirm.ask("Stay signed in to GitHub on this account for next time? (gh auth logout removes it)", default=False)
+        if not stay:
+            reportsend.gh_forget(user)
+            console.print("[dim]The sign-in was deleted from this computer.[/dim]")
     except reportsend.SendError as e:
         console.print(f"[bold red]{escape(str(e))}[/bold red]")
+        if not was_signed_in:
+            reportsend.gh_forget(user)                     # a half-finished sign-in is not kept
         return False
     console.print(f"[green]Created issue #{issue['number']}.[/green] To see it, type {escape(issue['url'])} into a browser on another device, "
                   f"or run [bold]report status {issue['number']}[/bold] here to read the replies.")
-    return True
-
-
-def _send_gh(title, body):
-    """The same with the GitHub CLI: it shows its own code; the token is deleted at the end."""
-    console.print(Panel("This computer has no web browser, so do the sign-in on [bold]another device[/bold] (your phone or another computer):\n"
-                        "  1. GitHub's tool is about to show a one-time code. If it asks to open a browser, just press Enter: it cannot, and carries on.\n"
-                        "  2. On the other device open [bold cyan]https://github.com/login/device[/bold cyan], sign in if it asks, and type the code.\n"
-                        "  3. Approve it. Then come back here: the report is posted by itself.\n"
-                        "[dim]The sign-in is only kept for this report and is deleted straight afterwards. Press Ctrl+C to stop.[/dim]",
-                        title="[bold]Sign in to GitHub[/bold]", border_style="green", expand=False))
-    try:
-        reportsend.gh_login()
-        with console.status("Creating the issue..."):
-            issue = reportsend.gh_create_issue(title, body)
-    except reportsend.SendError as e:
-        console.print(f"[bold red]{escape(str(e))}[/bold red]")
-        return False
-    finally:
-        reportsend.gh_forget()
-    console.print(f"[green]Created issue #{issue['number']}.[/green] The sign-in was deleted from this computer. To see the issue, type "
-                  f"{escape(issue['url'])} into a browser on another device, or run [bold]report status {issue['number']}[/bold] here to read the replies.")
     return True
 
 
@@ -125,7 +107,7 @@ def execute(args=None):
         online = not _locked_down()
         options = {"f": "(f)ile"}
         if online and reportsend.can_github():
-            options["g"] = "(g)itHub issue, signing in with a code"
+            options["g"] = "(g)itHub issue, signing in on another device"
         if online and reportsend.can_discord():
             options["d"] = "(d)iscord, no account needed"
         if online and relay:

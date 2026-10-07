@@ -372,9 +372,9 @@ page("quickstart", "two-minute tour", ["quickstart"],
      "on the first start. For hands-on lessons that check what you type, use tutorial.", see=["tutorial", "help"])
 page("report", "send a problem report", ["report [what went wrong]", "report status [number]"],
      "Collects what a developer needs - versions, the newest crash report, the last log lines - and replaces names, home folders, email "
-     "and IP addresses. You read the whole text first, then choose: (g) a GitHub issue under your own account (PythonOS shows a short code and "
-     "an address, you approve it on another device such as your phone, and the issue is created; it uses the GitHub CLI, gh, when it is "
-     "installed (the ISO has it), and the sign-in is deleted straight afterwards), (d) the "
+     "and IP addresses. You read the whole text first, then choose: (g) a GitHub issue under your own account (the GitHub CLI shows a short code and "
+     "an address, you approve it on another device such as your phone, and the issue is created; it uses the sign-in of the gh "
+     "command, and offers to keep it only if you say so), (d) the "
      "developer's Discord channel, which needs no account, (f) a file, with the short address of the GitHub issue page, since PythonOS "
      "cannot open links, or (s) a relay, if settings report_relay is set. Only the ways that are set up in your copy are offered. Nothing "
      "is ever sent without your choice. report status shows the state and replies of a report you sent, with no sign-in.",
@@ -395,6 +395,16 @@ page("passwd", "change a password", ["passwd", "passwd <user>"],
 page("su", "work as another user", ["su <user>"],
      "Starts a shell as another user. Admins do not need a password; everyone else must enter the other user's. Type exit to come back.",
      examples=[("su sam", "become sam for a while")], see=["users", "whoami"])
+page("gh", "GitHub from the command line", ["gh <anything the GitHub CLI takes>", "gh auth login", "gh issue list", "gh issue create", "gh pr list"],
+     "This is the real GitHub CLI, run inside the PythonOS terminal, so everything it does works the same: gh --help lists it. Each export "
+     "installs it (the ISO and virtual machines, the Docker image and the Windows package include it; on Linux install it with your package "
+     "manager; it cannot run on Android). PythonOS has no web browser, so gh auth login shows a one-time code and you approve it on another "
+     "device (your phone or another computer). The sign-in is kept for your account only, in PythonOS's private data. Inside a pipe or a "
+     "redirect the output is captured, so gh issue list | grep bug works. report uses the same sign-in.",
+     [("auth login", "sign in: shows a code to approve on another device"), ("auth logout", "sign out and delete the sign-in"),
+      ("issue list / create / view", "work with issues; the repository is the one you give with -R owner/name")],
+     [("gh auth login", "sign in"), ("gh issue list -R Kalmai221/PythonOS", "open issues of PythonOS"),
+      ("gh issue create", "write a new issue")], ["report", "share"])
 page("sudo", "run one command as an administrator", ["sudo <command> [arguments]", "sudo -k"],
      "Runs a single command with administrator rights. An administrator confirms with their own password (it is remembered for a few "
      "minutes, and the admin_reauth setting can switch the question off). A standard user gives the name and password of an administrator, "

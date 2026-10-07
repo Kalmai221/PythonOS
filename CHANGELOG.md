@@ -11,7 +11,8 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### PythonOS
 
-- `report` can now send a report for you. **GitHub**: PythonOS shows a short code and asks you to open an address on another device (your phone or another computer) and approve it there; then the issue is created under your own GitHub account (it uses the GitHub CLI, `gh`, when it is installed, so no setup is needed; the sign-in is deleted straight afterwards). **Discord**, for people with no GitHub account: the report goes to the developer's channel. You read the whole report first and nothing is sent without your choice. `report status` shows the state and replies of a report you sent, with no sign-in. Each way is only offered once it is set up in the build.
+- New command `gh`: the real GitHub CLI, run in the PythonOS terminal (`gh issue list`, `gh pr list`, `gh auth login`, and everything else it does). PythonOS has no browser, so `gh auth login` shows a one-time code to approve on another device (your phone or another computer). In a pipe the output is captured, so `gh issue list | grep bug` works.
+- `report` can now send a report for you. **GitHub**: it uses `gh`, asking you to sign in first on another device if needed, posts the report as an issue under your own account, and deletes the sign-in afterwards unless you choose to stay signed in. **Discord**, for people with no GitHub account: the report goes to the developer's channel. You read the whole report first and nothing is sent without your choice. `report status` shows the state and replies of a report you sent, with no sign-in. The Discord way is only offered once it is set up in the build.
 - New command `sudo`: run one command as an administrator. An administrator confirms with their own password; a standard user gives an administrator's name and password and is a standard user again when the command ends. `sudo -k` forgets the password. Every use is in `logs --admin`.
 - `doctor` (and any command that needs an administrator) now says why it did not see you as one, so a wrong refusal can be traced, and the account lookup no longer fails on a file it cannot read as text.
 - PythonOS is a command line system and cannot open links: `report` no longer tries to open a browser or prints a very long pre-filled address. It saves the report and shows the short GitHub address to type on any device, with `share send` to move the file there. `updatecheck` says the same beside its download addresses, and a new test keeps browser opening and hyperlinks out of the system.
@@ -19,7 +20,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ### Exports
 
-- The ISO and virtual machine images (full variant) now include the GitHub CLI (`gh`), which `report` uses to post a problem report as a GitHub issue.
+- The GitHub CLI (`gh`) is now installed by the exports that can run it: the ISO and virtual machine images (full variant), the Docker image and the Windows package (a pinned release, checked against GitHub's checksums). On Linux install it with your package manager. There is no `gh` on Android.
 
 ## 1.0.11
 

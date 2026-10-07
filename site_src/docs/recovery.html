@@ -52,7 +52,7 @@ report                   write a report about something else
 report status            what became of a report you sent: its state and any replies</pre>
 <p>You always see the whole text before anything leaves your computer, and writing it works without a network. You choose how to send it:</p>
 <ul>
-  <li><strong>GitHub</strong> - the issue is created under your own GitHub account. PythonOS has no browser, so it asks you to use another device (your phone or another computer): open the address it shows, enter the code and approve. PythonOS then carries on by itself. It uses the GitHub CLI (<code>gh</code>) for this when it is installed (the ISO includes it), and the sign-in is deleted as soon as the report is posted.</li>
+  <li><strong>GitHub</strong> - the issue is created under your own GitHub account with the <code>gh</code> command, the real GitHub CLI that each export installs. PythonOS has no browser, so <code>gh</code> shows a one-time code and you approve it on another device (your phone or another computer); PythonOS then carries on by itself. The sign-in is deleted afterwards unless you choose to stay signed in. On Android there is no <code>gh</code>, so use Discord or a file.</li>
   <li><strong>Discord</strong> - no account needed. The report goes to the developer's channel. It is not a GitHub issue, so there is no number to follow.</li>
   <li><strong>A file</strong> - saved in your home folder, with the short address of the GitHub issues page to paste it into from another device.</li>
 </ul>
