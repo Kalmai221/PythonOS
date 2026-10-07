@@ -63,7 +63,8 @@ def main():
     import bootstrap
     gone = bootstrap.missing(HERE)
     if gone or core_is_older():
-        print("Downloading PythonOS..." if gone else "Updating PythonOS to the version you just installed...")
+        if not gone:
+            print("Updating PythonOS to the version you just installed...")
         if gone:
             print("Missing: " + ", ".join(gone))
         if subprocess.call([PYTHON, "bootstrap.py", "--dest", HERE], env=env) != 0:

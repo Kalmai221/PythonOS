@@ -18,6 +18,7 @@ import os
 import re
 import shutil
 import sys
+import time
 import urllib.request
 import zipfile
 from urllib.parse import urljoin
@@ -85,31 +86,136 @@ def sync_config_version(dest, version):
         pass
 
 
+class Look:
+    """What the first-start download looks like: a short heading, numbered steps with ticks, and a live progress bar with the size, speed and
+    time left. Standard library only (this runs before anything is installed). On a terminal it uses colour and redraws the bar in place;
+    with NO_COLOR, a dumb terminal or output that is not a terminal it falls back to plain lines, and it uses plain characters where the
+    terminal cannot show the nicer ones. `log` is where plain text goes when something other than print is given."""
+
+    def __init__(self, log=print, stream=None, steps=4):
+        self.log = log
+        self.stream = stream or sys.stdout
+        self.plain = log is not print
+        # a real terminal, or a screen that says it draws like one (the PythonOS window and the Android app set COLORTERM / FORCE_COLOR)
+        terminal = bool(getattr(self.stream, "isatty", lambda: False)()) or bool(os.environ.get("COLORTERM") or os.environ.get("FORCE_COLOR"))
+        self.live = terminal and not self.plain
+        self.color = self.live and "NO_COLOR" not in os.environ and os.environ.get("TERM") != "dumb"
+        self.unicode = "utf" in str(getattr(self.stream, "encoding", "") or "").lower()
+        self.steps = steps
+        self.width = 0                                   # length of the progress line on screen, to wipe it when it shrinks
+        self.last_quarter = -1
+        if self.color and os.name == "nt":
+            os.system("")                                # switches an older Windows console into colour mode
+
+    def paint(self, code, text):
+        return f"\x1b[{code}m{text}\x1b[0m" if self.color else text
+
+    def _write(self, text):
+        if self.plain:
+            self.log(text)
+        else:
+            self.stream.write(text + "\n")
+            self.stream.flush()
+
+    def heading(self, title, detail=""):
+        dot = "·" if self.unicode else "-"
+        rule = ("─" if self.unicode else "-") * (len(title) + len(detail) + 6)
+        self._write("")
+        self._write("  " + self.paint("1;36", title) + (f"  {self.paint('2', dot)}  {self.paint('2', detail)}" if detail else ""))
+        self._write("  " + self.paint("2", rule))
+
+    def step(self, number, text):
+        self.end_bar()
+        self._write(f"  {self.paint('2', f'[{number}/{self.steps}]')} {text}")
+
+    def done(self, text, detail=""):
+        self.end_bar()
+        tick = "✓" if self.unicode else "ok"
+        self._write(f"        {self.paint('1;32', tick)} {text}" + (f"  {self.paint('2', detail)}" if detail else ""))
+
+    def info(self, text):
+        self._write(f"        {self.paint('2', text)}")
+
+    def fail(self, text, hint=""):
+        self.end_bar()
+        cross = "✗" if self.unicode else "x"
+        self._write(f"        {self.paint('1;31', cross)} {text}")
+        if hint:
+            self._write(f"          {self.paint('2', hint)}")
+
+    def ready(self, text):
+        self._write("")
+        self._write("  " + self.paint("1;32", text))
+        self._write("")
+
+    @staticmethod
+    def size(count):
+        return f"{count / 1048576:.1f} MB" if count >= 104858 else f"{count / 1024:.0f} KB"
+
+    @staticmethod
+    def clock(seconds):
+        seconds = int(seconds + 0.5)
+        return f"{seconds}s" if seconds < 60 else f"{seconds // 60}m {seconds % 60:02d}s"
+
+    def bar(self, done, total, started):
+        """The download's progress. Redrawn in place on a terminal; a line for every quarter otherwise."""
+        if not total:
+            return
+        fraction = min(done / total, 1.0)
+        elapsed = max(time.monotonic() - started, 0.001)
+        speed = done / elapsed
+        left = (total - done) / speed if speed else 0
+        columns = shutil.get_terminal_size((80, 24)).columns
+        width = max(8, min(28, columns - 58))
+        filled = int(width * fraction)
+        full, empty = ("█", "░") if self.unicode else ("#", "-")
+        text = (f"        {self.paint('36', full * filled)}{self.paint('2', empty * (width - filled))} {int(fraction * 100):3d}%  "
+                f"{self.size(done)} of {self.size(total)}  {speed / 1048576:.1f} MB/s" + (f"  {self.clock(left)} left" if done < total else ""))
+        if self.live:
+            visible = len(text) - (len(text) - len(re.sub(r"\x1b\[[0-9;]*m", "", text)))
+            self.stream.write("\r" + text + " " * max(0, self.width - visible))
+            self.stream.flush()
+            self.width = visible
+        elif int(fraction * 4) != self.last_quarter:
+            self.last_quarter = int(fraction * 4)
+            self._write(text)
+
+    def end_bar(self):
+        if self.live and self.width:
+            self.stream.write("\n")
+            self.stream.flush()
+            self.width = 0
+
+
 def install(dest, url=None, force=False, log=print):
     """Install (or update) the core into `dest`. Returns True on success."""
     dest = os.path.abspath(dest)
     os.makedirs(dest, exist_ok=True)
     murl = manifest_url(url)
+    ui = Look(log)
 
+    ui.heading("PythonOS", "setting up")
+    ui.step(1, "Finding the latest release")
     try:
         manifest = json.loads(fetch(murl).decode("utf-8"))
         for key in ("version", "asset", "sha256", "files"):
             if key not in manifest:
                 raise ValueError(f"the release manifest is missing '{key}'")
     except Exception as e:
-        log(f"Could not read the latest PythonOS release ({e}).")
+        ui.fail(f"Could not read the latest PythonOS release: {e}", "Check the internet connection, then start the app again.")
         return False
 
     latest = str(manifest["version"])
+    ui.done(f"PythonOS {latest}", f"{len(manifest['files'])} files, {Look.size(int(manifest.get('size', 0)))}" if manifest.get("size") else "")
     version_file = os.path.join(dest, "VERSION")
     if not force and os.path.isfile(os.path.join(dest, "main.py")) and os.path.isfile(version_file):
         with open(version_file, encoding="utf-8") as f:
             installed = f.read().strip()
         gone = missing(dest)
         if gone:
-            log("Some PythonOS files are missing (" + ", ".join(gone) + "): downloading them again.")
+            ui.info("Some PythonOS files are missing (" + ", ".join(gone) + "): downloading them again.")
         elif version_key(installed) >= version_key(latest):
-            log(f"PythonOS {installed} is already installed.")
+            ui.done(f"PythonOS {installed} is already installed")
             return True
 
     if manifest.get("url"):
@@ -122,19 +228,14 @@ def install(dest, url=None, force=False, log=print):
     stage = os.path.join(dest, ".bootstrap")
     shutil.rmtree(stage, ignore_errors=True)
     try:
-        log(f"Downloading PythonOS {latest}...")
-        last = [-1]
+        ui.step(2, f"Downloading PythonOS {latest}")
+        started = time.monotonic()
+        data = fetch(zip_url, lambda done, total: ui.bar(done, total, started))
+        ui.done("Downloaded", f"{Look.size(len(data))} in {ui.clock(time.monotonic() - started)}")
 
-        def progress(done, total):
-            percent = done * 100 // total
-            if percent // 10 != last[0] // 10:
-                last[0] = percent
-                log(f"  {percent}%")
-
-        data = fetch(zip_url, progress)
+        ui.step(3, "Checking that nothing is damaged")
         if hashlib.sha256(data).hexdigest() != manifest["sha256"]:
             raise ValueError("the download is corrupted (checksum mismatch)")
-
         os.makedirs(stage)
         archive = os.path.join(stage, "core.zip")
         with open(archive, "wb") as f:
@@ -152,8 +253,10 @@ def install(dest, url=None, force=False, log=print):
                 os.makedirs(os.path.dirname(target), exist_ok=True)
                 with open(target, "wb") as f:
                     f.write(content)
+        ui.done("Every file matches its checksum", f"{len(manifest['files'])} files")
 
         # Everything verified - now put it in place (user data in `dest` is never touched)
+        ui.step(4, "Installing")
         for name in CODE_DIRS:
             new = os.path.join(files, name)
             if os.path.isdir(new):
@@ -164,10 +267,11 @@ def install(dest, url=None, force=False, log=print):
             if os.path.isfile(path):
                 shutil.copy2(path, os.path.join(dest, name))
         sync_config_version(dest, latest)
-        log(f"Installed PythonOS {latest}.")
+        ui.done("Installed")
+        ui.ready(f"PythonOS {latest} is ready.")
         return True
     except Exception as e:
-        log(f"Could not install PythonOS: {e}")
+        ui.fail(f"Could not install PythonOS: {e}", "Nothing was changed. Check the internet connection, then start the app again.")
         return False
     finally:
         shutil.rmtree(stage, ignore_errors=True)

@@ -50,7 +50,8 @@ def main():
     except ImportError:
         missing = not os.path.isfile(os.path.join(HERE, "main.py"))
     if missing or core_is_older():
-        print("Downloading PythonOS (first start only)..." if missing else "Updating PythonOS to the version you just installed...")
+        if not missing:
+            print("Updating PythonOS to the version you just installed...")
         if subprocess.call([PYTHON, "bootstrap.py", "--dest", HERE], env=env) != 0:
             print("\nCould not download PythonOS. Check your internet connection and start it again.")
             input("Press Enter to close...")

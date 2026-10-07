@@ -279,7 +279,6 @@ def main(files_dir):
     # GitHub releases (bootstrap.py, shipped with the app). After that PythonOS updates itself.
     import bootstrap
     if bootstrap.missing(files_dir):                  # first launch, or something was deleted: download what is missing
-        print("Downloading PythonOS...")
         if not bootstrap.install(files_dir, log=print):
             print("\nConnect to the internet, then close and reopen the app to try again.")
             Bridge.finished()

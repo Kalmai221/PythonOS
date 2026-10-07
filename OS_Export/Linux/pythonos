@@ -25,7 +25,6 @@ for needed in main.py shell.py users.py VERSION requirements.txt boot-requiremen
     [ -e "$DATA/$needed" ] || INCOMPLETE=1
 done
 if [ "$INCOMPLETE" = 1 ]; then
-    echo "Downloading PythonOS..."
     if ! python3 "$HERE/bootstrap.py" --dest "$DATA"; then
         echo "Could not download PythonOS. Check your internet connection and try again." >&2
         exit 1
