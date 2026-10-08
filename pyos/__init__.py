@@ -9,7 +9,8 @@ from . import sandbox, settings, theme, notify, appdata, jobs, scheduler, lockdo
 
 # Rich's prompts print their prompt themselves, which readline then overwrites when you edit the line: see pyos/richinput.py
 try:
-    from . import richinput
+    from . import richinput, spinner
     richinput.patch()
+    spinner.patch()                                         # plain "-\|/" spinners on the Linux text console (no Braille in its font): see pyos/spinner.py
 except Exception:                                           # noqa: BLE001 - without Rich (or with another version) the prompts simply stay as they were
     pass

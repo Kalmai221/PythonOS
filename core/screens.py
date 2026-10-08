@@ -18,6 +18,7 @@ from yaspin import yaspin
 
 import pyos
 from pyos import jobs, log, settings, theme
+from pyos import spinner as spinners
 from pyos.i18n import tr
 
 console = Console()
@@ -64,7 +65,7 @@ def _step(label, action=None, seconds=0.6, number=0, total=0):
     detail = ""
     t0 = time.perf_counter()
     if settings.boot_pause() > 0 and sys.stdout.isatty():
-        with yaspin(text=tr(label) + "...", spinner="dots") as spinner:
+        with yaspin(text=tr(label) + "...", spinner=spinners.yaspin_spinner()) as spinner:
             detail = action() if action else ""
             pause(seconds)
     else:
@@ -236,7 +237,7 @@ def shutdown_sequence(kind="shutdown"):
         return
     countdown = max(0, round(3 * settings.boot_pause() / 0.35))
     if countdown and sys.stdout.isatty():
-        with yaspin(text=tr("Powering off in {n}...", n=countdown), spinner="dots") as spinner:
+        with yaspin(text=tr("Powering off in {n}...", n=countdown), spinner=spinners.yaspin_spinner()) as spinner:
             for remaining in range(countdown, 0, -1):
                 spinner.text = tr("Powering off in {n}...", n=remaining)
                 time.sleep(1)
