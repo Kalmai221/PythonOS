@@ -249,6 +249,57 @@ cmd_page("extras", "choose the optional libraries", ["extras", "extras choose", 
      "(everything, if you chose all) and only mentions new ones if you picked by hand. On the live ISO and in virtual machines they are downloaded when you install them, so the computer needs the internet. "
      "The Android app carries the libraries that have an Android build inside, so there the choice is a switch: a library that is off is not used, and `extras install` and `extras remove` switch one on and off without downloading anything.",
      [("extras", "see them all"), ("extras choose", "pick from a list"), ("extras install py7zr", "add .7z support")], ["doctor", "updatecheck"])
+cmd_page("base64", "encode or decode base64", ["base64 [-w columns] [file]", "base64 -d [file]"],
+     "Turns a file (or piped text) into base64 text, or with -d back into what it was. Lines are cut at 76 characters unless -w says otherwise (-w 0 for one line).",
+     [("echo hello | base64", "aGVsbG8K"), ("base64 -d encoded.txt", "")], ["sha256sum", "uuidgen"])
+for _name, _label in (("md5sum", "MD5"), ("sha1sum", "SHA-1"), ("sha256sum", "SHA-256"), ("sha512sum", "SHA-512")):
+    cmd_page(_name, f"{_label} checksum of files", [f"{_name} <file>...", f"{_name} -c <list>", f"text | {_name}"],
+             f"Prints the {_label} checksum of each file as 'checksum  file'. With -c it reads such lines back and says OK or FAILED for each file, which is how you check a download. "
+             "MD5 and SHA-1 are fine for spotting a damaged file but not for proving nobody changed it: use SHA-256 for that.",
+             [(f"{_name} notes.txt", ""), (f"{_name} a.zip b.zip > sums.txt", "write a list"), (f"{_name} -c sums.txt", "check it later")],
+             [n for n in ("md5sum", "sha1sum", "sha256sum", "sha512sum") if n != _name][:2] + ["cmp"])
+cmd_page("cmp", "compare two files byte by byte", ["cmp <file1> <file2>"],
+     "Says nothing when the files are the same. When they differ it tells you the first byte and line that is different (for text, diff shows all the differences).",
+     [("cmp a.bin b.bin", "")], ["diff", "sha256sum"])
+cmd_page("comm", "compare two sorted files", ["comm [-1] [-2] [-3] <file1> <file2>"],
+     "Prints three columns: lines only in the first file, lines only in the second, and lines in both. Both files must be sorted (sort does that). -1, -2 and -3 hide a column.",
+     [("comm -12 a.txt b.txt", "lines in both files"), ("comm -3 a.txt b.txt", "lines in only one")], ["sort", "diff", "uniq"])
+cmd_page("paste", "join files side by side", ["paste [-d delimiter] [-s] <file>..."],
+     "Line 1 of each file on one line, then line 2, and so on, separated by a tab (or the delimiter). With -s each file becomes a single line.",
+     [("paste names.txt phones.txt", ""), ("paste -d, -s list.txt", "one comma-separated line")], ["cut", "column"])
+cmd_page("fold", "wrap long lines", ["fold [-w width] [-s] [file]"],
+     "Cuts lines longer than the width (80 by default). -s tries to cut at spaces so words stay whole.",
+     [("fold -s -w 60 article.txt", "")], ["column", "less"])
+cmd_page("column", "line text up in columns", ["column [-t] [-s separator] [-o separator] [file]", "text | column"],
+     "With -t it makes a table: the fields of every line are lined up in columns (split at spaces, or at the -s separator). Without -t it lays the lines out down the screen in as many columns as fit, like ls.",
+     [("ls | column", ""), ("column -t -s, people.csv", "a CSV as a table")], ["paste", "cut", "sort"])
+cmd_page("shuf", "shuffle lines", ["shuf [-n count] [file]", "shuf -i 1-10", "shuf -e a b c"],
+     "Prints the lines in a random order. -n keeps only that many, -i shuffles the numbers of a range, and -e shuffles the words you give it.",
+     [("shuf -n 1 names.txt", "pick one line at random"), ("shuf -i 1-6 -n 1", "roll a die"), ("shuf -e red green blue -n 1", "")], ["sort", "seq"])
+cmd_page("sed", "edit a stream of lines", ["sed [-n] [-e script] script [file]", "text | sed 's/old/new/g'"],
+     "Applies a small script to every line. s/old/new/ replaces (add g for every match on the line, i to ignore case; the pattern is a Python regular expression, and \\1 or & can be used in the replacement), "
+     "d deletes a line, p prints it again (with -n, only what p prints is shown), q stops. A command can have an address: 3 (a line), 2,5 (lines 2 to 5), 2,+3, $ (the last line), "
+     "/regex/ (matching lines), and ! in front of the command means the other lines. Several commands are separated by ; or by more -e. There is no -i: write to a new file with >.",
+     [("sed 's/cat/dog/g' pets.txt", ""), ("sed -n '2,4p' file.txt", "lines 2 to 4"), ("sed '/^#/d' config.txt", "drop comment lines"), ("sed '$d' file.txt", "drop the last line")],
+     ["grep", "tr", "cut"])
+cmd_page("calc", "calculate", ["calc <expression>", "text | calc"],
+     "Works out an arithmetic expression: numbers, + - * / (also // for whole division, % for the remainder and ** or ^ for powers), brackets, the constants pi, e and tau, and functions "
+     "such as sqrt, sin, cos, tan, log, ln, log10, exp, abs, round, floor, ceil, min, max, gcd and fact. It only does arithmetic: nothing else you type is run. bc is the same command.",
+     [("calc 2 + 3 * 4", "14"), ("calc \"sqrt(144) + 10 % 3\"", "13"), ("calc 2^10", "1024")], ["seq", "date"])
+cmd_page("uuidgen", "make random identifiers", ["uuidgen [-n count] [-t] [--upper]"],
+     "Prints a random UUID (version 4); -n makes several, -t makes time-based ones (version 1) and --upper writes them in capitals.",
+     [("uuidgen", ""), ("uuidgen -n 5", "five of them")], ["base64", "sha256sum"])
+cmd_page("gzip", "compress files", ["gzip [-k] [-d] <file>..."],
+     "Replaces each file with a smaller <file>.gz. -k keeps the original; -d unpacks (the same as gunzip). For several files in one archive use zip or tar.",
+     [("gzip -k big.log", "make big.log.gz and keep big.log")], ["gunzip", "zcat", "tar"])
+cmd_page("gunzip", "unpack gzip files", ["gunzip [-k] <file.gz>..."],
+     "Unpacks each .gz file next to itself and removes the .gz (-k keeps it). Unpacking stops at the same size limit as unzip and tar.",
+     [("gunzip big.log.gz", "")], ["gzip", "zcat", "unzip"])
+cmd_page("zcat", "show a gzip file", ["zcat <file.gz>"],
+     "Prints the text inside a .gz file without unpacking it.", [("zcat big.log.gz | grep error", "")], ["gzip", "gunzip", "grep"])
+cmd_page("strings", "show the readable text in a file", ["strings [-n length] <file>"],
+     "Prints every run of readable characters (4 or more by default) found in any kind of file, which is a quick way to see what a program or a damaged file contains.",
+     [("strings -n 8 program.bin", "")], ["file", "cat", "grep"])
 cmd_page("whois", "who registered a domain", ["whois <domain>"], "Shows the registration record of a domain from the registry's whois service.", [("whois example.com", "")], ["nslookup"])
 cmd_page("curl", "fetch a web address", ["curl <url>", "curl -I <url>", "curl -o file <url>"],
      "Shows the page at an address, only its headers (-I), or saves it to a file (-o). Answers over 50 MB are refused.", [("curl -I example.com", "")], ["wget", "ping"])
