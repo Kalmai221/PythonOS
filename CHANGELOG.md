@@ -25,6 +25,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - The Setup Wizard (`pythonos-wizard-<version>.zip`, 60 MB) is removed from the releases, the release page and the website. To write a bootable USB stick, use the ISO with Rufus, balenaEtcher or `dd`; the installers, packages and images are the same as before.
 - The Windows installer is compressed harder (LZMA2 ultra) and the Linux tarball with gzip -9: the same files, a little smaller.
 - The build now writes a size report for each ISO (its folders and 30 biggest packages) into the job summary, so a future size cut can be chosen from real numbers.
+- Manual builds from the Actions tab (version `1.0.12-dev`) now work: the virtual machine image and QEMU boot steps looked for an ISO named `dev` and failed, and the changelog check did not know the `-dev` version.
 
 ### Development
 
