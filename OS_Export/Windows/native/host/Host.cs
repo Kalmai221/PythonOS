@@ -32,16 +32,21 @@ namespace PythonOS
         }
     }
 
-    /// <summary>The plain console launcher, used when the window cannot start (no WebView2, or Windows older than 10 1809).</summary>
+    /// <summary>The plain console launcher, used when the window cannot start (no WebView2, or Windows older than 10 1809). It runs the same
+    /// start.py as the window, on the bundled Python, in a console window of its own: there is no separate console program to carry.</summary>
     internal static class Fallback
     {
+        public static bool Available(string dir)
+        {
+            return File.Exists(Path.Combine(dir, "python", "python.exe")) && File.Exists(Path.Combine(dir, "start.py"));
+        }
+
         public static int RunConsole(string dir)
         {
-            string console = Path.Combine(dir, "PythonOS-console.exe");
-            if (!File.Exists(console)) return 2;
-            ProcessStartInfo psi = new ProcessStartInfo(console);
+            if (!Available(dir)) return 2;
+            ProcessStartInfo psi = new ProcessStartInfo(Path.Combine(dir, "python", "python.exe"), "\"" + Path.Combine(dir, "start.py") + "\" --pause");
             psi.WorkingDirectory = dir;
-            psi.UseShellExecute = true;
+            psi.UseShellExecute = true;               // python.exe is a console program: Windows gives it a console window of its own
             Process.Start(psi);
             return 0;
         }
@@ -171,10 +176,9 @@ namespace PythonOS
 
         private void CannotStart(Exception ex)
         {
-            string console = Path.Combine(dir, "PythonOS-console.exe");
             string text = "PythonOS could not open its window:\n\n" + ex.Message +
                 "\n\nIt needs the Microsoft WebView2 Runtime (included with Windows 11 and with current Microsoft Edge on Windows 10).";
-            if (File.Exists(console))
+            if (Fallback.Available(dir))
             {
                 text += "\n\nStart PythonOS in the plain console window instead?";
                 if (MessageBox.Show(this, text, "PythonOS", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) Fallback.RunConsole(dir);

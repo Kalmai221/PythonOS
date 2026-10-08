@@ -20,6 +20,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 - The virtual machine image (`.ova`) is named after its version (`PythonOS 1.0.13`), so importing a newer one into VirtualBox no longer stops with "Machine settings file ... already exists" because of an older import.
 - Android: updating the app now really updates PythonOS, for good. The PythonOS files live in the app's own folder and survive an app update, so after installing a new app you were still on the old PythonOS, and `updatecheck` kept saying the new version "needs new libraries, install the new app" (it judged the libraries by the old files), so the update seemed to do nothing in a loop. The 1.0.12 fix for this missed the first update from an older app. The rule is now simple and needs no memory: an app built for PythonOS X never runs a PythonOS older than X, so at start-up an older one is brought up to the newest release first (and if you are offline it tries again at the next start). The version PythonOS shows is also kept in step when the files are already current.
+- Windows: the x64 package no longer carries a second copy of Python only for its plain-console fallback (`PythonOS-console.exe`, about 8 MB). The fallback now runs the bundled `python.exe start.py`, so the portable zip and the installer are about 8 MB smaller, and nothing is lost: the window, the fallback and the installers behave as before.
 
 ### Development
 

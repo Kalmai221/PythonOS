@@ -67,7 +67,7 @@ The release page (written by `release_notes.py` from `CHANGELOG.md`) lists every
 
 | Platform | Files |
 |---|---|
-| Windows | `PythonOS-<v>-web-setup.exe` (100 KB; downloads and checks the rest, light/dark, four languages, repair and uninstall), `PythonOS-<v>-setup.exe` (offline Inno Setup installer), `PythonOS-<v>-windows-portable.zip`. `PythonOS.exe` is its own window (WebView2 + xterm.js + ConPTY, `Windows/native/host`); `PythonOS-console.exe` is the plain console it falls back to. |
+| Windows | `PythonOS-<v>-web-setup.exe` (100 KB; downloads and checks the rest, light/dark, four languages, repair and uninstall), `PythonOS-<v>-setup.exe` (offline Inno Setup installer), `PythonOS-<v>-windows-portable.zip`. `PythonOS.exe` is its own window (WebView2 + xterm.js + ConPTY, `Windows/native/host`); when it cannot start it falls back to the plain console (`python.exe start.py`). |
 | Android | `PythonOS-<v>-android-installer.apk` (about 1 MB: finds the right app for the device, downloads and checks it, installs it; module `OS_Export/Android/installer`), `PythonOS-<v>-android-arm64-v8a.apk` (nearly every phone) and `-x86_64.apk`. There is no universal APK any more |
 | Linux | `.deb` and `.tar.gz`; also a Docker image, `ghcr.io/kalmai221/pythonos` |
 | ISO | `pythonos-<v>-x86_64.iso` (full: Bluetooth, printing, `installos`, VM guest tools), `-minimal-x86_64.iso`, the VM images (`-vm.ova`, `-vm.qcow2`, `-vm-kit.zip`) and the Setup Wizard `pythonos-wizard-<v>.zip` (own export: `OS_Export/Wizard`, built per system by CI) |
@@ -135,8 +135,8 @@ file or folder to the OS, add it to `PAYLOAD_FILES` / `PAYLOAD_DIRS` there.
 `~/.local/share/pythonos` (override with `PYTHONOS_HOME`), so the install location can be read-only.
 
 **Windows** - the package carries its own Python (the official *embeddable* build) with all
-dependencies, so nothing has to be installed. `PythonOS.exe` is a small PyInstaller launcher that
-starts it. PythonOS itself is deliberately *not* frozen into one exe: it loads commands and
+dependencies, so nothing has to be installed. `PythonOS.exe` is the PythonOS window (a small native program) that
+starts it; if the window cannot start it falls back to a plain console (`python.exe start.py`). PythonOS itself is deliberately *not* frozen into one exe: it loads commands and
 marketplace packages from disk and installs packages with pip, which a frozen exe cannot do.
 The installer puts PythonOS in `%LOCALAPPDATA%\PythonOS` (no admin rights needed) because the OS
 writes its files next to itself.

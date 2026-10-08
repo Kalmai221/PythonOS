@@ -6,8 +6,8 @@ Build the Windows packages: dist\windows\PythonOS-<version>-windows-portable.zip
 
 The package bundles its own Python (the official "embeddable" build) with every
 dependency installed, so users do not need Python installed. PythonOS.exe is the PythonOS window
-(WebView2 + xterm.js + a pseudo console, see build-native.ps1); PythonOS-console.exe is the plain
-console launcher (PyInstaller) it falls back to. The OS itself is NOT in the package: on first
+(WebView2 + xterm.js + a pseudo console, see build-native.ps1); when the window cannot start it falls back
+to the plain console (python.exe start.py --pause). The OS itself is NOT in the package: on first
 start start.py runs bootstrap.py, which downloads the latest core from GitHub releases.
 Also built: PythonOS-<version>-web-setup.exe, a 100 KB installer that downloads and checks all of this.
 #>
@@ -71,31 +71,13 @@ if ($Arch -eq "arm64") {
 }
 Get-ChildItem $App -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
 
-# 4. PythonOS.exe launcher (PyInstaller, running on the build machine's Python)
-python -m pip install --quiet pyinstaller pillow
-if ($LASTEXITCODE -ne 0) { throw "installing PyInstaller failed" }
-$Work = Join-Path $Out "pyinstaller"
-# Installer artwork and the icon, drawn by make_art.py
+# 4. Installer artwork and the icon, drawn by make_art.py. (There is no separate console launcher any more: the plain console fallback is
+# python.exe start.py, which the window program starts itself. A PyInstaller console exe was a second copy of Python, about 8 MB.)
+python -m pip install --quiet pillow
+if ($LASTEXITCODE -ne 0) { throw "installing Pillow failed" }
 $Art = Join-Path $Out "installer-art"
 python (Join-Path $Here "make_art.py") $Art
-$IconArgs = @()
 $IconFile = Join-Path $Art "PythonOS.ico"
-if (Test-Path $IconFile) { $IconArgs = @("--icon", $IconFile) }
-if ($Arch -eq "arm64") {
-    # PyInstaller makes programs for the machine it runs on (x64 here), so the plain-console fallback is not built for ARM64;
-    # PythonOS.exe (the window) is the program on Windows on ARM.
-    Write-Host "ARM64: skipping the console launcher."
-} else {
-    python -m PyInstaller --onefile --console --name PythonOS-console @IconArgs `
-        --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
-    if ($LASTEXITCODE -ne 0 -and $IconArgs.Count -gt 0) {
-        Write-Host "Icon conversion failed - building the launcher without an icon."
-        python -m PyInstaller --onefile --console --name PythonOS-console `
-            --distpath $App --workpath $Work --specpath $Work (Join-Path $Here "launcher.py")
-    }
-    if (-not (Test-Path (Join-Path $App "PythonOS-console.exe"))) { throw "PythonOS-console.exe was not built" }
-    Remove-Item $Work -Recurse -Force
-}
 
 # 4b. The PythonOS window and the web installer (C#, built with the compiler that ships with Windows)
 $Native = Join-Path $Out "native"

@@ -1,4 +1,4 @@
-"""start.py - what the PythonOS window runs (the same job as launcher.py, without a console launcher around it).
+"""start.py - what the PythonOS window runs, and what the plain console fallback runs (python.exe start.py --pause).
 
 Downloads the OS on the first start, refreshes it when the installer is newer than the files on disk, then runs main.py.
 Lives next to PythonOS.exe in the install folder; run by the bundled Python.
@@ -84,5 +84,16 @@ def main():
         return 0
 
 
+def entry(argv, ask=input):
+    """main(), and with --pause (the plain console fallback) keep the window open when something went wrong, so the message can be read."""
+    pause = "--pause" in argv
+    if pause:
+        argv.remove("--pause")                        # PythonOS itself must not see it
+    result = main()
+    if pause and result:
+        ask(f"\nPythonOS stopped with exit code {result}. Press Enter to close...")
+    return result
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(entry(sys.argv))
