@@ -11,6 +11,9 @@ namespace PythonOS.Setup
 {
     internal sealed class SetupForm : Form
     {
+        [System.Runtime.InteropServices.DllImport("uxtheme.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int SetWindowTheme(IntPtr hwnd, string subAppName, string subIdList);
+
         [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
@@ -20,14 +23,14 @@ namespace PythonOS.Setup
         private readonly CancelToken cancel = new CancelToken();
         private readonly Panel body = new Panel();
         private Label title, sub;
-        private ModernButton primary, secondary;
+        private ModernButton primary, secondary, tertiary;
         private readonly List<ModernRadio> choices = new List<ModernRadio>();
         private ModernProgress bar;
         private StepList steps;
         private Label detail;
-        private TextBox pathBox;
+        private ModernInput pathBox;
         private ModernCheck desktop, startMenu, launch, keepData, webview;
-        private ComboBox memory;
+        private ModernDropdown memory;
         private readonly List<ModernCheck> extraChecks = new List<ModernCheck>();
         private static readonly int[] MemoryChoices = new int[] { 512, 1024, 2048, 4096, 0 };
         private string page = "";
@@ -50,19 +53,32 @@ namespace PythonOS.Setup
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch (Exception) { }
 
             title = new Label(); title.Font = new Font("Segoe UI Semibold", 20f); title.ForeColor = p.Text; title.BackColor = p.Bg;
-            title.SetBounds(32, 22, 532, 40);
+            title.SetBounds(86, 24, 440, 40);
             sub = new Label(); sub.Font = new Font("Segoe UI", 10f); sub.ForeColor = p.Muted; sub.BackColor = p.Bg;
-            sub.SetBounds(34, 66, 590, 44);
+            sub.SetBounds(34, 74, 590, 40);
             body.SetBounds(32, 118, 596, 320); body.BackColor = p.Bg;
             primary = new ModernButton(p, "", true); primary.SetBounds(508, 452, 120, 40);
             secondary = new ModernButton(p, "", false); secondary.SetBounds(378, 452, 120, 40);
-            Controls.AddRange(new Control[] { title, sub, body, primary, secondary });
+            tertiary = new ModernButton(p, "", false); tertiary.SetBounds(32, 452, 160, 40); tertiary.Visible = false;
+            Controls.AddRange(new Control[] { title, sub, body, primary, secondary, tertiary });
             primary.Click += delegate { OnPrimary(); };
             secondary.Click += delegate { OnSecondary(); };
+            tertiary.Click += delegate { OnTertiary(); };
             FormClosing += OnClosing;
+            KeyPreview = true;
+            KeyDown += OnKey;
             HandleCreated += delegate
             {
                 try { int on = p.Light ? 0 : 1; if (DwmSetWindowAttribute(Handle, 20, ref on, 4) != 0) DwmSetWindowAttribute(Handle, 19, ref on, 4); } catch (Exception) { }
+                // Windows 11: rounded corners, and a title bar in the page's own colour so the window looks like one piece (ignored where unsupported)
+                try
+                {
+                    int round = 2; DwmSetWindowAttribute(Handle, 33, ref round, 4);
+                    int caption = p.Bg.R | (p.Bg.G << 8) | (p.Bg.B << 16); DwmSetWindowAttribute(Handle, 35, ref caption, 4);
+                    int border = p.Border.R | (p.Border.G << 8) | (p.Border.B << 16); DwmSetWindowAttribute(Handle, 34, ref border, 4);
+                    int text = p.Text.R | (p.Text.G << 8) | (p.Text.B << 16); DwmSetWindowAttribute(Handle, 36, ref text, 4);
+                }
+                catch (Exception) { }
             };
             Load += delegate { Start(); };
         }
@@ -70,12 +86,45 @@ namespace PythonOS.Setup
         // ------------------------------------------------------------- flow
         private void Start()
         {
+            if (o.Preview.Length > 0) { Preview(); return; }
             if (o.Mode == "uninstall") { ShowUninstall(); return; }
             ShowWelcome();
         }
 
-        // The steps of a journey as dots at the top right: welcome, options (the folder, shortcuts), working, done.
-        private static readonly string[] Journey = new string[] { "welcome", "options", "progress", "done" };
+        /// <summary>For developers: a page with sample data, so it can be looked at (and photographed) without installing anything.</summary>
+        private void Preview()
+        {
+            Release sample = new Release();
+            sample.Version = "1.0.13"; sample.InstalledVersion = "1.0.13"; sample.Notes = "## PythonOS\n\n- A new `extras` command chooses the optional libraries.\n- Six new libraries and eighteen new commands.\n- The marketplace speaks your language.\n\n## Exports\n\n- The installer asks which libraries you want.";
+            if (o.Preview == "options") ShowOptions();
+            else if (o.Preview == "extras") ShowExtras();
+            else if (o.Preview == "done") ShowDone(Strings.T("done"), sample);
+            else if (o.Preview == "failed") { errorText = "Unable to connect to the remote server"; ShowFailed(); }
+            else if (o.Preview == "progress")
+            {
+                ShowProgress();
+                steps.Current("download"); bar.Value = 0.42; detail.Text = Strings.T("speed", "12.3 MB", "29.0 MB", "3.1 MB") + Strings.T("eta", "5 s");
+            }
+            else ShowWelcome();
+        }
+
+        // The steps of a journey as dots at the top right: for a new install welcome, options (folder, shortcuts), the optional libraries, working, done;
+        // for an update or a repair only welcome, working, done.
+        private string[] Journey()
+        {
+            if (existing != null) return new string[] { "welcome", "progress", "done" };
+            if (o.Mode == "install" && ExtrasList.Items.Length > 0) return new string[] { "welcome", "options", "extras", "progress", "done" };
+            return new string[] { "welcome", "options", "progress", "done" };
+        }
+
+        /// <summary>The mark: a rounded square in the accent colour with the prompt ">_" in it, the same as the Android installer.</summary>
+        private void DrawMark(Graphics g)
+        {
+            Rectangle r = new Rectangle(32, 24, 40, 40);
+            Draw.Fill(g, r, 10, p.Accent, null);
+            using (Font f = new Font("Consolas", 15f, FontStyle.Bold))
+                TextRenderer.DrawText(g, ">_", f, r, p.AccentText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+        }
 
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -83,10 +132,12 @@ namespace PythonOS.Setup
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             using (SolidBrush bar = new SolidBrush(p.Accent)) g.FillRectangle(bar, 0, 0, ClientSize.Width, 4);          // a thin accent line along the top
-            int current = page == "failed" ? 3 : page == "uninstall" ? 1 : Array.IndexOf(Journey, page);
+            DrawMark(g);
+            string[] journey = Journey();
+            int current = page == "failed" ? journey.Length - 2 : page == "uninstall" ? 1 : Array.IndexOf(journey, page);
             if (current < 0) return;
-            int x = ClientSize.Width - 34 - (Journey.Length - 1) * 18;
-            for (int i = 0; i < Journey.Length; i++)
+            int x = ClientSize.Width - 34 - (journey.Length - 1) * 18;
+            for (int i = 0; i < journey.Length; i++)
             {
                 Rectangle dot = new Rectangle(x + i * 18, 40, 10, 10);
                 if (i <= current) { using (SolidBrush b = new SolidBrush(page == "failed" && i == current ? p.Bad : p.Accent)) g.FillEllipse(b, dot); }
@@ -103,6 +154,7 @@ namespace PythonOS.Setup
             title.Text = heading;
             sub.Text = subheading;
             secondary.Visible = true;
+            tertiary.Visible = false;
             primary.Enabled = true;
         }
 
@@ -154,11 +206,10 @@ namespace PythonOS.Setup
         {
             Reset("options", Strings.T("where"), "");
             Label l = Small(Strings.T("where")); l.Top = 0; body.Controls.Add(l);
-            pathBox = new TextBox();
-            pathBox.BorderStyle = BorderStyle.FixedSingle; pathBox.BackColor = p.Surface; pathBox.ForeColor = p.Text; pathBox.Font = new Font("Segoe UI", 10.5f);
-            pathBox.SetBounds(0, 28, 480, 28); pathBox.Text = o.Directory;
+            pathBox = new ModernInput(p, o.Directory);
+            pathBox.SetBounds(0, 26, 480, 38);
             body.Controls.Add(pathBox);
-            ModernButton browse = new ModernButton(p, Strings.T("browse"), false); browse.SetBounds(490, 24, 106, 36);
+            ModernButton browse = new ModernButton(p, Strings.T("browse"), false); browse.SetBounds(490, 26, 106, 38);
             browse.Click += delegate
             {
                 using (FolderBrowserDialog d = new FolderBrowserDialog())
@@ -171,13 +222,14 @@ namespace PythonOS.Setup
             startMenu = new ModernCheck(p, Strings.T("startmenu"), o.StartMenuShortcut); startMenu.SetBounds(0, 78, 596, 28); body.Controls.Add(startMenu);
             desktop = new ModernCheck(p, Strings.T("desktop"), o.DesktopShortcut); desktop.SetBounds(0, 110, 596, 28); body.Controls.Add(desktop);
             Label ml = Small(Strings.T("memory")); ml.SetBounds(0, 150, 596, 22); body.Controls.Add(ml);
-            memory = new ComboBox();
-            memory.DropDownStyle = ComboBoxStyle.DropDownList; memory.FlatStyle = FlatStyle.Flat; memory.BackColor = p.Surface; memory.ForeColor = p.Text;
-            memory.Font = new Font("Segoe UI", 10.5f); memory.SetBounds(0, 174, 280, 30);
-            foreach (int mb in MemoryChoices) memory.Items.Add(mb == 0 ? Strings.T("memory.all") : (mb >= 1024 ? (mb / 1024) + " GB" : mb + " MB"));
+            memory = new ModernDropdown(p);
+            List<string> memoryNames = new List<string>();
+            foreach (int mb in MemoryChoices) memoryNames.Add(mb == 0 ? Strings.T("memory.all") : (mb >= 1024 ? (mb / 1024) + " GB" : mb + " MB"));
+            memory.Items = memoryNames.ToArray();
             memory.SelectedIndex = Math.Max(0, Array.IndexOf(MemoryChoices, o.MemoryMb));
+            memory.SetBounds(0, 174, 300, 38);
             body.Controls.Add(memory);
-            int y = 216;
+            int y = 226;
             if (!Core.HasWebView2())
             {
                 Label w = Small(Strings.T("webview")); w.SetBounds(0, y, 596, 22); w.ForeColor = p.Text; body.Controls.Add(w);
@@ -192,23 +244,27 @@ namespace PythonOS.Setup
         {
             Reset("extras", Strings.T("extras"), Strings.T("extras.sub"));
             extraChecks.Clear();
-            Panel list = new Panel();
-            list.AutoScroll = true; list.BackColor = p.Bg;
-            list.SetBounds(0, 0, 596, 276);
-            body.Controls.Add(list);
-            int y = 0;
-            foreach (string[] item in ExtrasList.Items)
+            int count = ExtrasList.Items.Length;
+            int rows = (count + 1) / 2;
+            Label what = new Label();
+            what.Text = Strings.T("extras.hover"); what.ForeColor = p.Muted; what.BackColor = p.Bg; what.Font = new Font("Segoe UI", 10f); what.AutoSize = false;
+            what.SetBounds(0, rows * 32 + 6, 596, 40);
+            for (int i = 0; i < count; i++)
             {
-                string text = item[0] + (item[1].Length > 0 ? "  -  " + (item[1].Length > 64 ? item[1].Substring(0, 61) + "..." : item[1]) : "");
-                ModernCheck check = new ModernCheck(p, text, true);
-                check.SetBounds(0, y, 560, 28);
-                list.Controls.Add(check);
+                string name = ExtrasList.Items[i][0];
+                string description = ExtrasList.Items[i][1];
+                ModernCheck check = new ModernCheck(p, name, true);
+                check.SetBounds((i / rows) * 300, (i % rows) * 32, 290, 28);
+                EventHandler show = delegate { what.Text = description.Length > 0 ? description : name; what.ForeColor = p.Text; };
+                check.MouseEnter += show;
+                check.GotFocus += show;
+                body.Controls.Add(check);
                 extraChecks.Add(check);
-                y += 30;
             }
-            ModernButton all = new ModernButton(p, Strings.T("extras.all"), false); all.SetBounds(0, 282, 96, 34);
+            body.Controls.Add(what);
+            ModernButton all = new ModernButton(p, Strings.T("extras.all"), false); all.SetBounds(0, rows * 32 + 46, 96, 34);
             all.Click += delegate { foreach (ModernCheck c in extraChecks) { c.Checked = true; c.Invalidate(); } };
-            ModernButton none = new ModernButton(p, Strings.T("extras.none"), false); none.SetBounds(104, 282, 96, 34);
+            ModernButton none = new ModernButton(p, Strings.T("extras.none"), false); none.SetBounds(104, rows * 32 + 46, 96, 34);
             none.Click += delegate { foreach (ModernCheck c in extraChecks) { c.Checked = false; c.Invalidate(); } };
             body.Controls.Add(all); body.Controls.Add(none);
             primary.Text = Strings.T(o.Mode == "update" ? "update" : "install");
@@ -226,7 +282,7 @@ namespace PythonOS.Setup
             detail = Small(""); detail.SetBounds(0, 7 * 32 + 36, 596, 44); detail.AutoEllipsis = true; body.Controls.Add(detail);
             primary.Visible = false;
             secondary.Text = Strings.T("cancel");
-            Run();
+            if (o.Preview.Length == 0) Run();
         }
 
         private void ShowUninstall()
@@ -248,22 +304,71 @@ namespace PythonOS.Setup
             primary.Visible = true;
             if (o.Mode != "uninstall")
             {
-                launch = new ModernCheck(p, Strings.T("launch"), true); launch.SetBounds(0, 20, 596, 28); body.Controls.Add(launch);
-                if (rel != null && !string.IsNullOrEmpty(rel.Notes)) body.Controls.Add(NotesBox(rel));
+                body.Controls.Add(SummaryCard(rel));
+                launch = new ModernCheck(p, Strings.T("launch"), true); launch.SetBounds(0, 96, 596, 28); body.Controls.Add(launch);
+                if (rel != null && !string.IsNullOrEmpty(rel.Notes))
+                {
+                    Control notes = NotesBox(rel);
+                    notes.SetBounds(0, 132, 596, 188);
+                    body.Controls.Add(notes);
+                }
+                tertiary.Text = Strings.T("openfolder"); tertiary.Visible = true;
             }
             primary.Text = Strings.T("close");
             secondary.Text = Strings.T("openlog");
+        }
+
+        /// <summary>What was installed, in a card: the version, the folder and the shortcuts.</summary>
+        private Control SummaryCard(Release rel)
+        {
+            Panel card = new Panel(); card.SetBounds(0, 4, 596, 80); card.BackColor = p.Surface;
+            card.Paint += delegate (object s, PaintEventArgs e) { Draw.Fill(e.Graphics, new Rectangle(0, 0, card.Width - 1, card.Height - 1), 12, p.Surface, p.Border); };
+            string version = rel != null ? (!string.IsNullOrEmpty(rel.InstalledVersion) && rel.InstalledVersion != "?" ? rel.InstalledVersion : rel.Version) : "";
+            List<string> links = new List<string>();
+            if (o.StartMenuShortcut) links.Add(Strings.T("summary.startmenu"));
+            if (o.DesktopShortcut) links.Add(Strings.T("summary.desktop"));
+            string[][] rows = new string[][]
+            {
+                new string[] { Strings.T("summary.version"), version },
+                new string[] { Strings.T("summary.folder"), Path.GetFullPath(o.Directory) },
+                new string[] { Strings.T("summary.shortcuts"), links.Count > 0 ? string.Join(", ", links.ToArray()) : Strings.T("summary.none") }
+            };
+            for (int i = 0; i < rows.Length; i++)
+            {
+                Label k = new Label(); k.Text = rows[i][0]; k.ForeColor = p.Muted; k.BackColor = p.Surface; k.Font = new Font("Segoe UI", 9.5f); k.SetBounds(16, 10 + i * 22, 120, 20);
+                Label v = new Label(); v.Text = rows[i][1]; v.ForeColor = p.Text; v.BackColor = p.Surface; v.Font = new Font("Segoe UI Semibold", 9.5f); v.AutoEllipsis = true; v.SetBounds(140, 10 + i * 22, 440, 20);
+                card.Controls.Add(k); card.Controls.Add(v);
+            }
+            return card;
+        }
+
+        /// <summary>A sentence that helps for the commonest reasons an install fails, found in the error's text; empty when nothing fits.</summary>
+        private static string Hint(string error)
+        {
+            string e = (error ?? "").ToLowerInvariant();
+            if (e.Contains("remote name") || e.Contains("unable to connect") || e.Contains("timed out") || e.Contains("timeout") || e.Contains("no such host") || e.Contains("could not be resolved") || e.Contains("internet") || e.Contains("proxy")) return Strings.T("hint.net");
+            if (e.Contains("space") || e.Contains("disk full") || e.Contains("not enough")) return Strings.T("hint.disk");
+            if (e.Contains("denied") || e.Contains("access to the path") || e.Contains("unauthorized") || e.Contains("not permitted")) return Strings.T("hint.access");
+            if (e.Contains("checksum") || e.Contains("sha256") || e.Contains("hash") || e.Contains("verify")) return Strings.T("hint.hash");
+            return "";
         }
 
         private void ShowFailed()
         {
             Reset("failed", Strings.T("failed"), Strings.T("failed.sub"));
             primary.Visible = true;
-            Label msg = new Label(); msg.Text = errorText; msg.ForeColor = p.Bad; msg.BackColor = p.Bg; msg.Font = new Font("Segoe UI Semibold", 10.5f); msg.SetBounds(0, 0, 596, 80);
-            body.Controls.Add(msg);
-            Label log = Small(Log.Path_); log.SetBounds(0, 90, 596, 40); body.Controls.Add(log);
+            Panel card = new Panel(); card.SetBounds(0, 0, 596, 128); card.BackColor = p.Surface;
+            card.Paint += delegate (object s, PaintEventArgs e) { Draw.Fill(e.Graphics, new Rectangle(0, 0, card.Width - 1, card.Height - 1), 12, p.Surface, p.Bad); };
+            Label msg = new Label(); msg.Text = errorText; msg.ForeColor = p.Bad; msg.BackColor = p.Surface; msg.Font = new Font("Segoe UI Semibold", 10.5f); msg.SetBounds(16, 12, 564, 62);
+            card.Controls.Add(msg);
+            string hint = Hint(errorText);
+            Label help = new Label(); help.Text = hint; help.ForeColor = p.Text; help.BackColor = p.Surface; help.Font = new Font("Segoe UI", 9.5f); help.SetBounds(16, 76, 564, 44);
+            card.Controls.Add(help);
+            body.Controls.Add(card);
+            Label log = Small(Log.Path_); log.SetBounds(0, 140, 596, 40); body.Controls.Add(log);
             primary.Text = Strings.T("retry");
             secondary.Text = Strings.T("openlog");
+            tertiary.Text = Strings.T("copydetails"); tertiary.Visible = true;
         }
 
         /// <summary>The release's "What's new", styled (headings, bullets, bold, code), in a box that scrolls.</summary>
@@ -277,6 +382,7 @@ namespace PythonOS.Setup
             box.DetectUrls = false;
             box.TabStop = false;
             box.ScrollBars = RichTextBoxScrollBars.Vertical;
+            box.HandleCreated += delegate { if (!p.Light) { try { SetWindowTheme(box.Handle, "DarkMode_Explorer", null); } catch (Exception) { } } };       // dark scroll bars
             box.SetBounds(0, 64, 596, 250);
             try { box.Rtf = Markdown.ToRtf("## " + Strings.T("whatsnew", rel.Version) + "\n\n" + rel.Notes, p.Text, p.Accent); }
             catch (Exception ex) { Log.Write("could not show the notes: " + ex.Message); box.Text = rel.Notes; }
@@ -337,6 +443,36 @@ namespace PythonOS.Setup
             else if (page == "failed")
             {
                 ShowWelcome();
+            }
+        }
+
+        private void OnTertiary()
+        {
+            if (page == "done")
+            {
+                try { Process.Start("explorer.exe", "\"" + Path.GetFullPath(o.Directory) + "\""); } catch (Exception) { }
+            }
+            else if (page == "failed")
+            {
+                try
+                {
+                    Clipboard.SetText("PythonOS Setup failed\r\n" + errorText + "\r\n\r\nLog: " + Log.Path_);
+                    tertiary.Text = Strings.T("copied");
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private void OnKey(object sender, KeyEventArgs e)
+        {
+            if (working) return;
+            if (e.KeyCode == Keys.Enter && !(ActiveControl is TextBox) && !(ActiveControl is ModernButton) && primary.Visible && primary.Enabled)
+            {
+                e.Handled = true; e.SuppressKeyPress = true; OnPrimary();
+            }
+            else if (e.KeyCode == Keys.Escape && secondary.Visible && (page == "welcome" || page == "options" || page == "extras" || page == "uninstall"))
+            {
+                e.Handled = true; e.SuppressKeyPress = true; OnSecondary();
             }
         }
 

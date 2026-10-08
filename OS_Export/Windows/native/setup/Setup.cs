@@ -6,7 +6,7 @@
 //   PythonOS-Setup.exe /update /silent      update an existing install (PythonOS itself runs this when it needs a new app package)
 //   PythonOS-Setup.exe /repair /silent      reinstall the program files, keep the data
 //   PythonOS-Setup.exe /uninstall [/silent] [/deletedata]
-//   options: /dir=PATH  /lang=en|es|fr|de  /nolaunch  /desktop  /nostartmenu  /nowebview2  /manifest=URL (developers: a stand-in for GitHub's "latest release" JSON)
+//   options: /dir=PATH  /lang=en|es|fr|de  /theme=light|dark  /nolaunch  /desktop  /nostartmenu  /nowebview2  /manifest=URL (developers: a stand-in for GitHub's "latest release" JSON)
 //
 // It is also the uninstaller: after installing, a copy named Uninstall.exe stays in the install folder. Written in C# 5 so it builds
 // with the compiler that ships with Windows (see build-native.ps1). Log: %LOCALAPPDATA%\PythonOS\Setup\install-log.txt
@@ -46,6 +46,8 @@ namespace PythonOS.Setup
                     if (m == "all") o.MemoryMb = 0; else if (int.TryParse(m, out mb) && mb >= 256) o.MemoryMb = mb;
                 }
                 else if (low.StartsWith("/extras=")) o.Extras = low.Substring(8).Trim('"');
+                else if (low.StartsWith("/theme=")) Palette.Forced = low.Substring(7).Trim('"');
+                else if (low.StartsWith("/preview=")) o.Preview = low.Substring(9).Trim('"');
                 else if (low.StartsWith("/dir=")) { o.Directory = a.Substring(5).Trim('"'); dirGiven = true; }
                 else if (low.StartsWith("/lang=")) lang = low.Substring(6);
                 else if (low.StartsWith("/manifest=")) o.ManifestUrl = a.Substring(10);

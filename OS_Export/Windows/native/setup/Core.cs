@@ -55,6 +55,7 @@ namespace PythonOS.Setup
         public bool DeleteData;
         public bool FixWebView2 = true;           // install Microsoft's WebView2 runtime when it is missing
         public int MemoryMb = 1024;                // the memory PythonOS owns (setting memory_limit_mb); 0 = all of it; written only on a fresh install
+        public string Preview = "";                // developers: /preview=options|extras|progress|done|failed shows that page with sample data (for screenshots)
         public string Extras = "all";              // the optional libraries to have: "all", "none", or their names separated by commas; written only on a fresh install
         public string ManifestUrl = "";            // developer override: a JSON file shaped like GitHub's "latest release" answer
 
