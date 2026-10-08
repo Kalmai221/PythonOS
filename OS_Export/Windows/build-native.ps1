@@ -81,7 +81,12 @@ Copy-Item (Join-Path $Deps "xterm\package\lib\xterm.js"), (Join-Path $Deps "xter
 $Setup = Join-Path $Here "native\setup"
 if (Test-Path (Join-Path $Setup "Setup.cs")) {
     Write-Host "Compiling PythonOS-Setup.exe ..."
-    $Sources = Get-ChildItem $Setup -Filter *.cs | ForEach-Object { $_.FullName }
+    $Sources = @(Get-ChildItem $Setup -Filter *.cs | ForEach-Object { $_.FullName })
+    # the list of optional libraries the installer offers, made from requirements-extra.txt so it never goes stale
+    $ExtrasCs = Join-Path $Out "ExtrasList.g.cs"
+    python (Join-Path $Here "make_extras_list.py") (Join-Path $Repo "requirements-extra.txt") --cs $ExtrasCs
+    if ($LASTEXITCODE -ne 0) { throw "making the list of optional libraries failed" }
+    $Sources += $ExtrasCs
     & $Csc @Common /target:winexe @IconArgs "/r:System.IO.Compression.dll" "/r:System.IO.Compression.FileSystem.dll" "/r:System.Web.Extensions.dll" "/out:$Out\PythonOS-Setup.exe" `
         $Sources $VersionFile
     if ($LASTEXITCODE -ne 0) { throw "compiling PythonOS-Setup.exe failed" }

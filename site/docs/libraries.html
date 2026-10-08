@@ -52,7 +52,7 @@
 </table></div>
 
 <h2 id="optional">Optional</h2>
-<p>These are in <code>requirements-extra.txt</code>. The Windows installer, the Linux launcher, the Docker image and the bootable USB include them; the Android app includes the ones that are pure Python.</p>
+<p>These are in <code>requirements-extra.txt</code>. <strong>You choose which to have.</strong> The Windows installers (the web installer and the full one) show a list with everything ticked, the first-time setup asks on every other system (on the bootable USB and in virtual machines the choice is download-on-demand, so it needs the internet), and the <code>extras</code> command changes the choice any time: <code>extras</code> lists them, <code>extras choose</code> picks from a list, <code>extras install py7zr</code> adds one. Your choice is kept, and an update installs what you chose (everything, if you chose all) and only tells you about new ones if you picked by hand. The Android app carries its libraries inside and cannot add more.</p>
 <div class="table-wrap"><table>
   <thead><tr><th>Library</th><th>What it adds</th><th>Without it</th></tr></thead>
   <tbody>
@@ -64,6 +64,12 @@
     <tr><td><code>pyyaml</code></td><td><code>convert</code> between JSON and YAML; <code>jsonfmt</code> reads and writes YAML.</td><td>JSON only, and a message that says why.</td></tr>
     <tr><td><code>rapidfuzz</code></td><td>Better "did you mean" and help search with typos.</td><td>The standard library's <code>difflib</code>.</td></tr>
     <tr><td><code>feedparser</code></td><td>The <code>rss</code> app reads feeds that are not valid XML.</td><td>The built-in feed reader.</td></tr>
+    <tr><td><code>charset-normalizer</code></td><td><code>cat</code>, <code>less</code>, <code>head</code>, <code>tail</code>, <code>grep</code>, <code>diff</code> and <code>wc</code> read text files saved in Windows-1252, UTF-16, Shift-JIS and other encodings.</td><td>UTF-8, Windows-1252 and Latin-1 are tried in turn.</td></tr>
+    <tr><td><code>py7zr</code></td><td><code>zip</code> and <code>unzip</code> make and open <code>.7z</code> archives.</td><td>A message that says to install it; zip and tar work as always.</td></tr>
+    <tr><td><code>distro</code></td><td><code>sysinfo</code> shows the name of the Linux distribution.</td><td><code>/etc/os-release</code> is read.</td></tr>
+    <tr><td><code>py-cpuinfo</code></td><td><code>lscpu</code> and <code>sysinfo</code> show the processor's model on Windows and Android.</td><td>On Linux <code>/proc/cpuinfo</code>; elsewhere what Python knows.</td></tr>
+    <tr><td><code>watchfiles</code></td><td><code>watch -f</code> reacts the moment a file changes.</td><td>The folder is checked once a second.</td></tr>
+    <tr><td><code>dnspython</code></td><td><code>nslookup</code> knows SRV, CAA, DS, DNSKEY, TLSA and more record types.</td><td>A, AAAA, MX, NS, TXT, CNAME, SOA and PTR only.</td></tr>
   </tbody>
 </table></div>
 <p>Code asks for an optional library through <code>pyos.optional</code> (<code>optional.get("yaml")</code> returns the module or <code>None</code>). Write the fallback first, then the improvement. <code>tools/test_libs.py</code> tests every one of these features both with the library and without it.</p>

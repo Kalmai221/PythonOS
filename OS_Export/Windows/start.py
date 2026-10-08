@@ -36,18 +36,49 @@ def libraries_ok(env):
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
 
 
+def chosen_extras():
+    """The optional libraries the person chose, as a set of lower-case names; None when nothing was chosen (then all of them are installed).
+    .OSData/extras.json is written by the installers, the first-time setup and the `extras` command."""
+    try:
+        with open(os.path.join(HERE, ".OSData", "extras.json"), encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return None
+    mode = data.get("mode")
+    if mode == "none":
+        return set()
+    if mode == "custom":
+        return {str(x).lower() for x in data.get("selected") or []}
+    return None
+
+
 def install_extras(env):
     """The optional libraries (requirements-extra.txt): installed once per version of that list, and never a reason to stop PythonOS starting."""
     extras = os.path.join(HERE, "requirements-extra.txt")
     marker = os.path.join(HERE, "python", ".extras-installed")   # lives with the libraries: a replaced python folder reinstalls them
     try:
         import hashlib
+        choice = chosen_extras()
+        if choice is not None and not choice:
+            return                                          # the person chose none of them (installer or `extras`)
         with open(extras, "rb") as f:
-            digest = hashlib.sha256(f.read()).hexdigest()
+            digest = hashlib.sha256(f.read() + repr(choice).encode()).hexdigest()
         if os.path.isfile(marker) and open(marker, encoding="utf-8").read().strip() == digest:
             return
-        subprocess.call([PYTHON, "-m", "pip", "install", "--quiet", "--no-warn-script-location", "-r", extras], env=env,
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=600)
+        quiet = dict(env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=600)
+        if choice is None and subprocess.call([PYTHON, "-m", "pip", "install", "--quiet", "--no-warn-script-location", "-r", extras], **quiet) == 0:
+            pass
+        else:
+            # a hand-picked list, or one library that cannot be installed here (no build for this processor) that must not cost the others:
+            # one by one
+            with open(extras, encoding="utf-8") as f:
+                for line in f:
+                    requirement = line.split("#")[0].strip()
+                    name = requirement.split(";")[0].strip().split("[")[0]
+                    for sign in "<>=!~ ":
+                        name = name.split(sign)[0]
+                    if requirement and (choice is None or name.lower() in choice):
+                        subprocess.call([PYTHON, "-m", "pip", "install", "--quiet", "--no-warn-script-location", requirement], **quiet)
         with open(marker, "w", encoding="utf-8") as f:
             f.write(digest)
     except Exception:                                      # noqa: BLE001 - optional: PythonOS starts without them

@@ -5,6 +5,7 @@ from rich.console import Console
 
 import pyos.fs as fs
 import pyos.stdio as stdio
+from pyos import textfile
 
 console = Console()
 
@@ -13,8 +14,7 @@ def read_text(files, name):
     """The text of the first file in `files`, else the piped text. None (after printing why) when there is neither or a file cannot be read."""
     if files:
         try:
-            with open(fs.resolve(files[0]), "r", encoding="utf-8", errors="replace") as f:
-                return f.read()
+            return textfile.read(files[0])[0]
         except Exception as e:                                         # noqa: BLE001 - say it the way every command does
             console.print(f"[bold red]{name}: {files[0]}: {fs.errtext(e)}[/bold red]")
             return None

@@ -105,9 +105,18 @@ def check_accounts():
     bad = [n for n, u in data.items() if not isinstance(u, dict) or u.get("role") not in ("admin", "user") or "password" not in u]
     if bad:
         out.append(Finding("error", "Accounts", tr("damaged entries: {names}", names=", ".join(bad))))
-    legacy = [n for n, u in data.items() if isinstance(u, dict) and not str(u.get("password", "")).startswith("pbkdf2$")]
+    legacy = [n for n, u in data.items() if isinstance(u, dict) and not str(u.get("password", "")).startswith(("pbkdf2$", "scrypt$"))]
     if legacy:
         out.append(Finding("warn", "Accounts", tr("old-style password hash for: {names} (the account owner should run passwd to upgrade it)", names=", ".join(legacy))))
+    scrypt_users = [n for n, u in data.items() if isinstance(u, dict) and str(u.get("password", "")).startswith("scrypt$")]
+    if scrypt_users:
+        try:
+            import users
+            has_scrypt = users.scrypt_available()
+        except Exception:                                  # noqa: BLE001 - never stop the doctor
+            has_scrypt = True
+        if not has_scrypt:
+            out.append(Finding("error", "Accounts", tr("these passwords were saved with scrypt, which this Python does not have: {names} (they only work on a Python that has scrypt, such as the system that made them)", names=", ".join(scrypt_users))))
     if not out:
         out.append(Finding("ok", "Accounts", tr("{n} account(s), {a} administrator(s)", n=len(data), a=len(admins))))
     return out
@@ -368,7 +377,8 @@ def check_memory():
 
 # the import name of each optional library, where it is not the package name
 IMPORT_NAMES = {"python-dateutil": "dateutil", "beautifulsoup4": "bs4", "pyyaml": "yaml", "pillow": "PIL", "pypdf2": "PyPDF2",
-                "python-docx": "docx", "opencv-python": "cv2", "scikit-learn": "sklearn", "python-magic": "magic"}
+                "python-docx": "docx", "opencv-python": "cv2", "scikit-learn": "sklearn", "python-magic": "magic",
+                "py-cpuinfo": "cpuinfo", "dnspython": "dns", "charset-normalizer": "charset_normalizer"}
 
 
 def _libraries_hint():

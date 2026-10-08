@@ -614,9 +614,11 @@ unalias -a</code></pre>
 <section class="cmd" id="cmd-watch" data-name="watch">
 <h3>watch</h3>
 <p class="summary">run a command again and again</p>
-<pre><code>watch [-n seconds] &lt;command&gt;</code></pre>
-<p>Clears the screen and runs the command every few seconds (2 by default) until Ctrl+C.</p>
-<pre><code><span class="g">$</span> watch -n 5 free</code></pre>
+<pre><code>watch [-n seconds] &lt;command&gt;
+watch -f &lt;file or folder&gt; &lt;command&gt;</code></pre>
+<p>Clears the screen and runs the command every few seconds (2 by default) until Ctrl+C. With -f it runs the command again whenever that file or folder changes instead (it is checked once a second, or the system tells watch at once when the watchfiles library is installed).</p>
+<pre><code><span class="g">$</span> watch -n 5 free
+<span class="g">$</span> watch -f notes.txt cat notes.txt  <span class="d"># show a file as you save it</span></code></pre>
 <p class="muted">See also: <a href="#cmd-time"><code>time</code></a>.</p>
 </section>
 
@@ -902,6 +904,21 @@ bootlog &lt;number&gt;</code></pre>
 <p class="muted">See also: <a href="#cmd-hwsetup"><code>hwsetup</code></a>, <a href="#cmd-report"><code>report</code></a>, <a href="#cmd-bootlog"><code>bootlog</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-extras" data-name="extras">
+<h3>extras</h3>
+<p class="summary">choose the optional libraries</p>
+<pre><code>extras
+extras choose
+extras install &lt;name&gt;... | all
+extras remove &lt;name&gt;...
+extras none</code></pre>
+<p>PythonOS works without its optional libraries; each adds something (better search, .7z archives, the processor&#x27;s model, more DNS record types, ...). `extras` lists them with what each adds and whether it is installed, `choose` lets you pick from the list, and install, remove and none change it. Your choice is kept: when PythonOS is updated it installs what you chose (everything, if you chose all) and only mentions new ones if you picked by hand. On the live ISO and in virtual machines they are downloaded when you install them, so the computer needs the internet. The Android app carries its libraries inside and cannot add more.</p>
+<pre><code><span class="g">$</span> extras  <span class="d"># see them all</span>
+<span class="g">$</span> extras choose  <span class="d"># pick from a list</span>
+<span class="g">$</span> extras install py7zr  <span class="d"># add .7z support</span></code></pre>
+<p class="muted">See also: <a href="#cmd-doctor"><code>doctor</code></a>, <a href="#cmd-updatecheck"><code>updatecheck</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-free" data-name="free">
 <h3>free</h3>
 <p class="summary">memory use</p>
@@ -1085,7 +1102,7 @@ hwsetup check|audio|network|keyboard|timezone|bluetooth|display|printer</code></
 <p class="summary">look up a name in the DNS</p>
 <pre><code>nslookup &lt;name&gt; [type] [server]
 nslookup &lt;address&gt;</code></pre>
-<p>Asks a name server (your system&#x27;s, or the one you name) for A, AAAA, MX, NS, TXT, CNAME or SOA records, or for the name behind an address. dig and host are the same command.</p>
+<p>Asks a name server (your system&#x27;s, or the one you name) for A, AAAA, MX, NS, TXT, CNAME or SOA records, or for the name behind an address. With the dnspython library (see extras) it also knows SRV, CAA, DS, DNSKEY, TLSA and more. dig and host are the same command.</p>
 <pre><code><span class="g">$</span> nslookup example.com MX  <span class="d"># mail servers</span>
 <span class="g">$</span> nslookup 1.1.1.1  <span class="d"># the name of an address</span>
 <span class="g">$</span> nslookup example.com A 8.8.8.8  <span class="d"># ask Google&#x27;s server</span></code></pre>

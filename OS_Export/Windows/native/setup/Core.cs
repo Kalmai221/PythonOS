@@ -55,6 +55,7 @@ namespace PythonOS.Setup
         public bool DeleteData;
         public bool FixWebView2 = true;           // install Microsoft's WebView2 runtime when it is missing
         public int MemoryMb = 1024;                // the memory PythonOS owns (setting memory_limit_mb); 0 = all of it; written only on a fresh install
+        public string Extras = "all";              // the optional libraries to have: "all", "none", or their names separated by commas; written only on a fresh install
         public string ManifestUrl = "";            // developer override: a JSON file shaped like GitHub's "latest release" answer
 
         public static string DefaultDirectory()
@@ -672,6 +673,38 @@ namespace PythonOS.Setup
             catch (Exception e) { Log.Write("could not store the memory choice: " + e.Message); }
         }
 
+        // The optional libraries (requirements-extra.txt) the person chose. PythonOS reads .OSData/extras.json when it starts and installs those;
+        // "all" also takes the ones a later update adds. A fresh install stores the choice; an update or repair leaves an existing one alone.
+        public static void WriteExtrasChoice(Options o)
+        {
+            if (o.Mode != "install") return;
+            try
+            {
+                string folder = Path.Combine(Path.GetFullPath(o.Directory), ".OSData");
+                string file = Path.Combine(folder, "extras.json");
+                if (File.Exists(file)) return;
+                string json;
+                string wanted = (o.Extras ?? "all").Trim();
+                if (wanted.Length == 0 || wanted.ToLowerInvariant() == "none") json = "{\"mode\": \"none\", \"selected\": []}";
+                else if (wanted.ToLowerInvariant() == "all") json = "{\"mode\": \"all\", \"selected\": []}";
+                else
+                {
+                    List<string> names = new List<string>();
+                    foreach (string n in wanted.Split(','))
+                    {
+                        string name = n.Trim();
+                        foreach (char c in name) if (!(char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.')) { name = ""; break; }
+                        if (name.Length > 0) names.Add("\"" + name + "\"");
+                    }
+                    json = "{\"mode\": \"custom\", \"selected\": [" + string.Join(", ", names.ToArray()) + "]}";
+                }
+                Directory.CreateDirectory(folder);
+                File.WriteAllText(file, json + "\n", new System.Text.UTF8Encoding(false));
+                Log.Write("optional libraries: " + wanted);
+            }
+            catch (Exception e) { Log.Write("could not store the optional libraries choice: " + e.Message); }
+        }
+
         // ----------------------------------------------------------------- shortcuts and the uninstall entry
         private static string StartMenuFolder()
         {
@@ -849,6 +882,7 @@ namespace PythonOS.Setup
             InstallPackage(file, o, rel, progress);
             EnsureRequirements(o, progress);
             WriteMemorySetting(o);
+            WriteExtrasChoice(o);
             progress("shortcuts", 0.5, "");
             MakeShortcuts(o);
             progress("shortcuts", 1.0, "");

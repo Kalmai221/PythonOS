@@ -5,7 +5,7 @@ from rich.console import Console
 
 import pyos.fs as fs
 import pyos.stdio as stdio
-from pyos import search
+from pyos import search, textfile
 
 console = Console()
 config = {"name": "grep", "description": "Search files or piped input: grep [-inrvwclF] [-A n] [-B n] [-C n] <pattern> [file|folder...]"}
@@ -103,8 +103,8 @@ def execute(args=None):
             for target in targets:
                 if os.path.getsize(target) > MAX_FILE:
                     continue
-                with open(target, "r", encoding="utf-8", errors="replace") as f:
-                    text = f.read()
+                with open(target, "rb") as f:
+                    text = textfile.decode(f.read())[0]
                 if "\0" in text[:2000]:
                     continue                                    # a binary file
                 sources.append((fs.display(target, tilde=True) if (len(names) > 1 or os.path.isdir(path)) else None, text.splitlines()))

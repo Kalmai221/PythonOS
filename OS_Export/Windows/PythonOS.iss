@@ -20,6 +20,10 @@
 #ifndef WhatsNew
   #define WhatsNew ""
 #endif
+; The optional libraries the wizard offers (one "name|what it adds" line each, made by make_extras_list.py); without it the wizard has no such page
+#ifndef ExtrasList
+  #define ExtrasList ""
+#endif
 ; The wizard artwork drawn by make_art.py (side panel, header badge, icon)
 #ifndef ArtDir
   #error ArtDir must be defined (the folder produced by make_art.py)
@@ -90,6 +94,9 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 ; The package holds PythonOS.exe, the bundled Python and bootstrap.py. The OS itself is downloaded
 ; on first run (and updates itself), so an upgrade of this installer never touches it or the user's data.
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+#if ExtrasList != ""
+Source: "{#ExtrasList}"; DestDir: "{tmp}"; Flags: dontcopy
+#endif
 
 [Icons]
 Name: "{group}\PythonOS"; Filename: "{app}\PythonOS.exe"; WorkingDir: "{app}"; Tasks: startmenuicon
@@ -139,6 +146,8 @@ var
   RepairMode: Boolean;
   FreshInstall: Boolean;
   MemoryPage: TInputOptionWizardPage;
+  ExtrasPage: TInputOptionWizardPage;
+  ExtraNames: TArrayOfString;
 
 // True when the bundled Python cannot import the libraries PythonOS needs (checked after the system was downloaded)
 function LibrariesMissing(): Boolean;
@@ -177,6 +186,39 @@ begin
   RepairMode := Choice = IDNO;
 end;
 
+// ------------------------------------------------------------ optional libraries
+// One tick per library of requirements-extra.txt (all ticked to begin with). The list is made at build time and read from the installer itself.
+procedure MakeExtrasPage();
+var
+  Lines: TArrayOfString;
+  I, P, N: Integer;
+  Text: String;
+begin
+#if ExtrasList != ""
+  ExtractTemporaryFile('extras.txt');
+  if not LoadStringsFromFile(ExpandConstant('{tmp}\extras.txt'), Lines) then
+    Exit;
+  ExtrasPage := CreateInputOptionPage(MemoryPage.ID, 'Optional libraries', 'Which optional libraries should PythonOS have?',
+    'PythonOS works without them. Each adds something; untick the ones you do not want. You can change this later with the command: extras', False, True);
+  N := 0;
+  for I := 0 to GetArrayLength(Lines) - 1 do
+  begin
+    P := Pos('|', Lines[I]);
+    if P > 1 then
+    begin
+      SetArrayLength(ExtraNames, N + 1);
+      ExtraNames[N] := Copy(Lines[I], 1, P - 1);
+      Text := ExtraNames[N];
+      if Length(Lines[I]) > P then
+        Text := Text + '  -  ' + Copy(Lines[I], P + 1, 90);
+      ExtrasPage.Add(Text);
+      ExtrasPage.Values[N] := True;
+      N := N + 1;
+    end;
+  end;
+#endif
+end;
+
 // ------------------------------------------------------------ memory for PythonOS
 // PythonOS owns a fixed amount of memory (setting memory_limit_mb). A fresh install asks for it; /MEMORY=2048 (or /MEMORY=all) answers silently.
 procedure InitializeWizard();
@@ -189,11 +231,49 @@ begin
   MemoryPage.Add('4 GB');
   MemoryPage.Add('All of the computer''s memory');
   MemoryPage.SelectedValueIndex := 1;
+  MakeExtrasPage();
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := (PageID = MemoryPage.ID) and not FreshInstall;       // an update or repair keeps the settings it has
+  if Assigned(ExtrasPage) then
+    if PageID = ExtrasPage.ID then
+      Result := not FreshInstall;
+end;
+
+// The optional libraries as the JSON PythonOS reads (.OSData\extras.json): all of them, none, or the ticked ones. /EXTRAS=all|none|name,name answers silently.
+function ChosenExtras(): String;
+var
+  Given, List: String;
+  I, Count: Integer;
+begin
+  Given := Lowercase(ExpandConstant('{param:extras|}'));
+  StringChangeEx(Given, '"', '', True);
+  Result := '{"mode": "all", "selected": []}';
+  if (Given = 'none') then
+    Result := '{"mode": "none", "selected": []}'
+  else if (Given <> '') and (Given <> 'all') then
+  begin
+    StringChangeEx(Given, ',', '", "', True);
+    Result := '{"mode": "custom", "selected": ["' + Given + '"]}';
+  end
+  else if (Given = '') and Assigned(ExtrasPage) then
+  begin
+    Count := 0;
+    List := '';
+    for I := 0 to GetArrayLength(ExtraNames) - 1 do
+      if ExtrasPage.Values[I] then
+      begin
+        if List <> '' then List := List + ', ';
+        List := List + '"' + ExtraNames[I] + '"';
+        Count := Count + 1;
+      end;
+    if Count = 0 then
+      Result := '{"mode": "none", "selected": []}'
+    else if Count < GetArrayLength(ExtraNames) then
+      Result := '{"mode": "custom", "selected": [' + List + ']}';
+  end;
 end;
 
 function ChosenMemory(): String;
@@ -216,7 +296,7 @@ end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var
-  Settings: String;
+  Settings, ExtrasFile: String;
 begin
   if (CurStep = ssPostInstall) and FreshInstall then
   begin
@@ -225,6 +305,12 @@ begin
     begin
       ForceDirectories(ExpandConstant('{app}\.OSData'));
       SaveStringToFile(Settings, '{"memory_limit_mb": ' + ChosenMemory() + '}' + #10, False);
+    end;
+    ExtrasFile := ExpandConstant('{app}\.OSData\extras.json');
+    if not FileExists(ExtrasFile) then
+    begin
+      ForceDirectories(ExpandConstant('{app}\.OSData'));
+      SaveStringToFile(ExtrasFile, ChosenExtras() + #10, False);
     end;
   end;
 end;

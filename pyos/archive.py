@@ -7,7 +7,7 @@ import os
 import tarfile
 import zipfile
 
-from . import fs
+from . import fs, optional
 
 MAX_TOTAL = 1024 ** 3          # refuse to unpack more than 1 GB
 MAX_FILES = 50_000
@@ -102,6 +102,77 @@ def extract_zip(archive, dest_text, overwrite=False):
                         raise ArchiveError("the archive is too large to unpack here")
                     o.write(chunk)
             count += 1
+    return count, total
+
+
+def _py7zr():
+    """The py7zr library, or an ArchiveError that says what to do (7z needs it; zip and tar do not)."""
+    module = optional.get("py7zr")
+    if module is None:
+        raise ArchiveError("7z archives need the py7zr library (pip install py7zr)")
+    return module
+
+
+def _guarded(function):
+    """py7zr raises its own errors (a damaged file, a password): turn them into the message every archive command shows."""
+    def wrapper(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except (ArchiveError, OSError):
+            raise
+        except Exception as e:                                # noqa: BLE001 - whatever the library raises is "this 7z cannot be used"
+            raise ArchiveError(f"cannot use this 7z archive ({type(e).__name__}: {e})") from e
+    wrapper.__name__ = function.__name__
+    wrapper.__doc__ = function.__doc__
+    return wrapper
+
+
+def is_7z(name):
+    return name.lower().endswith(".7z")
+
+
+@_guarded
+def make_7z(archive, paths):
+    py7zr = _py7zr()
+    out = fs.resolve(archive, write=True)
+    entries = [(p, n) for p, n in gather(paths) if os.path.abspath(p) != os.path.abspath(out)]
+    with py7zr.SevenZipFile(out, "w") as z:
+        for path, name in entries:
+            z.write(path, name.rstrip("/"))
+    return len(entries), os.path.getsize(out)
+
+
+@_guarded
+def list_7z(archive):
+    py7zr = _py7zr()
+    with py7zr.SevenZipFile(fs.resolve(archive), "r") as z:
+        return [(i.filename + ("/" if i.is_directory else ""), 0 if i.is_directory else i.uncompressed) for i in z.list()]
+
+
+@_guarded
+def extract_7z(archive, dest_text, overwrite=False):
+    """Unpack a .7z with the same rules as zip and tar: no names outside the destination, no links, a size limit, and nothing replaced without -o."""
+    py7zr = _py7zr()
+    src = fs.resolve(archive)
+    dest = fs.resolve(dest_text, write=True)
+    os.makedirs(dest, exist_ok=True)
+    with py7zr.SevenZipFile(src, "r") as z:
+        infos = list(z.list())
+        if len(infos) > MAX_FILES or sum(i.uncompressed or 0 for i in infos) > MAX_TOTAL:
+            raise ArchiveError("the archive is too large to unpack here")
+        count = total = 0
+        for info in infos:
+            if getattr(info, "is_symlink", False) or getattr(info, "is_junction", False):
+                raise ArchiveError(f"{info.filename} is a link (7z archives with links are not unpacked)")
+            target = _target(dest, info.filename)
+            if os.path.exists(target) and not info.is_directory and not overwrite:
+                raise ArchiveError(f"{info.filename} already exists (use -o to overwrite)")
+            if not info.is_directory:
+                count += 1
+                total += info.uncompressed or 0
+        if hasattr(z, "reset"):
+            z.reset()                                          # the listing above read the archive's index
+        z.extractall(path=dest)
     return count, total
 
 

@@ -450,6 +450,23 @@ def extract_core(zip_path, manifest, stage_dir):
             target.write_bytes(data)
 
 
+def sync_extras():
+    """After an update: install the optional libraries the person's choice says are missing (everything, if they chose all), and mention
+    libraries the update added that a hand-picked list does not include. Never an error: the libraries are optional."""
+    try:
+        from pyos import extras
+        done, why = extras.sync(lambda text: console.print(f"[dim]{text}[/dim]"))
+        for name, ok in done.items():
+            console.print(("[green]Installed[/green] " if ok else "[yellow]Could not install[/yellow] ") + name)
+        if why:
+            console.print(f"[dim]Optional libraries: {why}[/dim]")
+        fresh = extras.new_since_choice()
+        if fresh:
+            console.print("[yellow]New optional libraries since you chose:[/yellow] " + ", ".join(e.name for e in fresh) + "  [dim](extras install <name>)[/dim]")
+    except Exception as e:                                         # noqa: BLE001 - optional
+        _log(f"optional libraries not synced: {type(e).__name__}: {str(e)[:200]}", "WARN")
+
+
 def apply_core(stage_dir, version):
     """Swap the new core files in. If anything fails, the old ones are put back."""
     backup = UPDATE_DIR / "backup"
@@ -830,6 +847,7 @@ def update_packaged(current, auto_update):
             if updated:
                 _log(f"core updated {current} -> {latest} ({plan['mode']}, {fetched} bytes downloaded)")
                 console.print(f"[bold green]Updated to {latest}![/bold green] Your files and accounts were not touched.")
+                sync_extras()
                 if not auto_update:
                     offer_restart()
                 else:

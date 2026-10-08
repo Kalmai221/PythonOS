@@ -1,6 +1,7 @@
 from rich.console import Console
 import pyos.fs as fs
 import pyos.stdio as stdio
+from pyos import textfile
 
 console = Console()
 config = {"name": "wc", "description": "Count lines, words and characters (wc [file])."}
@@ -9,8 +10,7 @@ config = {"name": "wc", "description": "Count lines, words and characters (wc [f
 def execute(args=None):
     if args:
         try:
-            with open(fs.resolve(args[0]), "r", encoding="utf-8", errors="replace") as f:
-                text = f.read()
+            text = textfile.read(args[0])[0]
         except Exception as e:
             console.print(f"[bold red]wc: {args[0]}: {fs.errtext(e)}[/bold red]")
             return False

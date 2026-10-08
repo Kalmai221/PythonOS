@@ -235,14 +235,20 @@ cmd_page("env", "who and where you are", ["env"], "Shows the user, role, home fo
 cmd_page("xargs", "run a command with piped words", ["xargs [-n N] <command> [arguments]"], "Takes the words of the piped text and runs the command with them as arguments (N at a time with -n).",
      [("find .txt | xargs wc", "")], ["find", "seq"])
 cmd_page("time", "how long did a command take", ["time <command> [arguments]"], "Runs the command and then says how long it took.", [("time find .txt", "")], ["watch"])
-cmd_page("watch", "run a command again and again", ["watch [-n seconds] <command>"], "Clears the screen and runs the command every few seconds (2 by default) until Ctrl+C.", [("watch -n 5 free", "")], ["time"])
+cmd_page("watch", "run a command again and again", ["watch [-n seconds] <command>", "watch -f <file or folder> <command>"], "Clears the screen and runs the command every few seconds (2 by default) until Ctrl+C. With -f it runs the command again whenever that file or folder changes instead (it is checked once a second, or the system tells watch at once when the watchfiles library is installed).", [("watch -n 5 free", ""), ("watch -f notes.txt cat notes.txt", "show a file as you save it")], ["time"])
 cmd_page("tracert", "show the route to a host", ["tracert <host>", "tracert -m 15 <host>"],
      "Shows every router between this computer and the host, with three timings each (traceroute is the same command). On Windows it uses the system's own "
      "ICMP service, on Linux and the ISO the kernel's error queue, so no special rights are needed; a * means that router did not answer.",
      [("tracert example.com", "")], ["ping", "nslookup"])
 cmd_page("nslookup", "look up a name in the DNS", ["nslookup <name> [type] [server]", "nslookup <address>"],
-     "Asks a name server (your system's, or the one you name) for A, AAAA, MX, NS, TXT, CNAME or SOA records, or for the name behind an address. dig and host are the same command.",
+     "Asks a name server (your system's, or the one you name) for A, AAAA, MX, NS, TXT, CNAME or SOA records, or for the name behind an address. With the dnspython library (see extras) it also knows SRV, CAA, DS, DNSKEY, TLSA and more. dig and host are the same command.",
      [("nslookup example.com MX", "mail servers"), ("nslookup 1.1.1.1", "the name of an address"), ("nslookup example.com A 8.8.8.8", "ask Google's server")], ["ping", "whois"])
+cmd_page("extras", "choose the optional libraries", ["extras", "extras choose", "extras install <name>... | all", "extras remove <name>...", "extras none"],
+     "PythonOS works without its optional libraries; each adds something (better search, .7z archives, the processor's model, more DNS record types, ...). `extras` lists them with what each adds and "
+     "whether it is installed, `choose` lets you pick from the list, and install, remove and none change it. Your choice is kept: when PythonOS is updated it installs what you chose "
+     "(everything, if you chose all) and only mentions new ones if you picked by hand. On the live ISO and in virtual machines they are downloaded when you install them, so the computer needs the internet. "
+     "The Android app carries its libraries inside and cannot add more.",
+     [("extras", "see them all"), ("extras choose", "pick from a list"), ("extras install py7zr", "add .7z support")], ["doctor", "updatecheck"])
 cmd_page("whois", "who registered a domain", ["whois <domain>"], "Shows the registration record of a domain from the registry's whois service.", [("whois example.com", "")], ["nslookup"])
 cmd_page("curl", "fetch a web address", ["curl <url>", "curl -I <url>", "curl -o file <url>"],
      "Shows the page at an address, only its headers (-I), or saves it to a file (-o). Answers over 50 MB are refused.", [("curl -I example.com", "")], ["wget", "ping"])

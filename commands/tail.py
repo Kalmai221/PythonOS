@@ -1,6 +1,7 @@
 from rich.console import Console
 import pyos.fs as fs
 import pyos.stdio as stdio
+from pyos import textfile
 
 console = Console()
 config = {"name": "tail", "description": "Show the last lines of a file or piped input (tail [-n N] [file])."}
@@ -22,8 +23,7 @@ def execute(args=None):
     n, files = parse(args)
     if files:
         try:
-            with open(fs.resolve(files[0]), "r", encoding="utf-8", errors="replace") as f:
-                lines = f.read().splitlines()
+            lines = textfile.read(files[0])[0].splitlines()
         except Exception as e:
             console.print(f"[bold red]tail: {files[0]}: {fs.errtext(e)}[/bold red]")
             return False

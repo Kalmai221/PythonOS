@@ -4,6 +4,7 @@ from rich.console import Console
 from rich.markup import escape
 
 import pyos.fs as fs
+from pyos import textfile
 
 console = Console()
 config = {"name": "diff", "description": "Compare two files line by line: diff [-u] [-q] <file1> <file2>. Exit status says whether they differ."}
@@ -12,9 +13,7 @@ MAX_FILE = 5 * 1024 * 1024
 
 
 def read(name):
-    path = fs.resolve(name)
-    with open(path, "r", encoding="utf-8", errors="replace") as f:
-        text = f.read(MAX_FILE + 1)
+    text = textfile.read(name, MAX_FILE + 1)[0]
     if len(text) > MAX_FILE:
         raise ValueError("file is too big to compare (over 5 MB)")
     return text.splitlines()

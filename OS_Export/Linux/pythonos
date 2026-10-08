@@ -44,8 +44,8 @@ if [ ! -f "$VENV/.deps_ok" ]; then
     }
     "$VENV/bin/python" -m pip install --quiet --upgrade pip
     "$VENV/bin/python" -m pip install --quiet -r "$DATA/requirements.txt" -r "$DATA/boot-requirements.txt"
-    # optional libraries: PythonOS works without them, so a failure here is not an error
-    [ -f "$DATA/requirements-extra.txt" ] && "$VENV/bin/python" -m pip install --quiet -r "$DATA/requirements-extra.txt" || true
+    # The optional libraries (requirements-extra.txt) are not installed here: PythonOS asks which ones to have the first time it is set up
+    # (and `extras` changes the choice later), and installs them into this environment.
     touch "$VENV/.deps_ok"
 fi
 

@@ -5,7 +5,7 @@ from pyos import archive
 import pyos.fs as fs
 
 console = Console()
-config = {"name": "unzip", "description": "Unpack a zip archive: unzip [-l] [-o] <archive.zip> [-d folder]"}
+config = {"name": "unzip", "description": "Unpack a zip archive: unzip [-l] [-o] <archive.zip> [-d folder] (.7z archives too, when py7zr is installed)"}
 
 
 def execute(args=None):
@@ -26,12 +26,12 @@ def execute(args=None):
         return False
     try:
         if listing:
-            items = archive.list_zip(names[0])
+            items = (archive.list_7z if archive.is_7z(names[0]) else archive.list_zip)(names[0])
             for name, size in items:
                 console.print(f"{size:>10}  {escape(name)}", highlight=False)
             console.print(f"{len(items)} item(s)")
             return True
-        count, total = archive.extract_zip(names[0], dest, overwrite)
+        count, total = (archive.extract_7z if archive.is_7z(names[0]) else archive.extract_zip)(names[0], dest, overwrite)
     except (archive.ArchiveError, OSError, PermissionError, zipfile.BadZipFile) as e:
         console.print(f"[bold red]unzip: {escape(fs.errtext(e) if not isinstance(e, zipfile.BadZipFile) else 'not a zip file')}[/bold red]")
         return False

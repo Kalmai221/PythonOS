@@ -159,6 +159,7 @@ def _updates_and_apps():
         sysupdate.update_system(True)
     except Exception as e:
         console.print(f"[yellow]Update check failed: {escape(str(e))}[/yellow]")
+    _optional_libraries()
     names = ", ".join(n for _, n in STARTER_APPS)
     if not Confirm.ask(f"Install some starter apps ({names})?", default=True):
         return
@@ -176,6 +177,17 @@ def _updates_and_apps():
                 market.install_with_dependencies(by_id[pid], installed, packages, quiet=True)
     except Exception as e:
         console.print(f"[yellow]Could not install the starter apps: {escape(str(e))} (try 'market' later).[/yellow]")
+
+
+def _optional_libraries():
+    """Ask once which optional libraries to have (unless an installer already chose, or all of them are there)."""
+    try:
+        spec = importlib.util.spec_from_file_location("extras_cmd", os.path.join("commands", "extras.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module.first_time()
+    except Exception as e:                                         # noqa: BLE001 - optional
+        console.print(f"[dim]Optional libraries: skipped ({escape(str(e))}). Later: extras[/dim]")
 
 
 def _choose_language():

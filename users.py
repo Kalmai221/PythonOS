@@ -21,6 +21,40 @@ def load_or_create_user_db():
             json.dump({}, f)
 
 PBKDF2_ROUNDS = 200_000
+# scrypt (memory-hard, so graphics cards and custom chips gain far less against it than against PBKDF2): 32 MiB and about a tenth of a second.
+# Passwords are hashed with it where this Python has it; PBKDF2 stays for reading older hashes and for systems without scrypt.
+SCRYPT_N, SCRYPT_R, SCRYPT_P = 2 ** 15, 8, 1
+SCRYPT_MAXMEM = 128 * 1024 * 1024
+_scrypt_ok = None
+
+
+def scrypt_available():
+    """True when hashlib.scrypt works here (it needs a Python built with OpenSSL 1.1 or newer); checked once."""
+    global _scrypt_ok
+    if _scrypt_ok is None:
+        try:
+            hashlib.scrypt(b"x", salt=b"x", n=2, r=1, p=1, dklen=8)
+            _scrypt_ok = True
+        except (AttributeError, ValueError, OSError, MemoryError):
+            _scrypt_ok = False
+    return _scrypt_ok
+
+
+def _scrypt(password, salt_hex, n, r, p):
+    return hashlib.scrypt(password.encode(), salt=bytes.fromhex(salt_hex), n=n, r=r, p=p, maxmem=max(SCRYPT_MAXMEM, 130 * n * r), dklen=32).hex()
+
+
+def needs_upgrade(stored):
+    """True when a stored hash should be replaced by a fresh one the next time the person types the password: an older kind, or lighter settings."""
+    if stored.startswith("scrypt$"):
+        try:
+            _, n, r, p, _salt, _digest = stored.split("$")
+            return (int(n), int(r), int(p)) < (SCRYPT_N, SCRYPT_R, SCRYPT_P)
+        except ValueError:
+            return True
+    if stored.startswith("pbkdf2$"):
+        return scrypt_available() or int(stored.split("$")[1]) < PBKDF2_ROUNDS
+    return True
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_SECONDS = 30
 MAX_LOCKOUT_SECONDS = 15 * 60
@@ -88,8 +122,8 @@ def authenticate(username, password):
         return False, f"Too many failed attempts. Try again in {wait}s."
     if username in users and verify_password(password, users[username]['password']):
         _clear_failures(username)
-        if not users[username]['password'].startswith("pbkdf2$"):
-            users[username]['password'] = hash_password(password)  # upgrade legacy hash
+        if needs_upgrade(users[username]['password']):
+            users[username]['password'] = hash_password(password)  # upgrade an older or lighter hash
             save_users(users)
         return True, ""
     _note_failure(username)
@@ -98,14 +132,22 @@ def authenticate(username, password):
 
 
 def hash_password(password):
-    """Hash a password with salted PBKDF2-SHA256 ("pbkdf2$rounds$salt$hash")."""
+    """Hash a password with salted scrypt ("scrypt$n$r$p$salt$hash"), or salted PBKDF2-SHA256 ("pbkdf2$rounds$salt$hash") where scrypt is missing."""
     salt = secrets.token_hex(16)
+    if scrypt_available():
+        return f"scrypt${SCRYPT_N}${SCRYPT_R}${SCRYPT_P}${salt}${_scrypt(password, salt, SCRYPT_N, SCRYPT_R, SCRYPT_P)}"
     digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), PBKDF2_ROUNDS).hex()
     return f"pbkdf2${PBKDF2_ROUNDS}${salt}${digest}"
 
 
 def verify_password(password, stored):
-    """Check a password against a stored hash (also accepts legacy unsalted SHA-256)."""
+    """Check a password against a stored hash (scrypt, PBKDF2, and the legacy unsalted SHA-256)."""
+    if stored.startswith("scrypt$"):
+        try:
+            _, n, r, p, salt, digest = stored.split("$")
+            return hmac.compare_digest(_scrypt(password, salt, int(n), int(r), int(p)), digest)
+        except (AttributeError, ValueError, OSError, MemoryError):
+            return False                           # this Python has no scrypt (or the stored hash is damaged): doctor tells the person
     if stored.startswith("pbkdf2$"):
         _, rounds, salt, digest = stored.split("$")
         candidate = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), int(rounds)).hex()

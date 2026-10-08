@@ -28,6 +28,7 @@ namespace PythonOS.Setup
         private TextBox pathBox;
         private ModernCheck desktop, startMenu, launch, keepData, webview;
         private ComboBox memory;
+        private readonly List<ModernCheck> extraChecks = new List<ModernCheck>();
         private static readonly int[] MemoryChoices = new int[] { 512, 1024, 2048, 4096, 0 };
         private string page = "";
         private bool working;
@@ -186,6 +187,34 @@ namespace PythonOS.Setup
             secondary.Text = Strings.T("back");
         }
 
+        // The optional libraries: one tick each (all ticked to begin with), so a person can leave out what they do not want.
+        private void ShowExtras()
+        {
+            Reset("extras", Strings.T("extras"), Strings.T("extras.sub"));
+            extraChecks.Clear();
+            Panel list = new Panel();
+            list.AutoScroll = true; list.BackColor = p.Bg;
+            list.SetBounds(0, 0, 596, 276);
+            body.Controls.Add(list);
+            int y = 0;
+            foreach (string[] item in ExtrasList.Items)
+            {
+                string text = item[0] + (item[1].Length > 0 ? "  -  " + (item[1].Length > 64 ? item[1].Substring(0, 61) + "..." : item[1]) : "");
+                ModernCheck check = new ModernCheck(p, text, true);
+                check.SetBounds(0, y, 560, 28);
+                list.Controls.Add(check);
+                extraChecks.Add(check);
+                y += 30;
+            }
+            ModernButton all = new ModernButton(p, Strings.T("extras.all"), false); all.SetBounds(0, 282, 96, 34);
+            all.Click += delegate { foreach (ModernCheck c in extraChecks) { c.Checked = true; c.Invalidate(); } };
+            ModernButton none = new ModernButton(p, Strings.T("extras.none"), false); none.SetBounds(104, 282, 96, 34);
+            none.Click += delegate { foreach (ModernCheck c in extraChecks) { c.Checked = false; c.Invalidate(); } };
+            body.Controls.Add(all); body.Controls.Add(none);
+            primary.Text = Strings.T(o.Mode == "update" ? "update" : "install");
+            secondary.Text = Strings.T("back");
+        }
+
         private void ShowProgress()
         {
             string[] keys = new string[] { "check", "find", "download", "verify", "install", "requirements", "shortcuts" };
@@ -285,6 +314,13 @@ namespace PythonOS.Setup
                 o.FixWebView2 = webview == null || webview.Checked;
                 if (memory != null && memory.SelectedIndex >= 0) o.MemoryMb = MemoryChoices[memory.SelectedIndex];
                 if (o.Directory.Length == 0) return;
+                if (o.Mode == "install" && ExtrasList.Items.Length > 0) ShowExtras(); else ShowProgress();
+            }
+            else if (page == "extras")
+            {
+                List<string> picked = new List<string>();
+                for (int i = 0; i < extraChecks.Count; i++) if (extraChecks[i].Checked) picked.Add(ExtrasList.Items[i][0]);
+                o.Extras = picked.Count == ExtrasList.Items.Length ? "all" : picked.Count == 0 ? "none" : string.Join(",", picked.ToArray());
                 ShowProgress();
             }
             else if (page == "uninstall")
@@ -308,6 +344,7 @@ namespace PythonOS.Setup
         {
             if (page == "welcome" || page == "uninstall") { Close(); }
             else if (page == "options") ShowWelcome();
+            else if (page == "extras") ShowOptions();
             else if (page == "progress") { cancel.Cancel(); secondary.Enabled = false; }
             else if (page == "done" || page == "failed") OpenLog();
         }

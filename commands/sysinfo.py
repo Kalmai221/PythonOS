@@ -2,7 +2,7 @@ import platform
 import sys
 import os
 import psutil
-from pyos import archinfo
+from pyos import archinfo, osinfo
 from rich.console import Console
 from rich.table import Table
 
@@ -25,9 +25,10 @@ def get_system_info():
     # Get system information
     system_info = {
         "OS": platform.system(),
+        "Distribution": osinfo.distribution(),
         "OS Version": platform.version(),
         "Machine": archinfo.describe(),
-        "Processor": platform.processor(),
+        "Processor": osinfo.cpu()["model"] or platform.processor(),
         "Python Version": sys.version,
         "Disk Usage": get_disk_usage(),
         "Memory Usage": get_memory_usage()

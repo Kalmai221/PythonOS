@@ -105,7 +105,11 @@ if ($Iscc) {
     $WhatsNew = Join-Path $Out "whatsnew.rtf"
     python (Join-Path $Repo "OS_Export\whatsnew_rtf.py") $WhatsNew
     if ($LASTEXITCODE -ne 0) { throw "making the What's new page failed" }
-    & $Iscc "/DWhatsNew=$WhatsNew" "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" "/DArtDir=$Art" "/DNameTag=$Tag" "/DTargetArch=$Arch" (Join-Path $Here "PythonOS.iss")
+    # the optional libraries the installer's wizard offers, made from requirements-extra.txt
+    $ExtrasList = Join-Path $Out "extras.txt"
+    python (Join-Path $Here "make_extras_list.py") (Join-Path $Repo "requirements-extra.txt") --txt $ExtrasList
+    if ($LASTEXITCODE -ne 0) { throw "making the list of optional libraries failed" }
+    & $Iscc "/DExtrasList=$ExtrasList" "/DWhatsNew=$WhatsNew" "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Out" "/DArtDir=$Art" "/DNameTag=$Tag" "/DTargetArch=$Arch" (Join-Path $Here "PythonOS.iss")
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
     Write-Host "Built installer"
 } else {

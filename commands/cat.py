@@ -4,7 +4,7 @@ from rich.console import Console
 
 import pyos.fs as fs
 import pyos.stdio as stdio
-from pyos import filetypes
+from pyos import filetypes, textfile
 
 console = Console()
 config = {"name": "cat", "description": "Print the contents of a file (cat [--plain] <file>); code, JSON and Markdown files are coloured on a terminal."}
@@ -60,8 +60,9 @@ def execute(args=None):
                 console.print(f"[yellow]cat: {name} is not text ({filetypes.describe(head, name)}). Use cat --force to print it anyway, or file {name}.[/yellow]")
                 ok = False
                 continue
-            with open(path, "r", encoding="utf-8", errors="replace") as f:
-                text = f.read()
+            text, encoding = textfile.read(name)
+            if not textfile.is_plain(encoding) and console.is_terminal:
+                console.print(f"[dim]({name} is {encoding.upper()}, shown as text)[/dim]", highlight=False)
             if no_colour:
                 plain(text)
             else:

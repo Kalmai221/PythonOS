@@ -8,3 +8,9 @@ beautifulsoup4      # web: readable text from a page, with its links
 pyyaml              # convert: YAML to JSON and back
 rapidfuzz           # better "did you mean" and help search
 feedparser          # rss: feeds that are not quite valid
+charset-normalizer  # cat, less, head, tail, grep, diff, wc: read text files in Windows-1252, UTF-16, Shift-JIS and so on, not only UTF-8
+py7zr; python_version < "3.14"       # zip, unzip: .7z archives
+distro              # sysinfo: the name of the Linux distribution
+py-cpuinfo          # lscpu, sysinfo: the processor's model on Windows and Android
+watchfiles; python_version < "3.14"  # watch -f: run a command again when a file or folder changes (without it the folder is checked once a second)
+dnspython           # nslookup: more record types (SRV, CAA, DS, DNSKEY, TLSA, ...)

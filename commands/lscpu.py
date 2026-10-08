@@ -5,7 +5,7 @@ import psutil
 from rich.console import Console
 from rich.table import Table
 
-from pyos import archinfo
+from pyos import archinfo, osinfo
 
 console = Console()
 config = {"name": "lscpu", "description": "Show the processor: family, cores, speed, load."}
@@ -27,7 +27,9 @@ def execute(args=None):
         freq = psutil.cpu_freq()
     except Exception:                                  # noqa: BLE001 - some systems (Apple silicon) do not report a speed
         freq = None
-    rows = [("Family", archinfo.arch()), ("Description", archinfo.describe()), ("Processor", platform.processor() or "-"),
+    model = osinfo.cpu()
+    rows = [("Family", archinfo.arch()), ("Description", archinfo.describe()), ("Model", model["model"] or platform.processor() or "-"),
+            ("Vendor", model["vendor"] or "-"), ("Cache", model["cache"] or "-"),
             ("Cores (logical)", str(os.cpu_count() or 1)), ("Cores (physical)", str(psutil.cpu_count(logical=False) or "-")),
             ("Speed", f"{freq.current:.0f} MHz" if freq else "-"), ("Load now", load())]
     for key, value in rows:
