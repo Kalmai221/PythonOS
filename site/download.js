@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     { id: "windows", title: "Windows", match: /(web-setup\.exe|-setup\.exe|windows(-arm64)?-portable\.zip)$/, note: "Windows 10 (1809) or newer, on Intel/AMD or ARM. The web installer is a tiny download that fetches and checks the right package for your PC." },
     { id: "android", title: "Android", match: /\.apk$/, note: "Android 7 or newer. The installer app (about 1 MB) finds out which processor your device has and downloads the right PythonOS app, checking it first. Or download the full app yourself: arm64 for nearly every phone." },
     { id: "linux", title: "Linux", match: /(\.deb|-linux\.tar\.gz|\.pkg\.tar\.zst|\.rpm)$/, note: "Any Linux with Python 3.9+, on any processor. Debian/Ubuntu: .deb. Arch: .pkg.tar.zst. Fedora/RHEL/openSUSE: .rpm. Everything else: the tarball." },
-    { id: "usb", title: "Bootable USB", match: /((x86_64|aarch64)\.iso|pythonos-wizard-[\d.]+\.zip)$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it with the Setup Wizard, which only offers USB sticks and checks what it wrote." },
+    { id: "usb", title: "Bootable USB", match: /(x86_64|aarch64)\.iso$/, note: "Boot a PC (x86_64) or an ARM computer (aarch64, UEFI) from a stick without touching its disk. Write it to a stick with Rufus, balenaEtcher or dd." },
     { id: "vm", title: "Virtual machine", match: /(\.ova|\.qcow2|vm-kit\.zip)$/, note: "Import the .ova into VirtualBox or VMware, or attach the .qcow2 in QEMU, KVM or Proxmox. These are for PCs (x86_64)." }
   ];
   var USE = [
@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
     [/android-installer\.apk$/, "Recommended: a tiny installer that picks the right app for your device"], [/arm64-v8a\.apk$/, "Phones and tablets (full app)"], [/x86_64\.apk$/, "Chromebooks and emulators"], [/android\.apk$/, "Universal APK"],
     [/\.deb$/, "Debian, Ubuntu and friends"], [/pkg\.tar\.zst$/, "Arch, Manjaro"], [/\.rpm$/, "Fedora, RHEL, openSUSE"], [/linux\.tar\.gz$/, "Any Linux, any processor"],
     [/minimal-aarch64\.iso$/, "Live system only, 64-bit ARM"], [/aarch64\.iso$/, "Full image for 64-bit ARM (UEFI)"], [/minimal-x86_64\.iso$/, "Live system only, small (512 MB RAM)"], [/x86_64\.iso$/, "Full image: installer, Bluetooth, printing"],
-    [/pythonos-wizard-/, "Setup Wizard: install, write a USB stick, set up a VM (Windows, Linux)"],
     [/\.ova$/, "VirtualBox / VMware appliance"], [/vm-data\.qcow2$/, "Data disk: attach it next to the .qcow2 to keep your files"], [/\.qcow2$/, "QEMU / KVM / Proxmox disk"], [/vm-kit/, "Run scripts for QEMU, VirtualBox, VMware"]
   ];
   var ARCHS = {
@@ -151,8 +150,6 @@ document.addEventListener("DOMContentLoaded", function () {
              "<span class='use'>" + P.esc(useOf(a.name)) + "</span></li>";
     }).join("") : "<li class='note'>There is no " + archName(group.id, state.arch) + " build of this in the release. Pick the other processor.</li>";
     $("note").innerHTML = P.esc(group.note) + (hidden > 0 ? " <span class='muted'>(" + hidden + " file" + (hidden > 1 ? "s" : "") + " for the other processor hidden.)</span>" : "");
-    var wizard = assets.filter(function (a) { return /pythonos-wizard-[\d.]+\.zip$/.test(a.name); })[0];
-    if (wizard) { $("wizard").hidden = false; $("wizard-link").href = wizard.browser_download_url; }
   }
 
   Promise.all([P.api("releases/latest"), detectArch()]).then(function (r) {

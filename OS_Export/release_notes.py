@@ -37,7 +37,6 @@ FILES = [
     ("pythonos-{v}-minimal-x86_64.iso", "iso", "Bootable", "Minimal live image", "The live system only: much smaller and lighter (runs in 512 MB). No Bluetooth, printing, installer or guest tools."),
     ("pythonos-{v}-aarch64.iso", "iso", "Bootable", "Full live image for 64-bit ARM", "UEFI ARM computers and virtual machines (ARM servers, Apple-silicon VMs, Raspberry Pi 4/5 with UEFI firmware). Same features as the PC image except the PC-only tools."),
     ("pythonos-{v}-minimal-aarch64.iso", "iso", "Bootable", "Minimal live image for 64-bit ARM", "The live system only, for ARM."),
-    ("pythonos-wizard-{v}.zip", "wizard", "Setup Wizard", "Setup Wizard (Windows, Linux)", "Start here if you are not sure. Unzip and run wizard.bat (Windows) or wizard.sh (Linux): it looks at your computer, asks what you want (install, phone, USB stick, virtual machine, Docker), gets the right file and checks it. No Python needed."),
     ("pythonos-{v}-vm.ova", "iso", "Virtual machine", "Appliance (OVA)", "VirtualBox or VMware: File > Import Appliance. 1 GB, 2 CPUs, NAT network, and a 2 GB data disk that keeps your accounts and files."),
     ("pythonos-{v}-vm.qcow2", "iso", "Virtual machine", "QEMU/KVM disk", "QEMU, KVM, libvirt, Proxmox: attach as a disk and boot."),
     ("pythonos-{v}-vm-data.qcow2", "iso", "Virtual machine", "QEMU/KVM data disk", "Attach it as a second disk next to the .qcow2: the VM then keeps your accounts, files and settings (2 GB)."),
@@ -52,9 +51,6 @@ FILES = [
 # "Which file do I download?": one table per system, by the situation the reader is in. Each row: (situation, [files], how to use it).
 # {v} is the version. A row whose files are not in this release (a build that failed or was skipped) is left out.
 GUIDE = [
-    ("Not sure? Start here", "The Setup Wizard asks what you want and picks the right file for your computer. It works on Windows and Linux.", [
-        ("Any computer", ["pythonos-wizard-{v}.zip"], "Unzip, then run `wizard.bat` (Windows) or `wizard.sh` (Linux). No Python needed."),
-    ]),
     ("Windows", "Windows 10 (1809) or newer.", [
         ("Most PCs (Intel or AMD)", ["PythonOS-{v}-web-setup.exe"], "Run it. A tiny installer that fetches and checks the rest; it offers shortcuts, update, repair and uninstall."),
         ("Windows on ARM (Surface Pro X, Copilot+ PCs)", ["PythonOS-{v}-web-setup.exe", "PythonOS-{v}-arm64-setup.exe"], "The web installer picks the ARM package by itself; the second file is the full offline installer for ARM."),
@@ -81,11 +77,10 @@ GUIDE = [
     ("Docker", "Amd64 and arm64 (PCs, Raspberry Pi, Apple silicon). Nothing to download: Docker fetches it.", [
         ("Any computer with Docker", [], "`docker run -it --rm -v pythonos-data:/data ghcr.io/kalmai221/pythonos` — the volume keeps your accounts, files and updates."),
     ]),
-    ("Bootable USB stick (the live system)", "Starts PythonOS on a computer without touching its disk. Write the image with the Setup Wizard (it only offers USB sticks and checks what it wrote).", [
+    ("Bootable USB stick (the live system)", "Starts PythonOS on a computer without touching its disk. Write the image to the stick with an image-writing program (Rufus or balenaEtcher on Windows, `dd` on Linux) and check the download against SHA256SUMS first.", [
         ("A PC (Intel or AMD), 1 GB of RAM or more", ["pythonos-{v}-x86_64.iso"], "The full image: Bluetooth, printing, the `installos` disk installer and virtual machine tools."),
         ("A PC with little memory (512 MB)", ["pythonos-{v}-minimal-x86_64.iso"], "The live system only."),
         ("An ARM computer with UEFI (Raspberry Pi 4/5 with UEFI firmware, ARM servers)", ["pythonos-{v}-aarch64.iso", "pythonos-{v}-minimal-aarch64.iso"], "Full and minimal images for 64-bit ARM."),
-        ("Write the stick", ["pythonos-wizard-{v}.zip"], "Choose \"Make a bootable USB stick\" in the wizard."),
     ]),
     ("Virtual machines", "The ready-made images are for Intel/AMD computers. On an ARM computer (Apple silicon) use the ARM image above in any program.", [
         ("VirtualBox or VMware", ["pythonos-{v}-vm.ova"], "File > Import Appliance. 1 GB, 2 CPUs, NAT network, and a data disk that keeps your files."),
@@ -114,7 +109,7 @@ def quick_guide(version, sizes, tag):
 
 
 def write_catalog(path, version, sizes, tag):
-    """release-catalog.json: every file of the release with its system, processor, kind and size, for the Setup Wizard and the website."""
+    """release-catalog.json: every file of the release with its system, processor, kind and size, for the website."""
     entries = []
     for name in sorted(sizes):
         entry = catalog.classify(name)

@@ -38,8 +38,6 @@ jobs:
       linux_fp: ${{ steps.plan.outputs.linux_fp }}
       iso: ${{ steps.plan.outputs.iso }}
       iso_fp: ${{ steps.plan.outputs.iso_fp }}
-      wizard: ${{ steps.plan.outputs.wizard }}
-      wizard_fp: ${{ steps.plan.outputs.wizard_fp }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -328,68 +326,6 @@ jobs:
             dist/core/*.zip
             dist/core/core-manifest.json
 
-  wizard:
-    name: Setup Wizard program (${{ matrix.name }})
-    needs: plan
-    if: needs.plan.outputs.wizard == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {name: windows-x64, os: windows-latest}
-          - {name: linux-x86_64, os: ubuntu-22.04}
-          - {name: linux-aarch64, os: ubuntu-22.04-arm, optional: true}
-          # No macOS build: the wizard is for Windows and Linux. Macs use Docker or a virtual machine (see the release page).
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.optional == true }}      # a system that cannot be built does not hold the release back; its program is left out of the zip
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Tk for the window (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq python3-tk tk-dev
-      - name: Build the program (one file, no Python needed to run it)
-        run: |
-          python -m pip install --quiet pyinstaller
-          python OS_Export/Wizard/build.py --out dist/wizard-bin
-      - name: Check that it starts
-        shell: bash
-        run: |
-          for f in dist/wizard-bin/*; do
-            "$f" --version
-            "$f" --cli --goal docker --dry-run || true       # needs the network: only a start-up check
-          done
-      - uses: actions/upload-artifact@v7
-        with:
-          name: wizard-bin-${{ matrix.name }}
-          path: dist/wizard-bin/*
-
-  wizard_pack:
-    name: Setup Wizard zip
-    needs: [plan, wizard]
-    if: ${{ !cancelled() && needs.plan.outputs.wizard == 'true' && needs.wizard.result != 'cancelled' && needs.wizard.result != 'skipped' }}
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - uses: actions/download-artifact@v8
-        with:
-          pattern: wizard-bin-*
-          path: dist/wizard-bin
-          merge-multiple: true
-      - name: Put the programs and their launchers in one zip
-        run: |
-          python OS_Export/Wizard/pack.py --bin dist/wizard-bin --version "${VERSION#v}" --out dist/wizard
-          ls -la dist/wizard
-      - uses: actions/upload-artifact@v7
-        with:
-          name: export-wizard-${{ needs.plan.outputs.wizard_fp }}-${{ needs.plan.outputs.version }}
-          path: dist/wizard/*.zip
-
   docker:
     name: Docker image (ghcr.io)
     needs: [plan, checks]
@@ -430,7 +366,7 @@ jobs:
     # The core package is what installed copies update from, so it must succeed; an export that had to be
     # built must succeed too (the manifest links to its files). Reused exports are simply skipped jobs.
     if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.core.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-    needs: [plan, checks, linux, windows, android, iso, wizard_pack, core]
+    needs: [plan, checks, linux, windows, android, iso, core]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7

@@ -88,19 +88,5 @@
       "pythonos-{v}-aarch64.iso",
       "pythonos-{v}-minimal-aarch64.iso"
     ]
-  },
-  "wizard": {
-    "title": "Setup Wizard",
-    "api": 1,
-    "assets": [
-      "pythonos-wizard-{v}.zip"
-    ],
-    "notes": "One program that detects your computer, asks what you want (install, Android, bootable USB, virtual machine, Docker) and gets the right file.",
-    "inputs": [
-      "OS_Export/Wizard",
-      "OS_Export/catalog.py",
-      "pyos/archinfo.py"
-    ],
-    "embeds_core": false
   }
 }

@@ -455,91 +455,42 @@ def run(root):
         finally:
             _platform.system, _platform.machine, archinfo._windows_native, archinfo._mac_native, archinfo._android_abi = saved
             archinfo.detect.cache_clear()
-        spec = importlib.util.spec_from_file_location("flashlib_test", os.path.join(REPO, "OS_Export", "Wizard", "flashlib.py"))
-        flashlib = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(flashlib)
-        sums = flashlib.parse_sums("%s  pythonos-9.9.9-x86_64.iso\n%s *pythonos-9.9.9-minimal-aarch64.iso\nnot a line\n" % ("a" * 64, "b" * 64))
-        assert flashlib.pick_iso(sums, "x86_64") == "pythonos-9.9.9-x86_64.iso" and flashlib.pick_iso(sums, "aarch64", True).endswith("minimal-aarch64.iso")
-        assert flashlib.pick_iso(sums, "aarch64") is None and flashlib.machine_arch() == archinfo.arch()
-        lsblk = '{"blockdevices":[{"name":"sda","path":"/dev/sda","size":512000000000,"type":"disk","rm":false,"tran":"sata","children":[{"mountpoints":["/"]}]},' \
-                '{"name":"sdb","path":"/dev/sdb","size":16000000000,"type":"disk","rm":true,"tran":"usb","model":"Cruzer","mountpoints":[null]}]}'
-        assert [d["id"] for d in flashlib.parse_lsblk(lsblk)] == ["/dev/sdb"]
-        windows = '[{"Number":0,"FriendlyName":"NVMe","Size":512000000000,"BusType":"NVMe","IsSystem":true,"IsBoot":true},' \
-                  '{"Number":2,"FriendlyName":"USB Stick","Size":16000000000,"BusType":"USB","IsSystem":false,"IsBoot":false}]'
-        assert [d["id"] for d in flashlib.parse_windows_disks(windows)] == ["2"]
-        work = tempfile.mkdtemp(prefix="pyos-flash-")
-        try:
-            image, stick = os.path.join(work, "a.iso"), os.path.join(work, "stick.img")
-            with open(image, "wb") as f:
-                f.write(os.urandom(3 * 1024 * 1024 + 41))
-            with open(stick, "wb") as f:
-                f.write(b"\0" * (4 * 1024 * 1024))
-            assert flashlib.write_image(image, stick) == os.path.getsize(image) and flashlib.verify_image(image, stick)
-            with open(stick, "r+b") as f:
-                f.seek(1000)
-                f.write(b"XX")
-            assert not flashlib.verify_image(image, stick), "a changed byte must be caught"
-            log = os.path.join(work, "progress.log")
-            with open(log, "w") as f:
-                f.write('{"phase":"write","done":5,"total":10}\n{"phase":"do')
-            events, offset = flashlib.read_progress(log)
-            assert events == [("write", 5, 10, "")] and offset < os.path.getsize(log), "a half-written line must wait for the rest"
-        finally:
-            shutil.rmtree(work, ignore_errors=True)
-        print("ok   processor detection and the Flash program")
+        print("ok   processor detection")
     except _Skip:
-        print("skip processor detection and the Flash program (needs the repository checkout)")
+        print("skip processor detection (needs the repository checkout)")
     except Exception as e:                           # noqa: BLE001
-        print(f"FAIL processor detection and the Flash program   <- {type(e).__name__}: {e}")
+        print(f"FAIL processor detection   <- {type(e).__name__}: {e}")
         failures.append(("arch and flash", [f"{type(e).__name__}: {e}"], ""))
 
-    # the Setup Wizard's decisions (which file for which computer and goal) and the release catalog / release page tables
+    # the release catalog and the release page tables
     try:
         if not HAVE_REPO:
             raise _Skip()
-        sys.path.insert(0, os.path.join(REPO, "OS_Export", "Wizard"))
         sys.path.insert(0, os.path.join(REPO, "OS_Export"))
         import catalog
-        import wizardlib as wiz
         import release_notes
         v = "9.9.9"
         names = [f"PythonOS-{v}-web-setup.exe", f"PythonOS-{v}-setup.exe", f"PythonOS-{v}-arm64-setup.exe", f"PythonOS-{v}-android-arm64-v8a.apk",
                  f"PythonOS-{v}-android.apk", f"pythonos_{v}_all.deb", f"pythonos-{v}-1.noarch.rpm", f"pythonos-{v}-1-any.pkg.tar.zst",
                  f"pythonos-{v}-linux.tar.gz", f"pythonos-{v}-x86_64.iso", f"pythonos-{v}-minimal-x86_64.iso", f"pythonos-{v}-aarch64.iso",
-                 f"pythonos-{v}-vm.ova", f"pythonos-{v}-vm.qcow2", f"pythonos-{v}-vm-data.qcow2", f"pythonos-{v}-vm-kit.zip", f"pythonos-wizard-{v}.zip",
+                 f"pythonos-{v}-vm.ova", f"pythonos-{v}-vm.qcow2", f"pythonos-{v}-vm-data.qcow2", f"pythonos-{v}-vm-kit.zip",
                  "SHA256SUMS", "core-manifest.json", f"pythonos-core-{v}.zip", "notes.txt"]
         entries = catalog.build(names)
         assert len(entries) == len(names) - 1, "every known file is classified, an unknown one is not"
         assert catalog.classify(f"pythonos-{v}-minimal-aarch64.iso") == {"name": f"pythonos-{v}-minimal-aarch64.iso", "os": "bootable", "arch": "aarch64",
                                                                          "kind": "iso", "variant": "minimal"}
-        rel = wiz.Release("v" + v, {n: {"url": "u/" + n, "size": 1} for n in names})
-        x64 = {"os": "windows", "arch": "x86_64", "package": None, "distro": {}, "tools": {}, "arch_label": "", "emulated": False, "note": ""}
-        assert wiz.plan_for("install", x64, rel)["files"] == [f"PythonOS-{v}-web-setup.exe"]
-        fedora = dict(x64, os="linux", package=wiz.package_kind(wiz.parse_os_release('ID=fedora\nPRETTY_NAME="Fedora"\n')), distro={"name": "Fedora"})
-        assert wiz.plan_for("install", fedora, rel)["files"] == [f"pythonos-{v}-1.noarch.rpm"]
-        assert wiz.plan_for("install", dict(fedora, package=wiz.package_kind(wiz.parse_os_release("ID=alpine\n"))), rel)["files"] == [f"pythonos-{v}-linux.tar.gz"]
-        assert wiz.package_kind(wiz.parse_os_release('ID=linuxmint\nID_LIKE="ubuntu debian"\n')) == "deb"
-        assert wiz.plan_for("android", x64, rel, abi="aarch64")["files"] == [f"PythonOS-{v}-android-arm64-v8a.apk"]
-        assert wiz.plan_for("android", x64, rel, abi="universal")["files"] == [f"PythonOS-{v}-android.apk"]
-        assert wiz.plan_for("vm", x64, rel, software="virtualbox")["files"] == [f"pythonos-{v}-vm.ova"]
-        assert wiz.plan_for("vm", x64, rel, software="qemu")["files"][:2] == [f"pythonos-{v}-vm.qcow2", f"pythonos-{v}-vm-data.qcow2"]
-        assert wiz.plan_for("vm", x64, rel, software="hyperv")["files"] == [f"pythonos-{v}-x86_64.iso"]
-        arm = dict(x64, arch="aarch64")
-        for software in ("virtualbox", "qemu", "utm"):
-            assert wiz.plan_for("vm", arm, rel, software=software)["files"] == [f"pythonos-{v}-aarch64.iso"], "an ARM computer must get the ARM image"
-        assert wiz.plan_for("docker", x64, rel)["action"] == "docker-run"
         sizes = {n: 1024 for n in names}
         page = "\n".join(release_notes.quick_guide(v, sizes, "v" + v))
         for title in ("### Windows", "### Android", "### Linux", "### Docker", "### Bootable USB stick", "### Virtual machines"):
             assert title in page, f"the release page needs a table for {title}"
         assert f"releases/download/v{v}/pythonos-{v}-vm.ova" in page
         assert "pythonos-9.9.9-windows-portable.zip" not in page, "a file that is not in the release is not offered"
-        print("ok   setup wizard plans and release page tables")
+        print("ok   release catalog and release page tables")
     except _Skip:
-        print("skip setup wizard plans and release page tables (needs the repository checkout)")
+        print("skip release catalog and release page tables (needs the repository checkout)")
     except Exception as e:                           # noqa: BLE001
-        print(f"FAIL setup wizard plans and release page tables   <- {type(e).__name__}: {e}")
-        failures.append(("wizard plans", [f"{type(e).__name__}: {e}"], ""))
+        print(f"FAIL release catalog and release page tables   <- {type(e).__name__}: {e}")
+        failures.append(("release tables", [f"{type(e).__name__}: {e}"], ""))
 
     # the file manager: its engine (folders first, copy/cut/paste without overwriting, trash and undo, rename) and the screen starting and quitting
     try:

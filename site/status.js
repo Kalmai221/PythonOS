@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
     { id: "plan", title: "Plan", hint: "Works out what changed since the last release", re: /^Plan/i },
     { id: "checks", title: "Checks", hint: "Lockdown audit, dependency scan, smoke test", re: /^Checks/i },
     { id: "packages", title: "Packages", hint: "Windows, Android, Linux and the live USB and virtual machine images", re: /^(Windows|Android|Linux|ISO|Bootable|Virtual)/i },
-    { id: "wizard", title: "Setup Wizard", hint: "The program that installs PythonOS, per system, and its zip", re: /^Setup Wizard/i },
     { id: "core", title: "Core update", hint: "What installed copies download to update themselves", re: /^Core/i },
     { id: "docker", title: "Docker", hint: "The container image", re: /^Docker/i },
     { id: "release", title: "Release", hint: "Checksums, signatures and the release page", re: /^Publish/i }

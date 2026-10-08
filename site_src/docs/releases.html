@@ -31,7 +31,7 @@ order: 30
   <li>The version in <code>config.json</code> and the section in <code>CHANGELOG.md</code> are set, and the <em>Test</em> workflow is green on <code>main</code>.</li>
   <li>Push the tag: <code>git tag v1.0.9 &amp;&amp; git push origin v1.0.9</code>. The <em>Build PythonOS</em> workflow starts.</li>
   <li>A <em>plan</em> step decides what to build. An export whose inputs did not change since the previous release is not rebuilt: the release links to the old file. An export an earlier run of the same version already built is taken from that run, so after a fix only what failed is built again.</li>
-  <li>The checks run, then the packages are built: Linux, Windows (installer, host, portable, Setup Wizard), Android (installer and apps), ISO (full and minimal, x86_64 and aarch64), virtual machine images, and the Docker image, which is smoke-tested.</li>
+  <li>The checks run, then the packages are built: Linux, Windows (installer, host, portable), Android (installer and apps), ISO (full and minimal, x86_64 and aarch64), virtual machine images, and the Docker image, which is smoke-tested.</li>
   <li>The release is published with the release notes (built from the changelog, one heading for each part), a table of which file is for which system, <code>SHA256SUMS</code>, a signature and build attestations. The core update (<code>pythonos-core-&lt;version&gt;.zip</code> and its manifest) is attached: this is what <code>updatecheck</code> downloads.</li>
 </ol>
 <p>The manifest carries the PythonOS part of the changelog as its notes, and the Exports part as <code>export_notes</code>.</p>

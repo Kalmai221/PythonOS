@@ -1,14 +1,14 @@
 """What every file of a PythonOS release is: which system it is for, which processor, and what kind of file it is.
 
-One place that knows it, used by the release notes (release_notes.py), which also publishes it as release-catalog.json, and by the setup wizard
-and the website, which read that catalog to choose the right download instead of guessing from file names. For a release made before the
-catalog existed, classify() works it out from the name, so the wizard works with every release.
+One place that knows it, used by the release notes (release_notes.py), which also publishes it as release-catalog.json, and by the website,
+which reads that catalog to choose the right download instead of guessing from file names. For a release made before the
+catalog existed, classify() works it out from the name.
 
 Fields of an entry:
     name      the file name
     os        windows | android | linux | bootable | vm | docker | system
     arch      x86_64 | aarch64 | any     (the processor the file is for; "any" works on both)
-    kind      installer-web, installer, portable, apk, deb, rpm, pacman, tarball, iso, ova, qcow2, qcow2-data, vm-kit, wizard, ...
+    kind      installer-web, installer, portable, apk, deb, rpm, pacman, tarball, iso, ova, qcow2, qcow2-data, vm-kit, ...
     variant   full | minimal | ""        (ISOs)
 Standard library only.
 """
@@ -37,8 +37,6 @@ RULES = [
     (r"^pythonos-[\d.]+-vm-data\.qcow2$", "vm", "x86_64", "qcow2-data", ""),
     (r"^pythonos-[\d.]+-vm\.qcow2$", "vm", "x86_64", "qcow2", "full"),
     (r"^pythonos-[\d.]+-vm-kit\.zip$", "vm", "any", "vm-kit", ""),
-    (r"^pythonos-wizard-[\d.]+\.zip$", "bootable", "any", "wizard", ""),
-    (r"^pythonos-flash-tool-[\d.]+\.(zip|py)$", "bootable", "any", "wizard", ""),
     (r"^pythonos-core-[\d.]+\.zip$", "system", "any", "core", ""),
     (r"^core-manifest\.json$", "system", "any", "manifest", ""),
     (r"^SHA256SUMS(\.sigstore\.json)?$", "system", "any", "checksums", ""),
