@@ -113,8 +113,10 @@ jobs:
       - name: C# installer compiles
         shell: pwsh
         run: |
-          $csc = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-          & $csc /nologo /target:winexe /out:$env:RUNNER_TEMP\setup-test.exe /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll OS_Export\Windows\native\setup\*.cs
+          $csc = Join-Path $env:WINDIR "Microsoft.NET/Framework64/v4.0.30319/csc.exe"
+          python OS_Export/Windows/make_extras_list.py requirements-extra.txt --cs "$env:RUNNER_TEMP/ExtrasList.g.cs"
+          $src = @(Get-ChildItem OS_Export/Windows/native/setup -Filter *.cs | ForEach-Object { $_.FullName }) + "$env:RUNNER_TEMP/ExtrasList.g.cs"
+          & $csc /nologo /codepage:65001 /platform:x64 /target:winexe /out:$env:RUNNER_TEMP/setup-test.exe /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll /r:System.Web.Extensions.dll $src
           if ($LASTEXITCODE -ne 0) { throw "the installer does not compile" }
       - name: PowerShell scripts parse
         shell: pwsh
