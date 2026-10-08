@@ -5,13 +5,15 @@ pull request with the result; nobody runs it by hand and PythonOS never runs it.
     python tools/translate_ci.py                  translate what is missing with Argos Translate and rewrite pyos/locales_auto.py
     python tools/translate_ci.py --dry-run        only say what would be translated
     python tools/translate_ci.py --summary FILE   also write the pull request text to FILE
+    python tools/translate_ci.py --verify-back    also translate every result back to English and compare (slower, more models)
 
 How it works
   * the messages are every text given to tr() in the code (tools/i18n_keys.py)
   * a message that a person translated (corrections in pyos/locales.py) is never touched and always wins over a machine one
   * {placeholders}, <arguments>, file names, flags, key letters like (a) and command names such as pkg and sudo are swapped for tokens before
     translating and put back afterwards; a result that lost or changed one is thrown away
-  * every result is translated back to English and compared with the original: a result that comes back as something else is thrown away
+  * only English -> language models are used. With --verify-back every result is also translated back to English and compared with the
+    original (a result that comes back as something else is thrown away); that needs the opposite models too, so it is off by default
   * a message that is thrown away stays English, which is always safe: pyos/i18n.py falls back to the English text
   * the output file is written in a fixed order, so running it twice changes nothing
 """
@@ -31,6 +33,7 @@ import i18n_keys  # noqa: E402
 
 OUTPUT = os.path.join(REPO_ROOT, "pyos", "locales_auto.py")
 LANGUAGES = {"es": "ES", "fr": "FR", "de": "DE"}                  # the languages PythonOS has (pyos/i18n.py), without English
+VERIFY_BACK = False                                                # set by --verify-back
 MIN_SIMILARITY = 0.30                                              # how much of a result must survive the trip back to English
 # what must come through a translation unchanged
 PROTECTED = re.compile(
@@ -70,7 +73,7 @@ class ArgosEngine(Engine):
         available = argostranslate.package.get_available_packages()
         installed = {(p.from_code, p.to_code) for p in argostranslate.package.get_installed_packages()}
         for code in codes:
-            for pair in (("en", code), (code, "en")):
+            for pair in (("en", code), (code, "en")) if VERIFY_BACK else (("en", code),):
                 if pair in installed:
                     continue
                 package = next((p for p in available if (p.from_code, p.to_code) == pair), None)
@@ -139,14 +142,15 @@ def translate_one(engine, text, code):
             continue
         if not restored.strip() or restored.strip() == text.strip():
             return None, "the result is empty or unchanged"
-        try:
-            returned = engine.back(result, code)
-        except Exception as e:                                     # noqa: BLE001
-            return None, f"the check failed ({type(e).__name__})"
-        returned = restore(returned, parts, token_format) or returned
-        score = similar(text, returned)
-        if score < MIN_SIMILARITY:
-            return None, f"it does not mean the same when translated back (similarity {score:.2f})"
+        if VERIFY_BACK:
+            try:
+                returned = engine.back(result, code)
+            except Exception as e:                                 # noqa: BLE001
+                return None, f"the check failed ({type(e).__name__})"
+            returned = restore(returned, parts, token_format) or returned
+            score = similar(text, returned)
+            if score < MIN_SIMILARITY:
+                return None, f"it does not mean the same when translated back (similarity {score:.2f})"
         if set(re.findall(r"\{\w+\}", restored)) != set(re.findall(r"\{\w+\}", text)):
             return None, "its {placeholders} differ"
         return restored, None
@@ -229,7 +233,10 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--out", default=OUTPUT)
     parser.add_argument("--summary")
+    parser.add_argument("--verify-back", action="store_true")
     args = parser.parse_args(argv)
+    global VERIFY_BACK
+    VERIFY_BACK = args.verify_back
     keys = i18n_keys.all_keys()
     human, auto = load_human(), load_auto(args.out)
     result, report = run(ArgosEngine, keys, human, auto, args.dry_run)

@@ -3,7 +3,7 @@ name: Translations
 # Machine-translates the messages PythonOS has no translation for yet (Spanish, French, German) and opens a pull request with the result.
 #   - a correction a person writes in pyos/locales.py is never touched and always wins over a machine translation
 #   - the engine is Argos Translate; it only ever runs here, never inside PythonOS (which just looks the text up in pyos/locales_auto.py)
-#   - results that lost a {placeholder} or mean something else when translated back are thrown away and stay English
+#   - results that lost a {placeholder} are thrown away and stay English (translating back to compare is optional: --verify-back)
 #   - a pull request opened with the default token does not start the other workflows: run "Test" on it from the Actions tab if you want,
 #     or review the file by eye (it only changes pyos/locales_auto.py)
 # The repository setting "Allow GitHub Actions to create and approve pull requests" (Settings > Actions > General) must be on.

@@ -71,9 +71,15 @@ def main():
     eats_all = FakeEngine(mangle=lambda s: re.sub(r"⟦\d+⟧|XQ\d+Z|\[\d+\]", "", s))
     text, why = t.translate_one(eats_all, "removed {n} files", "es")
     assert text is None and "must stay" in why
-    # a result that means something else when translated back is thrown away
+    # by default nothing is translated back: a wrong "back" result is not even asked for
+    bad_back = FakeEngine(wrong_back=True)
+    text, why = t.translate_one(bad_back, "hello world", "es")
+    assert text and why is None, (text, why)
+    # with --verify-back a result that means something else when translated back is thrown away
+    t.VERIFY_BACK = True
     text, why = t.translate_one(FakeEngine(wrong_back=True), "hello world", "es")
     assert text is None and "translated back" in why
+    t.VERIFY_BACK = False
     # an unchanged result and a failing engine are thrown away too
     text, why = t.translate_one(FakeEngine(), "Zzz Qqq", "es")
     assert text is None and "unchanged" in why
@@ -99,7 +105,9 @@ def main():
     assert human["es"] == {"hello world": "HOLA A MANO"}
     assert not any("old machine text" in c for c in engine.calls)
     # messages the engine cannot do safely stay out of the file and are listed in the report
+    t.VERIFY_BACK = True
     result, report = t.run(factory(FakeEngine(wrong_back=True)), ["hello world"], {c: {} for c in t.LANGUAGES}, {c: {} for c in t.LANGUAGES})
+    t.VERIFY_BACK = False
     assert result["es"] == {} and report["es"]["thrown_away"] and "translated back" in report["es"]["thrown_away"][0][1]
     # a dry run translates nothing
     engine = FakeEngine()
