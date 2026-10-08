@@ -32,7 +32,8 @@ def main():
                 if cmd[:2] == ["apk", "update"]:
                     return (0, "ok") if (network or "dl-cdn" not in text) else (1, "network unreachable")
                 if cmd[:3] == ["apk", "search", "-e"]:
-                    return (0, cmd[3] + "-1.0\n" if False else cmd[3] + "\n") if online and "dl-cdn" in text else (0, "")
+                    # apk prints the package with its version ("linux-lts-6.6.84-r0"), never the bare name
+                    return (0, cmd[3] + "-6.6.84-r0\n") if online and "dl-cdn" in text else (0, "")
                 raise AssertionError(cmd)
             return run
 

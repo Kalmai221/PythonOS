@@ -288,7 +288,8 @@ def _missing_base():
     missing = []
     for name in BASE_PACKAGES:
         code, out = hardware.run(["apk", "search", "-e", name], timeout=120, merge=True)
-        if code != 0 or name not in out.split():
+        # apk prints the package WITH its version ("linux-lts-6.6.84-r0"), not the bare name
+        if code != 0 or not any(token == name or re.match(re.escape(name) + r"-\d", token) for token in out.split()):
             missing.append(name)
     return missing
 
