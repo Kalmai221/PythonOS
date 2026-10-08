@@ -86,7 +86,7 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
     <Info>The list of logical networks</Info>
     <Network ovf:name="NAT"><Description>NAT</Description></Network>
   </NetworkSection>
-  <VirtualSystem ovf:id="PythonOS">
+  <VirtualSystem ovf:id="PythonOS $VERSION">
     <Info>PythonOS $VERSION live system</Info>
     <Name>PythonOS $VERSION</Name>
     <OperatingSystemSection ovf:id="101" vmw:osType="other4xLinux64Guest">
@@ -97,7 +97,7 @@ cat > "$WORK/pythonos-$VERSION.ovf" <<EOF
       <System>
         <vssd:ElementName>Virtual Hardware Family</vssd:ElementName>
         <vssd:InstanceID>0</vssd:InstanceID>
-        <vssd:VirtualSystemIdentifier>PythonOS</vssd:VirtualSystemIdentifier>
+        <vssd:VirtualSystemIdentifier>PythonOS $VERSION</vssd:VirtualSystemIdentifier>
         <vssd:VirtualSystemType>vmx-14</vssd:VirtualSystemType>
       </System>
       <Item>

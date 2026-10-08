@@ -9,6 +9,7 @@ import threading
 import time
 
 from rich.console import Console
+from rich.markup import escape
 
 import pyos
 
@@ -39,12 +40,13 @@ def elevate(action):
             record(action)
             return True
     import users
-    console.print(f"[bold yellow]Administrator action:[/bold yellow] {action}")
+    from pyos.i18n import tr
+    console.print(f"[bold yellow]{escape(tr('Administrator action:'))}[/bold yellow] {escape(action)}")
     for attempt in range(3):
         try:
-            password = getpass.getpass(f"Password for {me}: ")
+            password = getpass.getpass(tr("Password for {name}: ", name=me))
         except (KeyboardInterrupt, EOFError):
-            console.print("\n[yellow]Cancelled.[/yellow]")
+            console.print("\n[yellow]" + escape(tr("Cancelled.")) + "[/yellow]")
             record(action, "cancelled at the password prompt", "WARN", me)
             return False
         ok, _message = users.authenticate(me, password)
@@ -53,7 +55,7 @@ def elevate(action):
                 _ok_until[me] = time.time() + GRACE_SECONDS
             record(action)
             return True
-        console.print("[bold red]Wrong password.[/bold red]")
+        console.print("[bold red]" + escape(tr("Wrong password.")) + "[/bold red]")
     record(action, "refused: wrong password three times", "WARN", me)
     return False
 

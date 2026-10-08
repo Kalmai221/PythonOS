@@ -15,3 +15,7 @@ The live system forgets everything at power off, unless a data disk is attached.
 `persist create` inside PythonOS; the QEMU script can add one for you with `--disk` (a file named `pythonos-data.img`, 2 GB, created once).
 
 PythonOS needs UEFI **or** BIOS, both work. If the screen stays black in VirtualBox, set Display → Graphics Controller to VMSVGA.
+
+## Importing a newer version
+
+The virtual machine is named after its version (`PythonOS 1.0.12`), so importing a newer `.ova` does not collide with an older one. If VirtualBox says *"Machine settings file ... already exists"*, a machine with that name is already there: change the **Name** in the import dialog, or remove the old machine first (right-click it, **Remove**, **Delete all files**; copy anything you want from its data disk first).

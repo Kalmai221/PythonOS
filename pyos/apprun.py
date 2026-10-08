@@ -14,6 +14,19 @@ from pyos import log
 TAIL_LINES = 8
 
 
+def remember_answers(env, name):
+    """After an app ended: keep the "always" and "never" answers it was given (pyos.sandbox.apply_decisions) and say what was remembered."""
+    try:
+        from pyos import sandbox
+        from pyos.i18n import tr
+        for perm, decision in sandbox.apply_decisions(env):
+            print(tr("PythonOS will {verb} {name} to use: {what}. Change it with: pkg permissions {name}",
+                     verb=tr("always allow") if decision == "always" else tr("never allow"), name=name, what=tr(sandbox.PERMISSIONS.get(perm, perm))))
+            log.log(f"app {name}: permission {perm} set to {decision}")
+    except Exception:                                      # noqa: BLE001 - remembering must never break the shell
+        pass
+
+
 def outcome(name, code, seconds, stderr_text, user=None):
     """Log how an app ended when its output was captured (a pipe or a redirect): `stderr_text` is what it printed to stderr."""
     _log_result(name, code, seconds, (stderr_text or "").splitlines()[-TAIL_LINES:], user)
@@ -67,6 +80,7 @@ def run(command, env, name, user=None, quiet_stderr=False):
         log.log(f"app {name} could not start: {log.describe_exception(e)}", "ERROR", user=user)
         raise
     _log_result(name, code, time.monotonic() - started, tail, user)
+    remember_answers(env, name)
     return code
 
 

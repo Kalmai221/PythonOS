@@ -9,8 +9,14 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ## 1.0.13
 
+### PythonOS
+
+- Apps are asked about permissions the first time they use them. A permission an app declared but was not given used to be refused outright; now the app is stopped for a moment and you are asked: allow this time, always allow, not now, or never allow. "Always" and "never" are remembered (`pkg permissions <name>` shows and changes them: `grant`, `revoke` for never, and the new `ask` to go back to being asked). An app can only be asked about what it declared, nobody is asked when the output is captured or on the locked-down live system, and the question and the permission names are translated.
+- The messages added in 1.0.12 are translated into Spanish, French and German: `report` (all its questions and messages), the bug-detection question, `sudo` and `gh`, `doctor` (every check, its hints, the summary and the prompts) and the app permission prompts. The text of a report itself stays English, because the developers read it.
+
 ### Exports
 
+- The virtual machine image (`.ova`) is named after its version (`PythonOS 1.0.13`), so importing a newer one into VirtualBox no longer stops with "Machine settings file ... already exists" because of an older import.
 - Android: updating the app now really updates PythonOS, for good. The PythonOS files live in the app's own folder and survive an app update, so after installing a new app you were still on the old PythonOS, and `updatecheck` kept saying the new version "needs new libraries, install the new app" (it judged the libraries by the old files), so the update seemed to do nothing in a loop. The 1.0.12 fix for this missed the first update from an older app. The rule is now simple and needs no memory: an app built for PythonOS X never runs a PythonOS older than X, so at start-up an older one is brought up to the newest release first (and if you are offline it tries again at the next start). The version PythonOS shows is also kept in step when the files are already current.
 
 ## 1.0.12

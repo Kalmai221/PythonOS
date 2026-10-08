@@ -18,6 +18,7 @@ from typing import Callable, Optional
 
 import pyos
 from pyos import fs, paths, settings
+from pyos.i18n import tr
 
 
 @dataclass
@@ -49,12 +50,12 @@ def check_disk():
     try:
         free = shutil.disk_usage(os.path.abspath("files") if os.path.isdir("files") else ".").free
     except OSError:
-        return [Finding("warn", "Disk space", "could not read the free space")]
+        return [Finding("warn", "Disk space", tr("could not read the free space"))]
     if free < MIN_FREE_ERROR:
-        return [Finding("error", "Disk space", f"only {_human(free)} free - PythonOS may fail to save files")]
+        return [Finding("error", "Disk space", tr("only {free} free - PythonOS may fail to save files", free=_human(free)))]
     if free < MIN_FREE_WARN:
-        return [Finding("warn", "Disk space", f"only {_human(free)} free")]
-    return [Finding("ok", "Disk space", f"{_human(free)} free")]
+        return [Finding("warn", "Disk space", tr("only {free} free", free=_human(free)))]
+    return [Finding("ok", "Disk space", tr("{free} free", free=_human(free)))]
 
 
 def check_layout():
@@ -71,12 +72,12 @@ def check_layout():
         fs.ensure_layout()
         for name in _users():
             fs.ensure_home(name)
-        return f"created {len(missing)} folder(s)"
+        return tr("created {n} folder(s)", n=len(missing))
 
     if missing:
-        found.append(Finding("warn", "Folders", "missing: " + ", ".join(missing), fix, "create the missing folders"))
+        found.append(Finding("warn", "Folders", tr("missing: {names}", names=", ".join(missing)), fix, tr("create the missing folders")))
     else:
-        found.append(Finding("ok", "Folders", "standard folders and every home folder exist"))
+        found.append(Finding("ok", "Folders", tr("standard folders and every home folder exist")))
     return found
 
 
@@ -94,22 +95,21 @@ def check_accounts():
         with open(paths.USER_DB, encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
-        return [Finding("warn", "Accounts", "there is no account database yet (first-time setup has not run)")]
+        return [Finding("warn", "Accounts", tr("there is no account database yet (first-time setup has not run)"))]
     except (OSError, ValueError) as e:
-        return [Finding("error", "Accounts", f"the account database cannot be read: {e}")]
+        return [Finding("error", "Accounts", tr("the account database cannot be read: {reason}", reason=e))]
     out = []
     admins = [n for n, u in data.items() if isinstance(u, dict) and u.get("role") == "admin"]
     if not admins:
-        out.append(Finding("error", "Accounts", "no administrator account exists"))
+        out.append(Finding("error", "Accounts", tr("no administrator account exists")))
     bad = [n for n, u in data.items() if not isinstance(u, dict) or u.get("role") not in ("admin", "user") or "password" not in u]
     if bad:
-        out.append(Finding("error", "Accounts", "damaged entries: " + ", ".join(bad)))
+        out.append(Finding("error", "Accounts", tr("damaged entries: {names}", names=", ".join(bad))))
     legacy = [n for n, u in data.items() if isinstance(u, dict) and not str(u.get("password", "")).startswith("pbkdf2$")]
     if legacy:
-        out.append(Finding("warn", "Accounts", "old-style password hash for: " + ", ".join(legacy)
-                           + " (the account owner should run passwd to upgrade it)"))
+        out.append(Finding("warn", "Accounts", tr("old-style password hash for: {names} (the account owner should run passwd to upgrade it)", names=", ".join(legacy))))
     if not out:
-        out.append(Finding("ok", "Accounts", f"{len(data)} account(s), {len(admins)} administrator(s)"))
+        out.append(Finding("ok", "Accounts", tr("{n} account(s), {a} administrator(s)", n=len(data), a=len(admins))))
     return out
 
 
@@ -117,7 +117,7 @@ def check_permissions():
     out = []
     for folder in ("files", ".OSData"):
         if os.path.isdir(folder) and not os.access(folder, os.W_OK):
-            out.append(Finding("error", "Permissions", f"{folder}/ is not writable"))
+            out.append(Finding("error", "Permissions", tr("{folder}/ is not writable", folder=folder)))
     if os.name != "nt":
         loose = []
         for name in (paths.USER_DB, os.path.join(".OSData", "hardware.json"), os.path.join(".OSData", "lockout.json")):
@@ -130,13 +130,13 @@ def check_permissions():
         def fix():
             for name in loose:
                 os.chmod(name, 0o600)
-            return f"restricted {len(loose)} file(s) to the owner"
+            return tr("restricted {n} file(s) to the owner", n=len(loose))
 
         if loose:
-            out.append(Finding("warn", "Permissions", "readable by other users of this computer: " + ", ".join(loose), fix,
-                               "make them readable only by the owner (chmod 600)"))
+            out.append(Finding("warn", "Permissions", tr("readable by other users of this computer: {names}", names=", ".join(loose)), fix,
+                               tr("make them readable only by the owner (chmod 600)")))
     if not out:
-        out.append(Finding("ok", "Permissions", "data folders are writable and private files are protected"))
+        out.append(Finding("ok", "Permissions", tr("data folders are writable and private files are protected")))
     return out
 
 
@@ -159,14 +159,13 @@ def check_core():
         if not os.path.isfile(name):
             broken.append(f"{name} is missing")
     if broken:
-        return [Finding("error", "System files", "; ".join(broken[:6]) + ("; ..." if len(broken) > 6 else "")
-                        + " - run updatecheck to repair the installation")]
+        return [Finding("error", "System files", tr("{list} - run updatecheck to repair the installation", list="; ".join(broken[:6]) + ("; ..." if len(broken) > 6 else "")))]
     try:
         with open("config.json", encoding="utf-8") as f:
             version = json.load(f).get("version", "?")
     except (OSError, ValueError):
-        return [Finding("error", "System files", "config.json is damaged")]
-    return [Finding("ok", "System files", f"all files parse (version {version})")]
+        return [Finding("error", "System files", tr("config.json is damaged"))]
+    return [Finding("ok", "System files", tr("all files parse (version {version})", version=version))]
 
 
 def check_packages():
@@ -204,17 +203,17 @@ def check_packages():
                 except (SyntaxError, ValueError):
                     bad.append(f"{name}: {script} has a syntax error")
     if bad:
-        out.append(Finding("error", "Packages", "; ".join(bad[:5]) + " - reinstall with: pkg install <name>"))
+        out.append(Finding("error", "Packages", tr("{list} - reinstall with: pkg install <name>", list="; ".join(bad[:5]))))
 
     def clean():
         for p in leftovers:
             shutil.rmtree(p, ignore_errors=True)
-        return f"removed {len(leftovers)} leftover folder(s)"
+        return tr("removed {n} leftover folder(s)", n=len(leftovers))
 
     if leftovers:
-        out.append(Finding("warn", "Packages", f"{len(leftovers)} half-finished install leftover(s)", clean, "delete them"))
+        out.append(Finding("warn", "Packages", tr("{n} half-finished install leftover(s)", n=len(leftovers)), clean, tr("delete them")))
     if not out:
-        out.append(Finding("ok", "Packages", f"{count} installed package(s), all complete"))
+        out.append(Finding("ok", "Packages", tr("{n} installed package(s), all complete", n=count)))
     return out
 
 
@@ -261,19 +260,19 @@ def check_locks():
             keep = [t for t in tasks if t["id"] not in orphan_tasks]
             with open(os.path.join(".OSData", "schedule.json"), "w", encoding="utf-8") as f:
                 json.dump(keep, f)
-        return "cleaned up"
+        return tr("cleaned up")
 
     problems = []
     if stale:
-        problems.append(f"{len(stale)} stale temporary file(s)")
+        problems.append(tr("{n} stale temporary file(s)", n=len(stale)))
     if orphan_lockouts:
-        problems.append(f"lockout records for removed accounts ({', '.join(orphan_lockouts)})")
+        problems.append(tr("lockout records for removed accounts ({names})", names=", ".join(orphan_lockouts)))
     if orphan_tasks:
-        problems.append(f"{len(orphan_tasks)} scheduled task(s) for removed accounts")
+        problems.append(tr("{n} scheduled task(s) for removed accounts", n=len(orphan_tasks)))
     if problems:
-        out.append(Finding("warn", "Stale data", "; ".join(problems), fix, "remove them"))
+        out.append(Finding("warn", "Stale data", "; ".join(problems), fix, tr("remove them")))
     else:
-        out.append(Finding("ok", "Stale data", "no stale locks, temporary files or orphaned records"))
+        out.append(Finding("ok", "Stale data", tr("no stale locks, temporary files or orphaned records")))
     return out
 
 
@@ -282,62 +281,62 @@ def check_settings():
         with open(settings.SETTINGS_FILE, encoding="utf-8") as f:
             stored = json.load(f)
     except FileNotFoundError:
-        return [Finding("ok", "Settings", "defaults in use")]
+        return [Finding("ok", "Settings", tr("defaults in use"))]
     except (OSError, ValueError):
         def fix():
             os.replace(settings.SETTINGS_FILE, settings.SETTINGS_FILE + ".damaged")
             settings._cache["data"] = None
-            return "set the damaged file aside; defaults are in use"
-        return [Finding("error", "Settings", "settings.json is damaged", fix, "set it aside and use the defaults")]
+            return tr("set the damaged file aside; defaults are in use")
+        return [Finding("error", "Settings", tr("settings.json is damaged"), fix, tr("set it aside and use the defaults"))]
     invalid = [k for k, v in stored.items() if k in settings.SCHEMA and not settings._valid(k, v)]
     unknown = [k for k in stored if k not in settings.SCHEMA]
     if invalid or unknown:
         def fix():  # pylint: disable=function-redefined
             for k in invalid + unknown:
                 settings.reset(k)
-            return "removed the bad entries"
-        return [Finding("warn", "Settings", "ignored entries: " + ", ".join(invalid + unknown), fix, "remove them")]
-    return [Finding("ok", "Settings", "all values are valid")]
+            return tr("removed the bad entries")
+        return [Finding("warn", "Settings", tr("ignored entries: {names}", names=", ".join(invalid + unknown)), fix, tr("remove them"))]
+    return [Finding("ok", "Settings", tr("all values are valid"))]
 
 
 def check_log():
     try:
         size = os.path.getsize(pyos.log.LOG_FILE)
     except OSError:
-        return [Finding("ok", "Log", "empty")]
+        return [Finding("ok", "Log", tr("empty"))]
     crashes = 0
     try:
         crashes = sum(1 for n in os.listdir(os.path.dirname(pyos.log.LOG_FILE)) if n.startswith("crash-"))
     except OSError:
         pass
     if crashes:
-        return [Finding("warn", "Log", f"{crashes} saved crash report(s) - see: logs --crashes")]
-    return [Finding("ok", "Log", f"{_human(size)}, no crash reports")]
+        return [Finding("warn", "Log", tr("{n} saved crash report(s) - see: logs --crashes", n=crashes))]
+    return [Finding("ok", "Log", tr("{size}, no crash reports", size=_human(size)))]
 
 
 def check_environment():
     out = []
     version = ".".join(str(n) for n in sys.version_info[:3])
     if sys.version_info < (3, 9):
-        out.append(Finding("error", "Python", f"Python {version} is older than the 3.9 PythonOS needs",
-                           hint="install a newer Python, or use a packaged export"))
+        out.append(Finding("error", "Python", tr("Python {version} is older than the 3.9 PythonOS needs", version=version),
+                           hint=tr("install a newer Python, or use a packaged export")))
     else:
         out.append(Finding("ok", "Python", f"{version} ({platform.python_implementation()}) on {platform.system()} {platform.machine()}"))
     year = time.localtime().tm_year
     if year < 2024:
-        out.append(Finding("warn", "Clock", f"the computer's clock says {year}; updates and secure connections can fail",
-                           hint="set the date and time"))
+        out.append(Finding("warn", "Clock", tr("the computer's clock says {year}; updates and secure connections can fail", year=year),
+                           hint=tr("set the date and time")))
     try:
         size = shutil.get_terminal_size(fallback=(0, 0))
         if sys.stdout.isatty() and 0 < size.columns < 60:
-            out.append(Finding("warn", "Terminal", f"only {size.columns} columns wide; tables and menus will wrap", hint="make the window wider"))
+            out.append(Finding("warn", "Terminal", tr("only {n} columns wide; tables and menus will wrap", n=size.columns), hint=tr("make the window wider")))
     except (OSError, ValueError):
         pass
     try:
         from pyos import export
         found = export.info()
         if found:
-            out.append(Finding("ok", "Package", f"{export.title(found['platform'])}, package version {found['version']}"))
+            out.append(Finding("ok", "Package", tr("{title}, package version {version}", title=export.title(found['platform']), version=found['version'])))
     except Exception:                                      # noqa: BLE001 - informational only
         pass
     return out
@@ -358,12 +357,12 @@ def check_memory():
     mem = sysmem.memory()
     if mem is not None:
         if mem.percent >= 95:
-            out.append(Finding("warn", "Memory", f"{mem.percent:.0f}% of {_human(mem.total)} in use", hint="close other programs"))
+            out.append(Finding("warn", "Memory", tr("{percent}% of {total} in use", percent=f"{mem.percent:.0f}", total=_human(mem.total)), hint=tr("close other programs")))
         else:
-            out.append(Finding("ok", "Memory", f"{_human(mem.available)} available of {_human(mem.total)}"))
+            out.append(Finding("ok", "Memory", tr("{available} available of {total}", available=_human(mem.available), total=_human(mem.total))))
     swap = sysmem.swap()
     if swap is not None and swap.total and swap.percent >= 90:
-        out.append(Finding("warn", "Swap", f"{swap.percent:.0f}% of the swap space is in use; the computer is short of memory"))
+        out.append(Finding("warn", "Swap", tr("{percent}% of the swap space is in use; the computer is short of memory", percent=f"{swap.percent:.0f}")))
     return out
 
 
@@ -381,12 +380,13 @@ def _libraries_hint():
     except Exception:                                      # noqa: BLE001
         here = None
     if here == "windows":
-        return "PythonOS installs them itself when it starts; close it and open it again with a connection to the internet. What uses them still works in a simpler way"
+        return tr("PythonOS installs them itself when it starts; close it and open it again with a connection to the internet. What uses them still works in a simpler way")
     if here == "linux":
-        return "the launcher installs them on the next start (needs the internet). What uses them still works in a simpler way"
+        return tr("the launcher installs them on the next start (needs the internet). What uses them still works in a simpler way")
     if here in ("android", "iso"):
-        return "they come with the " + ("app" if here == "android" else "image") + ", so a newer one may include them (updatecheck tells you). What uses them still works in a simpler way"
-    return "they are optional: what uses them still works in a simpler way"
+        return (tr("they come with the app, so a newer one may include them (updatecheck tells you). What uses them still works in a simpler way") if here == "android" else
+                tr("they come with the image, so a newer one may include them (updatecheck tells you). What uses them still works in a simpler way"))
+    return tr("they are optional: what uses them still works in a simpler way")
 
 
 def check_libraries():
@@ -413,10 +413,10 @@ def check_libraries():
         except (ImportError, ValueError):
             missing.append(name)
     if missing:
-        return [Finding("warn", "Libraries", f"{len(names) - len(missing)} of {len(names)} optional libraries installed; missing: "
-                        + ", ".join(missing[:8]) + (", ..." if len(missing) > 8 else ""),
+        return [Finding("warn", "Libraries", tr("{have} of {total} optional libraries installed; missing: {names}", have=len(names) - len(missing), total=len(names),
+                           names=", ".join(missing[:8]) + (", ..." if len(missing) > 8 else "")),
                         hint=_libraries_hint())]
-    return [Finding("ok", "Libraries", f"all {len(names)} optional libraries are installed")]
+    return [Finding("ok", "Libraries", tr("all {n} optional libraries are installed", n=len(names)))]
 
 
 def check_commands():
@@ -450,12 +450,12 @@ def check_commands():
                     seen[value.value] = name
     out = []
     if broken:
-        out.append(Finding("error", "Commands", "not valid commands (no config or execute): " + ", ".join(broken[:6]),
-                           hint="updatecheck repairs the installation"))
+        out.append(Finding("error", "Commands", tr("not valid commands (no config or execute): {names}", names=", ".join(broken[:6])),
+                           hint=tr("updatecheck repairs the installation")))
     if dupes:
-        out.append(Finding("warn", "Commands", "the same command name is defined twice: " + ", ".join(dupes[:4])))
+        out.append(Finding("warn", "Commands", tr("the same command name is defined twice: {names}", names=", ".join(dupes[:4]))))
     if not out:
-        out.append(Finding("ok", "Commands", f"{len(seen)} commands, each with a name and a handler"))
+        out.append(Finding("ok", "Commands", tr("{n} commands, each with a name and a handler", n=len(seen))))
     return out
 
 
@@ -483,8 +483,8 @@ def check_shell():
             if words and words[0] not in known and words[0] not in data and not re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", words[0]):
                 problems.append(f"{user}: {alias} -> {words[0]}")
     if problems:
-        return [Finding("warn", "Aliases", "pointing at nothing: " + "; ".join(problems[:5]), hint="remove them with unalias <name>")]
-    return [Finding("ok", "Aliases", f"{total} alias(es), all pointing at real commands")] if total else []
+        return [Finding("warn", "Aliases", tr("pointing at nothing: {list}", list="; ".join(problems[:5])), hint=tr("remove them with unalias <name>"))]
+    return [Finding("ok", "Aliases", tr("{n} alias(es), all pointing at real commands", n=total))] if total else []
 
 
 def _size(path):
@@ -505,7 +505,7 @@ def check_storage():
         if os.path.isdir(folder):
             parts[label] = _size(folder)
     if parts:
-        out.append(Finding("ok", "Storage", ", ".join(f"{label} {_human(n)}" for label, n in parts.items())))
+        out.append(Finding("ok", "Storage", ", ".join(f"{tr(label)} {_human(n)}" for label, n in parts.items())))
     log_dir = os.path.dirname(pyos.log.LOG_FILE) or "."
     old = []
     try:
@@ -522,14 +522,14 @@ def check_storage():
                 os.remove(p)
             except OSError:
                 pass
-        return f"removed {len(old)} old crash report(s)"
+        return tr("removed {n} old crash report(s)", n=len(old))
 
     if old:
-        out.append(Finding("warn", "Crash reports", f"{len(old)} crash report(s) older than 30 days", clean, "delete them"))
+        out.append(Finding("warn", "Crash reports", tr("{n} crash report(s) older than 30 days", n=len(old)), clean, tr("delete them")))
     try:
         big = os.path.getsize(pyos.log.LOG_FILE)
         if big > 50 * 1024 ** 2:
-            out.append(Finding("warn", "Log", f"the log is {_human(big)}", hint="it is safe to delete it after reading what you need"))
+            out.append(Finding("warn", "Log", tr("the log is {size}", size=_human(big)), hint=tr("it is safe to delete it after reading what you need")))
     except OSError:
         pass
     return out
@@ -542,14 +542,14 @@ def check_schedule():
     except FileNotFoundError:
         return []
     except (OSError, ValueError):
-        return [Finding("error", "Schedule", "the schedule file is damaged",
-                        hint="move .OSData/schedule.json away; tasks then have to be added again")]
+        return [Finding("error", "Schedule", tr("the schedule file is damaged"),
+                        hint=tr("move .OSData/schedule.json away; tasks then have to be added again"))]
     if not isinstance(tasks, list):
-        return [Finding("error", "Schedule", "the schedule file has the wrong shape")]
+        return [Finding("error", "Schedule", tr("the schedule file has the wrong shape"))]
     bad = [t for t in tasks if not isinstance(t, dict) or "id" not in t or "user" not in t]
     if bad:
-        return [Finding("warn", "Schedule", f"{len(bad)} scheduled task(s) are incomplete")]
-    return [Finding("ok", "Schedule", f"{len(tasks)} scheduled task(s)")] if tasks else []
+        return [Finding("warn", "Schedule", tr("{n} scheduled task(s) are incomplete", n=len(bad)))]
+    return [Finding("ok", "Schedule", tr("{n} scheduled task(s)", n=len(tasks)))] if tasks else []
 
 
 def _latest_release():
@@ -571,22 +571,22 @@ def check_network():
         socket.setdefaulttimeout(5)
         socket.getaddrinfo("github.com", 443)
     except OSError as e:
-        return [Finding("warn", "Network", f"cannot look up github.com ({e.__class__.__name__}); updates and the marketplace need the internet",
-                        hint="check the connection, DNS and any proxy")]
+        return [Finding("warn", "Network", tr("cannot look up github.com ({error}); updates and the marketplace need the internet", error=e.__class__.__name__),
+                        hint=tr("check the connection, DNS and any proxy"))]
     try:
         data = _latest_release()
     except Exception as e:                                 # noqa: BLE001 - any failure is "cannot reach"
-        return [Finding("warn", "Network", f"github.com resolves but the release server did not answer ({e.__class__.__name__})",
-                        hint="try again later, or check a proxy or firewall")]
-    out = [Finding("ok", "Network", f"the release server answered in {time.time() - started:.1f} s")]
+        return [Finding("warn", "Network", tr("github.com resolves but the release server did not answer ({error})", error=e.__class__.__name__),
+                        hint=tr("try again later, or check a proxy or firewall"))]
+    out = [Finding("ok", "Network", tr("the release server answered in {seconds} s", seconds=f"{time.time() - started:.1f}"))]
     try:
         with open("config.json", encoding="utf-8") as f:
             have = json.load(f).get("version", "")
         latest = str(data.get("tag_name", "")).lstrip("v")
         if _numbers(have) and _numbers(latest) and _numbers(have) < _numbers(latest):
-            out.append(Finding("warn", "Updates", f"PythonOS {have} is installed; {latest} is the latest release", hint="run updatecheck"))
+            out.append(Finding("warn", "Updates", tr("PythonOS {have} is installed; {latest} is the latest release", have=have, latest=latest), hint=tr("run updatecheck")))
         else:
-            out.append(Finding("ok", "Updates", f"PythonOS {have} is the latest release"))
+            out.append(Finding("ok", "Updates", tr("PythonOS {have} is the latest release", have=have)))
     except (OSError, ValueError):
         pass
     return out
@@ -637,7 +637,7 @@ def run_all(only=None, online=False, timings=None):
         try:
             found = check()
         except Exception as e:  # a broken check must not hide the others
-            found = [Finding("warn", key.title(), f"could not run this check ({e.__class__.__name__}: {e})")]
+            found = [Finding("warn", key.title(), tr("could not run this check ({error})", error=f"{e.__class__.__name__}: {e}"))]
         for f in found:
             f.check = key
         findings.extend(found)

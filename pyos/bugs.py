@@ -97,11 +97,12 @@ def offer(ask, run_report, show=print, now=None):
     bug = take(now)
     if bug is None:
         return False
+    from pyos.i18n import tr
     show(bug["summary"])
-    if ask("An unexpected bug has been found, would you like to report it?"):
+    if ask(tr("An unexpected bug has been found, would you like to report it?")):
         run_report(description(bug))
     else:
-        show("Not reported. You can run report at any time.")
+        show(tr("Not reported. You can run report at any time."))
     return True
 
 

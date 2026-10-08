@@ -26,9 +26,20 @@ def _inside(path, root):
         return False
 
 
+PERMISSION_NAMES = {"network": "Internet", "files": "Your files", "notifications": "Notifications", "schedule": "Schedule", "system": "System info",
+                    "exec": "Other programs"}
+
+
 class Guard:
-    def __init__(self, perms, pkg_dir, pkg_id):
+    def __init__(self, perms, pkg_dir, pkg_id, ask=(), decisions=None, interactive=None, texts=None):
         self.perms, self.pkg_id = set(perms), pkg_id
+        self.texts = texts or {}                     # the question's words in the person's language (from the shell); English where missing
+        self.ask = set(ask)                          # asked for, not given, not refused for good: the person may be asked about these while the app runs
+        self.decisions = decisions                   # the file the shell reads after the app ends ("always" and "never" answers)
+        self._interactive = interactive              # None: look at the terminal each time
+        self._answers = {}                           # permission -> True/False for this run (so one question is asked once)
+        self._input = builtins.input
+        self._real_open = builtins.open
         self.cwd = _real(os.getcwd())
         self.pkg_dir = _real(pkg_dir)
         self.base = _real(os.path.join(self.cwd, "files"))
@@ -72,10 +83,78 @@ class Guard:
         self.ro_files.add(_real(os.path.join(self.osdata, "jobs.json")))
         self.ro_files.add(_real(os.path.join(self.osdata, "tasks.json")))       # PythonOS's own task list (System Monitor, Process Inspector)
         self.rw_files = set()
+        self.ask_files = {}                          # the files a permission opens, so the first use can ask for it
         for perm, name in (("notifications", "notifications.json"), ("schedule", "schedule.json")):
-            if perm in self.perms:
-                for suffix in ("", ".tmp"):
-                    self.rw_files.add(_real(os.path.join(self.osdata, name + suffix)))
+            for suffix in ("", ".tmp"):
+                path = _real(os.path.join(self.osdata, name + suffix))
+                self.ask_files[path] = perm
+                if perm in self.perms:
+                    self.rw_files.add(path)
+        self.system_roots = [_real("/proc"), _real("/sys")]
+
+    # ------------------------------------------------------------ asking
+    def can_ask(self):
+        if self._interactive is not None:
+            return self._interactive
+        try:
+            return sys.stdin.isatty() and sys.stdout.isatty()
+        except Exception:                            # noqa: BLE001
+            return False
+
+    def need(self, perm, what):
+        """The app is using something that needs `perm`. True if it may (it has it, or the person has just said yes). Otherwise raises
+        PermissionError. A permission the app never asked for, was refused for good, or when nobody can be asked: refused."""
+        if perm in self.perms:
+            return True
+        if perm in self._answers:
+            if self._answers[perm]:
+                return True
+            self.deny(what, perm)
+        if perm in self.ask and self.can_ask():
+            answer = self._question(perm, what)
+            if answer in ("a", "A"):
+                self._grant(perm)
+                if answer == "A":
+                    self._record(perm, "always")
+                return True
+            self._answers[perm] = False
+            if answer == "N":
+                self._record(perm, "never")
+        self.deny(what, perm)
+
+    def _question(self, perm, what):
+        name = (self.pkg_id or "This app").split("/")[-1]
+        t = self.texts
+        what = (t.get("whats") or {}).get(perm) or what
+        shown = (t.get("names") or {}).get(perm) or PERMISSION_NAMES.get(perm, perm)
+        try:
+            first = t.get("wants", "{name} wants to {what}.").format(name=name, what=what)
+            second = t.get("permission", "Permission: {perm}.").format(perm=shown)
+            sys.stdout.write(f"\n{first}\n  {second} {t.get('choices', '(a) allow this time   (A) always allow   (n) not now   (N) never allow')}\n")
+            sys.stdout.flush()
+            answer = self._input(t.get("prompt", "Allow? [n] ")).strip()
+        except (EOFError, KeyboardInterrupt, OSError):
+            return "n"
+        words = {"a": "a", "A": "A", "N": "N", "n": "n", "allow": "a", "yes": "a", "y": "a", "always": "A", "never": "N"}
+        return words.get(answer) or words.get(answer.lower(), "n")
+
+    def _grant(self, perm):
+        self.perms.add(perm)
+        self._answers[perm] = True
+        if perm == "system":
+            self.ro.extend(self.system_roots)
+        for path, owner in self.ask_files.items():
+            if owner == perm:
+                self.rw_files.add(path)
+
+    def _record(self, perm, decision):
+        if not self.decisions:
+            return
+        try:
+            with self._real_open(self.decisions, "a", encoding="utf-8") as f:
+                f.write(json.dumps({"perm": perm, "decision": decision}) + "\n")
+        except OSError:
+            pass
 
     def deny(self, what, need):
         raise PermissionError(13, f"{self.pkg_id or 'this app'} is not allowed to {what} (it needs the '{need}' permission; "
@@ -95,11 +174,20 @@ class Guard:
             return
         if not write and (full in self.ro_files or any(_inside(full, r) for r in self.ro)):
             return
-        if "files" in self.perms and _inside(full, self.base):
+        what = ("write " if write else "read ") + self._shown(full)
+        if _inside(full, self.base):
+            self.need("files", "read and change your files (" + what + ")")        # asks the first time; raises if it is not allowed
             if self._user_may(full, write):
                 return
             raise PermissionError(13, "Permission denied")
-        self.deny(("write " if write else "read ") + self._shown(full), "files")
+        owner = self.ask_files.get(full)
+        if owner and write:
+            self.need(owner, "use " + PERMISSION_NAMES.get(owner, owner).lower())
+            return
+        if not write and any(_inside(full, root) for root in self.system_roots):
+            self.need("system", "read information about this computer")
+            return
+        self.deny(what, "files")
 
     def _shown(self, full):
         """A path as the user knows it (/home/bob/...) when it is inside PythonOS's filesystem, else just the file name."""
@@ -169,24 +257,27 @@ class Guard:
         for name in ("rename", "replace"):
             wrap_os(name, True, both=True)
 
+        def gate(perm, what, original):
+            """Refuse (or ask) before the real function runs; once the permission is there the real one is called as usual."""
+            def gated(*a, **k):
+                guard.need(perm, what)
+                return original(*a, **k)
+            return gated
+
         if "network" not in self.perms:
-            def blocked(*a, **k):
-                guard.deny("use the network", "network")
             for owner, names in ((socket.socket, ("connect", "connect_ex", "sendto")),):
                 for n in names:
-                    patch(owner, n, blocked)
+                    patch(owner, n, gate("network", "connect to the internet and your network", getattr(owner, n)))
             for n in ("create_connection", "getaddrinfo", "gethostbyname", "gethostbyname_ex", "gethostbyaddr", "getfqdn"):
-                patch(socket, n, blocked)
+                patch(socket, n, gate("network", "connect to the internet and your network", getattr(socket, n)))
 
         if "exec" not in self.perms:
-            def blocked_exec(*a, **k):
-                guard.deny("start other programs", "exec")
-            patch(subprocess.Popen, "__init__", blocked_exec)
+            patch(subprocess.Popen, "__init__", gate("exec", "start other programs and run code on this computer", subprocess.Popen.__init__))
             for n in ("system", "popen", "execv", "execve", "execl", "execle", "execlp", "execlpe", "execvp", "execvpe", "spawnl",
                       "spawnle", "spawnlp", "spawnlpe", "spawnv", "spawnve", "spawnvp", "spawnvpe", "startfile", "fork", "forkpty",
                       "posix_spawn", "posix_spawnp"):
                 if hasattr(os, n):
-                    patch(os, n, blocked_exec)
+                    patch(os, n, gate("exec", "start other programs and run code on this computer", getattr(os, n)))
 
 
     def uninstall(self):
@@ -216,6 +307,37 @@ def parse_args(argv):
             pkg_id = argv[i + 1]
         i += 2
     return perms, pkg_dir, pkg_id, argv[i:]
+
+
+def parse_ask(argv):
+    """(permissions the guard may ask about, the file that records the answers) from --ask a,b and --decisions FILE."""
+    ask, decisions = [], None
+    i = 0
+    while i < len(argv) and argv[i].startswith("--"):
+        if argv[i] == "--":
+            break
+        if argv[i] == "--ask" and i + 1 < len(argv):
+            ask = [p for p in argv[i + 1].split(",") if p]
+        elif argv[i] == "--decisions" and i + 1 < len(argv):
+            decisions = argv[i + 1]
+        i += 2
+    return ask, decisions
+
+
+def parse_texts(argv):
+    """The question's words (JSON) from --texts, or {}."""
+    i = 0
+    while i < len(argv) and argv[i].startswith("--"):
+        if argv[i] == "--":
+            break
+        if argv[i] == "--texts" and i + 1 < len(argv):
+            try:
+                value = json.loads(argv[i + 1])
+                return value if isinstance(value, dict) else {}
+            except ValueError:
+                return {}
+        i += 2
+    return {}
 
 
 def parse_limits(argv):
@@ -296,7 +418,8 @@ def main(enforce_limits=False):
     app_name = (pkg_id or os.path.basename(os.path.dirname(os.path.abspath(script))) or "the app").split("/")[-1]
     if enforce_limits:                      # only when run as its own process: never inside the host process (the Android app)
         start_limits(app_name, memory_mb, cpu_seconds)
-    guard = Guard(perms, pkg_dir or os.path.dirname(os.path.abspath(script)), pkg_id)
+    ask, decisions = parse_ask(sys.argv[1:])
+    guard = Guard(perms, pkg_dir or os.path.dirname(os.path.abspath(script)), pkg_id, ask, decisions, texts=parse_texts(sys.argv[1:]))
     guard.install()
     saved_argv, saved_path = sys.argv, list(sys.path)
     sys.argv = [script, *rest[1:]]

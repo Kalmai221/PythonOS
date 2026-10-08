@@ -177,4 +177,11 @@ DE = {
     "Cancelled. Nothing was sent.": "Abgebrochen. Es wurde nichts gesendet.",
 }
 
+# the messages added in 1.0.13 live in their own file
+from pyos import locales_more  # noqa: E402
+
+ES.update(locales_more.ES)
+FR.update(locales_more.FR)
+DE.update(locales_more.DE)
+
 CATALOGS = {"es": ES, "fr": FR, "de": DE}

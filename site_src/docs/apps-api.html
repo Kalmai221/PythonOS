@@ -81,6 +81,8 @@ if __name__ == "__main__":
   </tbody>
 </table></div>
 <p>Without <code>files</code>, an app can still use its own folder, <code>files/tmp</code> and the system temp folder. Without <code>network</code>, opening a connection raises <code>PermissionError</code>; without <code>exec</code>, so do <code>subprocess</code> and <code>os.system</code>. Ask for as little as you need: people read this list.</p>
+<h3 id="runtime">Asked the first time it is used</h3>
+<p>A permission the app declared but was not given is not simply refused: the first time the app tries to use it, the guard asks the person on the terminal (<em>allow this time, always allow, not now, never allow</em>). <em>Always</em> and <em>never</em> are remembered and can be changed with <code>pkg permissions &lt;name&gt; grant|revoke|ask &lt;permission&gt;</code>. An app can only be asked about what it declared, so declare exactly what you need. Nobody is asked when the output is captured (a pipe or a redirect) or on the locked-down live system: there the call raises <code>PermissionError</code> as before, so an app must handle a refusal and carry on without the feature.</p>
 <div class="callout warn"><p>The guard stops an honest app doing more than it declared, and catches mistakes. It is not a barrier against deliberately hostile code. That is what review and the live-USB audit are for.</p></div>
 
 <h2 id="lockdown">lockdown_safe</h2>

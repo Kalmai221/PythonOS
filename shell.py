@@ -112,6 +112,7 @@ def make_execute_func(script_path, folder=None, meta=None):
                                 stdin=subprocess.DEVNULL if stdio.read_stdin() is None else None,
                                 input=stdio.read_stdin())
         pyos.apprun.outcome(app_name, result.returncode, time.monotonic() - began, result.stderr, user)
+        pyos.apprun.remember_answers(env, app_name)
         sys.stdout.write(result.stdout or "")
         sys.stdout.write(result.stderr or "")
         return result.returncode == 0

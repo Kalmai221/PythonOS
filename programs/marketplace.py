@@ -20,7 +20,11 @@ from rich.table import Table
 try:
     from pyos import lockdown, sandbox
     from pyos import log as syslog
+    from pyos.i18n import tr
 except ImportError:  # running outside PythonOS
+    def tr(text, **values):                                # no translations outside PythonOS
+        return text.format(**values) if values else text
+
     class syslog:  # noqa: N801 - stand-in: nothing to log to
         log = staticmethod(lambda *a, **k: None)
         describe_exception = staticmethod(lambda e: str(e))
@@ -783,7 +787,8 @@ def permissions_command(pkg, installed, args):
     allowed = sandbox.granted(pkg["id"])
     if allowed is None:
         allowed = [p for p in declared]
-    if args and args[0] in ("grant", "revoke") and len(args) > 1:
+    blocked = list(sandbox.denied(pkg["id"]))
+    if args and args[0] in ("grant", "revoke", "ask") and len(args) > 1:
         perm = args[1].lower()
         if perm not in sandbox.PERMISSIONS:
             console.print(f"[red]Unknown permission '{escape(perm)}'. Known: {', '.join(sandbox.PERMISSIONS)}[/red]")
@@ -793,16 +798,28 @@ def permissions_command(pkg, installed, args):
                 console.print(f"[yellow]{escape(pkg['name'])} does not ask for '{perm}', so there is nothing to allow.[/yellow]")
                 return False
             allowed = sorted(set(allowed) | {perm})
+            blocked = [p for p in blocked if p != perm]
+            said = "always allowed"
+        elif args[0] == "revoke":
+            allowed = [p for p in allowed if p != perm]
+            blocked = sorted(set(blocked) | {perm})
+            said = "never allowed (it will not ask again)"
         else:
             allowed = [p for p in allowed if p != perm]
+            blocked = [p for p in blocked if p != perm]
+            said = "set to ask the next time the app needs it"
         sandbox.set_granted(pkg["id"], allowed)
-        console.print(f"[green]{escape(pkg['name'])}: {'allowed' if args[0] == 'grant' else 'blocked'} {perm}.[/green]")
-    table = Table(title=f"{pkg['name']} - permissions", header_style="bold blue")
-    for col in ("Permission", "What it allows", "Asked for", "Allowed"):
-        table.add_column(col)
+        sandbox.set_denied(pkg["id"], blocked)
+        console.print(f"[green]{escape(pkg['name'])}: {perm} {said}.[/green]")
+    table = Table(title=f"{pkg['name']} - " + tr("permissions"), header_style="bold blue")
+    for col in ("Permission", "What it allows", "Asked for", "Now"):
+        table.add_column(tr(col))
+    shown = {"allowed": "[green]" + tr("allowed") + "[/green]", "never": "[red]" + tr("never") + "[/red]", "ask": "[yellow]" + tr("asks first") + "[/yellow]", "": ""}
     for perm, text in sandbox.PERMISSIONS.items():
-        table.add_row(perm, text, "yes" if perm in declared else "", "[green]yes[/green]" if perm in allowed else "[red]no[/red]" if perm in declared else "")
+        table.add_row(perm, tr(text), tr("yes") if perm in declared else "", shown[sandbox.state(pkg["id"], perm, declared, allowed)])
     console.print(table)
+    console.print("[dim]" + escape(tr("An app that asks for something it has not been given asks you the first time it needs it. "
+                                      "pkg permissions <name> grant|revoke|ask <permission> changes it.")) + "[/dim]")
     return True
 
 
