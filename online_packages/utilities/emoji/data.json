@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "emojis"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 256
+  },
+  "pip": [
+    "emoji"
+  ],
+  "name": "Emoji",
+  "description": "Find an emoji by name, turn :shortcodes: into emoji, or turn emoji back into words.",
+  "command": "emoji",
+  "tags": [
+    "emoji",
+    "unicode",
+    "text",
+    "fun"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "country"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Countries",
+  "description": "Facts about a country: capital, people, size, languages, money, calling code and time zones (needs internet).",
+  "command": "countries",
+  "tags": [
+    "country",
+    "geography",
+    "facts",
+    "capital"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "learning"
+  ]
+}

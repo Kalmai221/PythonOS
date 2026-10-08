@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "hackernews"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Hacker News",
+  "description": "The top, newest and best stories on Hacker News with their points and comment counts (needs internet).",
+  "command": "hn",
+  "tags": [
+    "news",
+    "hacker news",
+    "tech",
+    "live"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "network"
+  ]
+}

@@ -774,6 +774,54 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "games/higherlower",
+      "category": "games",
+      "name": "Higher or Lower",
+      "description": "Guess whether the next card is higher or lower and see how long a winning streak you can build.",
+      "version": "1.0.0",
+      "command": "higherlower",
+      "alias": [
+        "hilo"
+      ],
+      "tags": [
+        "game",
+        "cards",
+        "quick",
+        "luck"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "9082aced4824910459b4749b1129aadc88499592deb0ef64aec7a18c25b3d1b7",
+          "size": 447
+        },
+        {
+          "path": "run.py",
+          "sha256": "8a82f517c8c04d8a4d95bb40e6760c0c7596ad2358de9a59bc2a0ad7bc7215d9",
+          "size": 3360
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "games/life",
       "category": "games",
       "name": "Life",
@@ -1333,6 +1381,52 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "games/simon",
+      "category": "games",
+      "name": "Simon",
+      "description": "Watch the pattern of colours and repeat it from memory; every round adds one more.",
+      "version": "1.0.0",
+      "command": "simon",
+      "alias": [],
+      "tags": [
+        "game",
+        "memory",
+        "pattern",
+        "quick"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "cc567c0c95e60ef3bb118718cce64b9acd128377260e240378a8b213c1cf3025",
+          "size": 408
+        },
+        {
+          "path": "run.py",
+          "sha256": "b723b4aba21934a0bd3e8c52e5e2f3c6addbf06f415f62d3c2738cdb26aec08b",
+          "size": 3041
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "games/slide15",
       "category": "games",
       "name": "Slide Puzzle",
@@ -1415,6 +1509,54 @@
           "path": "run.py",
           "sha256": "5e681d99414517fc5239f261e68be42c1984fe1dc9739e9b463c804ebecb991f",
           "size": 7066
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "games/snakes",
+      "category": "games",
+      "name": "Snakes and Ladders",
+      "description": "The classic board game against the computer: climb the ladders, avoid the snakes, reach 100 exactly.",
+      "version": "1.0.0",
+      "command": "snakes",
+      "alias": [
+        "ladders"
+      ],
+      "tags": [
+        "game",
+        "board",
+        "dice",
+        "family"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "926cf36aef0bf2c71298f657e54decdea6bbd971e423c2701852cadf329a0b47",
+          "size": 454
+        },
+        {
+          "path": "run.py",
+          "sha256": "498abf9350f7b23fba69c81f469431b2a849de7d0b1527922ab9df84a6b74000",
+          "size": 3474
         }
       ]
     },
@@ -2582,6 +2724,56 @@
       ]
     },
     {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/countries",
+      "category": "utilities",
+      "name": "Countries",
+      "description": "Facts about a country: capital, people, size, languages, money, calling code and time zones (needs internet).",
+      "version": "1.0.0",
+      "command": "countries",
+      "alias": [
+        "country"
+      ],
+      "tags": [
+        "country",
+        "geography",
+        "facts",
+        "capital"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "0f328f99cc62b2f1876568d72d0fbd448008be7ab3bdbaa1e3013e2c605c38d7",
+          "size": 486
+        },
+        {
+          "path": "run.py",
+          "sha256": "8db2b77808b7454573f805547e727bf6631596a102c06a89e74f5335cd74a40b",
+          "size": 5590
+        }
+      ]
+    },
+    {
       "api": 2,
       "pip": [
         "cron-descriptor",
@@ -2881,6 +3073,54 @@
           "path": "run.py",
           "sha256": "31883650f457ce1d798da28833fb7da9e6883853641e33d976c18157ed65c2a5",
           "size": 4427
+        }
+      ]
+    },
+    {
+      "api": 2,
+      "pip": [
+        "emoji"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/emoji",
+      "category": "utilities",
+      "name": "Emoji",
+      "description": "Find an emoji by name, turn :shortcodes: into emoji, or turn emoji back into words.",
+      "version": "1.0.0",
+      "command": "emoji",
+      "alias": [
+        "emojis"
+      ],
+      "tags": [
+        "emoji",
+        "unicode",
+        "text",
+        "fun"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "f415771b19b6e34315dea8ee81d5ab7b4fd80e87ed9d2f15094171b9ac53dfb9",
+          "size": 550
+        },
+        {
+          "path": "run.py",
+          "sha256": "18ef84c41d3a9217eaec5c851bc43deff3e67441ee227d5da9f93b4b80309979",
+          "size": 3231
         }
       ]
     },
@@ -3243,6 +3483,56 @@
       ]
     },
     {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/hn",
+      "category": "utilities",
+      "name": "Hacker News",
+      "description": "The top, newest and best stories on Hacker News with their points and comment counts (needs internet).",
+      "version": "1.0.0",
+      "command": "hn",
+      "alias": [
+        "hackernews"
+      ],
+      "tags": [
+        "news",
+        "hacker news",
+        "tech",
+        "live"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "network"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "b24888421a5edf838b1e7dca70fa9d51ac7c5d1e1164381c86f968edb7bac9fc",
+          "size": 471
+        },
+        {
+          "path": "run.py",
+          "sha256": "2eac987ef29415cec3f3adf9b26c75418eaa38636ec1bec815bf98cd79100e57",
+          "size": 4139
+        }
+      ]
+    },
+    {
       "api": 2,
       "pip": [
         "holidays"
@@ -3390,6 +3680,55 @@
           "path": "run.py",
           "sha256": "5b47f2ec2993b743b4eb0e33f8f7b248088f7ade1d9e742df29b9abc96acfd5e",
           "size": 4122
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/ipcalc",
+      "category": "utilities",
+      "name": "IP Calculator",
+      "description": "Work out a network from an address and mask: range, broadcast, hosts, and how to split it into smaller networks.",
+      "version": "1.0.0",
+      "command": "ipcalc",
+      "alias": [
+        "subnet"
+      ],
+      "tags": [
+        "network",
+        "subnet",
+        "ip",
+        "cidr",
+        "developer"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "network"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "1510c640885903b58063a1403519feea3995d89ccd3b0206bb1009026da2b158",
+          "size": 479
+        },
+        {
+          "path": "run.py",
+          "sha256": "c4d61a2540cf8f258eb262c5b2258abf549d503f7099b5e2cb08e8022566afea",
+          "size": 5202
         }
       ]
     },
@@ -3557,11 +3896,60 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/jwt",
+      "category": "utilities",
+      "name": "JWT Decoder",
+      "description": "Read a JSON Web Token: its header and claims, when it expires, and whether a secret matches its signature.",
+      "version": "1.0.0",
+      "command": "jwt",
+      "alias": [
+        "jwtdecode"
+      ],
+      "tags": [
+        "jwt",
+        "token",
+        "auth",
+        "developer",
+        "base64"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "b09b07a1c771da1532eceeaa9ea71e5003b94d2d7c50e5d8e329cfe3a9395b48",
+          "size": 468
+        },
+        {
+          "path": "run.py",
+          "sha256": "98fec64ac7a742c88c029b74cd7f5de5aad6732cc86b4633cac9b419e98f474f",
+          "size": 5266
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/lanscan",
       "category": "utilities",
       "name": "LAN Scanner",
-      "description": "Find the devices on your own local network (private ranges only).",
-      "version": "1.0.0",
+      "description": "Find the devices on your own local network (private ranges only): names, makers, how fast they reply, what they seem to be, and what changed since last time.",
+      "version": "1.1.0",
       "command": "lanscan",
       "alias": [
         "lan"
@@ -3569,32 +3957,35 @@
       "tags": [
         "network",
         "scanner",
-        "devices"
+        "devices",
+        "security",
+        "router"
       ],
       "lockdown_safe": true,
       "requires": [],
       "optional": [],
       "permissions": [
         "network",
-        "system"
+        "system",
+        "files"
       ],
       "settings": [],
       "categories": [
         "network",
         "system"
       ],
-      "changelog": "First release.",
+      "changelog": "More features: the maker of each device, how fast it replied, service names for open ports, 40 common ports with --full or your own with --ports, names you give devices, --save and --diff to see what is new or gone since the last scan, --sort, --up, and --json or --csv output.",
       "featured": false,
       "files": [
         {
           "path": "data.json",
-          "sha256": "bd41a707bbb337139626b6ba93b5adc1e74817acc3014a31eab7075e0ad176a0",
-          "size": 450
+          "sha256": "9e7fb47bdba34b20a8891e5d2a428445c3ab4b0671d1454f13b5ec336b36c334",
+          "size": 848
         },
         {
           "path": "run.py",
-          "sha256": "f94574c723397d4e1863c390e90b6a0366935a2157f01e9cd8168c49da94a94e",
-          "size": 5242
+          "sha256": "1236984b66a7cb8d4d71e5970bf0ec55ba750f27a0923e9bb6ea091126d16882",
+          "size": 20494
         }
       ]
     },
@@ -4523,6 +4914,57 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/rates",
+      "category": "utilities",
+      "name": "Exchange Rates",
+      "description": "Convert money between currencies at the European Central Bank's latest rates (needs internet).",
+      "version": "1.0.0",
+      "command": "rates",
+      "alias": [
+        "currency",
+        "fx"
+      ],
+      "tags": [
+        "currency",
+        "exchange",
+        "money",
+        "convert"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "e96486d214fc64d4a95ba7315f0ac686c3dab9095ef6fcedad04df36d7a35520",
+          "size": 480
+        },
+        {
+          "path": "run.py",
+          "sha256": "ef7842b24c779552220d1a61aa8d2d9642c1254fb8e71e5797c80349fda4f838",
+          "size": 4553
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/readability",
       "category": "utilities",
       "name": "Readability",
@@ -5033,6 +5475,58 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/synonyms",
+      "category": "utilities",
+      "name": "Word Finder",
+      "description": "Synonyms, opposites, rhymes, words that sound alike, and words that fit a pattern (needs internet).",
+      "version": "1.0.0",
+      "command": "synonyms",
+      "alias": [
+        "thesaurus",
+        "rhyme"
+      ],
+      "tags": [
+        "words",
+        "synonym",
+        "rhyme",
+        "thesaurus",
+        "writing"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "a607bac05bdb6c9b5e572c03e94457091fd7403ea60ae9f7c1e89c01474649f4",
+          "size": 505
+        },
+        {
+          "path": "run.py",
+          "sha256": "6e156f55e7f5d67b0e2879751484289fd418dfb7b17d8f29b7461fd18d99745c",
+          "size": 3214
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/sysmon",
       "category": "utilities",
       "name": "System Monitor",
@@ -5174,6 +5668,55 @@
           "path": "run.py",
           "sha256": "17b250a7457218272f3f9cb5f2838a13a704350e7b01b179ce8a36de71904958",
           "size": 5068
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/tipsplit",
+      "category": "utilities",
+      "name": "Tip and Split",
+      "description": "Add a tip to a bill and split it between friends, rounding up so nobody is short.",
+      "version": "1.0.0",
+      "command": "tipsplit",
+      "alias": [
+        "tip"
+      ],
+      "tags": [
+        "tip",
+        "bill",
+        "split",
+        "restaurant",
+        "money"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "e1a9ad72adb3732a8885e2f22632e13d10e521bedb78c6dad7396c28fbe9685b",
+          "size": 444
+        },
+        {
+          "path": "run.py",
+          "sha256": "fecefaf6402289009bbb8f4a1f72aa289b76649eeb6c8189d8f172889625d06f",
+          "size": 4009
         }
       ]
     },
@@ -5477,6 +6020,54 @@
           "path": "run.py",
           "sha256": "6a54aa62d5c64b2543ff9b05043f2ea09546b16739e6b769cb9a49a669313631",
           "size": 5810
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/xkcd",
+      "category": "utilities",
+      "name": "xkcd",
+      "description": "Read a xkcd comic from the terminal: the title, the date and the text that shows when you hover (needs internet).",
+      "version": "1.0.0",
+      "command": "xkcd",
+      "alias": [],
+      "tags": [
+        "comic",
+        "xkcd",
+        "fun",
+        "humor"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "media"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "6051acece398fccd758409e5c31ccc3992e2284cdc91e67a6cead11f38e906a1",
+          "size": 449
+        },
+        {
+          "path": "run.py",
+          "sha256": "824ccfb705bf04471c486c15554d72fa3ffe8420c61399bf5c82e4d54a9656c6",
+          "size": 3636
         }
       ]
     },

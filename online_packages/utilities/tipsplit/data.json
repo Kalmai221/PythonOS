@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "tip"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Tip and Split",
+  "description": "Add a tip to a bill and split it between friends, rounding up so nobody is short.",
+  "command": "tipsplit",
+  "tags": [
+    "tip",
+    "bill",
+    "split",
+    "restaurant",
+    "money"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

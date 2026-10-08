@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "jwtdecode"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "JWT Decoder",
+  "description": "Read a JSON Web Token: its header and claims, when it expires, and whether a secret matches its signature.",
+  "command": "jwt",
+  "tags": [
+    "jwt",
+    "token",
+    "auth",
+    "developer",
+    "base64"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "subnet"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "IP Calculator",
+  "description": "Work out a network from an address and mask: range, broadcast, hosts, and how to split it into smaller networks.",
+  "command": "ipcalc",
+  "tags": [
+    "network",
+    "subnet",
+    "ip",
+    "cidr",
+    "developer"
+  ],
+  "permissions": [],
+  "categories": [
+    "network"
+  ]
+}

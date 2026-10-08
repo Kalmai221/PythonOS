@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "currency",
+    "fx"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Exchange Rates",
+  "description": "Convert money between currencies at the European Central Bank's latest rates (needs internet).",
+  "command": "rates",
+  "tags": [
+    "currency",
+    "exchange",
+    "money",
+    "convert"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "tools"
+  ]
+}

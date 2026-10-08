@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "xkcd",
+  "description": "Read a xkcd comic from the terminal: the title, the date and the text that shows when you hover (needs internet).",
+  "command": "xkcd",
+  "tags": [
+    "comic",
+    "xkcd",
+    "fun",
+    "humor"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "media"
+  ]
+}

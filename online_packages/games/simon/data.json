@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Simon",
+  "description": "Watch the pattern of colours and repeat it from memory; every round adds one more.",
+  "command": "simon",
+  "tags": [
+    "game",
+    "memory",
+    "pattern",
+    "quick"
+  ],
+  "permissions": [],
+  "categories": [
+    "games"
+  ]
+}

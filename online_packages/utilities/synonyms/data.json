@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "thesaurus",
+    "rhyme"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Word Finder",
+  "description": "Synonyms, opposites, rhymes, words that sound alike, and words that fit a pattern (needs internet).",
+  "command": "synonyms",
+  "tags": [
+    "words",
+    "synonym",
+    "rhyme",
+    "thesaurus",
+    "writing"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "learning"
+  ]
+}
