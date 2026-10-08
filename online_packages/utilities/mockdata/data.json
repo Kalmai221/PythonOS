@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "faker"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 256
+  },
+  "pip": [
+    "faker"
+  ],
+  "name": "Mock Data",
+  "description": "Make believable fake names, addresses, emails, companies and text for testing, in many languages.",
+  "command": "mockdata",
+  "tags": [
+    "fake",
+    "test",
+    "faker",
+    "developer"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

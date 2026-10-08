@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "sun",
+    "moonphase"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 256
+  },
+  "pip": [
+    "astral"
+  ],
+  "name": "Sun and Moon",
+  "description": "Sunrise, sunset, day length and the phase of the moon for a city and a day, worked out on this computer.",
+  "command": "sunmoon",
+  "tags": [
+    "sun",
+    "moon",
+    "sunrise",
+    "sunset",
+    "astronomy"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

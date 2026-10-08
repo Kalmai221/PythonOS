@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "earthquakes"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Earthquakes",
+  "description": "The latest earthquakes in the world from the US Geological Survey: the biggest of the day, week or month (needs internet).",
+  "command": "quake",
+  "tags": [
+    "earthquake",
+    "usgs",
+    "live",
+    "science"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "network"
+  ]
+}

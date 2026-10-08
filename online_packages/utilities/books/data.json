@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "openlibrary"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Book Search",
+  "description": "Find books, authors and first publication years on Open Library (needs internet).",
+  "command": "books",
+  "tags": [
+    "books",
+    "library",
+    "authors",
+    "search"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "learning"
+  ]
+}

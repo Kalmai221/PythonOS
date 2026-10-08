@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "pokemon"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "Pokedex",
+  "description": "Look up a Pokemon: types, abilities, stats and its Pokedex entry (needs internet).",
+  "command": "pokedex",
+  "tags": [
+    "pokemon",
+    "games",
+    "reference",
+    "fun"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "games"
+  ]
+}

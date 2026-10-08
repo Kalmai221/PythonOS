@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "holiday"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 256
+  },
+  "pip": [
+    "holidays"
+  ],
+  "name": "Holidays",
+  "description": "Public holidays of any country: the whole year, the next one, or whether a date is a holiday.",
+  "command": "holidays",
+  "tags": [
+    "holidays",
+    "calendar",
+    "dates",
+    "countries"
+  ],
+  "permissions": [],
+  "categories": [
+    "productivity"
+  ]
+}

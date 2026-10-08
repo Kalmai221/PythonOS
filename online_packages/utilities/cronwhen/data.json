@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "cronexplain"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 256
+  },
+  "pip": [
+    "cron-descriptor",
+    "croniter"
+  ],
+  "name": "Cron Explainer",
+  "description": "Explain a cron schedule in plain words and list the next times it runs.",
+  "command": "cronwhen",
+  "tags": [
+    "cron",
+    "schedule",
+    "developer",
+    "time"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

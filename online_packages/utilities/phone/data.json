@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "phonenumber"
+  ],
+  "lockdown_safe": false,
+  "changelog": "First release.",
+  "api": 2,
+  "exports": [
+    "windows",
+    "linux"
+  ],
+  "limits": {
+    "memory_mb": 256
+  },
+  "pip": [
+    "phonenumbers"
+  ],
+  "name": "Phone Numbers",
+  "description": "Check and format a phone number: valid or not, country, type of line, the international and national forms.",
+  "command": "phone",
+  "tags": [
+    "phone",
+    "number",
+    "validate",
+    "format"
+  ],
+  "permissions": [],
+  "categories": [
+    "tools"
+  ]
+}

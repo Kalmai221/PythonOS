@@ -1098,6 +1098,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "games/pokedex",
+      "category": "games",
+      "name": "Pokedex",
+      "description": "Look up a Pokemon: types, abilities, stats and its Pokedex entry (needs internet).",
+      "version": "1.0.0",
+      "command": "pokedex",
+      "alias": [
+        "pokemon"
+      ],
+      "tags": [
+        "pokemon",
+        "games",
+        "reference",
+        "fun"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "852eb3c1656d7b47c8b7c8841683c21365498a7a61164ebc6c9aadcc266ff68f",
+          "size": 448
+        },
+        {
+          "path": "run.py",
+          "sha256": "d9b51bdb6cad18f75e6ad3f47adc279d62be95b625d4bdbf4b53bad1a0e8648f",
+          "size": 3664
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "games/pokerdice",
       "category": "games",
       "name": "Poker Dice",
@@ -1910,6 +1960,56 @@
           "path": "run.py",
           "sha256": "cd5489a0eb75c552f5dd3f7eda7da1d03fed5bbde7e8151225c10a75969c7bf9",
           "size": 5321
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/books",
+      "category": "utilities",
+      "name": "Book Search",
+      "description": "Find books, authors and first publication years on Open Library (needs internet).",
+      "version": "1.0.0",
+      "command": "books",
+      "alias": [
+        "openlibrary"
+      ],
+      "tags": [
+        "books",
+        "library",
+        "authors",
+        "search"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "2f3a3f9460d185387009c71f90103e864efaf54035674d1d9968f7e78a2467dd",
+          "size": 457
+        },
+        {
+          "path": "run.py",
+          "sha256": "d17198e2655376b6d030858da22648f088b3e80dbcf1505777169cea27538971",
+          "size": 3255
         }
       ]
     },
@@ -3006,6 +3106,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/iss",
+      "category": "utilities",
+      "name": "ISS Tracker",
+      "description": "Where the International Space Station is right now: position, height and speed (needs internet).",
+      "version": "1.0.0",
+      "command": "iss",
+      "alias": [
+        "spacestation"
+      ],
+      "tags": [
+        "space",
+        "iss",
+        "station",
+        "live"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "network"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "4bd220f121f9b72bca43316750f67c3cf0791e7f1a017fc51a30fa8fc84267e9",
+          "size": 464
+        },
+        {
+          "path": "run.py",
+          "sha256": "66533e9c40c2b9210ddf3a495ead952e79f26088baadf6ef7db981963d55643d",
+          "size": 2437
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/journal",
       "category": "utilities",
       "name": "Journal",
@@ -3729,6 +3879,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/pypi",
+      "category": "utilities",
+      "name": "PyPI Info",
+      "description": "What a Python package is, its latest version, licence, requirements and recent releases (needs internet).",
+      "version": "1.0.0",
+      "command": "pypi",
+      "alias": [
+        "pipinfo"
+      ],
+      "tags": [
+        "python",
+        "pip",
+        "packages",
+        "developer"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "fa2cc0a29878d8ad4f6cf22192e39fb520a6af7b17e8cb75e52725e075e9611d",
+          "size": 472
+        },
+        {
+          "path": "run.py",
+          "sha256": "a41139c8949523fb0fda8274f40d784ae844354535952d890f045b340f06fb4a",
+          "size": 3924
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/qr",
       "category": "utilities",
       "name": "QR Codes",
@@ -3766,6 +3966,56 @@
           "path": "run.py",
           "sha256": "f66e2a604fd9b4e7dc06fc08003eaad1c8bcb87d37333033bd175cd2f48298ed",
           "size": 13221
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/quake",
+      "category": "utilities",
+      "name": "Earthquakes",
+      "description": "The latest earthquakes in the world from the US Geological Survey: the biggest of the day, week or month (needs internet).",
+      "version": "1.0.0",
+      "command": "quake",
+      "alias": [
+        "earthquakes"
+      ],
+      "tags": [
+        "earthquake",
+        "usgs",
+        "live",
+        "science"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "network"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "5cb3ec1083bab58e04caf213f9cfba4c597dc2be2731610b1d8881a099d4a00e",
+          "size": 497
+        },
+        {
+          "path": "run.py",
+          "sha256": "099d0eb14d68a66de45fece5a06f515ab10a4ca65608fe0445e4780b8bfd8767",
+          "size": 3898
         }
       ]
     },

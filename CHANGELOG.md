@@ -17,6 +17,11 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - Spanish, French and German now come from the Translations workflow (CI, Argos Translate) instead of hand-written tables: the old tables were removed, `pyos/locales.py` is now only for corrections, and the workflow translates every message (boot and shutdown screens, `report`, `doctor`, `sudo`, `gh`, the bug-detection question and the app permission prompts) into `pyos/locales_auto.py`. Until a message is translated it shows in English. The text of a problem report stays English, because the developers read it.
 - `report`: the wait between two reports sent to Discord from one installation is now 2 minutes (it was 10).
 
+
+### Apps
+
+- Ten new apps. Five use a Python library that is installed with the app (Windows and Linux; they work without internet): **Holidays** (`holidays`: a country's public holidays, the next one, is this date a holiday), **Phone Numbers** (`phone`: valid or not, country, line type, international and national forms), **Cron Explainer** (`cronwhen`: a cron schedule in plain words and its next run times), **Mock Data** (`mockdata`: fake names, emails, addresses and text for testing, in many languages) and **Sun and Moon** (`sunmoon`: sunrise, sunset, day length and moon phase for a city). Five use a free web service that needs no account or key (internet needed): **ISS Tracker** (`iss`), **Earthquakes** (`quake`: USGS, the biggest of the day, week or month), **Book Search** (`books`: Open Library), **Pokedex** (`pokedex`: PokeAPI) and **PyPI Info** (`pypi`: what a Python package is and its recent releases).
+
 ### Exports
 
 - The virtual machine image (`.ova`) is named after its version (`PythonOS 1.0.13`), so importing a newer one into VirtualBox no longer stops with "Machine settings file ... already exists" because of an older import.

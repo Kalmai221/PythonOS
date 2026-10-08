@@ -1098,6 +1098,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "games/pokedex",
+      "category": "games",
+      "name": "Pokedex",
+      "description": "Look up a Pokemon: types, abilities, stats and its Pokedex entry (needs internet).",
+      "version": "1.0.0",
+      "command": "pokedex",
+      "alias": [
+        "pokemon"
+      ],
+      "tags": [
+        "pokemon",
+        "games",
+        "reference",
+        "fun"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "games"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "852eb3c1656d7b47c8b7c8841683c21365498a7a61164ebc6c9aadcc266ff68f",
+          "size": 448
+        },
+        {
+          "path": "run.py",
+          "sha256": "d9b51bdb6cad18f75e6ad3f47adc279d62be95b625d4bdbf4b53bad1a0e8648f",
+          "size": 3664
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "games/pokerdice",
       "category": "games",
       "name": "Poker Dice",
@@ -2021,6 +2071,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/books",
+      "category": "utilities",
+      "name": "Book Search",
+      "description": "Find books, authors and first publication years on Open Library (needs internet).",
+      "version": "1.0.0",
+      "command": "books",
+      "alias": [
+        "openlibrary"
+      ],
+      "tags": [
+        "books",
+        "library",
+        "authors",
+        "search"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "learning"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "2f3a3f9460d185387009c71f90103e864efaf54035674d1d9968f7e78a2467dd",
+          "size": 457
+        },
+        {
+          "path": "run.py",
+          "sha256": "d17198e2655376b6d030858da22648f088b3e80dbcf1505777169cea27538971",
+          "size": 3255
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/bulkrename",
       "category": "utilities",
       "name": "Bulk Rename",
@@ -2478,6 +2578,55 @@
           "path": "run.py",
           "sha256": "079801a0930478fe9ce286ba8975615970353d1d7b775329d18f0ca56d8e43a9",
           "size": 5121
+        }
+      ]
+    },
+    {
+      "api": 2,
+      "pip": [
+        "cron-descriptor",
+        "croniter"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/cronwhen",
+      "category": "utilities",
+      "name": "Cron Explainer",
+      "description": "Explain a cron schedule in plain words and list the next times it runs.",
+      "version": "1.0.0",
+      "command": "cronwhen",
+      "alias": [
+        "cronexplain"
+      ],
+      "tags": [
+        "cron",
+        "schedule",
+        "developer",
+        "time"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "486b4e4032ec37b76b8cd31b64b6a8e677da0c34543689a84e84e5a612f88661",
+          "size": 587
+        },
+        {
+          "path": "run.py",
+          "sha256": "6bcc6e9e2b668394c06ebc4285d2029853cd8380169eebb453eb9dbef0fdbacd",
+          "size": 3062
         }
       ]
     },
@@ -3094,6 +3243,54 @@
       ]
     },
     {
+      "api": 2,
+      "pip": [
+        "holidays"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/holidays",
+      "category": "utilities",
+      "name": "Holidays",
+      "description": "Public holidays of any country: the whole year, the next one, or whether a date is a holiday.",
+      "version": "1.0.0",
+      "command": "holidays",
+      "alias": [
+        "holiday"
+      ],
+      "tags": [
+        "holidays",
+        "calendar",
+        "dates",
+        "countries"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "productivity"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "6881498b6fcb4715f5a654e525fb6c898ca870b92935f04c6ef8095ab3d87e86",
+          "size": 588
+        },
+        {
+          "path": "run.py",
+          "sha256": "c9f628203bebc58aa9625996ab65dc0772663f4dfd414a352d24a879f9b8daa8",
+          "size": 4956
+        }
+      ]
+    },
+    {
       "api": 1,
       "pip": [],
       "exports": [
@@ -3193,6 +3390,56 @@
           "path": "run.py",
           "sha256": "5b47f2ec2993b743b4eb0e33f8f7b248088f7ade1d9e742df29b9abc96acfd5e",
           "size": 4122
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/iss",
+      "category": "utilities",
+      "name": "ISS Tracker",
+      "description": "Where the International Space Station is right now: position, height and speed (needs internet).",
+      "version": "1.0.0",
+      "command": "iss",
+      "alias": [
+        "spacestation"
+      ],
+      "tags": [
+        "space",
+        "iss",
+        "station",
+        "live"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "network"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "4bd220f121f9b72bca43316750f67c3cf0791e7f1a017fc51a30fa8fc84267e9",
+          "size": 464
+        },
+        {
+          "path": "run.py",
+          "sha256": "66533e9c40c2b9210ddf3a495ead952e79f26088baadf6ef7db981963d55643d",
+          "size": 2437
         }
       ]
     },
@@ -3563,6 +3810,54 @@
       ]
     },
     {
+      "api": 2,
+      "pip": [
+        "faker"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/mockdata",
+      "category": "utilities",
+      "name": "Mock Data",
+      "description": "Make believable fake names, addresses, emails, companies and text for testing, in many languages.",
+      "version": "1.0.0",
+      "command": "mockdata",
+      "alias": [
+        "faker"
+      ],
+      "tags": [
+        "fake",
+        "test",
+        "faker",
+        "developer"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "227d789366af27307b7588d021562208c565a0ec4702eefe0b8c8d4e260eef82",
+          "size": 573
+        },
+        {
+          "path": "run.py",
+          "sha256": "6cc78604b1820a6b210fc296905e52b9092c2802af544a76a5ec185e31a80837",
+          "size": 4236
+        }
+      ]
+    },
+    {
       "api": 1,
       "pip": [],
       "exports": [
@@ -3825,6 +4120,54 @@
     {
       "api": 2,
       "pip": [
+        "phonenumbers"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/phone",
+      "category": "utilities",
+      "name": "Phone Numbers",
+      "description": "Check and format a phone number: valid or not, country, type of line, the international and national forms.",
+      "version": "1.0.0",
+      "command": "phone",
+      "alias": [
+        "phonenumber"
+      ],
+      "tags": [
+        "phone",
+        "number",
+        "validate",
+        "format"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "64e1621e01dcf301294dddc1570364b2361a5a9099c9b97d6e5f11f37fcb6123",
+          "size": 600
+        },
+        {
+          "path": "run.py",
+          "sha256": "bd4d93a7ad72c7f7f08db7155ec9e06a765e2aa169039eb897b2694ed8b50393",
+          "size": 4081
+        }
+      ]
+    },
+    {
+      "api": 2,
+      "pip": [
         "plotext>=5.2,<6"
       ],
       "exports": [
@@ -4030,6 +4373,56 @@
         "iso"
       ],
       "run_exports": [],
+      "id": "utilities/pypi",
+      "category": "utilities",
+      "name": "PyPI Info",
+      "description": "What a Python package is, its latest version, licence, requirements and recent releases (needs internet).",
+      "version": "1.0.0",
+      "command": "pypi",
+      "alias": [
+        "pipinfo"
+      ],
+      "tags": [
+        "python",
+        "pip",
+        "packages",
+        "developer"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "fa2cc0a29878d8ad4f6cf22192e39fb520a6af7b17e8cb75e52725e075e9611d",
+          "size": 472
+        },
+        {
+          "path": "run.py",
+          "sha256": "a41139c8949523fb0fda8274f40d784ae844354535952d890f045b340f06fb4a",
+          "size": 3924
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
       "id": "utilities/qr",
       "category": "utilities",
       "name": "QR Codes",
@@ -4067,6 +4460,56 @@
           "path": "run.py",
           "sha256": "f66e2a604fd9b4e7dc06fc08003eaad1c8bcb87d37333033bd175cd2f48298ed",
           "size": 13221
+        }
+      ]
+    },
+    {
+      "api": 1,
+      "pip": [],
+      "exports": [
+        "android",
+        "windows",
+        "linux",
+        "iso"
+      ],
+      "run_exports": [],
+      "id": "utilities/quake",
+      "category": "utilities",
+      "name": "Earthquakes",
+      "description": "The latest earthquakes in the world from the US Geological Survey: the biggest of the day, week or month (needs internet).",
+      "version": "1.0.0",
+      "command": "quake",
+      "alias": [
+        "earthquakes"
+      ],
+      "tags": [
+        "earthquake",
+        "usgs",
+        "live",
+        "science"
+      ],
+      "lockdown_safe": true,
+      "requires": [],
+      "optional": [],
+      "permissions": [
+        "network"
+      ],
+      "settings": [],
+      "categories": [
+        "network"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "5cb3ec1083bab58e04caf213f9cfba4c597dc2be2731610b1d8881a099d4a00e",
+          "size": 497
+        },
+        {
+          "path": "run.py",
+          "sha256": "099d0eb14d68a66de45fece5a06f515ab10a4ca65608fe0445e4780b8bfd8767",
+          "size": 3898
         }
       ]
     },
@@ -4527,6 +4970,56 @@
           "path": "run.py",
           "sha256": "c047a05fe1ae6cc2c71354b4efc8f67f0c6caf306b119bae3a8bc3d4d0e5ad58",
           "size": 5390
+        }
+      ]
+    },
+    {
+      "api": 2,
+      "pip": [
+        "astral"
+      ],
+      "exports": [
+        "windows",
+        "linux"
+      ],
+      "run_exports": [],
+      "id": "utilities/sunmoon",
+      "category": "utilities",
+      "name": "Sun and Moon",
+      "description": "Sunrise, sunset, day length and the phase of the moon for a city and a day, worked out on this computer.",
+      "version": "1.0.0",
+      "command": "sunmoon",
+      "alias": [
+        "sun",
+        "moonphase"
+      ],
+      "tags": [
+        "sun",
+        "moon",
+        "sunrise",
+        "sunset",
+        "astronomy"
+      ],
+      "lockdown_safe": false,
+      "requires": [],
+      "optional": [],
+      "permissions": [],
+      "settings": [],
+      "categories": [
+        "tools"
+      ],
+      "changelog": "First release.",
+      "featured": false,
+      "files": [
+        {
+          "path": "data.json",
+          "sha256": "699b3a71073f30ec7277d229134f6f1e462f84b52f9a06eef917a302b7b1fbd5",
+          "size": 613
+        },
+        {
+          "path": "run.py",
+          "sha256": "c89aeac9604ce9e48aeb889ad1829f38c9b3fa29f6e6ba87b1ccd068c69a7566",
+          "size": 3895
         }
       ]
     },

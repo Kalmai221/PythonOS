@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "spacestation"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "ISS Tracker",
+  "description": "Where the International Space Station is right now: position, height and speed (needs internet).",
+  "command": "iss",
+  "tags": [
+    "space",
+    "iss",
+    "station",
+    "live"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "network"
+  ]
+}

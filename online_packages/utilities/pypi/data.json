@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "run": "run.py"
+  },
+  "alias": [
+    "pipinfo"
+  ],
+  "lockdown_safe": true,
+  "changelog": "First release.",
+  "name": "PyPI Info",
+  "description": "What a Python package is, its latest version, licence, requirements and recent releases (needs internet).",
+  "command": "pypi",
+  "tags": [
+    "python",
+    "pip",
+    "packages",
+    "developer"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "categories": [
+    "tools"
+  ]
+}
