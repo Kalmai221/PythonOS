@@ -286,30 +286,6 @@ jobs:
           key: alpine-apk-${{ matrix.arch }}-${{ matrix.variant }}-${{ hashFiles('OS_Export/ISO/in-container.sh', 'OS_Export/ISO/mkimg.pythonos.sh') }}
           restore-keys: alpine-apk-${{ matrix.arch }}-${{ matrix.variant }}-
       - run: bash OS_Export/ISO/build-iso.sh
-      - name: Size report (what the ISO is made of, in the job summary; informational only)
-        continue-on-error: true
-        run: |
-          sudo apt-get install -y -qq xorriso
-          ISO="$(ls dist/iso/*.iso | head -n1)"
-          mkdir -p "$RUNNER_TEMP/isoview"
-          xorriso -osirrox on -indev "$ISO" -extract / "$RUNNER_TEMP/isoview" >/dev/null 2>&1
-          {
-            echo "### ISO ${{ matrix.arch }} (${{ matrix.variant }}): $(du -h "$ISO" | cut -f1)"
-            echo "Top-level folders:"; echo '```'; du -sh "$RUNNER_TEMP"/isoview/* | sed "s|$RUNNER_TEMP/isoview/||" | sort -rh; echo '```'
-            echo "Files in boot/:"; echo '```'; find "$RUNNER_TEMP/isoview/boot" -maxdepth 1 -type f -printf '%s %f\n' | sort -rn | awk '{printf "%7.1f MB  %s\n", $1/1048576, $2}'; echo '```'
-            for m in "$RUNNER_TEMP"/isoview/boot/modloop-*; do
-              [ -f "$m" ] || continue
-              sudo apt-get install -y -qq squashfs-tools >/dev/null 2>&1
-              echo "Inside $(basename "$m") (uncompressed size per folder; the file on the disc is compressed):"; echo '```'
-              unsquashfs -d "$RUNNER_TEMP/modloop" -f "$m" >/dev/null 2>&1
-              du -sm "$RUNNER_TEMP"/modloop/modules/*/kernel/* 2>/dev/null | sort -rn | head -12 | sed "s|$RUNNER_TEMP/modloop/||"
-              du -sm "$RUNNER_TEMP"/modloop/modules/*/* "$RUNNER_TEMP"/modloop/firmware 2>/dev/null | sort -rn | head -8 | sed "s|$RUNNER_TEMP/modloop/||"
-              echo '```'
-            done
-            echo "The 30 biggest packages on the disc:"; echo '```'
-            find "$RUNNER_TEMP/isoview" -name '*.apk' -printf '%s %f\n' | sort -rn | head -30 | awk '{printf "%7.2f MB  %s\n", $1/1048576, $2}'
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
       - name: Virtual machine images (full x86_64 image only)
         if: matrix.variant == 'full' && matrix.arch == 'x86_64'
         run: |
