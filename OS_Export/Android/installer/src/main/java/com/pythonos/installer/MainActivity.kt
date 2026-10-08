@@ -33,13 +33,13 @@ import java.util.concurrent.Executors
  * tools (other versions, what is new, uninstall, copy details for a bug report). Colours follow the system's light or dark setting.
  */
 class MainActivity : Activity() {
-    private class Palette(night: Boolean) {
+    private class Palette(night: Boolean, system: Int? = null) {
         val bg = if (night) Color.rgb(19, 19, 18) else Color.rgb(250, 249, 246)
         val card = if (night) Color.rgb(27, 27, 25) else Color.WHITE
         val text = if (night) Color.rgb(232, 230, 224) else Color.rgb(29, 28, 26)
         val muted = if (night) Color.rgb(160, 156, 146) else Color.rgb(102, 99, 92)
         val line = if (night) Color.rgb(52, 51, 46) else Color.rgb(222, 219, 211)
-        val accent = if (night) Color.rgb(111, 193, 156) else Color.rgb(28, 107, 82)
+        val accent = system ?: if (night) Color.rgb(111, 193, 156) else Color.rgb(28, 107, 82)
         val onAccent = if (night) Color.rgb(13, 31, 23) else Color.WHITE
         val good = if (night) Color.rgb(98, 196, 138) else Color.rgb(27, 122, 71)
         val bad = if (night) Color.rgb(240, 138, 128) else Color.rgb(179, 38, 30)
@@ -103,7 +103,9 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val night = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        p = Palette(night)
+        // Android 12+ lends us the phone's own accent colour so the installer matches the rest of the system
+        val system = if (android.os.Build.VERSION.SDK_INT >= 31) try { getColor(if (night) android.R.color.system_accent1_200 else android.R.color.system_accent1_600) } catch (e: Exception) { null } else null
+        p = Palette(night, system)
         window.setBackgroundDrawable(ColorDrawable(p.bg))
         window.statusBarColor = p.bg
         window.navigationBarColor = p.bg
@@ -373,7 +375,7 @@ class MainActivity : Activity() {
                     if (first < 0) first = done
                     val seconds = (SystemClock.elapsedRealtime() - started) / 1000.0
                     val speed = if (seconds > 0.5) (done - first) / seconds else 0.0
-                    val text = if (total > 0) "${mb(done)} of ${mb(total)}" + (if (speed > 0) String.format("  ·  %.1f MB/s", speed / 1048576.0) else "") else mb(done)
+                    val text = if (total > 0) "${mb(done)} of ${mb(total)}" + (if (speed > 0) String.format("  ·  %.1f MB/s", speed / 1048576.0) else "") + (if (speed > 0 && total > done) String.format("  ·  %d s left", ((total - done) / speed).toLong() + 1) else "") else mb(done)
                     runOnUiThread { bar.progress = if (total > 0) (done * 1000 / total).toInt() else 0; barText.text = text }
                 }
                 step = 3

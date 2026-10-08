@@ -8,12 +8,22 @@
 # the user's files and accounts, because the OS reads and writes relative to its working directory.
 set -e
 
+# Colour only on a real terminal (and never with NO_COLOR): the same look as the first-start download
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-dumb}" != dumb ]; then
+    C_ACCENT="$(printf '\033[1;36m')"; C_DIM="$(printf '\033[2m')"; C_BAD="$(printf '\033[1;31m')"; C_OFF="$(printf '\033[0m')"
+else
+    C_ACCENT=""; C_DIM=""; C_BAD=""; C_OFF=""
+fi
+banner() { printf '\n  %s>_%s  PythonOS  %s-  %s%s\n\n' "$C_ACCENT" "$C_OFF" "$C_DIM" "$1" "$C_OFF"; }
+step() { printf '  %s[%s]%s %s\n' "$C_DIM" "$1" "$C_OFF" "$2"; }
+problem() { printf '  %sx%s %s\n' "$C_BAD" "$C_OFF" "$1" >&2; [ -z "${2:-}" ] || printf '    %s%s%s\n' "$C_DIM" "$2" "$C_OFF" >&2; }
+
 HERE="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 DATA="${PYTHONOS_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pythonos}"
 VENV="$DATA/venv"
 
 if ! command -v python3 >/dev/null 2>&1; then
-    echo "PythonOS needs Python 3.8 or newer (python3 was not found)." >&2
+    problem "PythonOS needs Python 3.8 or newer (python3 was not found)." "Install it with your package manager, for example: sudo apt install python3 python3-venv"
     exit 1
 fi
 
@@ -26,7 +36,7 @@ for needed in main.py shell.py users.py VERSION requirements.txt boot-requiremen
 done
 if [ "$INCOMPLETE" = 1 ]; then
     if ! python3 "$HERE/bootstrap.py" --dest "$DATA"; then
-        echo "Could not download PythonOS. Check your internet connection and try again." >&2
+        problem "Could not download PythonOS." "Check your internet connection and start it again."
         exit 1
     fi
     rm -f "$VENV/.deps_ok"
@@ -37,13 +47,18 @@ if [ ! -x "$VENV/bin/python" ] || ! "$VENV/bin/python" -c "import rich, psutil, 
     rm -f "$VENV/.deps_ok"
 fi
 if [ ! -f "$VENV/.deps_ok" ]; then
-    echo "Setting up PythonOS (first run only)..."
+    [ "$INCOMPLETE" = 1 ] || banner "setting up (first run only)"
+    step "1/2" "Preparing a private Python environment"
     python3 -m venv "$VENV" || {
-        echo "Could not create a virtual environment. On Debian/Ubuntu run: sudo apt install python3-venv" >&2
+        problem "Could not create a virtual environment." "On Debian or Ubuntu: sudo apt install python3-venv"
         exit 1
     }
     "$VENV/bin/python" -m pip install --quiet --upgrade pip
-    "$VENV/bin/python" -m pip install --quiet -r "$DATA/requirements.txt" -r "$DATA/boot-requirements.txt"
+    step "2/2" "Installing the Python libraries PythonOS needs"
+    "$VENV/bin/python" -m pip install --quiet -r "$DATA/requirements.txt" -r "$DATA/boot-requirements.txt" || {
+        problem "Could not install the Python libraries." "Check your internet connection and start it again."
+        exit 1
+    }
     # The optional libraries (requirements-extra.txt) are not installed here: PythonOS asks which ones to have the first time it is set up
     # (and `extras` changes the choice later), and installs them into this environment.
     touch "$VENV/.deps_ok"

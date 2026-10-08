@@ -22,8 +22,34 @@ STARTER_APPS = [("utilities/notes", "Notes"), ("utilities/todo", "To-do"), ("uti
                 ("utilities/calendar", "Calendar"), ("utilities/files", "File Manager")]
 
 
+def _marks():
+    """(done mark, to-do mark): round dots, or plain letters where the screen cannot draw them (the Linux text console, a legacy code page)."""
+    from pyos import spinner
+    return ("#", "-") if spinner.ascii_only() else ("●", "○")
+
+
 def _step(number, total, title):
-    console.print(f"\n[bold cyan]Step {number} of {total}[/bold cyan]  [bold]{title}[/bold]")
+    """The heading of a step: a row of dots showing where we are, the name of the step, and 'Step 2 of 4'."""
+    from pyos.i18n import tr
+    done, todo = _marks()
+    dots = " ".join(f"[bold cyan]{done}[/bold cyan]" if i < number else f"[dim]{todo}[/dim]" for i in range(total))
+    console.print()
+    console.rule(style=theme.style("border"))
+    console.print(f"{dots}   [bold]{escape(tr(title))}[/bold]   [dim]{escape(tr('Step {n} of {total}', n=number, total=total))}[/dim]")
+    console.print()
+
+
+def _welcome_banner():
+    """The first thing a new person sees: the mark, the welcome, and what is about to happen."""
+    from rich.align import Align
+    from rich.console import Group
+    from pyos.i18n import tr
+    drawn = _marks()[0] != "#"
+    mark = Text.assemble(("╭────╮\n", "cyan"), ("│ >_ │", "bold cyan"), ("\n╰────╯", "cyan")) if drawn else Text(">_", style="bold cyan")
+    console.print(Panel(Group(Align.center(mark), Text(""), Align.center(Text(tr("Welcome to PythonOS"), style="bold")),
+                             Align.center(Text(tr("Let's set things up. It takes a minute, and you can change everything later."), style="dim"))),
+                        border_style=theme.style("border"), padding=(1, 4)))
+    console.print()
 
 
 def _online():
@@ -216,8 +242,7 @@ def firsttimeuse():
     console.clear()
     _choose_language()
     from pyos.i18n import tr
-    console.print(Panel(Text(tr("Welcome to PythonOS"), style="bold white on dark_green", justify="center")))
-    console.print(tr("Let's set things up. It takes a minute, and you can change everything later.") + "\n")
+    _welcome_banner()
     number = 0
 
     if live or installed:
@@ -244,7 +269,11 @@ def firsttimeuse():
     _step(number, total, "Updates and apps")
     _updates_and_apps()
 
-    console.print(Panel(f"[bold green]All set{', ' + escape(name) if name else ''}![/bold green]\n\n"
-                        "Try [bold]tutorial[/bold] for a short guided tour, [bold]help[/bold] for the commands, "
-                        "or [bold]market[/bold] for more apps.",
-                        border_style=theme.style("border"), expand=False))
+    tick = "[bold green]" + ("ok" if _marks()[0] == "#" else "✓") + "[/bold green]"
+    console.print()
+    console.print(Panel(f"{tick} [bold green]{escape(tr('All set'))}{', ' + escape(name) if name else ''}![/bold green]\n\n"
+                        f"  [bold]tutorial[/bold]   [dim]{escape(tr('a short guided tour'))}[/dim]\n"
+                        f"  [bold]help[/bold]       [dim]{escape(tr('the commands'))}[/dim]\n"
+                        f"  [bold]market[/bold]     [dim]{escape(tr('more apps'))}[/dim]\n"
+                        f"  [bold]extras[/bold]     [dim]{escape(tr('optional libraries'))}[/dim]",
+                        border_style=theme.style("border"), expand=False, padding=(1, 3)))

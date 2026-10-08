@@ -56,7 +56,7 @@ UninstallDisplayIcon={app}\PythonOS.exe
 
 ; Look and feel: the modern wizard with PythonOS artwork instead of the plain default
 WizardStyle=modern dynamic
-WizardSizePercent=110
+WizardSizePercent=120
 WizardImageFile={#ArtDir}\wizard-164x314.bmp,{#ArtDir}\wizard-192x386.bmp,{#ArtDir}\wizard-246x459.bmp,{#ArtDir}\wizard-328x628.bmp
 WizardSmallImageFile={#ArtDir}\small-55.bmp,{#ArtDir}\small-64.bmp,{#ArtDir}\small-80.bmp,{#ArtDir}\small-110.bmp
 SetupIconFile={#ArtDir}\PythonOS.ico

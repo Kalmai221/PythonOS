@@ -118,11 +118,19 @@ class Look:
             self.stream.flush()
 
     def heading(self, title, detail=""):
+        """The banner: the prompt mark, the name and what is happening, in a box (plain dashes where the terminal cannot draw one)."""
         dot = "·" if self.unicode else "-"
-        rule = ("─" if self.unicode else "-") * (len(title) + len(detail) + 6)
+        inside = f">_  {title}" + (f"  {dot}  {detail}" if detail else "")
+        width = len(inside) + 4
         self._write("")
-        self._write("  " + self.paint("1;36", title) + (f"  {self.paint('2', dot)}  {self.paint('2', detail)}" if detail else ""))
-        self._write("  " + self.paint("2", rule))
+        if self.unicode:
+            coloured = f"{self.paint('1;36', '>_')}  {self.paint('1', title)}" + (f"  {self.paint('2', dot)}  {self.paint('2', detail)}" if detail else "")
+            self._write("  " + self.paint("2", "╭" + "─" * (width - 2) + "╮"))
+            self._write("  " + self.paint("2", "│") + "  " + coloured + "  " + self.paint("2", "│"))
+            self._write("  " + self.paint("2", "╰" + "─" * (width - 2) + "╯"))
+        else:
+            self._write("  " + self.paint("1;36", inside))
+            self._write("  " + self.paint("2", "-" * width))
 
     def step(self, number, text):
         self.end_bar()
