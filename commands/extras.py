@@ -125,7 +125,7 @@ def first_time():
 
 def execute(args=None):
     args = list(args or [])
-    if lockdown.enabled() and args and args[0] not in ("list", "ls"):
+    if lockdown.enabled() and extras.backend() != "apk" and args and args[0] not in ("list", "ls"):
         console.print(f"[bold red]{escape(tr('extras: not while lockdown is on'))}[/bold red]")
         return False
     items = extras.catalog()

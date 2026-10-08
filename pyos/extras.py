@@ -11,7 +11,8 @@
 #     ISO has only what is on the disc until the person is asked
 #   * how a library is installed depends on the system: pip (Windows, Linux, Docker, a source checkout) or Alpine's apk (the ISO and virtual
 #     machines, which have no pip). The Android app carries its libraries inside and cannot add more.
-# Nothing here starts a program itself: it asks core.hardware.run, and nothing is done while lockdown is on.
+# Nothing here starts a program itself: it asks core.hardware.run. While lockdown is on (the live ISO always is) only Alpine's own packages are
+# installed with apk, never libraries from the internet with pip.
 import importlib.util
 import json
 import os
@@ -204,9 +205,9 @@ def apk_available(extra):
 
 def install(names, say=print):
     """Install libraries by name. Returns ({name: True/False}, why-not text or ''). Never raises for a failed install."""
-    if lockdown.enabled():
-        return {}, "installing is switched off while lockdown is on"
     how = backend()
+    if lockdown.enabled() and how != "apk":
+        return {}, "installing is switched off while lockdown is on"
     if how is None:
         return {}, "this app carries its libraries inside and cannot add more"
     extras = {e.name: e for e in catalog()}
@@ -236,9 +237,9 @@ def install(names, say=print):
 
 
 def remove(names, say=print):
-    if lockdown.enabled():
-        return {}, "removing is switched off while lockdown is on"
     how = backend()
+    if lockdown.enabled() and how != "apk":
+        return {}, "removing is switched off while lockdown is on"
     if how is None:
         return {}, "this app carries its libraries inside"
     extras = {e.name: e for e in catalog()}

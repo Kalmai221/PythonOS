@@ -132,6 +132,8 @@ def main():
 
             # ---- the live ISO and virtual machines: apk, only what Alpine has, and only when the network answers
             os.environ["PYOS_LIVE"] = "1"
+            lockdown_before = lockdown.enabled
+            lockdown.enabled = lambda: True                           # the live ISO is always locked down, and it is where this is used
             try:
                 assert extras.backend() == "apk" and extras.wanted() == [], "no choice on the ISO: only what is on the disc"
                 os.remove(os.path.join(".OSData", "extras.json"))
@@ -147,6 +149,7 @@ def main():
                 recorder.fail.clear()
             finally:
                 os.environ.pop("PYOS_LIVE", None)
+                lockdown.enabled = lockdown_before
             # the Android app carries its libraries inside
             real_current = export.current
             export.current = lambda: "android"
