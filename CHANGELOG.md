@@ -12,7 +12,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 ### PythonOS
 
 - Apps are asked about permissions the first time they use them. A permission an app declared but was not given used to be refused outright; now the app is stopped for a moment and you are asked: allow this time, always allow, not now, or never allow. "Always" and "never" are remembered (`pkg permissions <name>` shows and changes them: `grant`, `revoke` for never, and the new `ask` to go back to being asked). An app can only be asked about what it declared, nobody is asked when the output is captured or on the locked-down live system, and the question and the permission names are translated.
-- The messages added in 1.0.12 are translated into Spanish, French and German: `report` (all its questions and messages), the bug-detection question, `sudo` and `gh`, `doctor` (every check, its hints, the summary and the prompts) and the app permission prompts. The text of a report itself stays English, because the developers read it.
+- Spanish, French and German now come from the Translations workflow (CI, Argos Translate) instead of hand-written tables: the old tables were removed, `pyos/locales.py` is now only for corrections, and the workflow translates every message (boot and shutdown screens, `report`, `doctor`, `sudo`, `gh`, the bug-detection question and the app permission prompts) into `pyos/locales_auto.py`. Until a message is translated it shows in English. The text of a problem report stays English, because the developers read it.
 
 ### Exports
 

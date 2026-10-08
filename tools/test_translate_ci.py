@@ -128,7 +128,7 @@ def main():
 
     # the real catalogs: a person's text wins over a machine one, and a missing text falls back to the machine one
     from pyos import locales
-    assert set(locales.HUMAN) == {"es", "fr", "de"} and all(locales.HUMAN[c] for c in locales.HUMAN)
+    assert set(locales.HUMAN) == {"es", "fr", "de"}
     import pyos.locales_auto as auto_module
     for code, name in t.LANGUAGES.items():
         for key, value in getattr(auto_module, name).items():

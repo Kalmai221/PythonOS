@@ -21,6 +21,20 @@ import i18n_keys  # noqa: E402
 PLACEHOLDER = re.compile(r"\{(\w+)\}")
 
 
+# the catalogs are made by CI and start empty, so the mechanism is tested with a few made-up entries (put in and taken out again)
+FIXTURE = {
+    "es": {"Cancelled.": "Cancelado.", "{n} check(s):": "{n} comprobación(es):", "Checks:": "Comprobaciones:",
+           "(network needs --online)": "(la red necesita --online)", "No crash reports are waiting.": "No hay informes de fallo en espera.",
+           "An unexpected bug has been found, would you like to report it?": "Se ha encontrado un error inesperado, ¿quieres informar de él?"},
+    "fr": {"Cancelled.": "Annulé."},
+    "de": {"Cancelled.": "Abgebrochen.", "{name} wants to {what}.": "{name} möchte {what}.",
+           "connect to the internet and your network": "sich mit dem Internet und deinem Netzwerk verbinden", "Your files": "Deine Dateien",
+           "Allow? [n] ": "Erlauben? [n] ", "Permission: {perm}.": "Berechtigung: {perm}.", "Internet": "Internet",
+           "(a) allow this time   (A) always allow   (n) not now   (N) never allow": "(a) diesmal erlauben   (A) immer erlauben   (n) jetzt nicht   (N) nie erlauben",
+           "start other programs and run code on this computer": "andere Programme starten und Code auf diesem Computer ausführen"},
+}
+
+
 def main():
     keys = i18n_keys.all_keys()
     assert len(keys) > 150, len(keys)
@@ -37,6 +51,10 @@ def main():
     # a message nobody has translated yet shows in English until the translation workflow adds it: that is allowed
     if untranslated:
         print(f"note: {len(untranslated)} translations are still to be made by the translation workflow")
+
+    saved = {code: dict(table) for code, table in locales.CATALOGS.items()}
+    for code, entries in FIXTURE.items():
+        locales.CATALOGS[code].update(entries)
 
     # the language is chosen by PYOS_LANG (or the setting); English is the fallback, and unknown text comes back as it is
     real = os.environ.get("PYOS_LANG")
@@ -112,6 +130,9 @@ def main():
             import shutil
             shutil.rmtree(tmp, ignore_errors=True)
     finally:
+        for code, table in saved.items():
+            locales.CATALOGS[code].clear()
+            locales.CATALOGS[code].update(table)
         if real is None:
             os.environ.pop("PYOS_LANG", None)
         else:

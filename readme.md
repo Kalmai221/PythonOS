@@ -99,7 +99,7 @@ PyOS behaves like a small Unix-style system:
 * **Layout**: `commands/` (one file per command), `core/` (boot, shutdown, updates, hardware), `pyos/` (libraries: filesystem, shell helpers, trash, i18n, power…), `programs/`, `online_packages/` (the marketplace), `OS_Export/` (everything that builds the packages), `site/` (the download and status pages), `tools/`.
 * **Tests**: `python tools/smoke_test.py` starts PythonOS in a scratch copy and runs real commands (including the login path); `python tools/audit_lockdown.py` fails if OS code could open a way out of PythonOS on the ISO. CI runs both on Linux and Windows for every push.
 * **Building packages**: see [OS_Export/README.md](OS_Export/README.md) (how releases are built, which files exist, how a failed build is recovered from earlier runs).
-* **Adding a language**: a dictionary in `pyos/locales.py`; the English text is the key.
+* **Adding a language**: add the code to `LANGUAGES` in `pyos/i18n.py` and to the list in `tools/translate_ci.py`; the Translations workflow translates every message into it (a correction goes in `pyos/locales.py`).
 * **Problem reports**: run `report` inside PythonOS, or [open an issue](https://github.com/Kalmai221/PythonOS/issues). Security problems: see the report relay notes in `OS_Export/relay/README.md`.
 
 ---

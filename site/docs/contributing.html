@@ -97,7 +97,7 @@ def execute(args=None):
 
 <h2 id="translations">Messages in other languages</h2>
 <p>Write a message the person sees as <code>tr("English text")</code> (with <code>{placeholders}</code> for values), from <code>pyos.i18n</code>. You do not translate it: when the pull request is merged, the <em>Translations</em> workflow machine-translates what is missing into Spanish, French and German and opens a pull request that only changes <code>pyos/locales_auto.py</code>. Until then the message shows in English, which is always safe. Text that must not be translated (command names, flags, file names, key letters like <code>(a)</code>) is protected automatically, and a result that loses a placeholder or means something else when translated back is thrown away.</p>
-<p>To correct a machine translation, put the right text in <code>pyos/locales_more.py</code>: a text written by a person always wins, and the generated file drops its own copy at the next run. The text of a problem report stays English on purpose, because the developers read it.</p>
+<p>To correct a machine translation, put the right text in <code>pyos/locales.py</code>: a text written by a person always wins, and the generated file drops its own copy at the next run. The text of a problem report stays English on purpose, because the developers read it.</p>
 
 <h2 id="site">Changing the website or these docs</h2>
 <p>Edit the pages in <code>site_src/</code>, then run:</p>
