@@ -33,6 +33,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 
 ## 1.0.12
 - The build workflow now translates as part of the build: a `translate` job runs the same script before the core package and every export (Windows, Android, Linux, ISO, Docker) are made, and they all carry the result, so a release is translated even if the Translations pull request has not been merged yet. If translating fails, the committed `pyos/locales_auto.py` is used and the build goes on.
+- The translation script throws away a result that rambles (far longer than the message, or the same words repeated), found when `never` came back as 1,500 characters of "nunca jamás"; the Spanish `never` is now a written correction (`nunca`).
 
 ### PythonOS
 

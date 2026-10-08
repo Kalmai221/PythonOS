@@ -133,6 +133,14 @@ def worth_translating(masked):
     return len(found) == 1 and len(found[0]) >= 3 and found[0] not in KEEP_ENGLISH and not leftover.strip().isupper()
 
 
+def runaway(text, result):
+    """True when the engine rambled: a result far longer than the message, or the same few words over and over ("never" came back as
+    "nunca jamas nunca jamas ..." 1500 characters long, from a single word with no context)."""
+    if len(result) > 3 * len(text) + 25:
+        return True
+    return re.search(r"\b(\w+(?: \w+){0,3})(?: \1\b){2,}", result.lower()) is not None
+
+
 def translate_one(engine, text, code):
     """(translation, None) or (None, why it was thrown away)."""
     last = "the engine changed something that must stay as it is"
@@ -149,6 +157,8 @@ def translate_one(engine, text, code):
             continue
         if not restored.strip() or restored.strip() == text.strip():
             return None, "the result is empty or unchanged"
+        if runaway(text, restored):
+            return None, "the result is far too long or repeats itself"
         if VERIFY_BACK:
             try:
                 returned = engine.back(result, code)

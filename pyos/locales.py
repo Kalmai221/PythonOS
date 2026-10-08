@@ -8,7 +8,7 @@
 #
 # A message with no translation anywhere shows in English, which is always safe.
 
-ES = {}
+ES = {"never": "nunca"}
 
 FR = {}
 

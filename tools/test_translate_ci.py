@@ -83,6 +83,9 @@ def main():
     text, why = t.translate_one(FakeEngine(wrong_back=True), "hello world", "es")
     assert text is None and "translated back" in why
     t.VERIFY_BACK = False
+    # an engine that rambles (a one-word message that came back 1500 characters long) is thrown away; ordinary text is not
+    assert t.runaway("never", "nunca jamas " * 40) and t.runaway("never", "nunca jamas nunca jamas nunca jamas")
+    assert not t.runaway("never allow", "nunca permitir") and not t.runaway("remove {n} files", "eliminar {n} archivos ahora mismo")
     # an unchanged result and a failing engine are thrown away too
     text, why = t.translate_one(FakeEngine(), "Zzz Qqq", "es")
     assert text is None and "unchanged" in why
