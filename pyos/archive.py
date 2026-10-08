@@ -172,7 +172,7 @@ def extract_7z(archive, dest_text, overwrite=False):
                 total += info.uncompressed or 0
         if hasattr(z, "reset"):
             z.reset()                                          # the listing above read the archive's index
-        z.extractall(path=dest)
+        z.extractall(path=dest)  # nosec B202 - every name was checked against the destination above, links refused
     return count, total
 
 

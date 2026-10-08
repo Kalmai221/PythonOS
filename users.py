@@ -369,7 +369,7 @@ def login():
         return None
 
     users = get_users()
-    os.system("cls" if os.name == "nt" else "clear")
+    os.system("cls" if os.name == "nt" else "clear")  # nosec B605 - fixed text, nothing from the user
     console.print("[bold green]" + tr("Welcome back, {name}!", name=username) + f"[/bold green] [dim]({users[username]['role']})[/dim]")
     save_session(username, users[username]['role'])  # Save username and role
     pyos.fs.ensure_home(username)

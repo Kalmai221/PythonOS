@@ -88,7 +88,7 @@ def clear_screen(scrollback=True):
         real.write("\x1b[H\x1b[2J" + ("\x1b[3J" if scrollback else ""))
         real.flush()
     except (OSError, ValueError):
-        os.system("cls" if os.name == "nt" else "clear")
+        os.system("cls" if os.name == "nt" else "clear")  # nosec B605 - fixed text, nothing from the user
     _screen["lines"] = 0
 
 

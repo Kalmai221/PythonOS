@@ -13,7 +13,7 @@ console = Console()
 def get_ip_info():
     try:
         # Fetch IP information from ipinfo.io API
-        response = requests.get("https://ipinfo.io/json")
+        response = requests.get("https://ipinfo.io/json", timeout=15)
         response.raise_for_status()
         data = response.json()
 

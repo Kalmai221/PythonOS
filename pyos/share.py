@@ -68,7 +68,7 @@ class _QuietHTTPServer(http.server.ThreadingHTTPServer):
 class _Server:
     """Common start/stop plumbing."""
 
-    def __init__(self, host="0.0.0.0", port=0):
+    def __init__(self, host="0.0.0.0", port=0):  # nosec B104 - sharing on the local network is the point; a token guards it
         self.token = secrets.token_urlsafe(9)
         self.events = queue.Queue()      # ("sent" | "received" | "error", text) for the command to print
         self.done = threading.Event()
@@ -89,7 +89,7 @@ class _Server:
             self._httpd = None
 
     def urls(self):
-        return [self._url(a) for a in (lan_addresses() if self.host in ("0.0.0.0", "") else [self.host])]
+        return [self._url(a) for a in (lan_addresses() if self.host in ("0.0.0.0", "") else [self.host])]  # nosec B104 - the "listen everywhere" setting, not a bind
 
     def wait(self, timeout, on_event):
         """Block until done, the timeout, or Ctrl+C; calls on_event(kind, text) as things happen."""

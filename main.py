@@ -25,7 +25,7 @@ def install_requirements():
 
     try:
         subprocess.run(cmd, check=True)
-        os.system("cls" if os.name == "nt" else "clear")
+        os.system("cls" if os.name == "nt" else "clear")  # nosec B605 - fixed text, nothing from the user
     except subprocess.CalledProcessError:
         print("❌ Failed to install dependencies. Make sure Python and pip are installed.")
         sys.exit(0)

@@ -44,7 +44,7 @@ def check_internet_connection(host="8.8.8.8", port=53, timeout=3):
 
 def get_github_files(path=""):
     url = f"{GITHUB_API_BASE}/{path}" if path else GITHUB_API_BASE
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
     response.raise_for_status()
     items = response.json()
 
@@ -62,7 +62,7 @@ def is_file_different(local_path: Path, download_url: str) -> bool:
     if not local_path.exists():
         return True
     try:
-        remote_content = requests.get(download_url).content
+        remote_content = requests.get(download_url, timeout=60).content
         local_content = local_path.read_bytes()
         return local_content != remote_content
     except Exception:
@@ -77,7 +77,7 @@ def list_updates(files, base_path=Path.cwd()):
     return updates
 
 def download_file(local_path: Path, download_url: str):
-    content = requests.get(download_url).content
+    content = requests.get(download_url, timeout=60).content
     local_path.parent.mkdir(parents=True, exist_ok=True)
     with open(local_path, "wb") as f:
         f.write(content)

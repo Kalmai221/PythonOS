@@ -469,6 +469,6 @@ def boot_sequence(debug):
     console.print(f"{_stamp()} Startup finished in {total_ms / 1000:.3f}s (steps) + {seconds_since_start() - total_ms / 1000:.3f}s (loading).")
     console.print("[bold green]" + tr("System ready!") + "[/bold green]")
     time.sleep(min(0.8, pause * 2.3))
-    os.system("cls" if os.name == "nt" else "clear")
+    os.system("cls" if os.name == "nt" else "clear")  # nosec B605 - fixed text, nothing from the user
     display_home_screen()
     return True

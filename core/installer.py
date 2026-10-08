@@ -257,7 +257,7 @@ def _step(log, text):
         pass
 
 
-LOG = "/tmp/pythonos-install.log"
+LOG = "/tmp/pythonos-install.log"  # nosec B108 - the live system's own log file
 
 
 def tail(text, lines=8):
