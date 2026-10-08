@@ -145,6 +145,7 @@ ES = {
     "created {n} folder(s)": "creado carpeta {n}(s)",
     "damaged entries: {names}": "entradas dañadas: {names}",
     "data folders are writable and private files are protected": "las carpetas de datos son escriturables y los archivos privados están protegidos",
+    "defaults in use": "predeterminados en uso",
     "delete them": "eliminarlos",
     "doctor: --only needs a list of checks (see doctor --list)": "doctor: --only necesita una lista de cheques (ver doctor --list)",
     "doctor: no such check: {names} (see doctor --list)": "doctor: no tal cheque: {names} (ver doctor --list)",
