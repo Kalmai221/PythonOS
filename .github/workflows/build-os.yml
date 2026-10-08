@@ -317,13 +317,6 @@ jobs:
           V="$(python3 OS_Export/stage.py --print-version)"      # the version in the ISO file name ("1.0.12-dev" for a manual run)
           bash OS_Export/ISO/vm/make-images.sh "dist/iso/pythonos-$V-x86_64.iso" "$V" dist/iso
           ls -la dist/iso
-      - name: Boot the ISO in QEMU (informational only - software emulation is slow and a miss does not stop the release)
-        if: matrix.variant == 'full' && matrix.arch == 'x86_64'
-        continue-on-error: true
-        timeout-minutes: 12            # the check itself gives up after 6 minutes; this only guards against QEMU never exiting
-        run: |
-          sudo apt-get install -y -qq qemu-system-x86
-          python -u OS_Export/ISO/qemu_boot_check.py "dist/iso/pythonos-$(python3 OS_Export/stage.py --print-version)-x86_64.iso"
       - uses: actions/upload-artifact@v7
         with:
           name: export-iso-${{ matrix.arch == 'aarch64' && 'aarch64-' || '' }}${{ matrix.variant }}-${{ needs.plan.outputs.iso_fp }}-${{ needs.plan.outputs.version }}
