@@ -5,8 +5,8 @@ No USB stick needed. The scripts here set up a ready-made VM that boots the Pyth
 
 | Program | How |
 |---|---|
-| QEMU / KVM | `./run-qemu.sh pythonos-<version>-x86_64.iso`  (Windows: `./run-qemu.ps1 <iso>`) |
-| VirtualBox | `./create-virtualbox.sh <iso>`  (Windows: `./create-virtualbox.ps1 <iso>`), then start "PythonOS" |
+| QEMU / KVM | `./run-qemu.sh pythonos-<version>-x86_64.iso`  (Windows: `./run-qemu.ps1 <iso>`). It also boots the `-vm.qcow2` disk image: `./run-qemu.sh pythonos-<version>-vm.qcow2` |
+| VirtualBox | `./create-virtualbox.sh <iso>`  (Windows: `./create-virtualbox.ps1 <iso>`), then start "PythonOS". It also creates a 2 GB data disk (`PythonOS-data.vdi`, keep it) so your files are kept; add `--no-data` (Windows: `-NoData`) to skip it |
 | VMware (Workstation / Fusion / Player) | open `pythonos.vmx` after putting the ISO next to it as `pythonos.iso` |
 
 All of them give the VM 1 GB of memory, 1 CPU core or more, a network card (so updates and the marketplace work) and sound.

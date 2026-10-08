@@ -293,6 +293,7 @@ jobs:
           V="$(python3 OS_Export/stage.py --print-version)"      # the version in the ISO file name ("1.0.12-dev" for a manual run)
           bash OS_Export/ISO/vm/make-images.sh "dist/iso/pythonos-$V-x86_64.iso" "$V" dist/iso
           ls -la dist/iso
+          python tools/check_vm_images.py dist/iso "$V"          # the appliance and disks are well-formed (no VM is started)
       - uses: actions/upload-artifact@v7
         with:
           name: export-iso-${{ matrix.arch == 'aarch64' && 'aarch64-' || '' }}${{ matrix.variant }}-${{ needs.plan.outputs.iso_fp }}-${{ needs.plan.outputs.version }}

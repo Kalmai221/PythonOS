@@ -25,15 +25,17 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - The Setup Wizard (`pythonos-wizard-<version>.zip`, 60 MB) is removed from the releases, the release page and the website. To write a bootable USB stick, use the ISO with Rufus, balenaEtcher or `dd`; the installers, packages and images are the same as before.
 - The Windows installer is compressed harder (LZMA2 ultra) and the Linux tarball with gzip -9: the same files, a little smaller.
 - Manual builds from the Actions tab (version `1.0.12-dev`) now work: the virtual machine image and QEMU boot steps looked for an ISO named `dev` and failed, and the changelog check did not know the `-dev` version.
+- Virtual machines: the VirtualBox scripts in the VM kit now also create a 2 GB data disk (`PythonOS-data.vdi`) so accounts and files are kept (`--no-data` / `-NoData` skips it), and the QEMU scripts boot the `-vm.qcow2` disk image as well as the ISO. The `.ova`, the disks and the ISO are unchanged.
 
 ### Development
 
 - Translations are made by CI from now on: a new `tr("...")` message is machine-translated into Spanish, French and German by the *Translations* workflow (Argos Translate, only ever in CI, never in PythonOS), which opens a pull request that changes only `pyos/locales_auto.py`. Placeholders, command names, flags, file names and key letters are protected, a result that loses one is thrown away (the message stays English), and only English-to-language models are downloaded; `--verify-back` adds a translate-back-and-compare check, and a text written by a person always wins. `tools/translate_ci.py` is the script, `tools/test_translate_ci.py` tests it with a fake engine, and `tools/i18n_keys.py` finds the messages.
-
-## 1.0.12
+- The build checks the virtual machine images after making them (`tools/check_vm_images.py`, tested by `tools/test_vm_images.py`): the appliance's `.ovf` comes first and matches its disks, the disks are real VMDK and qcow2 files, the data disk is labelled PYOS_DATA, and the kit holds its scripts.
 - The build workflow now translates as part of the build: a `translate` job runs the same script before the core package and every export (Windows, Android, Linux, ISO, Docker) are made, and they all carry the result, so a release is translated even if the Translations pull request has not been merged yet. If translating fails, the committed `pyos/locales_auto.py` is used and the build goes on.
 - The translation script throws away a result that rambles (far longer than the message, or the same words repeated), found when `never` came back as 1,500 characters of "nunca jamás"; the Spanish `never` is now a written correction (`nunca`).
 - The build no longer boots the ISO in QEMU (software emulation made the step slow and its result never stopped a release anyway).
+
+## 1.0.12
 
 ### PythonOS
 
