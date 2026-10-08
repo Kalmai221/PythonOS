@@ -10,7 +10,8 @@
 #     with no file the old behaviour holds: the exports that install libraries themselves (Windows, Linux, Docker) have all of them, and the live
 #     ISO has only what is on the disc until the person is asked
 #   * how a library is installed depends on the system: pip (Windows, Linux, Docker, a source checkout) or Alpine's apk (the ISO and virtual
-#     machines, which have no pip). The Android app carries its libraries inside and cannot add more.
+#     machines, which have no pip). The Android app carries every library it can inside (the ones with a pure-Python build) and cannot add more,
+#     so there the choice is a switch: a library that is switched off is not used (see switched_off, which pyos/optional.py asks).
 # Nothing here starts a program itself: it asks core.hardware.run. While lockdown is on (the live ISO always is) only Alpine's own packages are
 # installed with apk, never libraries from the internet with pip.
 import importlib.util
@@ -85,22 +86,23 @@ def parse(text):
 
 
 def catalog():
-    """Every optional library in the list that applies to this Python."""
+    """Every optional library in the list that applies to this Python. In the Android app only the ones it carries inside."""
     path = list_path()
     if not path:
         return []
     try:
         with open(path, encoding="utf-8") as f:
-            return [e for e in parse(f.read()) if e.applies()]
+            found = [e for e in parse(f.read()) if e.applies()]
     except OSError:
         return []
+    return [e for e in found if e.installed()] if backend() == "bundled" else found
 
 
 def backend():
-    """'pip', 'apk' (the ISO and virtual machines) or None (the Android app cannot add libraries)."""
+    """'pip', 'apk' (the ISO and virtual machines) or 'bundled' (the Android app: its libraries are inside, the choice is a switch)."""
     here = export.current()
     if here == "android":
-        return None
+        return "bundled"
     if here == "iso" or os.environ.get("PYOS_LIVE") == "1" or os.environ.get("PYOS_INSTALLED") == "1":
         return "apk"
     return "pip"
@@ -145,7 +147,7 @@ def wanted(extras=None):
     names = [e.name for e in extras]
     choice = load_choice()
     if choice is None:
-        return names if backend() == "pip" else []
+        return names if backend() in ("pip", "bundled") else []
     if choice["mode"] == "all":
         return names
     if choice["mode"] == "none":
@@ -156,7 +158,11 @@ def wanted(extras=None):
 def undecided(extras=None):
     """True when the person should be asked: nothing chosen yet, something is missing, and it can be installed here."""
     extras = catalog() if extras is None else extras
-    return load_choice() is None and backend() is not None and any(not e.installed() for e in extras)
+    if load_choice() is not None:
+        return False
+    if backend() == "bundled":
+        return bool(extras)                                       # all are inside the app: the question is which to switch on
+    return any(not e.installed() for e in extras)
 
 
 def new_since_choice(extras=None):
@@ -166,7 +172,7 @@ def new_since_choice(extras=None):
         return []
     extras = catalog() if extras is None else extras
     seen = set(choice["selected"]) | set(_read().get("declined") or [])
-    return [e for e in extras if e.name not in seen and not e.installed()]
+    return [e for e in extras if e.name not in seen and (backend() == "bundled" or not e.installed())]
 
 
 # ---- installing
@@ -204,12 +210,16 @@ def apk_available(extra):
 
 
 def install(names, say=print):
-    """Install libraries by name. Returns ({name: True/False}, why-not text or ''). Never raises for a failed install."""
+    """Install libraries by name. Returns ({name: True/False}, why-not text or ''). Never raises for a failed install.
+    In the Android app the libraries are inside already: "installing" one is switching it on, and the person's choice (saved by the caller) does that."""
     how = backend()
+    if how == "bundled":
+        known = {e.name for e in catalog()}
+        return {n: True for n in names if n in known}, ""
     if lockdown.enabled() and how != "apk":
         return {}, "installing is switched off while lockdown is on"
     if how is None:
-        return {}, "this app carries its libraries inside and cannot add more"
+        return {}, "this system cannot install libraries"
     extras = {e.name: e for e in catalog()}
     wanted_list = [extras[n] for n in names if n in extras]
     results = {}
@@ -238,10 +248,13 @@ def install(names, say=print):
 
 def remove(names, say=print):
     how = backend()
+    if how == "bundled":
+        known = {e.name for e in catalog()}
+        return {n: True for n in names if n in known}, ""              # switching one off is the caller saving the choice
     if lockdown.enabled() and how != "apk":
         return {}, "removing is switched off while lockdown is on"
     if how is None:
-        return {}, "this app carries its libraries inside"
+        return {}, "this system cannot remove libraries"
     extras = {e.name: e for e in catalog()}
     results = {}
     for name in names:
@@ -258,3 +271,25 @@ def sync(say=print):
     """Install what the choice says is missing (after an update, or after the choice changed). ({name: ok}, why-not)."""
     missing = [e.name for e in catalog() if e.name in wanted() and not e.installed()]
     return install(missing, say) if missing else ({}, "")
+
+
+_switch = {"raw": None, "off": set()}
+
+
+def switched_off(module):
+    """True when `module` is an optional library that the person switched off in the Android app (where every library is inside, so "not wanted"
+    means "not used"). Everywhere else a library that is installed is used. Cheap: the small choice file is read each time, and the answer is
+    only worked out again when its text changes."""
+    if backend() != "bundled":
+        return False
+    try:
+        with open(CHOICE_FILE, encoding="utf-8") as f:
+            raw = f.read()
+    except OSError:
+        raw = ""
+    if _switch["raw"] != raw:
+        items = catalog()
+        keep = set(wanted(items))
+        _switch["off"] = {e.module for e in items if e.name not in keep}
+        _switch["raw"] = raw
+    return module.split(".")[0] in _switch["off"]

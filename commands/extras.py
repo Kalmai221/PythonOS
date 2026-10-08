@@ -24,6 +24,8 @@ def _say(text):
 
 
 def status(extra, chosen):
+    if extras.backend() == "bundled":                          # the Android app: every library is inside, the choice is a switch
+        return "[green]" + tr("on") + "[/green]" if extra.name in chosen else "[dim]" + tr("off") + "[/dim]"
     if extra.installed():
         return "[green]" + tr("installed") + "[/green]"
     if extra.name in chosen:
@@ -90,9 +92,13 @@ def choose(items):
             return False
         every = {e.name for e in items}
         extras.save_choice("all" if set(picked) == every else "none" if not picked else "custom", picked)
-    gone = sorted(n for n in here if n not in picked and any(e.name == n and e.installed() for e in items))
+    bundled = extras.backend() == "bundled"
+    gone = [] if bundled else sorted(n for n in here if n not in picked and any(e.name == n and e.installed() for e in items))
     if gone and Confirm.ask(tr("Remove the ones you did not pick? ({names})", names=", ".join(gone)), default=False):
         _report(*extras.remove(gone, _say))
+    if bundled:
+        console.print("[green]" + escape(tr("Saved. Switched on: {names}", names=", ".join(picked) or tr("none"))) + "[/green]")
+        return True
     todo = [n for n in picked if not any(e.name == n and e.installed() for e in items)]
     return _report(*extras.install(todo, _say)) if todo else True
 
@@ -102,14 +108,18 @@ def first_time():
     items = extras.catalog()
     if not items or not extras.undecided(items):
         return
-    missing = [e for e in items if not e.installed()]
+    missing = items if extras.backend() == "bundled" else [e for e in items if not e.installed()]
     console.print(escape(tr("PythonOS has optional libraries. Each adds something (better search, more archive types, ...) and none is needed.")))
     for e in missing:
         console.print(f"  [bold]{escape(e.name)}[/bold]  [dim]{escape(e.description)}[/dim]")
-    if extras.backend() == "apk":
+    bundled = extras.backend() == "bundled"
+    if bundled:
+        console.print("[dim]" + escape(tr("They all come with this app. Switch on the ones you want; nothing is downloaded.")) + "[/dim]")
+    elif extras.backend() == "apk":
         console.print("[dim]" + escape(tr("They are downloaded when you install them, so this computer needs the internet.")) + "[/dim]")
     try:
-        answer = Prompt.ask("\n" + tr("Install them: (a)ll, (c)hoose, or (n)one"), choices=["a", "c", "n"], default="n" if extras.backend() == "apk" else "a")
+        question = tr("Switch them on: (a)ll, (c)hoose, or (n)one") if bundled else tr("Install them: (a)ll, (c)hoose, or (n)one")
+        answer = Prompt.ask("\n" + question, choices=["a", "c", "n"], default="n" if extras.backend() == "apk" else "a")
     except (EOFError, KeyboardInterrupt):
         console.print()
         return
@@ -117,7 +127,8 @@ def first_time():
         choose(items)
     elif answer == "a":
         extras.save_choice("all")
-        _report(*extras.install([e.name for e in missing], _say))
+        if not bundled:
+            _report(*extras.install([e.name for e in missing], _say))
     else:
         extras.save_choice("none")
     console.print()

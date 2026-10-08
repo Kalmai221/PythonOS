@@ -247,7 +247,7 @@ cmd_page("extras", "choose the optional libraries", ["extras", "extras choose", 
      "PythonOS works without its optional libraries; each adds something (better search, .7z archives, the processor's model, more DNS record types, ...). `extras` lists them with what each adds and "
      "whether it is installed, `choose` lets you pick from the list, and install, remove and none change it. Your choice is kept: when PythonOS is updated it installs what you chose "
      "(everything, if you chose all) and only mentions new ones if you picked by hand. On the live ISO and in virtual machines they are downloaded when you install them, so the computer needs the internet. "
-     "The Android app carries its libraries inside and cannot add more.",
+     "The Android app carries the libraries that have an Android build inside, so there the choice is a switch: a library that is off is not used, and `extras install` and `extras remove` switch one on and off without downloading anything.",
      [("extras", "see them all"), ("extras choose", "pick from a list"), ("extras install py7zr", "add .7z support")], ["doctor", "updatecheck"])
 cmd_page("whois", "who registered a domain", ["whois <domain>"], "Shows the registration record of a domain from the registry's whois service.", [("whois example.com", "")], ["nslookup"])
 cmd_page("curl", "fetch a web address", ["curl <url>", "curl -I <url>", "curl -o file <url>"],

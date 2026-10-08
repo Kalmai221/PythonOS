@@ -150,13 +150,6 @@ def main():
             finally:
                 os.environ.pop("PYOS_LIVE", None)
                 lockdown.enabled = lockdown_before
-            # the Android app carries its libraries inside
-            real_current = export.current
-            export.current = lambda: "android"
-            try:
-                assert extras.backend() is None and extras.install(["distro"])[1] and extras.undecided() is False
-            finally:
-                export.current = real_current
         finally:
             hardware.run = real_run
     finally:
@@ -221,6 +214,67 @@ def main():
         importlib.util.find_spec = real_find
         hardware.run = real_run
 
+    # ---- the Android app carries its libraries inside: the choice is a switch, nothing is installed, and a library that is off is not used
+    recorder = Recorder()
+    hardware.run = recorder
+    present.clear()
+    answers = []
+    command.Prompt = types.SimpleNamespace(ask=lambda *a, **k: answers.pop(0))
+    command.Confirm = types.SimpleNamespace(ask=lambda *a, **k: False)
+    out = io.StringIO()
+    command.console = Console(file=out, force_terminal=False, width=150)
+    importlib.util.find_spec = lambda name: object() if present.get(name) else None
+    real_current = export.current
+    export.current = lambda: "android"
+    from pyos import optional
+    try:
+        present.update({"dateutil": True, "humanize": True, "distro": True})        # what the app carries (py7zr, cpuinfo are not in it)
+        recorder.commands.clear()
+        assert extras.backend() == "bundled" and [e.name for e in extras.catalog()] == ["python-dateutil", "humanize", "distro"]
+        os.remove(os.path.join(".OSData", "extras.json")) if os.path.exists(os.path.join(".OSData", "extras.json")) else None
+        assert extras.wanted() == ["python-dateutil", "humanize", "distro"], "nothing chosen yet: everything is on, as before"
+        assert extras.undecided() is True, "the first start asks, although everything is already inside"
+        fake = types.ModuleType("distro")
+        sys.modules["distro"] = fake
+        optional._cache.clear()
+        assert optional.get("distro") is fake and extras.switched_off("distro") is False
+        extras.save_choice("custom", ["humanize"])
+        assert extras.undecided() is False and extras.wanted() == ["humanize"]
+        assert extras.switched_off("distro") and extras.switched_off("dateutil.parser") and not extras.switched_off("humanize")
+        assert optional.get("distro") is None and optional.have("distro") is False, "off means not used, although the files are there"
+        assert extras.new_since_choice() and [e.name for e in extras.new_since_choice()] == ["python-dateutil", "distro"]
+        extras.save_choice("all")
+        assert optional.get("distro") is fake, "switching it on again needs no restart"
+        extras.save_choice("none")
+        assert extras.wanted() == [] and optional.get("distro") is None
+        # nothing is ever started or downloaded
+        assert extras.install(["distro", "py7zr"]) == ({"distro": True}, "") and extras.remove(["distro"]) == ({"distro": True}, "")
+        assert extras.sync() == ({}, "") and recorder.commands == []
+        # the command and the question of the first start
+        os.remove(os.path.join(".OSData", "extras.json"))
+        command.Prompt = types.SimpleNamespace(ask=lambda *a, **k: answers.pop(0))
+        out.truncate(0)
+        answers[:] = ["n"]
+        command.first_time()
+        assert extras.load_choice()["mode"] == "none" and "come with this app" in out.getvalue() and recorder.commands == []
+        os.remove(os.path.join(".OSData", "extras.json"))
+        answers[:] = ["c", "2"]
+        command.first_time()
+        assert extras.load_choice() == {"mode": "custom", "selected": ["humanize"]}, extras.load_choice()
+        out.truncate(0)
+        assert command.execute([]) and "on" in out.getvalue() and "off" in out.getvalue()
+        assert command.execute(["install", "distro"]) and "distro" in extras.load_choice()["selected"] and optional.get("distro") is fake
+        assert command.execute(["remove", "distro"]) and optional.get("distro") is None
+        assert command.execute(["install", "py7zr"]) is False, "a library the app does not carry is unknown there"
+    finally:
+        export.current = real_current
+        hardware.run = real_run
+        importlib.util.find_spec = real_find
+        sys.modules.pop("distro", None)
+        optional._cache.clear()
+        for key in ("distro", "dateutil", "humanize"):
+            present.pop(key, None)
+
     # ---- the update step
     sysupdate = load(os.path.join("core", "sysupdate.py"), "core_sysupdate_extras")
     seen = io.StringIO()
@@ -262,6 +316,10 @@ def main():
     assert "ChosenExtras" in iss and "extras.json" in iss and "{param:extras|}" in iss and "MakeExtrasPage" in iss
     ui = open(os.path.join(REPO, "OS_Export", "Windows", "native", "setup", "Ui.cs"), encoding="utf-8").read()
     assert "ShowExtras" in ui and "ExtrasList.Items" in ui
+    gradle = open(os.path.join(REPO, "OS_Export", "Android", "app", "build.gradle.kts"), encoding="utf-8").read()
+    for library in ("distro", "py-cpuinfo", "dnspython", "python-dateutil", "humanize"):
+        assert f'install("{library}")' in gradle, f"the Android app carries {library}"
+    assert 'install("py7zr")' not in gradle and 'install("watchfiles")' not in gradle, "libraries with compiled parts are not offered on Android"
     print("optional libraries (choosing them): all checks passed")
 
 

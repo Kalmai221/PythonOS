@@ -149,6 +149,9 @@ def _persistent_storage():
 
 
 def _updates_and_apps():
+    from pyos import extras
+    if extras.backend() == "bundled" or _online():
+        _optional_libraries()                                      # (the Android app has them all inside: the question needs no internet)
     if not _online():
         console.print("[dim]No internet connection, so no updates or apps now. Connect later and run "
                       "'updatecheck' or the marketplace ('market').[/dim]")
@@ -159,7 +162,6 @@ def _updates_and_apps():
         sysupdate.update_system(True)
     except Exception as e:
         console.print(f"[yellow]Update check failed: {escape(str(e))}[/yellow]")
-    _optional_libraries()
     names = ", ".join(n for _, n in STARTER_APPS)
     if not Confirm.ask(f"Install some starter apps ({names})?", default=True):
         return

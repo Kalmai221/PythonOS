@@ -37,6 +37,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - Virtual machines: the VirtualBox scripts in the VM kit now also create a 2 GB data disk (`PythonOS-data.vdi`) so accounts and files are kept (`--no-data` / `-NoData` skips it), and the QEMU scripts boot the `-vm.qcow2` disk image as well as the ISO. The `.ova`, the disks and the ISO are unchanged.
 - Windows: the web installer and the full installer each have a page for the optional libraries (everything ticked to begin with; `/extras=all|none|name,name` answers it silently), and the choice is kept for updates and repairs. The launcher installs the libraries one by one when installing them together fails, so one that has no build for this processor no longer costs the others.
 - Linux: the launcher no longer installs every optional library on the first run; PythonOS asks which ones to have in its first-time setup. The Docker image still includes them.
+- Android: the app now carries every optional library that has an Android build (`distro`, `py-cpuinfo` and `dnspython` join the ones it already had; `py7zr` and `watchfiles` need compiled parts and are not available). The first start asks which to switch on (all, choose or none), and `extras` switches them on and off any time; a library that is off is not used, although its files stay in the app, so the app is not smaller. Nothing is downloaded.
 
 ### Development
 

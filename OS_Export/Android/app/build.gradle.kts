@@ -90,6 +90,11 @@ chaquopy {
             install("zxcvbn")
             install("filetype")
             install("beautifulsoup4")
+            // more optional extras with pure-Python builds (requirements-extra.txt). The first start asks which to switch on; `extras` changes it.
+            // (py7zr and watchfiles need compiled parts and are not available on Android.)
+            install("distro")
+            install("py-cpuinfo")
+            install("dnspython")
         }
     }
 }
