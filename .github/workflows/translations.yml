@@ -1,0 +1,73 @@
+name: Translations
+
+# Machine-translates the messages PythonOS has no translation for yet (Spanish, French, German) and opens a pull request with the result.
+#   - what a person translated (pyos/locales.py, pyos/locales_more.py) is never touched and always wins over a machine translation
+#   - the engine is Argos Translate; it only ever runs here, never inside PythonOS (which just looks the text up in pyos/locales_auto.py)
+#   - results that lost a {placeholder} or mean something else when translated back are thrown away and stay English
+#   - a pull request opened with the default token does not start the other workflows: run "Test" on it from the Actions tab if you want,
+#     or review the file by eye (it only changes pyos/locales_auto.py)
+# The repository setting "Allow GitHub Actions to create and approve pull requests" (Settings > Actions > General) must be on.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "commands/**"
+      - "core/**"
+      - "pyos/**"
+      - "programs/**"
+      - "shell.py"
+      - "users.py"
+      - "main.py"
+      - "tools/translate_ci.py"
+      - "tools/i18n_keys.py"
+      - ".github/workflows/translations.yml"
+  schedule:
+    - cron: "23 4 * * 1"           # Mondays: picks up anything a push missed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: translations
+  cancel-in-progress: true
+
+jobs:
+  translate:
+    name: Translate the missing messages
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Keep the Argos models between runs
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/argos-translate
+          key: argos-models-${{ hashFiles('tools/translate_ci.py') }}
+          restore-keys: argos-models-
+      - run: pip install -r requirements.txt argostranslate
+      - name: What is missing
+        run: python tools/translate_ci.py --dry-run
+      - name: Translate it
+        env:
+          ARGOS_DEVICE_TYPE: cpu
+        run: python tools/translate_ci.py --summary translation-summary.md
+      - name: Check the result (placeholders kept, nothing broken)
+        run: |
+          python tools/test_translations.py
+          python tools/test_translate_ci.py
+      - name: Open a pull request when something changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: auto/translations
+          delete-branch: true
+          add-paths: pyos/locales_auto.py
+          commit-message: "Machine translations (es, fr, de)"
+          title: "Machine translations (es, fr, de)"
+          body-path: translation-summary.md

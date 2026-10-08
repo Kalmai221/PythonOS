@@ -15,54 +15,28 @@ os.chdir(REPO_ROOT)
 
 from pyos import i18n, locales  # noqa: E402
 
-FOLDERS = ("commands", "core", "pyos", "programs")
-FILES = ("shell.py", "users.py", "main.py")
+sys.path.insert(0, os.path.join(REPO_ROOT, "tools"))
+import i18n_keys  # noqa: E402
+
 PLACEHOLDER = re.compile(r"\{(\w+)\}")
-# texts that are built at run time (a column heading looked up by name), listed so they are checked too
-DYNAMIC = ["Permission", "What it allows", "Asked for", "Now", "files", "system data", "yes", "Internet", "Your files", "Notifications", "Schedule",
-           "System info", "Other programs"]
-
-
-def literal_keys():
-    found = {}
-    paths = [os.path.join(REPO_ROOT, f) for f in FILES]
-    for folder in FOLDERS:
-        for base, _dirs, names in os.walk(os.path.join(REPO_ROOT, folder)):
-            paths += [os.path.join(base, n) for n in names if n.endswith(".py")]
-    for path in paths:
-        try:
-            tree = ast.parse(open(path, encoding="utf-8").read())
-        except (SyntaxError, OSError):
-            continue
-        for node in ast.walk(tree):
-            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
-                continue
-            arg = None
-            if node.func.id == "tr" and node.args:
-                arg = node.args[0]
-            elif node.func.id == "say" and len(node.args) >= 2:
-                arg = node.args[1]
-            if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
-                found.setdefault(arg.value, os.path.relpath(path, REPO_ROOT))
-    return found
 
 
 def main():
-    keys = literal_keys()
+    keys = i18n_keys.all_keys()
     assert len(keys) > 150, len(keys)
-    problems = []
-    for key, where in sorted(keys.items()):
+    # every translation that exists, by a person or made by CI, keeps the {placeholders} of its English text
+    problems, untranslated = [], []
+    for key in keys:
         for code, table in locales.CATALOGS.items():
             text = table.get(key)
             if text is None:
-                problems.append(f"{code}: no translation for {key[:70]!r} ({where})")
+                untranslated.append((code, key))
             elif set(PLACEHOLDER.findall(text)) != set(PLACEHOLDER.findall(key)):
                 problems.append(f"{code}: placeholders differ in {key[:70]!r}")
-    for key in DYNAMIC:
-        for code, table in locales.CATALOGS.items():
-            if key not in table:
-                problems.append(f"{code}: no translation for {key!r}")
     assert not problems, "\n".join(problems[:25])
+    # a message nobody has translated yet shows in English until the translation workflow adds it: that is allowed
+    if untranslated:
+        print(f"note: {len(untranslated)} translations are still to be made by the translation workflow")
 
     # the language is chosen by PYOS_LANG (or the setting); English is the fallback, and unknown text comes back as it is
     real = os.environ.get("PYOS_LANG")

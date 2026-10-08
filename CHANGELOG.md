@@ -19,6 +19,10 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - The virtual machine image (`.ova`) is named after its version (`PythonOS 1.0.13`), so importing a newer one into VirtualBox no longer stops with "Machine settings file ... already exists" because of an older import.
 - Android: updating the app now really updates PythonOS, for good. The PythonOS files live in the app's own folder and survive an app update, so after installing a new app you were still on the old PythonOS, and `updatecheck` kept saying the new version "needs new libraries, install the new app" (it judged the libraries by the old files), so the update seemed to do nothing in a loop. The 1.0.12 fix for this missed the first update from an older app. The rule is now simple and needs no memory: an app built for PythonOS X never runs a PythonOS older than X, so at start-up an older one is brought up to the newest release first (and if you are offline it tries again at the next start). The version PythonOS shows is also kept in step when the files are already current.
 
+### Development
+
+- Translations are made by CI from now on: a new `tr("...")` message is machine-translated into Spanish, French and German by the *Translations* workflow (Argos Translate, only ever in CI, never in PythonOS), which opens a pull request that changes only `pyos/locales_auto.py`. Placeholders, command names, flags, file names and key letters are protected, a result that loses one or means something else when translated back is thrown away (the message stays English), and a text written by a person always wins. `tools/translate_ci.py` is the script, `tools/test_translate_ci.py` tests it with a fake engine, and `tools/i18n_keys.py` finds the messages.
+
 ## 1.0.12
 
 ### PythonOS
