@@ -24,41 +24,47 @@ def main():
     java.jclass = lambda name: types.SimpleNamespace()
     sys.modules["java"] = java
     app = load(os.path.join(REPO_ROOT, "OS_Export", "Android", "app", "src", "main", "python", "pyos_android.py"), "pyos_android_under_test")
+    real_key = load(os.path.join(REPO_ROOT, "OS_Export", "bootstrap.py"), "bootstrap_keys").version_key
 
     tmp = tempfile.mkdtemp()
     try:
         installs = []
         fake_bootstrap = types.ModuleType("bootstrap")
         fake_bootstrap.install = lambda dest, log=print, **k: (installs.append(dest), True)[1]
+        fake_bootstrap.version_key = real_key
         sys.modules["bootstrap"] = fake_bootstrap
         identity = types.ModuleType("pyos_export")
-        identity.INFO = {"platform": "android", "version": "1.0.12", "api": 2}
         sys.modules["pyos_export"] = identity
         said = []
 
-        # first installation: the app has just downloaded the core itself, so nothing is done, and the app version is remembered
-        assert app.refresh_core_after_app_update(tmp, said.append) is True
-        assert installs == [] and open(os.path.join(tmp, ".app_version"), encoding="utf-8").read() == "1.0.12"
+        def start(app_version, core_version):
+            """One start of the app: the app is built for app_version; files_dir holds core_version (None = no core yet)."""
+            identity.INFO = {"platform": "android", "version": app_version, "api": 2}
+            version_file = os.path.join(tmp, "VERSION")
+            if core_version is None:
+                if os.path.exists(version_file):
+                    os.remove(version_file)
+            else:
+                with open(version_file, "w", encoding="utf-8") as f:
+                    f.write(core_version + "\n")
+            installs.clear()
+            said.clear()
+            return app.refresh_core_after_app_update(tmp, said.append)
 
-        # the same app starting again: nothing to do
-        assert app.refresh_core_after_app_update(tmp, said.append) is True and installs == []
-
-        # a new APK installed over the old one (the remembered version differs): the core is brought up to date
-        identity.INFO = {"platform": "android", "version": "1.0.13", "api": 2}
-        assert app.refresh_core_after_app_update(tmp, said.append) is True
-        assert installs == [tmp] and open(os.path.join(tmp, ".app_version"), encoding="utf-8").read() == "1.0.13"
-        assert any("1.0.13" in line for line in said)
-
-        # offline: it says so, does not remember the new version, and tries again at the next start
-        identity.INFO = {"platform": "android", "version": "1.0.14", "api": 2}
+        # a first installation: no core yet, the app downloads it itself at start-up, so nothing is done here
+        assert start("1.0.12", None) is True and installs == []
+        # the core is the app's own version, or newer (an app that was not rebuilt keeps its older version number): nothing to do
+        assert start("1.0.12", "1.0.12") is True and installs == []
+        assert start("1.0.8", "1.0.12") is True and installs == []
+        # a new app installed over an old one: the core is older than the app, so the newest release is installed - whatever was remembered,
+        # and also the first time after an update from an app that did not yet have this check
+        assert start("1.0.13", "1.0.8") is True and installs == [tmp] and any("1.0.8" in line and "1.0.13" in line for line in said)
+        assert start("1.0.12", "1.0.11") is True and installs == [tmp]
+        # offline: it says so and starts anyway; the same rule asks again at the next start
         fake_bootstrap.install = lambda dest, log=print, **k: False
-        said.clear()
-        assert app.refresh_core_after_app_update(tmp, said.append) is False
-        assert open(os.path.join(tmp, ".app_version"), encoding="utf-8").read() == "1.0.13" and any("try again" in line for line in said)
+        assert start("1.0.14", "1.0.12") is False and any("try again" in line for line in said)
         fake_bootstrap.install = lambda dest, log=print, **k: (installs.append(dest), True)[1]
-        installs.clear()
-        assert app.refresh_core_after_app_update(tmp, said.append) is True and installs == [tmp]
-
+        assert start("1.0.14", "1.0.12") is True and installs == [tmp]
         # an app with no identity is left alone
         del sys.modules["pyos_export"]
         sys.modules["pyos_export"] = types.ModuleType("pyos_export")

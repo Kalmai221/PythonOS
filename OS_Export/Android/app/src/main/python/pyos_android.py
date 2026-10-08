@@ -209,35 +209,32 @@ def app_update():
 
 
 def refresh_core_after_app_update(files_dir, log=print):
-    """Installing a new APK over an old one replaces the app but not the OS: the core lives in files_dir, which Android keeps, so the
-    person would still be on the old PythonOS (and its old version number) after "updating". The first start after the app changed
-    brings the core up to the newest release, so updating the app really updates PythonOS. Returns True when nothing is left to do.
-    A first installation, or an app that did not change, is left alone; offline, it tries again at the next start."""
+    """Installing a new APK over an old one replaces the app but not the OS: the core lives in files_dir, which Android keeps. Left alone, the
+    person would still be on the old PythonOS (and its old version number) after "updating" - and the in-app updater would keep refusing the
+    new core ("it needs new libraries, install the new app"), because it judges the libraries by the old core's requirements, so the app
+    update would seem to do nothing, for ever.
+
+    The rule is simple and needs no memory of earlier starts: an app built for PythonOS X must not run a core older than X. When the core in
+    files_dir is older than the app, the newest release is installed first. Offline, it starts anyway and tries again at the next start.
+    Returns True when the core is not older than the app (or there is nothing to compare)."""
     try:
         import pyos_export
         app_version = str(pyos_export.INFO["version"])
     except Exception:                                      # noqa: BLE001 - an app without an identity: nothing to compare
         return True
-    marker = os.path.join(files_dir, ".app_version")
     try:
-        with open(marker, encoding="utf-8") as f:
-            seen = f.read().strip()
+        with open(os.path.join(files_dir, "VERSION"), encoding="utf-8") as f:
+            core_version = f.read().strip()
     except OSError:
-        seen = ""
-    if seen == app_version:
+        return True                                        # no core yet: the first start downloads it
+    import bootstrap
+    if bootstrap.version_key(core_version) >= bootstrap.version_key(app_version):
         return True
-    if seen:
-        log(f"The app was updated to {app_version}. Bringing PythonOS up to date...")
-        import bootstrap
-        if not bootstrap.install(files_dir, log=log):
-            log("Could not update PythonOS now (no connection?). It will try again the next time the app starts.")
-            return False
-    try:
-        with open(marker, "w", encoding="utf-8") as f:
-            f.write(app_version)
-    except OSError:
-        pass
-    return True
+    log(f"This app is {app_version} but PythonOS is still {core_version}. Bringing PythonOS up to date...")
+    if bootstrap.install(files_dir, log=log):
+        return True
+    log("Could not update PythonOS now (no connection?). It will try again the next time the app starts.")
+    return False
 
 
 def main(files_dir):

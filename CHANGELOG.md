@@ -7,6 +7,12 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 **Exports** (the packages around it: Windows, Android, Linux, the ISO and VM images, Docker; a new download is needed to get these), **Website** and
 **Development** (tests and tools, not user-visible). Versions before 1.0.8 are not split and count as PythonOS.
 
+## 1.0.13
+
+### Exports
+
+- Android: updating the app now really updates PythonOS, for good. The PythonOS files live in the app's own folder and survive an app update, so after installing a new app you were still on the old PythonOS, and `updatecheck` kept saying the new version "needs new libraries, install the new app" (it judged the libraries by the old files), so the update seemed to do nothing in a loop. The 1.0.12 fix for this missed the first update from an older app. The rule is now simple and needs no memory: an app built for PythonOS X never runs a PythonOS older than X, so at start-up an older one is brought up to the newest release first (and if you are offline it tries again at the next start). The version PythonOS shows is also kept in step when the files are already current.
+
 ## 1.0.12
 
 ### PythonOS

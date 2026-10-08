@@ -215,6 +215,7 @@ def install(dest, url=None, force=False, log=print):
         if gone:
             ui.info("Some PythonOS files are missing (" + ", ".join(gone) + "): downloading them again.")
         elif version_key(installed) >= version_key(latest):
+            sync_config_version(dest, installed)             # an older launcher never wrote it: the version shown must match the files
             ui.done(f"PythonOS {installed} is already installed")
             return True
 
