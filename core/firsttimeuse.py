@@ -223,6 +223,10 @@ def _choose_language():
     from pyos import i18n
     if settings.get("language") != "auto":
         return
+    asked = os.environ.get("PYOS_LANG_CHOSEN") == "1" and os.environ.get("PYOS_LANG", "") in i18n.LANGUAGES
+    if asked:                                                  # the Android app already asked, before PythonOS started
+        settings.set("language", os.environ["PYOS_LANG"])
+        return
     guess = i18n.language()
     console.print("[bold]Language / Idioma / Langue / Sprache[/bold]")
     for code, name in i18n.LANGUAGES.items():

@@ -35,6 +35,9 @@ class Sheet(private val activity: Activity, private val ui: SheetColors) {
     private val density = activity.resources.displayMetrics.density
     private fun dp(value: Int) = (value * density).toInt()
     private var dialog: Dialog? = null
+
+    /** Called when the sheet goes away, by a tap outside it, back, or one of its own buttons. */
+    var onDismiss: (() -> Unit)? = null
     private val body = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
 
     private fun rounded(color: Int, radiusDp: Float) = GradientDrawable().apply {
@@ -240,6 +243,7 @@ class Sheet(private val activity: Activity, private val ui: SheetColors) {
             attributes = attributes.also { it.dimAmount = 0.55f }
         }
         dialog = d
+        d.setOnDismissListener { onDismiss?.invoke() }
         d.show()
         if (animationsOn()) {
             sheet.translationY = dp(420).toFloat()

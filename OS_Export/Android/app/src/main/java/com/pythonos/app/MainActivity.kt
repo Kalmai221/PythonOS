@@ -71,6 +71,8 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Lang.init(this)
+        Lang.export(this)                       // PythonOS reads the language from the environment when it starts
         applyPalette()
         setContentView(buildUi())
         TerminalBridge.listener = this
@@ -236,35 +238,36 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
     private fun showMenu(@Suppress("UNUSED_PARAMETER") anchor: View) {
         val sheet = Sheet(this, sheetColors())
         sheet.title("PythonOS", sizeLabel.text.toString())
-        sheet.row("P", "Paste", "Type the clipboard into the terminal") { paste() }
-        sheet.row("C", "Copy screen text", "Everything on the screen, as text") { copyScreen() }
-        sheet.row("H", "Help", "List the commands") { terminal.typeText("help\n") }
-        sheet.section("Look")
-        sheet.stepper("Text size", { terminal.textSizeSp.toInt().toString() }, { resizeText(-1f) }, { resizeText(1f) })
+        sheet.row("P", t("Paste"), t("Type the clipboard into the terminal")) { paste() }
+        sheet.row("C", t("Copy screen text"), t("Everything on the screen, as text")) { copyScreen() }
+        sheet.row("H", t("Help"), t("List the commands")) { terminal.typeText("help\n") }
+        sheet.section(t("Look"))
+        sheet.stepper(t("Text size"), { terminal.textSizeSp.toInt().toString() }, { resizeText(-1f) }, { resizeText(1f) })
         sheet.swatches(palettes.map { it.name }, palettes.map { it.bg }, prefs.getInt("palette", 0).coerceIn(0, palettes.size - 1)) { index ->
             // the activity is rebuilt so every colour (and the terminal) picks the scheme up
             prefs.edit().putInt("palette", index).apply()
             recreate()
         }
-        sheet.toggle("S", "Keep screen on", "Stops the screen from sleeping", prefs.getBoolean("keep_awake", false)) { setKeepAwake(it) }
-        sheet.section("App")
-        sheet.row("U", "Check for app update", "The app is a separate download") { checkAppUpdate(manual = true) }
-        sheet.row("!", "Report a problem", "Prepares a report you read before anything is sent") { terminal.typeText("report\n") }
-        sheet.row("i", "About", null) { showAbout() }
+        sheet.toggle("S", t("Keep screen on"), t("Stops the screen from sleeping"), prefs.getBoolean("keep_awake", false)) { setKeepAwake(it) }
+        sheet.row("L", t("Language"), Lang.choices.firstOrNull { it.first == Lang.code }?.second) { askLanguage(false) }
+        sheet.section(t("App"))
+        sheet.row("U", t("Check for app update"), t("The app is a separate download")) { checkAppUpdate(manual = true) }
+        sheet.row("!", t("Report a problem"), t("Prepares a report you read before anything is sent")) { terminal.typeText("report\n") }
+        sheet.row("i", t("About"), null) { showAbout() }
         sheet.show()
     }
 
     private fun paste() {
         val clip = (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
         val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()
-        if (text.isNullOrEmpty()) Toast.makeText(this, "Nothing to paste", Toast.LENGTH_SHORT).show()
+        if (text.isNullOrEmpty()) Toast.makeText(this, t("Nothing to paste"), Toast.LENGTH_SHORT).show()
         else terminal.typeText(text)
     }
 
     private fun copyScreen() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("PythonOS", terminal.screenText()))
-        Toast.makeText(this, "Screen text copied", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, t("Screen text copied"), Toast.LENGTH_SHORT).show()
     }
 
     private fun resizeText(delta: Float) {
@@ -285,10 +288,9 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
             "?"
         }
         val sheet = Sheet(this, sheetColors())
-        sheet.title("PythonOS", "App version $version")
-        sheet.paragraph("The terminal runs PythonOS. PythonOS updates itself; this app is a separate package, so a new version of the app " +
-            "has to be downloaded and installed by hand (Menu, then Check for app update).")
-        sheet.buttons("OK", {})
+        sheet.title("PythonOS", t("App version {0}", version))
+        sheet.paragraph(t("The terminal runs PythonOS. PythonOS updates itself; this app is a separate package, so a new version of the app has to be downloaded and installed by hand (Menu, then Check for app update)."))
+        sheet.buttons(t("OK"), {})
         sheet.show()
     }
 
@@ -296,7 +298,7 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
     /** The APK can't update itself: ask PythonOS whether a newer one exists and say so, with the download link. */
     private fun checkAppUpdate(manual: Boolean) {
         if (!Python.isStarted()) {
-            if (manual) Toast.makeText(this, "PythonOS is still starting - try again in a moment", Toast.LENGTH_SHORT).show()
+            if (manual) Toast.makeText(this, t("PythonOS is still starting - try again in a moment"), Toast.LENGTH_SHORT).show()
             return
         }
         worker.execute {
@@ -307,12 +309,12 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
             }
             runOnUiThread {
                 if (json.isBlank()) {
-                    if (manual) Toast.makeText(this, "No newer app found (or you're offline)", Toast.LENGTH_LONG).show()
+                    if (manual) Toast.makeText(this, t("No newer app found (or you're offline)"), Toast.LENGTH_LONG).show()
                 } else {
                     val info = JSONObject(json)
                     updateUrl = info.getString("url")
                     updateSha = info.optString("sha256")
-                    banner.text = "New app version ${info.getString("remote")} available — tap for details"
+                    banner.text = t("New app version {0} available — tap for details", info.getString("remote"))
                     banner.alpha = 0f
                     banner.visibility = View.VISIBLE
                     banner.animate().alpha(1f).setDuration(250).start()
@@ -324,34 +326,58 @@ class MainActivity : Activity(), TerminalBridge.Listener, TerminalView.Listener 
 
     private fun showUpdateDialog(info: JSONObject?) {
         val url = updateUrl ?: return
-        val title = if (info?.optString("state") == "incompatible") "Install the new app" else "App update available"
+        val title = if (info?.optString("state") == "incompatible") t("Install the new app") else t("App update available")
         val notes = info?.optString("notes").orEmpty()
         val sheet = Sheet(this, sheetColors())
         sheet.title(title, if (info != null) "${info.optString("title")}: ${info.optString("local")} → ${info.optString("remote")}" else null)
         if (notes.isNotEmpty()) sheet.markdown(notes)
-        sheet.paragraph("PythonOS itself keeps updating on its own. The app around it is a separate package, so Android asks you to confirm " +
-            "its update: tap Install now, PythonOS downloads the new app, checks it, and hands it to Android's installer. Your files are kept.")
+        sheet.paragraph(t("PythonOS itself keeps updating on its own. The app around it is a separate package, so Android asks you to confirm its update: tap Install now, PythonOS downloads the new app, checks it, and hands it to Android's installer. Your files are kept."))
         val sum = info?.optString("sha256").orEmpty()
-        if (sum.isNotEmpty()) sheet.paragraph("The file's SHA-256:\n$sum")
-        else sheet.paragraph("This release has no checksum for the file, so it cannot be installed from here; use Download instead.")
-        sheet.buttons(if (sum.isNotEmpty()) "Install now" else "Download", {
+        if (sum.isNotEmpty()) sheet.paragraph(t("The file's SHA-256:") + "\n$sum")
+        else sheet.paragraph(t("This release has no checksum for the file, so it cannot be installed from here; use Download instead."))
+        sheet.buttons(if (sum.isNotEmpty()) t("Install now") else t("Download"), {
             if (sum.isNotEmpty()) installAppUpdate(url, sum) else startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-        }, "Download", { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) })
+        }, t("Download"), { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) })
         sheet.show()
     }
 
     /** Downloads the new APK, checks it, and hands it to Android's installer (it shows its own confirmation). */
     private fun installAppUpdate(url: String, sha256: String) {
-        Toast.makeText(this, "Downloading the new app...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, t("Downloading the new app..."), Toast.LENGTH_SHORT).show()
         worker.execute {
             val problem = TerminalBridge.installUpdate(url, sha256)
-            if (problem.isNotEmpty()) runOnUiThread { Toast.makeText(this, "Not updated: $problem", Toast.LENGTH_LONG).show() }
+            if (problem.isNotEmpty()) runOnUiThread { Toast.makeText(this, t("Not updated: {0}", problem), Toast.LENGTH_LONG).show() }
         }
     }
 
     // ----------------------------------------------------------------- Python
+    private var asking = false
+
+    /** Which language? Asked once, before PythonOS starts, so PythonOS gets the answer and does not ask again; the menu changes it later. */
+    private fun askLanguage(first: Boolean) {
+        val sheet = Sheet(this, sheetColors())
+        sheet.title(t("Language / Idioma / Langue / Sprache"), if (first) t("PythonOS will speak this language. You can change it later in the menu.") else null)
+        for ((code, name) in Lang.choices) {
+            sheet.row(code.uppercase(), name, if (code == Lang.code) "✓" else null) {
+                val changed = code != Lang.code
+                Lang.choose(this, code)
+                if (first) startPython()
+                else if (changed) { callPython("set_language", code); recreate() }
+            }
+        }
+        if (first) sheet.onDismiss = {
+            // dismissed without choosing: take the phone's language, so PythonOS still starts
+            terminal.post { if (!Lang.chosen(this)) { Lang.choose(this, Lang.guess()); startPython() } }
+        }
+        sheet.show()
+    }
+
     private fun startPython() {
         if (started) return
+        if (!Lang.chosen(this)) {
+            if (!asking) { asking = true; askLanguage(true) }
+            return
+        }
         started = true
         TerminalBridge.reset()
         Thread({

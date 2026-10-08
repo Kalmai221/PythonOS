@@ -183,6 +183,15 @@ def set_size(cols, rows):
     os.environ["LINES"] = str(int(rows))
 
 
+def set_language(code):
+    """The app's language menu changed: PythonOS speaks it too (the setting is what pyos/i18n.py reads)."""
+    try:
+        from pyos import settings
+        settings.set("language", str(code))
+    except Exception:
+        pass
+
+
 def app_update():
     """JSON about a newer APK (it cannot update itself), or "" if this app is current / offline."""
     try:
