@@ -114,9 +114,10 @@ jobs:
         shell: pwsh
         run: |
           $csc = Join-Path $env:WINDIR "Microsoft.NET/Framework64/v4.0.30319/csc.exe"
-          python OS_Export/Windows/make_extras_list.py requirements-extra.txt --cs "$PWD/ExtrasList.g.cs"
-          $src = @(Get-ChildItem OS_Export/Windows/native/setup -Filter *.cs | ForEach-Object { $_.FullName }) + "$PWD/ExtrasList.g.cs"
-          & $csc /nologo /codepage:65001 /platform:x64 /target:winexe /out:$env:RUNNER_TEMP/setup-test.exe /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll /r:System.Web.Extensions.dll $src
+          python OS_Export/Windows/make_extras_list.py requirements-extra.txt --cs ExtrasList.g.cs
+          if (-not (Test-Path ExtrasList.g.cs)) { throw "the libraries list was not generated" }
+          $src = @(Get-ChildItem OS_Export/Windows/native/setup -Filter *.cs | ForEach-Object { $_.FullName }) + "ExtrasList.g.cs"
+          & $csc /nologo /codepage:65001 /platform:x64 /target:winexe /out:setup-test.exe /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll /r:System.Web.Extensions.dll $src
           if ($LASTEXITCODE -ne 0) { throw "the installer does not compile" }
       - name: PowerShell scripts parse
         shell: pwsh
