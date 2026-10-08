@@ -247,7 +247,7 @@ jobs:
 
   iso:
     name: ISO ${{ matrix.arch }} (${{ matrix.variant }})
-    needs: plan
+    needs: [plan, translate]
     if: needs.plan.outputs.iso == 'true'
     runs-on: ${{ matrix.runner }}
     # The PC (x86_64) images must build. The 64-bit ARM (aarch64) images are built on GitHub's ARM runners and are attached
@@ -269,6 +269,7 @@ jobs:
       ISO_APK_CACHE: ${{ github.workspace }}/.cache/apk
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/translated
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -314,12 +315,53 @@ jobs:
           name: export-iso-${{ matrix.arch == 'aarch64' && 'aarch64-' || '' }}${{ matrix.variant }}-${{ needs.plan.outputs.iso_fp }}-${{ needs.plan.outputs.version }}
           path: dist/iso/*
 
+  translate:
+    name: Translations (es, fr, de)
+    # The same translating as the Translations workflow, so a release always carries translated messages even when that workflow's pull
+    # request has not been merged yet. It never fails the build: if anything goes wrong, the committed pyos/locales_auto.py is used.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Keep the Argos models between runs
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/argos-translate
+          key: argos-models-${{ hashFiles('tools/translate_ci.py') }}
+          restore-keys: argos-models-
+      - name: Translate what is missing
+        continue-on-error: true
+        env:
+          ARGOS_DEVICE_TYPE: cpu
+        run: |
+          pip install -r requirements.txt argostranslate
+          cp pyos/locales_auto.py "$RUNNER_TEMP/locales_auto.before.py"
+          python tools/translate_ci.py
+          python tools/test_translations.py
+          python tools/test_translate_ci.py
+      - name: Keep the result only if it is sound
+        run: |
+          if ! python tools/test_translations.py >/dev/null 2>&1; then
+            echo "The translations did not pass their checks: using the committed file."
+            cp "$RUNNER_TEMP/locales_auto.before.py" pyos/locales_auto.py || git checkout -- pyos/locales_auto.py
+          fi
+          mkdir -p dist/locales && cp pyos/locales_auto.py dist/locales/locales_auto.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: locales-auto
+          path: dist/locales/locales_auto.py
+
   core:
     name: Core update package
-    needs: plan
+    needs: [plan, translate]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/translated
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -342,12 +384,13 @@ jobs:
 
   docker:
     name: Docker image (ghcr.io)
-    needs: [plan, checks]
+    needs: [plan, checks, translate]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     continue-on-error: true       # a registry hiccup must not hold back the release
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/translated
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -380,7 +423,7 @@ jobs:
     # The core package is what installed copies update from, so it must succeed; an export that had to be
     # built must succeed too (the manifest links to its files). Reused exports are simply skipped jobs.
     if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.core.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-    needs: [plan, checks, linux, windows, android, iso, core]
+    needs: [plan, checks, linux, windows, android, iso, core, translate]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
