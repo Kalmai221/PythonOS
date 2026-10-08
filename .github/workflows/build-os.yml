@@ -84,11 +84,12 @@ jobs:
 
   linux:
     name: Linux (.tar.gz, .deb, Arch .pkg.tar.zst, .rpm)
-    needs: plan
+    needs: [plan, translate]
     if: needs.plan.outputs.linux == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/translated
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -115,7 +116,7 @@ jobs:
 
   windows:
     name: Windows ${{ matrix.arch }} (portable zip and installer)
-    needs: plan
+    needs: [plan, translate]
     if: needs.plan.outputs.windows == 'true'
     runs-on: windows-latest
     strategy:
@@ -126,6 +127,7 @@ jobs:
     continue-on-error: ${{ matrix.arch == 'arm64' }}
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/translated
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -148,11 +150,12 @@ jobs:
 
   android:
     name: Android (APKs)
-    needs: plan
+    needs: [plan, translate]
     if: needs.plan.outputs.android == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/translated
       - uses: actions/setup-python@v7
         with:
           # Must match chaquopy { version } in app/build.gradle.kts: Chaquopy runs a Python of the

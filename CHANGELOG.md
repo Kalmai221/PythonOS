@@ -32,7 +32,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - Translations are made by CI from now on: a new `tr("...")` message is machine-translated into Spanish, French and German by the *Translations* workflow (Argos Translate, only ever in CI, never in PythonOS), which opens a pull request that changes only `pyos/locales_auto.py`. Placeholders, command names, flags, file names and key letters are protected, a result that loses one or means something else when translated back is thrown away (the message stays English), and a text written by a person always wins. `tools/translate_ci.py` is the script, `tools/test_translate_ci.py` tests it with a fake engine, and `tools/i18n_keys.py` finds the messages.
 
 ## 1.0.12
-- The build workflow now translates as part of the build: a `translate` job runs the same script before the core package, the ISO images and the Docker image are made, and they carry the result, so a release is translated even if the Translations pull request has not been merged yet. If translating fails, the committed `pyos/locales_auto.py` is used and the build goes on.
+- The build workflow now translates as part of the build: a `translate` job runs the same script before the core package and every export (Windows, Android, Linux, ISO, Docker) are made, and they all carry the result, so a release is translated even if the Translations pull request has not been merged yet. If translating fails, the committed `pyos/locales_auto.py` is used and the build goes on.
 
 ### PythonOS
 
