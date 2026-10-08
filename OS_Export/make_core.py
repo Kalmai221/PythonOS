@@ -61,6 +61,8 @@ def changelog_parts(ver):
             text = f.read()
     except OSError:
         return {}
+    if ver.endswith("-dev"):                              # a manual build ("1.0.12-dev") reads the notes of the version it is made from
+        ver = ver[:-4]
     parts, inside, part = {}, False, "PythonOS"
     for line in text.splitlines():
         if line.startswith("## "):
