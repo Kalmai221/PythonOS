@@ -8,20 +8,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -45,13 +50,30 @@ class MainActivity : Activity() {
         val bad = if (night) Color.rgb(240, 138, 128) else Color.rgb(179, 38, 30)
     }
 
+    /** A flat rounded progress bar in the accent colour, like the one in the Windows installer. */
+    private class Meter(context: Context, private val track: Int, private val fill: Int) : View(context) {
+        var progress = 0
+            set(value) { field = value.coerceIn(0, 1000); invalidate() }
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        override fun onDraw(canvas: Canvas) {
+            val r = height / 2f
+            paint.color = track
+            canvas.drawRoundRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), r, r, paint)
+            if (progress > 0) {
+                paint.color = fill
+                canvas.drawRoundRect(RectF(0f, 0f, maxOf(height.toFloat(), width * progress / 1000f), height.toFloat()), r, r, paint)
+            }
+        }
+    }
+
     private lateinit var p: Palette
+    private lateinit var journey: TextView
     private lateinit var statusTitle: TextView
     private lateinit var statusDetail: TextView
     private lateinit var deviceLine: TextView
     private lateinit var stepsBox: LinearLayout
     private val stepViews = ArrayList<TextView>()
-    private lateinit var bar: ProgressBar
+    private lateinit var bar: Meter
     private lateinit var barText: TextView
     private lateinit var primary: Button
     private lateinit var open: Button
@@ -122,16 +144,18 @@ class MainActivity : Activity() {
             text = ">_"
             gravity = Gravity.CENTER
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-            setTextColor(p.accent)
-            typeface = Typeface.MONOSPACE
-            background = rounded(p.card, 12, p.line)
+            setTextColor(p.onAccent)
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            background = rounded(p.accent, 14)
         }
         header.addView(mark, LinearLayout.LayoutParams(dp(52), dp(52)))
         val names = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        names.addView(label(24f, p.text, true).apply { text = "PythonOS" })
-        names.addView(label(14f, p.muted).apply { text = "Installer" })
+        names.addView(label(24f, p.text, true).apply { text = "PythonOS Setup" })
+        names.addView(label(14f, p.muted).apply { text = "Install and update the app" })
         header.addView(names, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(14) })
-        column.addView(header, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(22) })
+        column.addView(header, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
+        journey = label(13f, p.muted)
+        column.addView(journey, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
 
         // status card
         val status = card()
@@ -150,7 +174,7 @@ class MainActivity : Activity() {
             stepViews.add(row)
             stepsBox.addView(row, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(3); bottomMargin = dp(3) })
         }
-        bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 1000 }
+        bar = Meter(this, p.line, p.accent)
         barText = label(13f, p.muted)
         stepsBox.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(10) })
         stepsBox.addView(barText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
@@ -222,9 +246,27 @@ class MainActivity : Activity() {
 
     private fun mb(bytes: Long): String = String.format("%.1f MB", bytes / 1048576.0)
 
+    /** The three stages as dots, the way the Windows installer shows them: where you are is filled in. */
+    private fun showJourney(stage: Int) {
+        val names = listOf("Check", "Install", "Done")
+        val text = SpannableStringBuilder()
+        for ((i, name) in names.withIndex()) {
+            if (i > 0) text.append("   ")
+            val start = text.length
+            text.append(if (i <= stage) "●  " else "○  ").append(name)
+            text.setSpan(ForegroundColorSpan(if (i == stage) p.accent else if (i < stage) p.text else p.muted), start, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        journey.text = text
+    }
+
     private fun render() {
+        showJourney(if (justInstalled) 2 else if (busy) 1 else 0)
         val abi = Installer.abi()
-        deviceLine.text = "Android ${android.os.Build.VERSION.RELEASE}, " + (abi ?: "32-bit processor")
+        val summary = StringBuilder("Device       Android ${android.os.Build.VERSION.RELEASE}, " + (abi ?: "32-bit processor"))
+        installed?.let { summary.append("\nInstalled    ").append(it) }
+        latest?.let { summary.append("\nLatest       ").append(it.version).append(if (it.size > 0) "  (" + mb(it.size) + ")" else "") }
+        deviceLine.text = summary
+        deviceLine.typeface = Typeface.MONOSPACE
         open.visibility = if (installed != null) View.VISIBLE else View.GONE
         uninstall.visibility = if (installed != null) View.VISIBLE else View.GONE
         if (justInstalled && installed != null) {
@@ -359,6 +401,7 @@ class MainActivity : Activity() {
         for (i in stepNames.indices) setStep(i, 0)
         bar.progress = 0
         barText.text = ""
+        showJourney(1)
         statusTitle.text = "Installing ${release.version}"
         statusDetail.text = "Keep this screen open until Android asks you to confirm."
         setStep(0, 2)
@@ -386,7 +429,7 @@ class MainActivity : Activity() {
                 val why = e.message ?: e.toString()
                 runOnUiThread {
                     window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    setStep(step, 3)
+                    setStep(step, 3); showJourney(0)
                     busy = false
                     lastProblem = "Not installed: $why"
                     statusTitle.text = "That did not work"
