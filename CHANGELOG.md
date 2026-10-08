@@ -15,6 +15,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - Fixed: pressing Backspace (or editing a long line, Ctrl+U, the history keys) at a question such as `Install? [y/n]` no longer eats the question itself. Rich printed its prompts on its own and readline, which then thought the line started at the left edge, wrote over them when it redrew the line. The prompts are now handed to readline with their colour codes marked, as readline expects (Linux, the ISO and virtual machines, macOS; Windows and Android are unchanged).
 - Apps are asked about permissions the first time they use them. A permission an app declared but was not given used to be refused outright; now the app is stopped for a moment and you are asked: allow this time, always allow, not now, or never allow. "Always" and "never" are remembered (`pkg permissions <name>` shows and changes them: `grant`, `revoke` for never, and the new `ask` to go back to being asked). An app can only be asked about what it declared, nobody is asked when the output is captured or on the locked-down live system, and the question and the permission names are translated.
 - Spanish, French and German now come from the Translations workflow (CI, Argos Translate) instead of hand-written tables: the old tables were removed, `pyos/locales.py` is now only for corrections, and the workflow translates every message (boot and shutdown screens, `report`, `doctor`, `sudo`, `gh`, the bug-detection question and the app permission prompts) into `pyos/locales_auto.py`. Until a message is translated it shows in English. The text of a problem report stays English, because the developers read it.
+- `report`: the wait between two reports sent to Discord from one installation is now 2 minutes (it was 10).
 
 ### Exports
 
@@ -23,6 +24,7 @@ Every version is split by who gets the change: **PythonOS** (the core: `updatech
 - Windows: the x64 package no longer carries a second copy of Python only for its plain-console fallback (`PythonOS-console.exe`, about 8 MB). The fallback now runs the bundled `python.exe start.py`, so the portable zip and the installer are about 8 MB smaller, and nothing is lost: the window, the fallback and the installers behave as before.
 - The Setup Wizard (`pythonos-wizard-<version>.zip`, 60 MB) is removed from the releases, the release page and the website. To write a bootable USB stick, use the ISO with Rufus, balenaEtcher or `dd`; the installers, packages and images are the same as before.
 - The Windows installer is compressed harder (LZMA2 ultra) and the Linux tarball with gzip -9: the same files, a little smaller.
+- The build now writes a size report for each ISO (its folders and 30 biggest packages) into the job summary, so a future size cut can be chosen from real numbers.
 
 ### Development
 

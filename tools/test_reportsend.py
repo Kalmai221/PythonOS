@@ -215,7 +215,7 @@ def main():
         except reportsend.SendError as e:
             assert "could not reach" in str(e), e
 
-        # Discord: a message and the full text as a file, once per ten minutes
+        # Discord: a message and the full text as a file, once per two minutes
         net.sent.clear()
         net.routes = [["discord.com", [Reply(204, "")]]]
         reportsend.send_discord("Crash", "full text of the report")

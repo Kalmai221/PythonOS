@@ -29,7 +29,7 @@ from pyos import report
 
 TARGETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "report_targets.json")
 API = "https://api.github.com"
-DISCORD_EVERY = 10 * 60                      # seconds between two reports sent to Discord from one installation
+DISCORD_EVERY = 2 * 60                       # seconds between two reports sent to Discord from one installation
 MAX_BODY = 60000                             # GitHub accepts 65536 characters in an issue body
 RECORDS = os.path.join(".OSData", "reports.json")
 KEY = b"pythonos-report-targets"
@@ -299,7 +299,7 @@ def send_discord(title, body):
         raise SendError("sending through Discord is not set up in this copy of PythonOS")
     wait = discord_wait()
     if wait:
-        raise SendError(f"a report was sent a moment ago; try again in {wait // 60 + 1} minute(s)")
+        raise SendError(f"a report was sent a moment ago; try again in {(wait + 59) // 60} minute(s)")
     boundary = "----pythonos" + str(int(time.time() * 1000))
     summary = {"content": f"**{title[:200]}**\nPythonOS {report._version()} - full text attached", "allowed_mentions": {"parse": []}}
     parts = [f"--{boundary}\r\nContent-Disposition: form-data; name=\"payload_json\"\r\nContent-Type: application/json\r\n\r\n{json.dumps(summary)}\r\n",
