@@ -376,7 +376,7 @@ def main(args):
             console.print(f"[red]{escape(str(e))}[/red]")
         return 1
     if options["name"]:
-        console.print(escape(give_name(*options["name"])))
+        console.print(escape(give_name(*options["name"])))  # pylint: disable=not-an-iterable
         return 0
     network = options["network"]
     mine = local_address()

@@ -86,7 +86,7 @@ def main():
         assert c.main(["check", tmp, VERSION]) == 1
     # the kit scripts: bash must parse them, and PowerShell must not have been given $args (an automatic variable) as a variable of its own
     vm = os.path.join(REPO, "OS_Export", "ISO", "vm")
-    for name in ("run-qemu.sh", "create-virtualbox.sh", "make-images.sh"):
+    for name in () if os.name == "nt" else ("run-qemu.sh", "create-virtualbox.sh", "make-images.sh"):
         result = subprocess.run(["bash", "-n", os.path.join(vm, name)], capture_output=True, text=True)
         assert result.returncode == 0, (name, result.stderr)
     for name in ("run-qemu.ps1", "create-virtualbox.ps1"):

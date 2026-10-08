@@ -27,7 +27,7 @@ RULES = [
     ("copies, moves or deletes", r"shutil\.|os\.remove|os\.rename|os\.replace", ["cp", "mv", "rm"], "the trash and undo of the commands, so a mistake can be taken back"),
     ("tests connections", r"socket\.|ping3", ["ping", "nslookup", "whois", "tracert", "ipinfo"], "the commands' timeouts and error messages"),
     ("reads system facts", r"psutil", ["ps", "free", "df", "uptime", "lscpu", "sysinfo"], "the same numbers the rest of PythonOS shows"),
-    ("reads the person's text files", r"open\(\s*(path|name|file|filename|target)[^)]*encoding", ["cat", "head", "tail"], "files in other encodings (Windows-1252, UTF-16) read correctly"),
+    ("reads the person's text files", r"open\(\s*(path|name|file|filename|target)\b[^)]*encoding", ["cat", "head", "tail"], "files in other encodings (Windows-1252, UTF-16) read correctly"),
     ("compresses", r"import gzip|import bz2|import lzma", ["gzip", "gunzip", "zcat"], "the size limit against compression bombs"),
 ]
 # jobs an app could do that none of them do yet, found by what the app is for (its tags and category), not its code

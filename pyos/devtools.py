@@ -514,7 +514,7 @@ def measure(call):
 
 # ---------------------------------------------------------------- odd input (the commands apps can ask for)
 FUZZ_ARGS = [[], [""], ["-"], ["--"], ["-x"], ["--help"], ["--bogus"], ["0"], ["-1"], ["999999999999999999999"], ["a" * 3000], ["../../../etc/passwd"],
-             ["~"], ["%s%n%d"], ["é日本語‮"], ["\x00"], ["-n", "x"], ["-d"], ["a", "b", "c", "d", "e", "f", "g"], ["*"], ["--", "-x"]]
+             ["~"], ["%s%n%d"], ["é日本語\u202e"], ["\x00"], ["-n", "x"], ["-d"], ["a", "b", "c", "d", "e", "f", "g"], ["*"], ["--", "-x"]]
 FUZZ_STDIN = [None, "", "\n", "x" * 100_000, "\x00\x01\x02\n", "éè\n日本\n", "a\r\nb\r\n", "1\n2\n3\n"]
 FUZZ_SKIP = {"curl", "wget", "ping", "nslookup", "whois", "tracert", "ipinfo", "touch", "mkdir", "cp", "mv", "rm", "zip", "unzip", "tar", "gzip", "gunzip", "tee",
              "schedule", "calc", "shuf", "uuidgen", "date", "cal"}
