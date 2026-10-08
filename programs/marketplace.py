@@ -53,6 +53,13 @@ except ImportError:  # running outside PythonOS: the API 1 rules
         compatibility = staticmethod(lambda meta: (True, ""))
         usable = staticmethod(lambda packages: (packages, 0))
 
+try:
+    from pyos import appi18n
+except ImportError:  # running outside PythonOS: the English words
+    class appi18n:  # noqa: N801
+        description = staticmethod(lambda package: package.get("description", ""))
+        category_words = staticmethod(lambda category: (category.get("title", ""), category.get("blurb", "")))
+
 config = {
     "name": "marketplace",
     "description": "Find, install, update and remove packages (marketplace search <term>).",
@@ -66,6 +73,7 @@ BRANCH = "main"
 RAW_BASE = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/online_packages"
 INDEX_URL = f"{RAW_BASE}/index.json"                       # the API 1 catalog, readable by every PythonOS ever released
 CACHE_FILE = Path(".OSData") / "market_index.json"
+I18N_CACHE = Path(".OSData") / "market_i18n.json"             # the translated descriptions of the last visit, for the language in use
 META_FILE = Path(".OSData") / "package_meta.json"          # why each package is installed (asked for, or needed by another)
 BACKUP_DIR = Path(".OSData") / "package_backups"           # the version before the last update of each package (pkg rollback)
 CHECK_STATE = Path(".OSData") / "market_check.json"        # quiet update checks
@@ -107,6 +115,37 @@ def fetch_index():
     raise last
 
 
+def translate_catalog(packages, categories, index):
+    """Put the descriptions and category words in the person's language on the catalog (the English stays for searching). The files are read for
+    whatever API the catalog is; a PythonOS in English, or a catalog that lists no languages, does nothing. Offline, the last copy is used."""
+    try:
+        from pyos import i18n
+    except ImportError:
+        return
+    try:
+        language = i18n.language()
+    except Exception:                                          # noqa: BLE001 - never stop the marketplace for a translation
+        return
+    if language == "en":
+        return
+    table = None
+    if language in (index.get("languages") or []):
+        try:
+            generated = http_get(f"{RAW_BASE}/i18n/{language}.json").json()
+            try:
+                corrections = http_get(f"{RAW_BASE}/i18n/corrections.json").json().get(language, {})
+            except (requests.RequestException, ValueError, AttributeError):
+                corrections = {}
+            table = appi18n.merge(generated, corrections)
+            appi18n.save_cached(I18N_CACHE, language, table)
+        except (requests.RequestException, ValueError, AttributeError):
+            table = None
+    if table is None:
+        table = appi18n.load_cached(I18N_CACHE, language)
+    if table:
+        appi18n.attach(packages, categories, table)
+
+
 def usable_packages(index):
     """The packages of a catalog this system can run. Says so when some were left out (they need a newer PythonOS)."""
     packages, left_out = marketapi.usable(index["packages"])
@@ -123,12 +162,15 @@ def load_index():
         CACHE_FILE.parent.mkdir(exist_ok=True)
         CACHE_FILE.write_text(json.dumps(index), encoding="utf-8")
         CATALOG["categories"] = index.get("categories", [])
-        return usable_packages(index), False
+        packages = usable_packages(index)
+        translate_catalog(packages, CATALOG["categories"], index)
+        return packages, False
     except (requests.RequestException, ValueError, KeyError) as e:
         try:
             cached_index = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
             CATALOG["categories"] = cached_index.get("categories", [])
             cached = marketapi.usable(cached_index["packages"])[0]
+            translate_catalog(cached, CATALOG["categories"], {})
             console.print("[yellow]Could not reach the marketplace; showing the last catalog we saw "
                           "(installing needs internet).[/yellow]")
             return cached, True
@@ -283,7 +325,7 @@ def score(pkg, words):
     command = (pkg.get("command") or "").lower()
     aliases = [a.lower() for a in pkg.get("alias", [])]
     tags = [t.lower() for t in pkg.get("tags", [])] + [pkg["category"].lower()] + [c.lower() for c in pkg.get("categories", [])]
-    desc = pkg.get("description", "").lower()
+    desc = (pkg.get("description", "") + " " + pkg.get("description_local", "")).lower()
     total = 0
     for w in words:
         s = 0
@@ -370,7 +412,7 @@ def show_notes(pkg):
 def category_title(category_id):
     for c in CATALOG.get("categories", []):
         if c["id"] == category_id:
-            return c["title"]
+            return appi18n.category_words(c)[0]
     return category_id.title()
 
 
@@ -384,7 +426,7 @@ def show_packages(packages, installed, title):
     table.add_column("Status")
     for i, p in enumerate(packages, 1):
         blocked = lockdown.enabled() and not p.get("lockdown_safe")
-        table.add_row(str(i), escape(p["name"]), category_title(p.get("categories", [p["category"]])[0]), escape(p.get("description", "")),
+        table.add_row(str(i), escape(p["name"]), category_title(p.get("categories", [p["category"]])[0]), escape(appi18n.description(p)),
                       p["version"], "[dim]not available here[/dim]" if blocked
                       else status_label(status_of(p, installed), p, installed))
     console.print(table)
@@ -404,7 +446,7 @@ def show_details(pkg, installed):
     size = sum(f.get("size", 0) for f in pkg["files"])
     local = installed.get(pkg["id"])
     lines = [
-        escape(pkg.get("description", "")),
+        escape(appi18n.description(pkg)),
         "",
         *([f"[bold]Libraries:[/bold] {escape(', '.join(pkg['pip']))} [dim](Python libraries from PyPI, kept inside the app)[/dim]"] if pkg.get("pip") else []),
         f"[bold]Version:[/bold]  {pkg['version']}" + (f"  [dim](marketplace API {marketapi.package_api(pkg)})[/dim]" if marketapi.package_api(pkg) > 1 else ""),
@@ -952,14 +994,15 @@ def browse(packages, installed):
     table.add_row("0", "[bold]All[/bold]", str(len(packages)), "Everything, A to Z")
     for i, c in enumerate(order, 1):
         info = titles.get(c, {"title": c.title(), "blurb": CATEGORY_BLURBS.get(c, "")})
-        table.add_row(str(i), info["title"], str(len(members[c])), info.get("blurb", ""))
+        words = appi18n.category_words(info)
+        table.add_row(str(i), words[0], str(len(members[c])), words[1])
     console.print(table)
     n = IntPrompt.ask("Choose a category (blank to go back)", default=-1)
     if n == 0:
         pick_from(sorted(packages, key=lambda p: p["name"].lower()), installed, "All packages")
     elif 1 <= n <= len(order):
         c = order[n - 1]
-        pick_from(sorted(members[c], key=lambda p: p["name"].lower()), installed, f"{titles.get(c, {'title': c.title()})['title']}")
+        pick_from(sorted(members[c], key=lambda p: p["name"].lower()), installed, f"{appi18n.category_words(titles.get(c, {'title': c.title()}))[0]}")
 
 
 def main_menu():

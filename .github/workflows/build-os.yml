@@ -327,6 +327,13 @@ jobs:
           python tools/translate_ci.py
           python tools/test_translations.py
           python tools/test_translate_ci.py
+      - name: Translate the marketplace catalog too (descriptions and category words for every API; the files live in the repository, so this is a check and a download)
+        continue-on-error: true
+        env:
+          ARGOS_DEVICE_TYPE: cpu
+        run: |
+          python tools/translate_apps.py --summary "$RUNNER_TEMP/apps-summary.md"
+          mkdir -p dist/app-i18n && cp online_packages/i18n/*.json dist/app-i18n/ 2>/dev/null || true
       - name: Keep the result only if it is sound
         run: |
           if ! python tools/test_translations.py >/dev/null 2>&1; then
@@ -338,6 +345,11 @@ jobs:
         with:
           name: locales-auto
           path: dist/locales/locales_auto.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: app-i18n
+          path: dist/app-i18n/*.json
+          if-no-files-found: ignore
 
   core:
     name: Core update package

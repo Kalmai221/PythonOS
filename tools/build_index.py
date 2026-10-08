@@ -207,6 +207,8 @@ def main():
     # one catalog per API version: the packages written for that version or older. index.json is API 1 and stays readable by every
     # system ever released; a newer catalog layout goes in index-api<N>.json only.
     categories = load_categories()
+    i18n_dir = os.path.join(ROOT, "i18n")
+    languages = sorted(n[:-5] for n in os.listdir(i18n_dir) if n.endswith(".json") and n != "corrections.json") if os.path.isdir(i18n_dir) else []
     names = {1: "index.json"}
     for version in range(1, marketapi.CURRENT + 1):
         names[version] = names.get(version) or f"index-api{version}.json"
@@ -214,6 +216,8 @@ def main():
     for version in range(1, marketapi.CURRENT + 1):
         listed = [p for p in packages if p["api"] <= version]
         index = {"format": 2, "api": version, "categories": categories, "packages": listed}
+        if languages:
+            index["languages"] = languages            # the marketplace reads online_packages/i18n/<language>.json for these (see tools/translate_apps.py)
         files = [names[version]] + (["index-api1.json"] if version == 1 else [])
         for name in files:
             out = os.path.join(ROOT, name)

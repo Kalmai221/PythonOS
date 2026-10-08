@@ -1,6 +1,9 @@
 name: Translations
 
 # Machine-translates the messages PythonOS has no translation for yet (Spanish, French, German) and opens a pull request with the result.
+#   - two things are translated: the system's own messages (pyos/locales_auto.py) and the marketplace catalog (online_packages/i18n/<language>.json:
+#     what each app is, and the category words; app names stay as they are). The catalog files serve every marketplace API: the catalogs list their
+#     languages, so index.json, index-api1.json and index-api2.json are rebuilt in the same pull request
 #   - a correction a person writes in pyos/locales.py is never touched and always wins over a machine translation
 #   - the engine is Argos Translate; it only ever runs here, never inside PythonOS (which just looks the text up in pyos/locales_auto.py)
 #   - results that lost a {placeholder} are thrown away and stay English (translating back to compare is optional: --verify-back)
@@ -19,6 +22,10 @@ on:
       - "users.py"
       - "main.py"
       - "tools/translate_ci.py"
+      - "tools/translate_apps.py"
+      - "online_packages/**/data.json"
+      - "online_packages/categories.json"
+      - "online_packages/i18n/corrections.json"
       - "tools/i18n_keys.py"
       - ".github/workflows/translations.yml"
   schedule:
@@ -57,17 +64,30 @@ jobs:
         env:
           ARGOS_DEVICE_TYPE: cpu
         run: python tools/translate_ci.py --summary translation-summary.md
+      - name: Translate the marketplace catalog (descriptions and category words, for every API)
+        env:
+          ARGOS_DEVICE_TYPE: cpu
+        run: |
+          python tools/translate_apps.py --summary apps-summary.md
+          cat apps-summary.md >> translation-summary.md
+          python tools/build_index.py
       - name: Check the result (placeholders kept, nothing broken)
         run: |
           python tools/test_translations.py
           python tools/test_translate_ci.py
+          python tools/test_translate_apps.py
       - name: Open a pull request when something changed
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: auto/translations
           delete-branch: true
-          add-paths: pyos/locales_auto.py
+          add-paths: |
+            pyos/locales_auto.py
+            online_packages/i18n/*.json
+            online_packages/index.json
+            online_packages/index-api1.json
+            online_packages/index-api2.json
           commit-message: "Machine translations (es, fr, de)"
           title: "Machine translations (es, fr, de)"
           body-path: translation-summary.md
