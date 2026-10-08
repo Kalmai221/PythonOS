@@ -56,6 +56,9 @@ def main():
     assert not t.worth_translating(t.protect("(n)o", t.TOKEN_FORMATS[0])[0])
     assert not t.worth_translating(t.protect("{n}", t.TOKEN_FORMATS[0])[0])
     assert t.worth_translating(t.protect("hello world {n}", t.TOKEN_FORMATS[0])[0])
+    # one word is translated (a menu title), a shouted word or a name that is the same everywhere is not
+    assert t.worth_translating("Settings") and t.worth_translating("Password: ") and t.worth_translating("Permission: ")
+    assert not t.worth_translating("OK") and not t.worth_translating("FAIL") and not t.worth_translating("Python") and not t.worth_translating("Swap")
 
     # one message: translated with the placeholder intact
     engine = FakeEngine()

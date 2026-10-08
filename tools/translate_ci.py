@@ -120,10 +120,17 @@ def similar(a, b):
     return difflib.SequenceMatcher(None, wa, wb).ratio()
 
 
+KEEP_ENGLISH = {"python", "swap", "ok", "fail", "log"}              # names and terms that are the same in every language
+
+
 def worth_translating(masked):
-    """Text that is only tokens, or has hardly a word left, is not machine-translated (it stays English until a person does it)."""
+    """Text that is only tokens, or letters of a key like (n)o, is not machine-translated. A single word is (a menu title, a column heading),
+    except SHOUTED words (OK, FAIL) and the names in KEEP_ENGLISH; they stay English until a person translates them."""
     leftover = re.sub(r"⟦\d+⟧|XQ\d+Z|\[\d+\]", " ", masked)
-    return len(words(leftover)) >= 2
+    found = words(leftover)
+    if len(found) >= 2:
+        return True
+    return len(found) == 1 and len(found[0]) >= 3 and found[0] not in KEEP_ENGLISH and not leftover.strip().isupper()
 
 
 def translate_one(engine, text, code):
