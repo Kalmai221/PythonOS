@@ -38,7 +38,7 @@ DefaultGroupName=PythonOS
 PrivilegesRequired=lowest
 OutputDir={#OutputDir}
 OutputBaseFilename=PythonOS-{#AppVersion}{#NameTag}-setup
-Compression=lzma2
+Compression=lzma2/ultra64
 SolidCompression=yes
 #if TargetArch == "arm64"
 ArchitecturesAllowed=arm64

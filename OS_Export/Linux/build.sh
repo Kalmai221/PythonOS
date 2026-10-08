@@ -35,7 +35,7 @@ a Python environment. PythonOS updates its own files after that.
 Needs Python 3.8+ with venv support (Debian/Ubuntu: sudo apt install python3 python3-venv).
 Your files and accounts are stored in ~/.local/share/pythonos (set PYTHONOS_HOME to change).
 EOF
-tar -C "$OUT" -czf "$OUT/$NAME.tar.gz" "$NAME"
+tar -C "$OUT" -cf - "$NAME" | gzip -9n > "$OUT/$NAME.tar.gz"
 echo "Built $OUT/$NAME.tar.gz"
 
 # --- one file tree for every distribution package: /opt/pythonos plus /usr/bin/pythonos and the menu entry.
