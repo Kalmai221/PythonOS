@@ -422,6 +422,8 @@ def main(enforce_limits=False):
     guard = Guard(perms, pkg_dir or os.path.dirname(os.path.abspath(script)), pkg_id, ask, decisions, texts=parse_texts(sys.argv[1:]))
     guard.install()
     saved_argv, saved_path = sys.argv, list(sys.path)
+    saved_perms = os.environ.get("PYOS_APP_PERMS")
+    os.environ["PYOS_APP_PERMS"] = ",".join(sorted(perms))          # so the app can ask pyos.corecmd what it may run
     sys.argv = [script, *rest[1:]]
     sys.path.insert(0, os.path.dirname(os.path.abspath(script)))
     try:
@@ -439,6 +441,10 @@ def main(enforce_limits=False):
     finally:
         guard.uninstall()
         sys.argv, sys.path[:] = saved_argv, saved_path
+        if saved_perms is None:
+            os.environ.pop("PYOS_APP_PERMS", None)
+        else:
+            os.environ["PYOS_APP_PERMS"] = saved_perms
     return 0
 
 

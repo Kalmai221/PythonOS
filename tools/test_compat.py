@@ -75,7 +75,7 @@ def main():
                 write(os.path.join(folder, ".libs", ".specs"), json.dumps(libs))
             return folder
 
-        base = {"name": "x", "version": "1.0", "scripts": {"run": "run.py"}, "permissions": ["files"]}
+        base = {"name": "x", "version": "1.0", "scripts": {"run": "run.py"}, "permissions": ["files"], "description": "A test app that is fine.", "tags": ["test"]}
         app("fine", dict(base), {"run.py": "import json\n"})
         app("nolib", dict(base, api=2, pip=["pretty-lib"]), {"run.py": "import json\n"})
         app("withlib", dict(base, api=2, pip=["pretty-lib"]), {"run.py": "import pretty_lib_zzz\n"}, libs=["pretty-lib"])
@@ -87,6 +87,13 @@ def main():
         app("badperm", dict(base, permissions=["files", "teleport"]), {"run.py": "pass\n"})
         app("needsother", dict(base, requires=["notinstalledapp"]), {"run.py": "pass\n"})
         app("othersexport", dict(base, scripts={"run": "run.py", "run_android": "android.py"}), {"run.py": "pass\n", "android.py": "import no_such_module_zzz\n"})
+        app("greedy", dict(base, permissions=["files"]), {"run.py": "import requests\nimport subprocess\nimport psutil\n"})
+        app("platform", dict(base), {"run.py": "import signal\nsignal.SIGNOSUCHSIGNALZZZ\n"})
+        app("badmeta", dict(base, version="v-one", description="x", tags=[]), {"run.py": "pass\n"})
+        app("clash", dict(base, command="ls"), {"run.py": "pass\n"})
+        app("newsyntax", dict(base), {"run.py": "match 1:\n    case 1:\n        pass\n"})
+        app("guarded", dict(base), {"run.py": "try:\n    f = open('/proc/no_such_zzz')\nexcept OSError:\n    pass\n"})
+        app("unguarded", dict(base), {"run.py": "f = open('/proc/no_such_zzz')\n"})
         write(os.path.join(root, "installed_games", "damaged", "data.json"), "{not json")
         results = compat.scan_apps(root)
         apps = {r.name: r for r in results}
@@ -100,6 +107,14 @@ def main():
         assert apps["needsother"].level == "warn" and "notinstalledapp" in apps["needsother"].notes[0]
         assert apps["othersexport"].level == "ok", "the start script of another export is not tested here"
         assert apps["damaged"].level == "fail" and "damaged" in apps["damaged"].notes[0]
+        note_text = lambda name: " | ".join(apps[name].notes)
+        assert apps["greedy"].level == "warn" and "the internet" in note_text("greedy") and "other programs" in note_text("greedy") and "system information" in note_text("greedy")
+        assert apps["platform"].level == "warn" and "signal.SIGNOSUCHSIGNALZZZ" in note_text("platform")
+        assert apps["badmeta"].level == "warn" and "version" in note_text("badmeta") and "description" in note_text("badmeta") and "tags" in note_text("badmeta")
+        assert apps["clash"].level == "warn" and "PythonOS command ls" in note_text("clash")
+        if sys.version_info >= (3, 10):
+            assert apps["newsyntax"].level == "warn" and "newer than 3.9" in note_text("newsyntax")
+        assert "does not exist here" not in note_text("guarded") and "/proc/no_such_zzz" in note_text("unguarded")
         assert compat.scan_apps(os.path.join(tmp, "nowhere")) == []
 
         # the totals and the text that is sent: system, counts, then every problem with its reason
@@ -117,23 +132,34 @@ def main():
         from programs import developer
         from pyos import reportsend
         developer.console.quiet = True
-        sent, asked = [], []
+        sent, asked, runs = [], [], []
         reportsend.send_discord = lambda title, body: sent.append((title, body))
-        compat.run = lambda progress=None: everything
+        compat.run = lambda progress=None, **kw: (runs.append(kw), everything)[1]
+
+        def answers(*values):
+            it = iter(values)
+            developer.Confirm.ask = lambda q, **k: (asked.append(q), next(it))[1]
+        # the questions, in order: run things too? (then: the internet too?), save the report?, send it?, send it now?
         reportsend.can_discord = lambda: False
+        answers(False, False)
         developer.tool_compat()
-        assert sent == [], "no Discord set up: nothing to send"
+        assert sent == [] and runs[-1] == {"deep": False, "network": False}, "no Discord set up: nothing to send, and the quick test was the default"
         reportsend.can_discord = lambda: True
-        developer.Confirm.ask = lambda q, **k: (asked.append(q), False)[1]
+        asked.clear()
+        answers(False, False, False)
         developer.tool_compat()
-        assert sent == [] and asked, "the person is asked first"
-        answers = iter([True, False])
-        developer.Confirm.ask = lambda q, **k: next(answers)
+        assert sent == [] and len(asked) == 3, "the person is asked first"
+        answers(False, False, True, False)
         developer.tool_compat()
         assert sent == [], "a second 'no' after the preview sends nothing"
-        developer.Confirm.ask = lambda q, **k: True
+        answers(False, False, True, True)
         developer.tool_compat()
         assert len(sent) == 1 and sent[0][0].startswith("Compatibility test:") and "## Totals" in sent[0][1]
+        answers(True, True, False, False)                                   # deep, with the internet checks, not saved, not sent
+        developer.tool_compat()
+        assert runs[-1] == {"deep": True, "network": True}
+        developer.tool_compat(["--deep"])                                   # started with arguments: no questions, nothing sent
+        assert runs[-1] == {"deep": True, "network": False} and len(sent) == 1
         assert "TOOLS" and "compat" in developer.TOOLS and "compat" in developer.MENU
     finally:
         compat._runs_here = real_runs_here

@@ -8,7 +8,7 @@ console = Console()
 config = {
     "name": "edit",
     "description": "Edit a text file (edit <file>; created when you save). Full screen on a real terminal, a line editor elsewhere.",
-    "alias": ["nano", "file"],
+    "alias": ["nano"],
 }
 
 

@@ -145,6 +145,22 @@ except ImportError:          # run on its own, outside PythonOS
 <h2 id="notify">Notifications</h2>
 <p>With the <code>notifications</code> permission: <code>from pyos import notify</code>, then <code>notify.notify("Time is up", title="Timer", level="info")</code>. The message is shown before the user's next prompt. <code>level</code> is <code>info</code> or <code>warn</code>.</p>
 
+<h2 id="commands">Using PythonOS's own commands</h2>
+<p>PythonOS already has commands that do real work, so an app does not have to write them again. <code>pyos.corecmd</code> runs one inside the app's own process and hands back what it printed:</p>
+<pre><code>from pyos import corecmd
+
+result = corecmd.run("sha256sum", ["report.pdf"])      # a Result: .ok, .output, .code
+if result.ok:
+    print(result.output)
+
+text = corecmd.text("sort", stdin="b
+a
+c
+")        # the output, or a RuntimeError with the message
+corecmd.run("wget", [url, "picture.png"])               # downloads with the same size limits and file rules as the command</code></pre>
+<p><code>run()</code> never raises because a command failed: <code>.ok</code> is false, <code>.output</code> has the message and <code>.code</code> is <code>failed</code>, <code>refused</code> (not allowed) or <code>missing</code>. The app's permissions still hold, because the permission guard watches what the command does: <code>curl</code> and <code>wget</code> use the <strong>network</strong> permission, the file commands use <strong>files</strong>, <code>df</code>, <code>free</code> and <code>ps</code> use <strong>system</strong>, and <code>schedule</code> uses <strong>schedule</strong>. <code>corecmd.needs("curl")</code> says which one, and <code>corecmd.check("curl")</code> tells an app whether it may before it tries.</p>
+<p>Only a list of commands can be asked for: the text tools (<code>sort</code>, <code>uniq</code>, <code>cut</code>, <code>tr</code>, <code>sed</code>, <code>paste</code>, <code>column</code>, <code>wc</code>, <code>calc</code>, <code>base64</code>, the checksums), the file tools (<code>ls</code>, <code>cat</code>, <code>head</code>, <code>tail</code>, <code>grep</code>, <code>find</code>, <code>tree</code>, <code>stat</code>, <code>file</code>, <code>du</code>, <code>diff</code>, <code>cmp</code>, <code>cp</code>, <code>mv</code>, <code>rm</code>, <code>zip</code>, <code>unzip</code>, <code>tar</code>, <code>gzip</code>), the network tools (<code>curl</code>, <code>wget</code>, <code>ping</code>, <code>nslookup</code>, <code>whois</code>, <code>tracert</code>, <code>ipinfo</code>), the system tools (<code>df</code>, <code>free</code>, <code>uptime</code>, <code>lscpu</code>, <code>sysinfo</code>, <code>ps</code>) and <code>schedule</code>. Nothing that changes accounts, installs software, edits the screen or turns the computer off is on the list; <code>corecmd.names()</code> is the full list. Outside PythonOS (an app run on its own) <code>pyos</code> is not there, so use it only after <code>try: from pyos import corecmd</code> and fall back to your own code.</p>
+
 <h2 id="links">No links</h2>
 <p>PythonOS is a command line system. An app cannot open a browser, and a clickable link means nothing in a terminal. When an app needs to point at a web address, print it as plain text and say that it is meant to be typed on another device. Do not use <code>webbrowser</code>, <code>xdg-open</code> or hyperlink escape codes.</p>
 

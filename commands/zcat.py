@@ -14,7 +14,7 @@ def execute(args=None):
         return False
     try:
         data = gzipfile.read_limited(fs.resolve(files[0]))
-    except (gzipfile.GzipError, OSError) as e:
+    except (gzipfile.GzipError, OSError, ValueError) as e:
         console.print(f"[bold red]zcat: {fs.errtext(e) if isinstance(e, OSError) else e}[/bold red]")
         return False
     from pyos import textfile

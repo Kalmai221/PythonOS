@@ -12,5 +12,11 @@ console = Console()
 
 
 def execute(args=None):
-    message = " ".join(args) if args else Prompt.ask("[bold cyan]Enter message to echo:[/bold cyan]", default="")
+    if args:
+        message = " ".join(args)
+    else:
+        try:
+            message = Prompt.ask("[bold cyan]Enter message to echo:[/bold cyan]", default="")
+        except (EOFError, KeyboardInterrupt):                          # nobody to ask (a pipe, a script, an app): an empty line, like echo with nothing
+            message = ""
     console.print(message, markup=False, highlight=False)

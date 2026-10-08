@@ -70,6 +70,15 @@
 <p class="muted">See also: <a href="#cmd-pwd"><code>pwd</code></a>, <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-files"><code>files</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-cmp" data-name="cmp">
+<h3>cmp</h3>
+<p class="summary">compare two files byte by byte</p>
+<pre><code>cmp &lt;file1&gt; &lt;file2&gt;</code></pre>
+<p>Says nothing when the files are the same. When they differ it tells you the first byte and line that is different (for text, diff shows all the differences).</p>
+<pre><code><span class="g">$</span> cmp a.bin b.bin</code></pre>
+<p class="muted">See also: <a href="#cmd-diff"><code>diff</code></a>, <a href="#cmd-sha256sum"><code>sha256sum</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-convert" data-name="convert">
 <h3>convert</h3>
 <p class="summary">convert a data file between JSON and YAML</p>
@@ -161,6 +170,24 @@
 <p class="muted">See also: <a href="#cmd-find"><code>find</code></a>, <a href="#cmd-diff"><code>diff</code></a>, <a href="#cmd-shell"><code>shell</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-gunzip" data-name="gunzip">
+<h3>gunzip</h3>
+<p class="summary">unpack gzip files</p>
+<pre><code>gunzip [-k] &lt;file.gz&gt;...</code></pre>
+<p>Unpacks each .gz file next to itself and removes the .gz (-k keeps it). Unpacking stops at the same size limit as unzip and tar.</p>
+<pre><code><span class="g">$</span> gunzip big.log.gz</code></pre>
+<p class="muted">See also: <a href="#cmd-gzip"><code>gzip</code></a>, <a href="#cmd-zcat"><code>zcat</code></a>, <a href="#cmd-unzip"><code>unzip</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-gzip" data-name="gzip">
+<h3>gzip</h3>
+<p class="summary">compress files</p>
+<pre><code>gzip [-k] [-d] &lt;file&gt;...</code></pre>
+<p>Replaces each file with a smaller &lt;file&gt;.gz. -k keeps the original; -d unpacks (the same as gunzip). For several files in one archive use zip or tar.</p>
+<pre><code><span class="g">$</span> gzip -k big.log  <span class="d"># make big.log.gz and keep big.log</span></code></pre>
+<p class="muted">See also: <a href="#cmd-gunzip"><code>gunzip</code></a>, <a href="#cmd-zcat"><code>zcat</code></a>, <a href="#cmd-tar"><code>tar</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-head" data-name="head">
 <h3>head</h3>
 <p class="summary">show the start of a file</p>
@@ -193,6 +220,19 @@
 <span class="g">$</span> ls -l ~/docs  <span class="d"># details for a folder</span>
 <span class="g">$</span> ls | grep txt  <span class="d"># only names containing txt</span></code></pre>
 <p class="muted">See also: <a href="#cmd-cd"><code>cd</code></a>, <a href="#cmd-tree"><code>tree</code></a>, <a href="#cmd-pwd"><code>pwd</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-md5sum" data-name="md5sum">
+<h3>md5sum</h3>
+<p class="summary">MD5 checksum of files</p>
+<pre><code>md5sum &lt;file&gt;...
+md5sum -c &lt;list&gt;
+text | md5sum</code></pre>
+<p>Prints the MD5 checksum of each file as &#x27;checksum  file&#x27;. With -c it reads such lines back and says OK or FAILED for each file, which is how you check a download. MD5 and SHA-1 are fine for spotting a damaged file but not for proving nobody changed it: use SHA-256 for that.</p>
+<pre><code><span class="g">$</span> md5sum notes.txt
+<span class="g">$</span> md5sum a.zip b.zip &gt; sums.txt  <span class="d"># write a list</span>
+<span class="g">$</span> md5sum -c sums.txt  <span class="d"># check it later</span></code></pre>
+<p class="muted">See also: <a href="#cmd-sha1sum"><code>sha1sum</code></a>, <a href="#cmd-sha256sum"><code>sha256sum</code></a>, <a href="#cmd-cmp"><code>cmp</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-mkdir" data-name="mkdir">
@@ -235,12 +275,60 @@
 <p class="muted">See also: <a href="#cmd-trash"><code>trash</code></a>, <a href="#cmd-undo"><code>undo</code></a>, <a href="#cmd-backup"><code>backup</code></a>, <a href="#cmd-settings"><code>settings</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-sha1sum" data-name="sha1sum">
+<h3>sha1sum</h3>
+<p class="summary">SHA-1 checksum of files</p>
+<pre><code>sha1sum &lt;file&gt;...
+sha1sum -c &lt;list&gt;
+text | sha1sum</code></pre>
+<p>Prints the SHA-1 checksum of each file as &#x27;checksum  file&#x27;. With -c it reads such lines back and says OK or FAILED for each file, which is how you check a download. MD5 and SHA-1 are fine for spotting a damaged file but not for proving nobody changed it: use SHA-256 for that.</p>
+<pre><code><span class="g">$</span> sha1sum notes.txt
+<span class="g">$</span> sha1sum a.zip b.zip &gt; sums.txt  <span class="d"># write a list</span>
+<span class="g">$</span> sha1sum -c sums.txt  <span class="d"># check it later</span></code></pre>
+<p class="muted">See also: <a href="#cmd-md5sum"><code>md5sum</code></a>, <a href="#cmd-sha256sum"><code>sha256sum</code></a>, <a href="#cmd-cmp"><code>cmp</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-sha256sum" data-name="sha256sum">
+<h3>sha256sum</h3>
+<p class="summary">SHA-256 checksum of files</p>
+<pre><code>sha256sum &lt;file&gt;...
+sha256sum -c &lt;list&gt;
+text | sha256sum</code></pre>
+<p>Prints the SHA-256 checksum of each file as &#x27;checksum  file&#x27;. With -c it reads such lines back and says OK or FAILED for each file, which is how you check a download. MD5 and SHA-1 are fine for spotting a damaged file but not for proving nobody changed it: use SHA-256 for that.</p>
+<pre><code><span class="g">$</span> sha256sum notes.txt
+<span class="g">$</span> sha256sum a.zip b.zip &gt; sums.txt  <span class="d"># write a list</span>
+<span class="g">$</span> sha256sum -c sums.txt  <span class="d"># check it later</span></code></pre>
+<p class="muted">See also: <a href="#cmd-md5sum"><code>md5sum</code></a>, <a href="#cmd-sha1sum"><code>sha1sum</code></a>, <a href="#cmd-cmp"><code>cmp</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-sha512sum" data-name="sha512sum">
+<h3>sha512sum</h3>
+<p class="summary">SHA-512 checksum of files</p>
+<pre><code>sha512sum &lt;file&gt;...
+sha512sum -c &lt;list&gt;
+text | sha512sum</code></pre>
+<p>Prints the SHA-512 checksum of each file as &#x27;checksum  file&#x27;. With -c it reads such lines back and says OK or FAILED for each file, which is how you check a download. MD5 and SHA-1 are fine for spotting a damaged file but not for proving nobody changed it: use SHA-256 for that.</p>
+<pre><code><span class="g">$</span> sha512sum notes.txt
+<span class="g">$</span> sha512sum a.zip b.zip &gt; sums.txt  <span class="d"># write a list</span>
+<span class="g">$</span> sha512sum -c sums.txt  <span class="d"># check it later</span></code></pre>
+<p class="muted">See also: <a href="#cmd-md5sum"><code>md5sum</code></a>, <a href="#cmd-sha1sum"><code>sha1sum</code></a>, <a href="#cmd-cmp"><code>cmp</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-stat" data-name="stat">
 <h3>stat</h3>
 <p class="summary">details of a file or folder</p>
 <pre><code>stat &lt;path&gt;...</code></pre>
 <p>Shows the type, size and dates of files and folders.</p>
 <p class="muted">See also: <a href="#cmd-ls"><code>ls</code></a>, <a href="#cmd-du"><code>du</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-strings" data-name="strings">
+<h3>strings</h3>
+<p class="summary">show the readable text in a file</p>
+<pre><code>strings [-n length] &lt;file&gt;</code></pre>
+<p>Prints every run of readable characters (4 or more by default) found in any kind of file, which is a quick way to see what a program or a damaged file contains.</p>
+<pre><code><span class="g">$</span> strings -n 8 program.bin</code></pre>
+<p class="muted">See also: <a href="#cmd-file"><code>file</code></a>, <a href="#cmd-cat"><code>cat</code></a>, <a href="#cmd-grep"><code>grep</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-tail" data-name="tail">
@@ -348,6 +436,15 @@ trash empty [--all]</code></pre>
 <p class="muted">See also: <a href="#cmd-help"><code>help</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-zcat" data-name="zcat">
+<h3>zcat</h3>
+<p class="summary">show a gzip file</p>
+<pre><code>zcat &lt;file.gz&gt;</code></pre>
+<p>Prints the text inside a .gz file without unpacking it.</p>
+<pre><code><span class="g">$</span> zcat big.log.gz | grep error</code></pre>
+<p class="muted">See also: <a href="#cmd-gzip"><code>gzip</code></a>, <a href="#cmd-gunzip"><code>gunzip</code></a>, <a href="#cmd-grep"><code>grep</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-zip" data-name="zip">
 <h3>zip</h3>
 <p class="summary">make a zip archive</p>
@@ -370,6 +467,17 @@ alias name=&quot;command and arguments&quot;</code></pre>
 <p class="muted">See also: <a href="#cmd-unalias"><code>unalias</code></a>, <a href="#cmd-export"><code>export</code></a>, <a href="#cmd-source"><code>source</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-base64" data-name="base64">
+<h3>base64</h3>
+<p class="summary">encode or decode base64</p>
+<pre><code>base64 [-w columns] [file]
+base64 -d [file]</code></pre>
+<p>Turns a file (or piped text) into base64 text, or with -d back into what it was. Lines are cut at 76 characters unless -w says otherwise (-w 0 for one line).</p>
+<pre><code><span class="g">$</span> echo hello | base64  <span class="d"># aGVsbG8K</span>
+<span class="g">$</span> base64 -d encoded.txt</code></pre>
+<p class="muted">See also: <a href="#cmd-sha256sum"><code>sha256sum</code></a>, <a href="#cmd-uuidgen"><code>uuidgen</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-cal" data-name="cal">
 <h3>cal</h3>
 <p class="summary">show a calendar</p>
@@ -381,6 +489,18 @@ cal &lt;year&gt;</code></pre>
 <p class="muted">See also: <a href="#cmd-date"><code>date</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-calc" data-name="calc">
+<h3>calc</h3>
+<p class="summary">calculate</p>
+<pre><code>calc &lt;expression&gt;
+text | calc</code></pre>
+<p>Works out an arithmetic expression: numbers, + - * / (also // for whole division, % for the remainder and ** or ^ for powers), brackets, the constants pi, e and tau, and functions such as sqrt, sin, cos, tan, log, ln, log10, exp, abs, round, floor, ceil, min, max, gcd and fact. It only does arithmetic: nothing else you type is run. bc is the same command.</p>
+<pre><code><span class="g">$</span> calc 2 + 3 * 4  <span class="d"># 14</span>
+<span class="g">$</span> calc &quot;sqrt(144) + 10 % 3&quot;  <span class="d"># 13</span>
+<span class="g">$</span> calc 2^10  <span class="d"># 1024</span></code></pre>
+<p class="muted">See also: <a href="#cmd-seq"><code>seq</code></a>, <a href="#cmd-date"><code>date</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-clear" data-name="clear">
 <h3>clear</h3>
 <p class="summary">clear the screen</p>
@@ -390,6 +510,27 @@ cal &lt;year&gt;</code></pre>
 <pre><code><span class="g">$</span> clear  <span class="d"># wipe it all</span>
 <span class="g">$</span> settings set auto_clear_lines 300  <span class="d"># tidy automatically</span></code></pre>
 <p class="muted">See also: <a href="#cmd-settings"><code>settings</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-column" data-name="column">
+<h3>column</h3>
+<p class="summary">line text up in columns</p>
+<pre><code>column [-t] [-s separator] [-o separator] [file]
+text | column</code></pre>
+<p>With -t it makes a table: the fields of every line are lined up in columns (split at spaces, or at the -s separator). Without -t it lays the lines out down the screen in as many columns as fit, like ls.</p>
+<pre><code><span class="g">$</span> ls | column
+<span class="g">$</span> column -t -s, people.csv  <span class="d"># a CSV as a table</span></code></pre>
+<p class="muted">See also: <a href="#cmd-paste"><code>paste</code></a>, <a href="#cmd-cut"><code>cut</code></a>, <a href="#cmd-sort"><code>sort</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-comm" data-name="comm">
+<h3>comm</h3>
+<p class="summary">compare two sorted files</p>
+<pre><code>comm [-1] [-2] [-3] &lt;file1&gt; &lt;file2&gt;</code></pre>
+<p>Prints three columns: lines only in the first file, lines only in the second, and lines in both. Both files must be sorted (sort does that). -1, -2 and -3 hide a column.</p>
+<pre><code><span class="g">$</span> comm -12 a.txt b.txt  <span class="d"># lines in both files</span>
+<span class="g">$</span> comm -3 a.txt b.txt  <span class="d"># lines in only one</span></code></pre>
+<p class="muted">See also: <a href="#cmd-sort"><code>sort</code></a>, <a href="#cmd-diff"><code>diff</code></a>, <a href="#cmd-uniq"><code>uniq</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-cowsay" data-name="cowsay">
@@ -451,6 +592,15 @@ export</code></pre>
 <p class="muted">See also: <a href="#cmd-unset"><code>unset</code></a>, <a href="#cmd-env"><code>env</code></a>, <a href="#cmd-source"><code>source</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-fold" data-name="fold">
+<h3>fold</h3>
+<p class="summary">wrap long lines</p>
+<pre><code>fold [-w width] [-s] [file]</code></pre>
+<p>Cuts lines longer than the width (80 by default). -s tries to cut at spaces so words stay whole.</p>
+<pre><code><span class="g">$</span> fold -s -w 60 article.txt</code></pre>
+<p class="muted">See also: <a href="#cmd-column"><code>column</code></a>, <a href="#cmd-less"><code>less</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-fortune" data-name="fortune">
 <h3>fortune</h3>
 <p class="summary">a random saying</p>
@@ -496,6 +646,16 @@ man</code></pre>
 <p class="muted">See also: <a href="#cmd-cat"><code>cat</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-paste" data-name="paste">
+<h3>paste</h3>
+<p class="summary">join files side by side</p>
+<pre><code>paste [-d delimiter] [-s] &lt;file&gt;...</code></pre>
+<p>Line 1 of each file on one line, then line 2, and so on, separated by a tab (or the delimiter). With -s each file becomes a single line.</p>
+<pre><code><span class="g">$</span> paste names.txt phones.txt
+<span class="g">$</span> paste -d, -s list.txt  <span class="d"># one comma-separated line</span></code></pre>
+<p class="muted">See also: <a href="#cmd-cut"><code>cut</code></a>, <a href="#cmd-column"><code>column</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-rainbow" data-name="rainbow">
 <h3>rainbow</h3>
 <p class="summary">colour text like a rainbow</p>
@@ -514,6 +674,19 @@ man</code></pre>
 <p class="muted">See also: <a href="#cmd-tac"><code>tac</code></a>.</p>
 </section>
 
+<section class="cmd" id="cmd-sed" data-name="sed">
+<h3>sed</h3>
+<p class="summary">edit a stream of lines</p>
+<pre><code>sed [-n] [-e script] script [file]
+text | sed &#x27;s/old/new/g&#x27;</code></pre>
+<p>Applies a small script to every line. s/old/new/ replaces (add g for every match on the line, i to ignore case; the pattern is a Python regular expression, and \1 or &amp; can be used in the replacement), d deletes a line, p prints it again (with -n, only what p prints is shown), q stops. A command can have an address: 3 (a line), 2,5 (lines 2 to 5), 2,+3, $ (the last line), /regex/ (matching lines), and ! in front of the command means the other lines. Several commands are separated by ; or by more -e. There is no -i: write to a new file with &gt;.</p>
+<pre><code><span class="g">$</span> sed &#x27;s/cat/dog/g&#x27; pets.txt
+<span class="g">$</span> sed -n &#x27;2,4p&#x27; file.txt  <span class="d"># lines 2 to 4</span>
+<span class="g">$</span> sed &#x27;/^#/d&#x27; config.txt  <span class="d"># drop comment lines</span>
+<span class="g">$</span> sed &#x27;$d&#x27; file.txt  <span class="d"># drop the last line</span></code></pre>
+<p class="muted">See also: <a href="#cmd-grep"><code>grep</code></a>, <a href="#cmd-tr"><code>tr</code></a>, <a href="#cmd-cut"><code>cut</code></a>.</p>
+</section>
+
 <section class="cmd" id="cmd-seq" data-name="seq">
 <h3>seq</h3>
 <p class="summary">print a run of numbers</p>
@@ -523,6 +696,19 @@ seq &lt;first&gt; &lt;step&gt; &lt;last&gt;</code></pre>
 <p>Prints whole numbers, one per line (at most 100000).</p>
 <pre><code><span class="g">$</span> seq 2 2 10  <span class="d"># 2 4 6 8 10</span></code></pre>
 <p class="muted">See also: <a href="#cmd-xargs"><code>xargs</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-shuf" data-name="shuf">
+<h3>shuf</h3>
+<p class="summary">shuffle lines</p>
+<pre><code>shuf [-n count] [file]
+shuf -i 1-10
+shuf -e a b c</code></pre>
+<p>Prints the lines in a random order. -n keeps only that many, -i shuffles the numbers of a range, and -e shuffles the words you give it.</p>
+<pre><code><span class="g">$</span> shuf -n 1 names.txt  <span class="d"># pick one line at random</span>
+<span class="g">$</span> shuf -i 1-6 -n 1  <span class="d"># roll a die</span>
+<span class="g">$</span> shuf -e red green blue -n 1</code></pre>
+<p class="muted">See also: <a href="#cmd-sort"><code>sort</code></a>, <a href="#cmd-seq"><code>seq</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-sort" data-name="sort">
@@ -609,6 +795,16 @@ unalias -a</code></pre>
 <pre><code>unset NAME...</code></pre>
 <p>Removes variables made with export or NAME=value.</p>
 <p class="muted">See also: <a href="#cmd-export"><code>export</code></a>.</p>
+</section>
+
+<section class="cmd" id="cmd-uuidgen" data-name="uuidgen">
+<h3>uuidgen</h3>
+<p class="summary">make random identifiers</p>
+<pre><code>uuidgen [-n count] [-t] [--upper]</code></pre>
+<p>Prints a random UUID (version 4); -n makes several, -t makes time-based ones (version 1) and --upper writes them in capitals.</p>
+<pre><code><span class="g">$</span> uuidgen
+<span class="g">$</span> uuidgen -n 5  <span class="d"># five of them</span></code></pre>
+<p class="muted">See also: <a href="#cmd-base64"><code>base64</code></a>, <a href="#cmd-sha256sum"><code>sha256sum</code></a>.</p>
 </section>
 
 <section class="cmd" id="cmd-watch" data-name="watch">

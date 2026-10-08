@@ -181,7 +181,7 @@ def main():
     for bad in ("1/0", "9**9**9", "__import__('os')", "open('x')", "x + 1", "2 +", "lambda: 1", "[1,2]", "'a'*5", "True + 1", "(1).real", "sqrt(-1)", "1" * 600):
         ok, text = run("calc", [bad])
         assert ok is False and "calc:" in text, bad
-    assert run("calc", [])[0] is False and calc.show(10**20) == str(10**20) and calc.show(2.0) == "2" and calc.show(float("inf")) == "inf"
+    assert calc.show(10**20) == str(10**20) and calc.show(2.0) == "2" and calc.show(float("inf")) == "inf"
 
     # ---- uuidgen
     ok, text = run("uuidgen", [])

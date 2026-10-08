@@ -92,7 +92,7 @@ def run(command, args, decompress=False):
                 new, before, after = decompress_file(name, bool(options.get("k")))
             else:
                 new, before, after = compress(name, bool(options.get("k")))
-        except (GzipError, OSError) as e:
+        except (GzipError, OSError, ValueError) as e:
             console.print(f"[bold red]{command}: {escape(fs.errtext(e) if isinstance(e, OSError) else str(e))}[/bold red]")
             ok = False
             continue
