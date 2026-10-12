@@ -1,0 +1,550 @@
+{
+ "language": "fr",
+ "version": 1,
+ "apps": {
+  "developer/python": {
+   "description": "Exécutez des fichiers Python ou utilisez une invite Python interactive.",
+   "from": "4b1ad21d9e"
+  },
+  "games/adventure": {
+   "description": "Un petit moteur d'aventure avec une histoire, sauver, et vos propres histoires comme JSON.",
+   "from": "f4dad87c85"
+  },
+  "games/battleship": {
+   "description": "Cacher votre flotte et couler l'ennemi; l'ordinateur chasse habilement.",
+   "from": "5041173faa"
+  },
+  "games/blackjack": {
+   "description": "Battez le dealer à 21 avec des jetons d'argent de jeu qui reportent.",
+   "from": "c4b2595510"
+  },
+  "games/checkers": {
+   "description": "Dessins anglais avec sauts forcés et rois contre l'ordinateur.",
+   "from": "749114ae7c"
+  },
+  "games/chess": {
+   "description": "Jouez aux échecs contre l'ordinateur: règles complètes, trois niveaux de difficulté.",
+   "from": "c1481d832c"
+  },
+  "games/connect4": {
+   "description": "Déposer les disques et aligner quatre; jouer l'ordinateur (trois niveaux) ou un ami.",
+   "from": "aed456f29c"
+  },
+  "games/crossword": {
+   "description": "Un nouveau mot croisé, avec des indices et des conseils.",
+   "from": "8e80db428c"
+  },
+  "games/daily": {
+   "description": "Un puzzle numéro par jour, la même chose pour tout le monde, avec une série.",
+   "from": "16734b8474"
+  },
+  "games/fallingwords": {
+   "description": "Tapez les mots qui tombent avant qu'ils atterrissent.",
+   "from": "0c30972234"
+  },
+  "games/flood": {
+   "description": "Inonder la planche d'une couleur du coin dans la limite de déplacement.",
+   "from": "3c59ec8865"
+  },
+  "games/game2048": {
+   "description": "Glisser et fusionner les tuiles pour atteindre 2048.",
+   "from": "63640fbfc6"
+  },
+  "games/guess": {
+   "description": "Devinez le nombre avec des indices plus ou moins élevés et des indices chauds/froids.",
+   "from": "ba79b8d4e2"
+  },
+  "games/hangman": {
+   "description": "Devine le mot avant la fin du dessin.",
+   "from": "c7ceaf7af6"
+  },
+  "games/hangman2": {
+   "description": "Un joueur établit un mot secret, l'autre devine ; échangez chaque tour.",
+   "from": "32340d865e"
+  },
+  "games/higherlower": {
+   "description": "Devinez si la prochaine carte est supérieure ou inférieure et voyez combien de temps une série gagnante vous pouvez construire.",
+   "from": "06911ce400"
+  },
+  "games/life": {
+   "description": "Jeu de vie de Conway: les modèles de montre marchent, pulsent et se développent à partir de quelques règles simples.",
+   "from": "18efab13b6"
+  },
+  "games/lightsout": {
+   "description": "Appuyez sur une lumière pour le retourner et ses voisins; éteignez-les tous. Toujours soluble, avec des conseils.",
+   "from": "833710c757"
+  },
+  "games/mastermind": {
+   "description": "Craquez le code à quatre couleurs ; les pattes noires et blanches vous disent à quel point vous êtes proche.",
+   "from": "6d6b2d6190"
+  },
+  "games/maze": {
+   "description": "Trouvez votre sortie d'un labyrinthe fraîchement fait, avec un indice qui montre la route la plus courte.",
+   "from": "92f7838be4"
+  },
+  "games/memory": {
+   "description": "Trouver toutes les paires correspondantes en quelques tours que vous pouvez.",
+   "from": "2d275ef6af"
+  },
+  "games/minesweeper": {
+   "description": "Effacer la planche sans frapper une mine; la première place est toujours en sécurité.",
+   "from": "a38528cac3"
+  },
+  "games/nim": {
+   "description": "Prenez tour à tour enlevant des pierres; l'ordinateur joue la stratégie classique parfaite (avec l'étrange erreur pour que vous puissiez gagner).",
+   "from": "61ba19d9be"
+  },
+  "games/pokedex": {
+   "description": "Rechercher un Pokemon: types, capacités, statistiques et son entrée Pokedex (besoin d'Internet).",
+   "from": "2b4533f44a"
+  },
+  "games/pokerdice": {
+   "description": "Roulez cinq dés trois fois et faites la meilleure main de poker.",
+   "from": "c00452ae67"
+  },
+  "games/pong": {
+   "description": "D'abord à sept contre l'ordinateur; en temps réel ou tour à tour.",
+   "from": "b7efdc8952"
+  },
+  "games/reversi": {
+   "description": "Tracez des lignes de disques pour les retourner; jouez à l'ordinateur à trois niveaux.",
+   "from": "d9e1c42bc6"
+  },
+  "games/rps": {
+   "description": "Rock, paper, ciseaux, lézard, Spock contre un ordinateur qui étudie vos habitudes.",
+   "from": "1944a4ed5e"
+  },
+  "games/simon": {
+   "description": "Regardez le motif des couleurs et répétez-le de mémoire ; chaque tour ajoute un autre.",
+   "from": "f4456f3fcf"
+  },
+  "games/slide15": {
+   "description": "Le puzzle classique en 3x3, 4x4 ou 5x5.",
+   "from": "69264bb7cf"
+  },
+  "games/snake": {
+   "description": "serpent classique: en temps réel avec les touches fléchées, ou tour à tour où les touches sont limitées.",
+   "from": "80db2347f3"
+  },
+  "games/snakes": {
+   "description": "Le jeu de plateau classique contre l'ordinateur: monter les échelles, éviter les serpents, atteindre exactement 100.",
+   "from": "70f139d3cb"
+  },
+  "games/sokoban": {
+   "description": "Poussez chaque boîte sur un but dans l'entrepôt. Cinq niveaux.",
+   "from": "bc325dade2"
+  },
+  "games/sudoku": {
+   "description": "Généré des puzzles en trois niveaux, avec des conseils, un checker et un solveur.",
+   "from": "cfaf84305b"
+  },
+  "games/tetris": {
+   "description": "Blocs de chute: temps réel avec les touches fléchées, ou tour à tour où les touches sont limitées.",
+   "from": "b460c72d19"
+  },
+  "games/tictactoe": {
+   "description": "Jouer tic-tac-toe contre l'ordinateur.",
+   "from": "b7c844c698"
+  },
+  "games/trivia": {
+   "description": "Dix questions à choix multiples, intégrées ou récupérées en ligne.",
+   "from": "54c1e10d6f"
+  },
+  "games/triviapack": {
+   "description": "Dix jeux de questions thématiques (mouvements, musique, espace et plus), tous hors ligne.",
+   "from": "370863a47a"
+  },
+  "games/typingtest": {
+   "description": "Mesurez votre vitesse de saisie et votre précision.",
+   "from": "868018a4ef"
+  },
+  "games/wordle": {
+   "description": "Devinez le mot cinq lettres en six essais; un nouveau mot quotidien chaque jour.",
+   "from": "c72c297749"
+  },
+  "games/wordsearch": {
+   "description": "Trouvez les mots cachés dans les grilles thématiques.",
+   "from": "631426e1da"
+  },
+  "utilities/algebra": {
+   "description": "Résoudre les équations, simplifier, étendre, facteurr, différencier et intégrer, avec sympathie.",
+   "from": "d65dbd6b60"
+  },
+  "utilities/assistant": {
+   "description": "Discutez avec un modèle d'IA depuis le terminal. Vous choisissez le service (OpenAI, Anthropic, Gemini, OpenRouter, Ollama ou votre propre adresse) et donnez votre clé API.",
+   "from": "ab36b3f679"
+  },
+  "utilities/banner": {
+   "description": "Transformez les mots en grandes lettres, en centaines de polices, en couleurs.",
+   "from": "f88809d3c0"
+  },
+  "utilities/battery": {
+   "description": "Charge, temps restant, température et historique du drain où l'appareil les signale.",
+   "from": "57da448780"
+  },
+  "utilities/books": {
+   "description": "Trouvez des livres, des auteurs et les premières années de publication sur Open Library (besoins Internet).",
+   "from": "075a8926f2"
+  },
+  "utilities/bulkrename": {
+   "description": "Renommer de nombreux fichiers à la fois après avoir vu exactement ce qui va changer : remplacer, nombre, cas de changement, expressions régulières.",
+   "from": "ff57f95259"
+  },
+  "utilities/calendar": {
+   "description": "Une vue mensuelle avec des événements et des rappels qui arrivent sous forme de notifications.",
+   "from": "ecb1430bf0"
+  },
+  "utilities/cipher": {
+   "description": "Chiffres classiques pour les énigmes et l'apprentissage: César, ROT13, Atbash, Vigenere, clôture ferroviaire, et un cracker César.",
+   "from": "a6faa9c94c"
+  },
+  "utilities/clipboard": {
+   "description": "Tout ce que vous avez copié avec Snippets, consultable, avec pins et copie-retour.",
+   "from": "65a5df05cf"
+  },
+  "utilities/clock": {
+   "description": "Temps, horloges du monde, minuterie, chronomètre et alarmes dans une application.",
+   "from": "305d02c8e3"
+  },
+  "utilities/colors": {
+   "description": "Regardez une couleur, convertissez-la entre hexa, rgb, hsl et hsv, trouvez son nom et une palette correspondante.",
+   "from": "53de2e1832"
+  },
+  "utilities/contacts": {
+   "description": "Un petit carnet d'adresses privé: ajouter, rechercher, modifier et exporter des personnes avec leur téléphone, email et une note.",
+   "from": "9b49cd3cc8"
+  },
+  "utilities/converter": {
+   "description": "Convertisseur d'unité et calculatrice qui se souvient de son histoire.",
+   "from": "7d180a4733"
+  },
+  "utilities/countdown": {
+   "description": "Combien de jours avant les choses que vous attendez avec impatience: ajouter des événements et les voir comptés.",
+   "from": "23ba8f6a15"
+  },
+  "utilities/countries": {
+   "description": "Faits sur un pays: capitale, personnes, taille, langues, argent, code d'appel et fuseaux horaires (besoins internet).",
+   "from": "43a18cbe86"
+  },
+  "utilities/cronwhen": {
+   "description": "Expliquez un calendrier de cron en mots simples et listez les prochaines fois qu'il fonctionne.",
+   "from": "65b5783052"
+  },
+  "utilities/csvview": {
+   "description": "Ouvrir un fichier CSV comme table : trier, filtrer, choisir des colonnes, et voir un résumé des nombres.",
+   "from": "4366d380e8"
+  },
+  "utilities/datecalc": {
+   "description": "Jours entre les dates, ajouter ou soustraire l'heure, le jour de la semaine, l'âge et les comptes à rebours.",
+   "from": "6ec5f5e1e2"
+  },
+  "utilities/define": {
+   "description": "Regardez ce qu'un mot signifie : définitions, exemples et synonymes.",
+   "from": "43e3ed3569"
+  },
+  "utilities/diskusage": {
+   "description": "Un explorateur de style ncdu : voir ce qui prend de l'espace et le supprimer.",
+   "from": "050cfc40a4"
+  },
+  "utilities/dupes": {
+   "description": "Trouver des fichiers qui sont des copies exactes de l'autre et déplacer les extras dans un dossier de révision; rien n'est supprimé.",
+   "from": "2d37c10bea"
+  },
+  "utilities/emoji": {
+   "description": "Trouvez un émoji par nom, transformez :shortcodes: en émoji, ou transformez émoji en mots.",
+   "from": "cf117aff50"
+  },
+  "utilities/epub": {
+   "description": "Lire les livres électroniques EPUB dans le terminal: chapitres, texte et détails.",
+   "from": "43de23b789"
+  },
+  "utilities/expenses": {
+   "description": "Écrivez ce que vous dépensez et voyez un résumé mensuel par catégorie.",
+   "from": "0b9f64baae"
+  },
+  "utilities/files": {
+   "description": "Parcourir, ouvrir, copier, déplacer, renommer, supprimer et rechercher des fichiers.",
+   "from": "f6475c11dc"
+  },
+  "utilities/flashcards": {
+   "description": "Faites des jeux de questions et des cartes de réponses et étudiez-les avec des répétitions espacées.",
+   "from": "b28695f1f4"
+  },
+  "utilities/habits": {
+   "description": "Éteignez vos habitudes quotidiennes et gardez vos traces.",
+   "from": "e8a95e46aa"
+  },
+  "utilities/hashtool": {
+   "description": "Contrôles du texte et des fichiers, vérification des fichiers, conversion Base64/URL/hex/binary/HTML.",
+   "from": "0ebeadf64d"
+  },
+  "utilities/hexview": {
+   "description": "Voir les octets de n'importe quel fichier, en hexadécimal et texte, comme hexadump.",
+   "from": "93ec380a9b"
+  },
+  "utilities/hn": {
+   "description": "Le top, les nouvelles et les meilleures histoires sur Hacker News avec leurs points et le compte de commentaires (besoin Internet).",
+   "from": "e24c50d45d"
+  },
+  "utilities/holidays": {
+   "description": "Jours fériés de n'importe quel pays: toute l'année, la prochaine, ou si une date est un jour férié.",
+   "from": "7b41398bc8"
+  },
+  "utilities/httptest": {
+   "description": "Envoyer des requêtes HTTP et inspecter l'état, le timing, les en-têtes et le corps formaté.",
+   "from": "5a8c7a5c77"
+  },
+  "utilities/imgview": {
+   "description": "Afficher les photos dans le terminal en couleur: PNG, JPEG, GIF, BMP, WebP.",
+   "from": "4780a53605"
+  },
+  "utilities/ipcalc": {
+   "description": "Créez un réseau à partir d'une adresse et d'un masque : portée, diffusion, hôtes et comment le diviser en petits réseaux.",
+   "from": "5ffde917cc"
+  },
+  "utilities/iss": {
+   "description": "Où se trouve actuellement la Station spatiale internationale : position, hauteur et vitesse (besoin d'Internet).",
+   "from": "1b4d906ce7"
+  },
+  "utilities/journal": {
+   "description": "Un quotidien privé : écrire une entrée, lire un jour, rechercher tout ce que vous avez écrit.",
+   "from": "801c723731"
+  },
+  "utilities/jsonfmt": {
+   "description": "Valider, imprimer, miner et explorer JSON, avec la position de toute erreur.",
+   "from": "9e31e75baf"
+  },
+  "utilities/jwt": {
+   "description": "Lire un JSON Web Token: son en-tête et les revendications, quand il expire, et si un secret correspond à sa signature.",
+   "from": "33b30827f1"
+  },
+  "utilities/lanscan": {
+   "description": "Trouvez les appareils sur votre propre réseau local (seulement les gammes privées): noms, fabricants, à quelle vitesse ils répondent, ce qu'ils semblent être, et ce qui a changé depuis la dernière fois.",
+   "from": "a2e8e296e2"
+  },
+  "utilities/loan": {
+   "description": "Ce qu'un prêt ou une hypothèque coûte vraiment : le paiement mensuel, les intérêts, l'effet du paiement supplémentaire, un tableau annuel.",
+   "from": "0043926701"
+  },
+  "utilities/logviewer": {
+   "description": "Lire le journal système avec filtres, couleurs, suivre le mode et l'exportation.",
+   "from": "dc1bb5072b"
+  },
+  "utilities/mdedit": {
+   "description": "Écrire Markdown avec un aperçu formaté en direct, et exporter une page Web.",
+   "from": "968b24489c"
+  },
+  "utilities/mdview": {
+   "description": "Lisez vos notes et les fichiers de balisage bien formatés.",
+   "from": "b7d59c3cfc"
+  },
+  "utilities/mockdata": {
+   "description": "Faites croire faux noms, adresses, emails, entreprises et texte pour tester, dans de nombreuses langues.",
+   "from": "12e5a2bec1"
+  },
+  "utilities/morse": {
+   "description": "Transformez le texte en Morse code et retour, voir le tableau, et pratiquez avec un quiz.",
+   "from": "b83422e860"
+  },
+  "utilities/nettools": {
+   "description": "Vérification de connexion, recherche DNS, test de port, Ping TCP, vérification de page web.",
+   "from": "f11e427e6e"
+  },
+  "utilities/notes": {
+   "description": "Écrivez et lisez des notes, stockées en fichiers texte dans ~/notes.",
+   "from": "f9467ccc5c"
+  },
+  "utilities/passgen": {
+   "description": "Des mots de passe et des mots de passe aléatoires, et un vérificateur de la force. Rien n'est sauvé.",
+   "from": "b47eb686bc"
+  },
+  "utilities/pdfread": {
+   "description": "Lire un PDF dans le terminal : sa page texte par page, ses détails et une recherche.",
+   "from": "d3ac7b3584"
+  },
+  "utilities/phone": {
+   "description": "Vérifier et formater un numéro de téléphone : valide ou non, pays, type de ligne, formulaires internationaux et nationaux.",
+   "from": "2e3c606721"
+  },
+  "utilities/plot": {
+   "description": "Dessiner des graphiques dans le terminal à partir de nombres ou d'un fichier CSV : lignes, barres, scatter et histogrammes.",
+   "from": "a1ca505a2e"
+  },
+  "utilities/pomodoro": {
+   "description": "Une minuterie de mise au point : travailler en blocs avec de courtes pauses, avec un compte à rebours en direct.",
+   "from": "791096b30e"
+  },
+  "utilities/portscan": {
+   "description": "Voyez quels ports sont ouverts sur cet ordinateur. Il refuse toute autre adresse.",
+   "from": "cff66f8cd5"
+  },
+  "utilities/procs": {
+   "description": "Voyez les processus en cours et les tâches de fond, regardez de plus près et arrêtez-les.",
+   "from": "77ada3192a"
+  },
+  "utilities/pypi": {
+   "description": "Qu'est-ce qu'un paquet Python, sa dernière version, sa licence, ses exigences et les dernières versions (besoin Internet).",
+   "from": "3df257999b"
+  },
+  "utilities/qr": {
+   "description": "Faites des codes QR pour le texte, les liens, le Wi-Fi et les contacts - écrits en clair Python.",
+   "from": "b0972c269b"
+  },
+  "utilities/quake": {
+   "description": "Les derniers tremblements de terre dans le monde de l'US Geological Survey: le plus grand du jour, semaine ou mois (besoin internet).",
+   "from": "ac8f2c13b9"
+  },
+  "utilities/rates": {
+   "description": "Convertir la monnaie entre les monnaies aux derniers taux de la Banque centrale européenne (besoins Internet).",
+   "from": "f40f96ea6c"
+  },
+  "utilities/readability": {
+   "description": "Combien de temps et combien de temps un texte est dur à lire : mots, temps de lecture, niveau et les mots que vous utilisez le plus.",
+   "from": "060998cf22"
+  },
+  "utilities/regextest": {
+   "description": "Essayez des expressions régulières avec des matchs surlignés, des groupes et des explications en anglais simple.",
+   "from": "f55a27cf00"
+  },
+  "utilities/roll": {
+   "description": "Des dés pour les jeux: 2d6+3, d20, 4d6kh3 (gardez les trois meilleurs), plusieurs à la fois.",
+   "from": "d0ca9a7776"
+  },
+  "utilities/rss": {
+   "description": "Suivez les flux de nouvelles et lisez les titres, avec des copies hors ligne.",
+   "from": "64a337507d"
+  },
+  "utilities/schedui": {
+   "description": "Une forme amicale pour exécuter des commandes plus tard, à plusieurs reprises ou tous les jours.",
+   "from": "ef925a3a62"
+  },
+  "utilities/snippets": {
+   "description": "Un presse-papiers et une bibliothèque d'extraits de code, stockés en fichiers simples.",
+   "from": "908a6ff811"
+  },
+  "utilities/speedtest": {
+   "description": "Mesurez la latence, téléchargez et téléchargez la vitesse et conservez un historique.",
+   "from": "09c92a4546"
+  },
+  "utilities/spell": {
+   "description": "Vérifiez un mot ou un fichier entier pour les erreurs d'orthographe, avec des suggestions, dans plusieurs langues.",
+   "from": "e11031a91d"
+  },
+  "utilities/startup": {
+   "description": "Choisissez les commandes qui fonctionnent par elles-mêmes chaque fois que vous vous connectez.",
+   "from": "747ba99a16"
+  },
+  "utilities/sunmoon": {
+   "description": "Lever du soleil, coucher du soleil, longueur du jour et la phase de la lune pour une ville et une journée, a travaillé sur cet ordinateur.",
+   "from": "0f9b530fb9"
+  },
+  "utilities/synonyms": {
+   "description": "Synonymes, contraires, rimes, mots qui sonnent les mêmes, et des mots qui correspondent à un modèle (besoin d'Internet).",
+   "from": "d7a56896bc"
+  },
+  "utilities/sysmon": {
+   "description": "Un tableau de bord en direct de PythonOS lui-même : son processeur, sa mémoire, ses tâches et son stockage.",
+   "from": "8bd1c8091c"
+  },
+  "utilities/texttools": {
+   "description": "Comptez, changez le cas, triez, déduisez, remplacez, lustrez, enveloppez et extrayez des liens ou des courriels.",
+   "from": "79fe994293"
+  },
+  "utilities/themedesigner": {
+   "description": "Concevez votre propre thème couleur avec un aperçu en direct et utilisez-le avec les paramètres.",
+   "from": "5aa671105d"
+  },
+  "utilities/tipsplit": {
+   "description": "Ajoutez un pourboire à une facture et partagez-la entre amis, en arrondissant donc personne n'est court.",
+   "from": "442fdb242b"
+  },
+  "utilities/todo": {
+   "description": "Gardez une liste simple à faire enregistrée dans votre dossier personnel.",
+   "from": "cc760a6e83"
+  },
+  "utilities/units": {
+   "description": "Convertir entre des milliers d'unités et calculer avec elles: miles en km, degC en degF, km/h en mph, tasses en ml.",
+   "from": "d397311254"
+  },
+  "utilities/weather": {
+   "description": "Vérifiez le temps actuel pour toute ville (besoin internet).",
+   "from": "20c21b71b2"
+  },
+  "utilities/wifimeter": {
+   "description": "Un compteur de signal Wi-Fi en direct pour trouver le meilleur endroit (Linux et l'ISO en direct).",
+   "from": "eaa9d53bf3"
+  },
+  "utilities/wiki": {
+   "description": "Regardez les choses sur Wikipédia depuis le terminal : un bref résumé, une recherche ou un article aléatoire.",
+   "from": "b2a70cb697"
+  },
+  "utilities/worldclock": {
+   "description": "Le temps dans les villes à travers le monde, et ce 15:00 à Londres est à Tokyo.",
+   "from": "bed56ccc04"
+  },
+  "utilities/xkcd": {
+   "description": "Lisez une bande dessinée xkcd depuis le terminal : le titre, la date et le texte qui montre quand vous survolez (besoin d'Internet).",
+   "from": "56c7cdbb0d"
+  },
+  "utilities/ytaudio": {
+   "description": "Recherchez YouTube et jouez le son du terminal, avec une file d'attente. Joue dans PythonOS lui-même : rien d'autre à installer, aucun autre programme.",
+   "from": "02ecc26a8b"
+  }
+ },
+ "categories": {
+  "ai": {
+   "title": "Assistants AI",
+   "title_from": "64390be9fd",
+   "blurb": "Dialoguez avec un modèle AI depuis le terminal",
+   "blurb_from": "571222cd8d"
+  },
+  "developer": {
+   "title": "Développeur",
+   "title_from": "7e08ebec5e",
+   "blurb": "Pour ceux qui écrivent du code",
+   "blurb_from": "99a7728a55"
+  },
+  "games": {
+   "title": "Jeux",
+   "title_from": "398ed32981",
+   "blurb": "Quelque chose à jouer",
+   "blurb_from": "dcb8ae513f"
+  },
+  "learning": {
+   "title": "Apprendre",
+   "title_from": "1016fcb2b4",
+   "blurb": "Pratiquer et apprendre",
+   "blurb_from": "dab93410b6"
+  },
+  "media": {
+   "title": "Audio et vidéo",
+   "title_from": "0b73453e9d",
+   "blurb": "Musique, podcasts et joueurs",
+   "blurb_from": "fcc974505d"
+  },
+  "network": {
+   "title": "Réseau et en ligne",
+   "title_from": "c3d2db21bc",
+   "blurb": "Nouvelles, météo et outils réseau",
+   "blurb_from": "529b64a4a1"
+  },
+  "productivity": {
+   "title": "Productivité",
+   "title_from": "e140460ced",
+   "blurb": "Faites les choses : listes, notes, calendrier, horloge",
+   "blurb_from": "ad10d90842"
+  },
+  "system": {
+   "title": "Système",
+   "title_from": "bc0792d8dc",
+   "blurb": "Prenez soin de cet ordinateur",
+   "blurb_from": "be2254e9c0"
+  },
+  "tools": {
+   "title": "Outils",
+   "title_from": "4fa8cc860c",
+   "blurb": "Aides quotidiennes",
+   "blurb_from": "ee5776f264"
+  }
+ }
+}
