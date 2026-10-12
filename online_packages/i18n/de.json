@@ -1,0 +1,548 @@
+{
+ "language": "de",
+ "version": 1,
+ "apps": {
+  "developer/python": {
+   "description": "Führen Sie Python Dateien aus oder verwenden Sie eine interaktive Python Eingabeaufforderung.",
+   "from": "4b1ad21d9e"
+  },
+  "games/adventure": {
+   "description": "Eine kleine Abenteuermaschine mit einer Geschichte, Sparen und eigenen Geschichten als JSON.",
+   "from": "f4dad87c85"
+  },
+  "games/battleship": {
+   "description": "Verstecke deine Flotte und versenke die des Feindes; der Computer jagt geschickt.",
+   "from": "5041173faa"
+  },
+  "games/blackjack": {
+   "description": "Schlagen Sie den Dealer auf 21 mit Spielgeldchips, die übertragen werden.",
+   "from": "c4b2595510"
+  },
+  "games/checkers": {
+   "description": "Englische Tiefgänge mit erzwungenen Sprüngen und Königen gegen den Computer.",
+   "from": "749114ae7c"
+  },
+  "games/chess": {
+   "description": "Spielen Sie Schach gegen den Computer: volle Regeln, drei Schwierigkeitsstufen.",
+   "from": "c1481d832c"
+  },
+  "games/connect4": {
+   "description": "Drop Discs und Line-up vier; spielen Sie den Computer (drei Ebenen) oder einen Freund.",
+   "from": "aed456f29c"
+  },
+  "games/crossword": {
+   "description": "Jedes Mal ein neues ineinandergreifendes Kreuzworträtsel mit Hinweisen und Hinweisen.",
+   "from": "8e80db428c"
+  },
+  "games/daily": {
+   "description": "Eine Zahl Puzzle pro Tag, das gleiche für alle, mit einem Streifen.",
+   "from": "16734b8474"
+  },
+  "games/fallingwords": {
+   "description": "Geben Sie die fallenden Wörter ein, bevor sie landen.",
+   "from": "0c30972234"
+  },
+  "games/flood": {
+   "description": "Überfluten Sie das Board mit einer Farbe aus der Ecke innerhalb des Bewegungslimits.",
+   "from": "3c59ec8865"
+  },
+  "games/game2048": {
+   "description": "Schieben und verschmelzen Sie Kacheln, um 2048 zu erreichen.",
+   "from": "63640fbfc6"
+  },
+  "games/guess": {
+   "description": "Raten Sie die Zahl mit höheren / niedrigeren Hinweisen und warmen / kalten Hinweisen.",
+   "from": "ba79b8d4e2"
+  },
+  "games/hangman": {
+   "description": "Raten Sie das Wort, bevor die Zeichnung fertig ist.",
+   "from": "c7ceaf7af6"
+  },
+  "games/hangman2": {
+   "description": "Ein Spieler setzt ein geheimes Wort, der andere vermutet; tauscht jede Runde.",
+   "from": "32340d865e"
+  },
+  "games/higherlower": {
+   "description": "Raten Sie, ob die nächste Karte höher oder niedriger ist und sehen Sie, wie lange eine Gewinnserie Sie bauen können.",
+   "from": "06911ce400"
+  },
+  "games/life": {
+   "description": "Conway's Game of Life: Beobachten Sie Muster, die nach ein paar einfachen Regeln laufen, pulsieren und wachsen.",
+   "from": "18efab13b6"
+  },
+  "games/lightsout": {
+   "description": "Drücken Sie ein Licht, um es und seine Nachbarn umzudrehen; Schalten Sie sie alle aus. Immer lösbar, mit Hinweisen.",
+   "from": "833710c757"
+  },
+  "games/mastermind": {
+   "description": "Crack den vierfarbigen Code; schwarze und weiße Pflocken sagen Ihnen, wie nah Sie sind.",
+   "from": "6d6b2d6190"
+  },
+  "games/maze": {
+   "description": "Finden Sie Ihren Weg aus einem frisch gemachten Labyrinth, mit einem Hinweis, der die kürzeste Route zeigt.",
+   "from": "92f7838be4"
+  },
+  "games/memory": {
+   "description": "Finden Sie alle passenden Paare in so wenigen Umdrehungen wie möglich.",
+   "from": "2d275ef6af"
+  },
+  "games/minesweeper": {
+   "description": "Löschen Sie das Brett, ohne eine Mine zu treffen; der erste Platz ist immer sicher.",
+   "from": "a38528cac3"
+  },
+  "games/nim": {
+   "description": "Abwechselnd entfernen Steine; der Computer spielt die klassische perfekte Strategie (mit dem seltsamen Fehler, so dass Sie gewinnen können).",
+   "from": "61ba19d9be"
+  },
+  "games/pokedex": {
+   "description": "Suchen Sie nach einem Pokemon: Typen, Fähigkeiten, Statistiken und sein Pokedex-Eintrag (braucht Internet).",
+   "from": "2b4533f44a"
+  },
+  "games/pokerdice": {
+   "description": "Wischen Sie fünf Würfel dreimal und machen Sie die beste Pokerhand.",
+   "from": "c00452ae67"
+  },
+  "games/pong": {
+   "description": "Zuerst bis sieben gegen den Computer; Echtzeit oder Turn by Turn.",
+   "from": "b7efdc8952"
+  },
+  "games/reversi": {
+   "description": "Trap Linien von Discs, um sie zu drehen; spielen Sie den Computer auf drei Ebenen.",
+   "from": "d9e1c42bc6"
+  },
+  "games/rps": {
+   "description": "Rock, Papier, Schere, Eidechse, Spock gegen einen Computer, der Ihre Gewohnheiten studiert.",
+   "from": "1944a4ed5e"
+  },
+  "games/simon": {
+   "description": "Beobachten Sie das Muster der Farben und wiederholen Sie es aus dem Gedächtnis; jede Runde fügt eine weitere hinzu.",
+   "from": "f4456f3fcf"
+  },
+  "games/slide15": {
+   "description": "Das klassische Schiebenummernpuzzle in 3x3, 4x4 oder 5x5.",
+   "from": "69264bb7cf"
+  },
+  "games/snake": {
+   "description": "Klassische Schlange: Echtzeit mit Pfeiltasten, oder Turn by Turn, wo die Tasten begrenzt sind.",
+   "from": "80db2347f3"
+  },
+  "games/snakes": {
+   "description": "Das klassische Brettspiel gegen den Computer: Steigen Sie die Leitern, vermeiden Sie die Schlangen, erreichen Sie 100 genau.",
+   "from": "70f139d3cb"
+  },
+  "games/sokoban": {
+   "description": "Drücken Sie jede Box auf ein Ziel im Lager. Fünf Levels, mit Undo.",
+   "from": "bc325dade2"
+  },
+  "games/sudoku": {
+   "description": "Generierte Puzzles in drei Ebenen, mit Hinweisen, einem Checker und einem Solver.",
+   "from": "cfaf84305b"
+  },
+  "games/tetris": {
+   "description": "Fallende Blöcke: Echtzeit mit Pfeiltasten oder Turn by Turn, wo die Tasten begrenzt sind.",
+   "from": "b460c72d19"
+  },
+  "games/tictactoe": {
+   "description": "Spielen Sie tic-tac-toe gegen den Computer.",
+   "from": "b7c844c698"
+  },
+  "games/trivia": {
+   "description": "Zehn Multiple-Choice-Fragen, eingebaut oder online abgerufen.",
+   "from": "54c1e10d6f"
+  },
+  "games/triviapack": {
+   "description": "Zehn thematische Fragestellungen (Filme, Musik, Raum und mehr), alle offline.",
+   "from": "370863a47a"
+  },
+  "games/typingtest": {
+   "description": "Messen Sie Ihre Tippgeschwindigkeit und Genauigkeit.",
+   "from": "868018a4ef"
+  },
+  "games/wordle": {
+   "description": "Raten Sie das Wort mit fünf Buchstaben in sechs Versuchen; ein neues tägliches Wort jeden Tag.",
+   "from": "c72c297749"
+  },
+  "games/wordsearch": {
+   "description": "Finden Sie die versteckten Wörter in thematischen Gittern.",
+   "from": "631426e1da"
+  },
+  "utilities/algebra": {
+   "description": "Lösen Sie Gleichungen, vereinfachen, erweitern, Faktor, differenzieren und integrieren, mit sympy.",
+   "from": "d65dbd6b60"
+  },
+  "utilities/assistant": {
+   "description": "Chatten Sie mit einem AI-Modell vom Terminal. Sie wählen den Dienst (OpenAI, Anthropic, Gemini, OpenRouter, Ollama oder Ihre eigene Adresse) und geben Ihren API-Schlüssel.",
+   "from": "ab36b3f679"
+  },
+  "utilities/banner": {
+   "description": "Verwandeln Sie Wörter in große Buchstaben, in Hunderten von Schriften, mit Farbe.",
+   "from": "f88809d3c0"
+  },
+  "utilities/battery": {
+   "description": "Ladung, verbleibende Zeit, Temperatur und eine Ablaufhistorie, in der das Gerät sie meldet.",
+   "from": "57da448780"
+  },
+  "utilities/books": {
+   "description": "Finden Sie Bücher, Autoren und erste Publikationsjahre auf Open Library (Bedürfnisse Internet).",
+   "from": "075a8926f2"
+  },
+  "utilities/bulkrename": {
+   "description": "Benennen Sie viele Dateien auf einmal um, nachdem Sie genau gesehen haben, was sich ändern wird: Ersetzen, Nummer, Änderungsfall, reguläre Ausdrücke.",
+   "from": "ff57f95259"
+  },
+  "utilities/calendar": {
+   "description": "Eine Monatsansicht mit Ereignissen und Erinnerungen, die als Benachrichtigungen eintreffen.",
+   "from": "ecb1430bf0"
+  },
+  "utilities/cipher": {
+   "description": "Klassische Chiffren für Rätsel und Lernen: Caesar, ROT13, Atbash, Vigenere, Schienenzaun und ein Caesar Cracker.",
+   "from": "a6faa9c94c"
+  },
+  "utilities/clipboard": {
+   "description": "Alles, was Sie mit Snippets kopiert haben, durchsuchbar, mit Pins und Copyback.",
+   "from": "65a5df05cf"
+  },
+  "utilities/clock": {
+   "description": "Zeit, Weltuhren, Timer, Stoppuhr und Alarme in einer App.",
+   "from": "305d02c8e3"
+  },
+  "utilities/colors": {
+   "description": "Schauen Sie sich eine Farbe an, konvertieren Sie sie zwischen hex, rgb, hsl und hsv, finden Sie ihren Namen und eine passende Palette.",
+   "from": "53de2e1832"
+  },
+  "utilities/contacts": {
+   "description": "Ein kleines privates Adressbuch: Hinzufügen, Suchen, Bearbeiten und Exportieren von Personen mit ihrem Telefon, E-Mail und einer Notiz.",
+   "from": "9b49cd3cc8"
+  },
+  "utilities/converter": {
+   "description": "Einheitenkonverter und ein Rechner, der sich an seine Geschichte erinnert.",
+   "from": "7d180a4733"
+  },
+  "utilities/countdown": {
+   "description": "Wie viele Tage bis zu den Dingen, auf die Sie sich freuen: Fügen Sie Ereignisse hinzu und sehen Sie, wie sie heruntergezählt werden.",
+   "from": "23ba8f6a15"
+  },
+  "utilities/countries": {
+   "description": "Fakten über ein land: hauptstadt, menschen, größe, sprachen, geld, anrufcode und zeitzonen (braucht internet).",
+   "from": "43a18cbe86"
+  },
+  "utilities/cronwhen": {
+   "description": "Erklären Sie einen Cron-Zeitplan in einfachen Worten und listen Sie die nächsten Male auf, wenn er ausgeführt wird.",
+   "from": "65b5783052"
+  },
+  "utilities/csvview": {
+   "description": "Öffnen Sie eine CSV-Datei als Tabelle: Sortieren, Filtern, Spalten auswählen und eine Zusammenfassung der Zahlen anzeigen.",
+   "from": "4366d380e8"
+  },
+  "utilities/datecalc": {
+   "description": "Tage zwischen den Daten, addieren oder subtrahieren Zeit, Tag der Woche, Alter und Countdowns.",
+   "from": "6ec5f5e1e2"
+  },
+  "utilities/define": {
+   "description": "Schauen Sie nach, was ein Wort bedeutet: Definitionen, ein Beispiel und Synonyme.",
+   "from": "43e3ed3569"
+  },
+  "utilities/diskusage": {
+   "description": "Ein ncdu-Stil Explorer: Sehen Sie, was Platz einnimmt und löschen Sie es.",
+   "from": "050cfc40a4"
+  },
+  "utilities/dupes": {
+   "description": "Finden Sie Dateien, die genaue Kopien voneinander sind und verschieben Sie die Extras in einen Überprüfungsordner; nichts wird gelöscht.",
+   "from": "2d37c10bea"
+  },
+  "utilities/emoji": {
+   "description": "Suchen Sie ein Emoji nach Namen, verwandeln Sie :shortcodes: in Emoji oder verwandeln Sie Emoji zurück in Wörter.",
+   "from": "cf117aff50"
+  },
+  "utilities/epub": {
+   "description": "Lesen Sie EPUB E-Books im Terminal: Kapitel, Text und Details.",
+   "from": "43de23b789"
+  },
+  "utilities/expenses": {
+   "description": "Notieren Sie sich, was Sie ausgeben, und sehen Sie eine monatliche Zusammenfassung nach Kategorie.",
+   "from": "0b9f64baae"
+  },
+  "utilities/files": {
+   "description": "Durchsuchen, Öffnen, Kopieren, Verschieben, Umbenennen, Löschen und Suchen von Dateien.",
+   "from": "f6475c11dc"
+  },
+  "utilities/flashcards": {
+   "description": "Machen Sie Decks von Frage- und Antwortkarten und studieren Sie sie mit beabstandeten Wiederholungen.",
+   "from": "b28695f1f4"
+  },
+  "utilities/habits": {
+   "description": "Tick off täglichen Gewohnheiten und halten Sie Ihre Streifen gehen.",
+   "from": "e8a95e46aa"
+  },
+  "utilities/hashtool": {
+   "description": "Prüfsummen von Text und Dateien, Dateiverifizierung, Base64/URL/hex/binary/HTML-Konvertierung.",
+   "from": "0ebeadf64d"
+  },
+  "utilities/hexview": {
+   "description": "Siehe die Bytes einer beliebigen Datei, in Hexadezimal- und Text, wie hexdump.",
+   "from": "93ec380a9b"
+  },
+  "utilities/hn": {
+   "description": "Die Top, neueste und beste Geschichten auf Hacker News mit ihren Punkten und Kommentar zählt (braucht Internet).",
+   "from": "e24c50d45d"
+  },
+  "utilities/holidays": {
+   "description": "Feiertage eines Landes: das ganze Jahr, das nächste oder ob ein Datum ein Feiertag ist.",
+   "from": "7b41398bc8"
+  },
+  "utilities/httptest": {
+   "description": "Senden Sie HTTP-Anfragen und überprüfen Sie Status, Timing, Header und den formatierten Body.",
+   "from": "5a8c7a5c77"
+  },
+  "utilities/imgview": {
+   "description": "Zeigen Sie Bilder im Terminal in Farbe: PNG, JPEG, GIF, BMP, WebP.",
+   "from": "4780a53605"
+  },
+  "utilities/ipcalc": {
+   "description": "Erarbeiten Sie ein Netzwerk aus einer Adresse und Maske: Reichweite, Broadcast, Hosts und wie Sie es in kleinere Netzwerke aufteilen.",
+   "from": "5ffde917cc"
+  },
+  "utilities/iss": {
+   "description": "Wo sich die Internationale Raumstation gerade befindet: Position, Höhe und Geschwindigkeit (braucht Internet).",
+   "from": "1b4d906ce7"
+  },
+  "utilities/journal": {
+   "description": "Ein privates Tagebuch: Schreiben Sie einen Eintrag, lesen Sie einen Tag zurück, suchen Sie alles, was Sie geschrieben haben.",
+   "from": "801c723731"
+  },
+  "utilities/jsonfmt": {
+   "description": "Validieren, schön drucken, verkleinern und erkunden Sie JSON, mit der Position eines Fehlers.",
+   "from": "9e31e75baf"
+  },
+  "utilities/jwt": {
+   "description": "Lesen Sie ein JSON Web Token: seine Kopfzeile und Ansprüche, wenn es abläuft und ob ein Geheimnis mit seiner Signatur übereinstimmt.",
+   "from": "33b30827f1"
+  },
+  "utilities/lanscan": {
+   "description": "Finden Sie die Geräte in Ihrem eigenen lokalen Netzwerk (nur private Bereiche): Namen, Hersteller, wie schnell sie antworten, was sie zu sein scheinen und was sich seit dem letzten Mal geändert hat.",
+   "from": "a2e8e296e2"
+  },
+  "utilities/loan": {
+   "description": "Was ein Darlehen oder eine Hypothek wirklich kostet: die monatliche Zahlung, die Zinsen, die Wirkung der Zahlung extra, ein Jahr-für-Jahres-Tabelle.",
+   "from": "0043926701"
+  },
+  "utilities/logviewer": {
+   "description": "Lesen Sie das Systemprotokoll mit Filtern, Farben, Folgemodus und Export.",
+   "from": "dc1bb5072b"
+  },
+  "utilities/mdedit": {
+   "description": "Schreiben Sie Markdown mit einer live formatierten Vorschau und exportieren Sie eine Webseite.",
+   "from": "968b24489c"
+  },
+  "utilities/mdview": {
+   "description": "Lesen Sie Ihre Notizen und Markdown-Dateien schön formatiert.",
+   "from": "b7d59c3cfc"
+  },
+  "utilities/mockdata": {
+   "description": "Machen Sie glaubwürdige gefälschte Namen, Adressen, E-Mails, Unternehmen und Text zum Testen in vielen Sprachen.",
+   "from": "12e5a2bec1"
+  },
+  "utilities/morse": {
+   "description": "Verwandeln Sie Text in Morse-Code und zurück, sehen Sie sich die Tabelle an und üben Sie mit einem Quiz.",
+   "from": "b83422e860"
+  },
+  "utilities/nettools": {
+   "description": "Verbindungsüberprüfung, DNS Lookup, Porttest, TCP-Ping, Webseitenüberprüfung.",
+   "from": "f11e427e6e"
+  },
+  "utilities/notes": {
+   "description": "Schreiben und Lesen von Notizen, gespeichert als Textdateien in ~/Notizen.",
+   "from": "f9467ccc5c"
+  },
+  "utilities/passgen": {
+   "description": "Zufällige Passwörter und Passphrasen sowie eine Stärkeprüfung. Nichts wird gerettet.",
+   "from": "b47eb686bc"
+  },
+  "utilities/pdfread": {
+   "description": "Lesen Sie ein PDF im Terminal: seinen Text Seite für Seite, seine Details und eine Suche.",
+   "from": "d3ac7b3584"
+  },
+  "utilities/phone": {
+   "description": "Überprüfen und formatieren Sie eine Telefonnummer: gültig oder nicht, Land, Leitungstyp, internationale und nationale Formulare.",
+   "from": "2e3c606721"
+  },
+  "utilities/plot": {
+   "description": "Zeichnen Sie Diagramme im Terminal aus Zahlen oder einer CSV-Datei: Linien, Balken, Scatter und Histogramme.",
+   "from": "a1ca505a2e"
+  },
+  "utilities/pomodoro": {
+   "description": "Ein Fokus-Timer: Arbeiten Sie in Blöcken mit kurzen Pausen, mit einem Live-Countdown.",
+   "from": "791096b30e"
+  },
+  "utilities/portscan": {
+   "description": "Sehen Sie, welche Ports auf diesem Computer geöffnet sind. Sie lehnt jede andere Adresse ab.",
+   "from": "cff66f8cd5"
+  },
+  "utilities/procs": {
+   "description": "Sehen Sie laufende Prozesse und Hintergrundjobs, schauen Sie genauer hin und stoppen Sie sie.",
+   "from": "77ada3192a"
+  },
+  "utilities/pypi": {
+   "description": "Was ein Python Paket ist, seine neueste Version, Lizenz, Anforderungen und aktuelle Veröffentlichungen (Bedürfnisse Internet).",
+   "from": "3df257999b"
+  },
+  "utilities/qr": {
+   "description": "Erstellen Sie QR-Codes für Text, Links, Wi-Fi und Kontakte - geschrieben im Klartext Python.",
+   "from": "b0972c269b"
+  },
+  "utilities/quake": {
+   "description": "Die neuesten Erdbeben der Welt aus dem US Geological Survey: die größte des Tages, der Woche oder des Monats (braucht Internet).",
+   "from": "ac8f2c13b9"
+  },
+  "utilities/rates": {
+   "description": "Konvertieren Sie Geld zwischen Währungen zu den neuesten Raten der Europäischen Zentralbank (benötigt Internet).",
+   "from": "f40f96ea6c"
+  },
+  "utilities/readability": {
+   "description": "Wie lang und wie schwer ein Text zu lesen ist: Wörter, Lesezeit, Klassenstufe und die Wörter, die Sie am häufigsten verwenden.",
+   "from": "060998cf22"
+  },
+  "utilities/regextest": {
+   "description": "Probieren Sie reguläre Ausdrücke mit hervorgehobenen Übereinstimmungen, Gruppen und einfachen englischen Erklärungen aus.",
+   "from": "f55a27cf00"
+  },
+  "utilities/roll": {
+   "description": "Würfel für Spiele: 2d6 + 3, d20, 4d6kh3 (halten Sie die besten drei), mehrere auf einmal.",
+   "from": "d0ca9a7776"
+  },
+  "utilities/rss": {
+   "description": "Folgen Sie News-Feeds und lesen Sie Schlagzeilen mit Offline-Kopien.",
+   "from": "64a337507d"
+  },
+  "utilities/schedui": {
+   "description": "Ein freundliches Formular für die Ausführung von Befehlen später, wiederholt oder jeden Tag.",
+   "from": "ef925a3a62"
+  },
+  "utilities/snippets": {
+   "description": "Eine Zwischenablage und eine Bibliothek mit benannten Snippets, die als einfache Dateien gespeichert sind.",
+   "from": "908a6ff811"
+  },
+  "utilities/speedtest": {
+   "description": "Messen Sie Latenz, Download und Upload-Geschwindigkeit und behalten Sie eine Historie.",
+   "from": "09c92a4546"
+  },
+  "utilities/spell": {
+   "description": "Überprüfen Sie ein Wort oder eine ganze Datei auf Rechtschreibfehler mit Vorschlägen in mehreren Sprachen.",
+   "from": "e11031a91d"
+  },
+  "utilities/startup": {
+   "description": "Wählen Sie Befehle, die jedes Mal, wenn Sie sich anmelden, von selbst ausgeführt werden.",
+   "from": "747ba99a16"
+  },
+  "utilities/sunmoon": {
+   "description": "Sonnenaufgang, Sonnenuntergang, Tageslänge und die Mondphase für eine Stadt und einen Tag, auf diesem Computer ausgearbeitet.",
+   "from": "0f9b530fb9"
+  },
+  "utilities/synonyms": {
+   "description": "Synonyme, Gegensätze, Reime, Wörter, die ähnlich klingen, und Wörter, die zu einem Muster passen (braucht Internet).",
+   "from": "d7a56896bc"
+  },
+  "utilities/sysmon": {
+   "description": "Ein Live-Dashboard von PythonOS selbst: CPU, Speicher, Aufgaben und Speicher.",
+   "from": "8bd1c8091c"
+  },
+  "utilities/texttools": {
+   "description": "Count, change case, sort, dedupe, replace, slugify, wrap and extract links oder E-Mails.",
+   "from": "79fe994293"
+  },
+  "utilities/themedesigner": {
+   "description": "Gestalten Sie Ihr eigenes Farbthema mit einer Live-Vorschau und verwenden Sie es mit Einstellungen.",
+   "from": "5aa671105d"
+  },
+  "utilities/tipsplit": {
+   "description": "Fügen sie einen tipp zu einer rechnung hinzu und teilen sie ihn zwischen freunden auf und runden sie auf, so dass niemand zu kurz ist.",
+   "from": "442fdb242b"
+  },
+  "utilities/todo": {
+   "description": "Halten Sie eine einfache To-Do-Liste in Ihrem Home-Ordner gespeichert.",
+   "from": "cc760a6e83"
+  },
+  "utilities/units": {
+   "description": "Konvertieren Sie zwischen Tausenden von Einheiten und berechnen Sie mit ihnen: Meilen zu km, degC zu degF, km / h zu mph, Tassen zu ml.",
+   "from": "d397311254"
+  },
+  "utilities/weather": {
+   "description": "Überprüfen Sie das aktuelle Wetter für jede Stadt (braucht Internet).",
+   "from": "20c21b71b2"
+  },
+  "utilities/wifimeter": {
+   "description": "Ein Live-Wi-Fi-Signalmessgerät, um den besten Platz zu finden (Linux und die Live-ISO).",
+   "from": "eaa9d53bf3"
+  },
+  "utilities/wiki": {
+   "description": "Schauen Sie sich die Dinge auf Wikipedia vom Terminal aus an: eine kurze Zusammenfassung, eine Suche oder einen zufälligen Artikel.",
+   "from": "b2a70cb697"
+  },
+  "utilities/worldclock": {
+   "description": "Die Zeit in Städten auf der ganzen Welt, und was 15:00 in London ist in Tokio.",
+   "from": "bed56ccc04"
+  },
+  "utilities/xkcd": {
+   "description": "Lesen Sie einen xkcd-Comic vom Terminal: den Titel, das Datum und den Text, der zeigt, wann Sie schweben (braucht Internet).",
+   "from": "56c7cdbb0d"
+  },
+  "utilities/ytaudio": {
+   "description": "Durchsuchen Sie YouTube und spielen Sie nur den Sound vom Terminal ab, mit einer Warteschlange. Spielt in PythonOS selbst: nichts anderes zu installieren, kein anderes Programm.",
+   "from": "02ecc26a8b"
+  }
+ },
+ "categories": {
+  "ai": {
+   "title": "KI-Assistenten",
+   "title_from": "64390be9fd",
+   "blurb": "Chat mit einem AI-Modell vom Terminal",
+   "blurb_from": "571222cd8d"
+  },
+  "developer": {
+   "title": "Entwickler",
+   "title_from": "7e08ebec5e",
+   "blurb": "Für Leute, die Code schreiben",
+   "blurb_from": "99a7728a55"
+  },
+  "games": {
+   "title": "Spiele",
+   "title_from": "398ed32981",
+   "blurb": "Etwas zum Spielen",
+   "blurb_from": "dcb8ae513f"
+  },
+  "learning": {
+   "title": "Lernen",
+   "title_from": "1016fcb2b4",
+   "blurb": "Üben und Lernen",
+   "blurb_from": "dab93410b6"
+  },
+  "media": {
+   "title": "Audio und Video",
+   "title_from": "0b73453e9d",
+   "blurb": "Musik, Podcasts und Player",
+   "blurb_from": "fcc974505d"
+  },
+  "network": {
+   "title": "Netzwerk und Online",
+   "title_from": "c3d2db21bc",
+   "blurb": "Nachrichten, Wetter und Netzwerk-Tools",
+   "blurb_from": "529b64a4a1"
+  },
+  "productivity": {
+   "title": "Produktivität",
+   "title_from": "e140460ced",
+   "blurb": "Dinge erledigen: Listen, Notizen, Kalender, Uhr",
+   "blurb_from": "ad10d90842"
+  },
+  "system": {
+   "blurb": "Achten Sie auf diesen Computer",
+   "blurb_from": "be2254e9c0"
+  },
+  "tools": {
+   "title": "Werkzeuge",
+   "title_from": "4fa8cc860c",
+   "blurb": "Tägliche Helfer",
+   "blurb_from": "ee5776f264"
+  }
+ }
+}
